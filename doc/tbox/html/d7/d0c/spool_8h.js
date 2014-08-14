@@ -1,0 +1,27 @@
+var spool_8h =
+[
+    [ "tb_spool_free", "d7/d0c/spool_8h.html#acb156e61bad0755a1b5527e3db701a53", null ],
+    [ "TB_SPOOL_GROW_DEFAULT", "d7/d0c/spool_8h.html#ad35227e474d36376b25aba7b07282eac", null ],
+    [ "TB_SPOOL_GROW_LARGE", "d7/d0c/spool_8h.html#aa69a7575b39fd1b73edb69bedb18ea58", null ],
+    [ "TB_SPOOL_GROW_MICRO", "d7/d0c/spool_8h.html#ab54f0565b25d2e241927e1d2427d1f5e", null ],
+    [ "TB_SPOOL_GROW_SMALL", "d7/d0c/spool_8h.html#aa50147d57f6f49758a6d5a357b5b7483", null ],
+    [ "tb_spool_malloc", "d7/d0c/spool_8h.html#a766cfae526d5f7a57dc36c0dd5f92de3", null ],
+    [ "tb_spool_malloc0", "d7/d0c/spool_8h.html#a068ffb2a05770a2a86f1d16c257d7589", null ],
+    [ "tb_spool_nalloc", "d7/d0c/spool_8h.html#a083a621eda6aa47c0c9f5edad4809ae7", null ],
+    [ "tb_spool_nalloc0", "d7/d0c/spool_8h.html#a59cadba462e5ec7d68bcac97a6278066", null ],
+    [ "tb_spool_ralloc", "d7/d0c/spool_8h.html#a12b41f8e42e6786e710e7bf9ccda8b51", null ],
+    [ "tb_spool_strdup", "d7/d0c/spool_8h.html#a4a3d0d986c3f12aec609954a0a586934", null ],
+    [ "tb_spool_strndup", "d7/d0c/spool_8h.html#a416c927680d226287fdd6a107b942227", null ],
+    [ "tb_spool_clear", "d7/d0c/spool_8h.html#a3f978601ba8d83ece86babcab324fa7d", null ],
+    [ "tb_spool_dump", "d7/d0c/spool_8h.html#ae01ff2906fa80fe22d77d0fa07cfeadd", null ],
+    [ "tb_spool_exit", "d7/d0c/spool_8h.html#ac6d79ba81892f154a68442f18aaaef12", null ],
+    [ "tb_spool_free_impl", "d7/d0c/spool_8h.html#a8bc2f641af31cd807f000cb5dd22d700", null ],
+    [ "tb_spool_init", "d7/d0c/spool_8h.html#af90b05a61f324590d0d1681df785bac3", null ],
+    [ "tb_spool_malloc0_impl", "d7/d0c/spool_8h.html#abd243f035d314d409dc190ff27faf5d1", null ],
+    [ "tb_spool_malloc_impl", "d7/d0c/spool_8h.html#a1afecd64881a292ce8582c5650612afa", null ],
+    [ "tb_spool_nalloc0_impl", "d7/d0c/spool_8h.html#ab59c757298acffaa2ea4ac7f90463ab5", null ],
+    [ "tb_spool_nalloc_impl", "d7/d0c/spool_8h.html#ab1ae27b8f39db1f8eb8df05014f5beb4", null ],
+    [ "tb_spool_ralloc_impl", "d7/d0c/spool_8h.html#a2a35d8b31fa5692c2c349f9940181da6", null ],
+    [ "tb_spool_strdup_impl", "d7/d0c/spool_8h.html#a912595fa9a7c4c4c9c5e86d624f7f4f3", null ],
+    [ "tb_spool_strndup_impl", "d7/d0c/spool_8h.html#a3a1a39baecf76f57f3210629c24d784f", null ]
+];

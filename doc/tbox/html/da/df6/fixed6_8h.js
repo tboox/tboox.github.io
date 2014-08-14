@@ -1,0 +1,25 @@
+var fixed6_8h =
+[
+    [ "tb_fixed16_to_fixed6", "da/df6/fixed6_8h.html#a86e94a8a5992810be973f4358c663d0f", null ],
+    [ "tb_fixed6_abs", "da/df6/fixed6_8h.html#ab89decff30ca0c688af798b22bd44e1b", null ],
+    [ "tb_fixed6_avg", "da/df6/fixed6_8h.html#a9e9ad7529e33dd5b27bdb83b9ceea773", null ],
+    [ "tb_fixed6_ceil", "da/df6/fixed6_8h.html#ad02d27c093b2a3b176ee025ba1bb7cf3", null ],
+    [ "tb_fixed6_div", "da/df6/fixed6_8h.html#a8c7b6f4e1a7c57e7928480d3b2f0affd", null ],
+    [ "tb_fixed6_floor", "da/df6/fixed6_8h.html#a320c70894bd194f1d655c28238f00552", null ],
+    [ "TB_FIXED6_HALF", "da/df6/fixed6_8h.html#a930fb89d76ea50b44cea6db5e9f159de", null ],
+    [ "TB_FIXED6_INF", "da/df6/fixed6_8h.html#a3cd21aa8045aec72ebcd73925026dd54", null ],
+    [ "TB_FIXED6_MAX", "da/df6/fixed6_8h.html#a60f1403323a04c149de3e904ce3ff07c", null ],
+    [ "TB_FIXED6_MIN", "da/df6/fixed6_8h.html#a696851e22cb54b1bcdd0361b4cf38c61", null ],
+    [ "TB_FIXED6_NAN", "da/df6/fixed6_8h.html#acf53f7b5640c6b2da3b844779244e2cf", null ],
+    [ "TB_FIXED6_ONE", "da/df6/fixed6_8h.html#abe6a35312332badac2fc6ae1caa9bd66", null ],
+    [ "TB_FIXED6_PI", "da/df6/fixed6_8h.html#af705a985d0c75577c77adb246dae1ae6", null ],
+    [ "tb_fixed6_round", "da/df6/fixed6_8h.html#a37c7dae0a9095d2ce0bc79fefb3eede9", null ],
+    [ "TB_FIXED6_SQRT2", "da/df6/fixed6_8h.html#a66f2f4d4a0e53f0d51350f01ba8bfb38", null ],
+    [ "tb_fixed6_to_fixed16", "da/df6/fixed6_8h.html#a21980a463cdb2765ac8693090ed9ed60", null ],
+    [ "tb_fixed6_to_float", "da/df6/fixed6_8h.html#a917cffc6f970fd491d3e895ba17f84a4", null ],
+    [ "tb_fixed6_to_int", "da/df6/fixed6_8h.html#aeeb7e1a4651255abd9673e85c45ef306", null ],
+    [ "tb_fixed6_to_long", "da/df6/fixed6_8h.html#a612862db6cbafe8e87dcaf9613e70f1c", null ],
+    [ "tb_float_to_fixed6", "da/df6/fixed6_8h.html#a0cb1f1b521a22c8a98d4d20852aff068", null ],
+    [ "tb_int_to_fixed6", "da/df6/fixed6_8h.html#acbc405ad53ab0566a4f18ccdbf46ad6e", null ],
+    [ "tb_long_to_fixed6", "da/df6/fixed6_8h.html#af9c04df1f0166b19965cdc64279a4ef9", null ]
+];

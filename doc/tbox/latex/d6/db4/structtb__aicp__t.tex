@@ -1,0 +1,124 @@
+\hypertarget{structtb__aicp__t}{\section{tb\-\_\-aicp\-\_\-t Struct Reference}
+\label{structtb__aicp__t}\index{tb\-\_\-aicp\-\_\-t@{tb\-\_\-aicp\-\_\-t}}
+}
+
+
+{\ttfamily \#include $<$aicp.\-h$>$}
+
+
+
+Collaboration diagram for tb\-\_\-aicp\-\_\-t\-:
+\subsection*{Data Fields}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{structtb__aicp__t_ab884696b53a29ea18afe6b5f8ec32597}{tb\-\_\-size\-\_\-t \hyperlink{structtb__aicp__t_ab884696b53a29ea18afe6b5f8ec32597}{maxn}}\label{structtb__aicp__t_ab884696b53a29ea18afe6b5f8ec32597}
+
+\begin{DoxyCompactList}\small\item\em the object maxn \end{DoxyCompactList}\item 
+\hypertarget{structtb__aicp__t_af49f1b6e010c9ef5d96b42009829cb6f}{tb\-\_\-atomic\-\_\-t \hyperlink{structtb__aicp__t_af49f1b6e010c9ef5d96b42009829cb6f}{kill}}\label{structtb__aicp__t_af49f1b6e010c9ef5d96b42009829cb6f}
+
+\begin{DoxyCompactList}\small\item\em is killed? \end{DoxyCompactList}\item 
+\hypertarget{structtb__aicp__t_aec21317f9793609428f9ba96e9795b4d}{\hyperlink{structtb__aicp__proactor__t}{tb\-\_\-aicp\-\_\-proactor\-\_\-t} $\ast$ \hyperlink{structtb__aicp__t_aec21317f9793609428f9ba96e9795b4d}{ptor}}\label{structtb__aicp__t_aec21317f9793609428f9ba96e9795b4d}
+
+\begin{DoxyCompactList}\small\item\em the proactor \end{DoxyCompactList}\item 
+\hypertarget{structtb__aicp__t_a05fc651c69e60f97a0e897580a924411}{tb\-\_\-atomic\-\_\-t \hyperlink{structtb__aicp__t_a05fc651c69e60f97a0e897580a924411}{work}}\label{structtb__aicp__t_a05fc651c69e60f97a0e897580a924411}
+
+\begin{DoxyCompactList}\small\item\em the worker size \end{DoxyCompactList}\item 
+\hypertarget{structtb__aicp__t_ad57cd4cec762b8bbbaae7cccd331addb}{tb\-\_\-handle\-\_\-t \hyperlink{structtb__aicp__t_ad57cd4cec762b8bbbaae7cccd331addb}{pool}}\label{structtb__aicp__t_ad57cd4cec762b8bbbaae7cccd331addb}
+
+\begin{DoxyCompactList}\small\item\em the pool \end{DoxyCompactList}\item 
+\hypertarget{structtb__aicp__t_ac13412f06d6d70b51ba0c8d70f7e8c07}{tb\-\_\-spinlock\-\_\-t \hyperlink{structtb__aicp__t_ac13412f06d6d70b51ba0c8d70f7e8c07}{lock}}\label{structtb__aicp__t_ac13412f06d6d70b51ba0c8d70f7e8c07}
+
+\begin{DoxyCompactList}\small\item\em the pool lock \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+the aico pool type
+
+
+\begin{DoxyPre}
+      |------------------------------------------------|
+      |                   astream                      |
+      |------------------------------------------------|
+      |  addr  | http | file | sock |      ..          | 
+      '------------------------------------------------'
+                            |
+init:                    [aicp]
+                            |
+      |------------------------------------------------|
+addo: | aico0   aico1   aico2   aico3      ...         | <= sock, file, and task aico
+      '------------------------------------------------'
+                            | 
+                         [aicp]
+                            |
+post: |------------------------------------------------| <= only post one aice for the same aico util the aice is finished
+aice: | aice0   aice1   aice2   aice3      ...         | <---------------------------------------------------------------------------------
+      '------------------------------------------------'                                                                                  |
+                            |                                                                                                             |
+                         [aicp]                                                                                                           |
+                            |         <= input aices                                                                                      |
+                            |                                                                                                             |
+                            '--------------------------------------------------------------                                               | 
+                                                               |                          |                                               |
+      |--------------------------------------------------------------------------------------------------|                                |
+      |                         unix proactor                  |              |     windows proactor     |                                |
+      |-----------------------------------------------------------------------|--------------------------|                                |
+      |                                                        |              |           |              |                                |
+      |                           continue to spak aice        |              |           |-----         |                                |
+      |                      ------------------------------->  |              |           |     |        |                                |
+      |                     |                                 \textbackslash{}/    [lock]    |          \textbackslash{}/     |        |                                |
+aiop: |------|-------|-------|-------|---- ... --|-----|    |-----|           |         done  post       |                                |
+aico: | aico0  aico1   aico2   aico3       ...         |    |  |  |           |          |      |        |                                |
+wait: |------|-------|-------|-------|---- ... --|-----|    |aice4|           |    |----------------|    |                                |
+      |   |              |                             |    |  |  |           |    |                |    |                                |
+      | aice0           aice2                          |    |aice5|           |    |                |    |                                |
+      |   |              |                             |    |  |  |           |    |                |    |                                |
+      | aice1           ...                            |    |aice6|           |    |      iocp      |    |                                |
+      |   |                                            |    |  |  |           |    |                |    |                                |
+      | aice3                                          |    |aice7|           |    |                |    |                                |
+      |   |                                            |    |  |  |           |    |                |    |                                |
+      |  ...                                           |    | ... |           |    |                |    |                                |
+      |   |                                            |    |  |  |           |    | wait0 wait1 .. |    |                                |
+      |                                                |    |     |           |     ----------------     |                                |
+      |                 wait poll                      |    |queue|           |      |         |         |                                |
+      '------------------------------------------------'    '-----'-----------'--------------------------'                                |
+                            /\textbackslash{}                                 |    [lock]           |         |                                          |
+                            |                                  |                     |         |                                          |              
+                            |     no data? wait aice        --------------------------->-----------------                                 |
+                            |<-----------------------------|    worker0   |   worker1    |    ...        | <= done loop for workers       |
+                                                            -------------------<-------------------------                                 |
+                                                                  |             |              |                                          |
+                                                           |---------------------------------------------|                                |
+                                                           |    aice0    |    aice2     |     ...        |                                |
+                                                           |    aice1    |    aice3     |     ...        | <= output aices                |
+                                                           |     ...     |    aice4     |     ...        |                                |
+                                                           |     ...     |     ...      |     ...        |                                |
+                                                           '---------------------------------------------'                                |
+                                                                  |              |              |                                         |         
+                                                           |---------------------------------------------|                                |
+                                                           |   caller0   |   caller2    |     ...        |                                |
+                                                           |   caller1   |     ...      |     ...        | <= done callers                |
+                                                           |     ...     |   caller3    |     ...        |                                |
+                                                           |     ...     |     ...      |     ...        |                                |
+                                                           '---------------------------------------------'                                |
+                                                                  |              |                                                        | 
+                                                                 ...            ...                                                       |
+                                                             post aice          end ----                                                  |
+                                                                  |                     |                                                 |
+                                                                  '---------------------|------------------------------------------------>'
+                                                                                        |
+kill:                                                                  ...              |
+                                                                        |               |
+exit:                                                                  ...    <---------'\end{DoxyPre}
+
+
+
+\begin{DoxyPre}\end{DoxyPre}
+ 
+
+Definition at line 167 of file aicp.\-h.
+
+
+
+The documentation for this struct was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+src/asio/\hyperlink{aicp_8h}{aicp.\-h}\end{DoxyCompactItemize}
