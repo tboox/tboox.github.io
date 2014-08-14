@@ -1,5 +1,17 @@
 var malloc_8h =
 [
+    [ "tb_align8_free", "d0/d4c/malloc_8h.html#aa23d83a7d889d77b7d6e44946286dc9b", null ],
+    [ "tb_align8_malloc", "d0/d4c/malloc_8h.html#ae30c51a9841699d3c7f6e0cc1bc04422", null ],
+    [ "tb_align8_malloc0", "d0/d4c/malloc_8h.html#aeebd27c0ef57fc3dec277346d468ca3a", null ],
+    [ "tb_align8_nalloc", "d0/d4c/malloc_8h.html#a410f6e228989800f4902ccbd500134c2", null ],
+    [ "tb_align8_nalloc0", "d0/d4c/malloc_8h.html#a4f47223a5326af6ae0204f05d7f118e3", null ],
+    [ "tb_align8_ralloc", "d0/d4c/malloc_8h.html#a87b57e6214684e3505fe21c728e1e422", null ],
+    [ "tb_align_free", "d0/d4c/malloc_8h.html#ae5f9c89923378ab7ae3a911ce0183027", null ],
+    [ "tb_align_malloc", "d0/d4c/malloc_8h.html#acf457d1c1a1fcbd1a2afe1cc1b51373b", null ],
+    [ "tb_align_malloc0", "d0/d4c/malloc_8h.html#aa1231ffbde68a09bf2b2d043e2d8af67", null ],
+    [ "tb_align_nalloc", "d0/d4c/malloc_8h.html#a6a8dea09e0e8fbf5efdc166a778824b7", null ],
+    [ "tb_align_nalloc0", "d0/d4c/malloc_8h.html#a128bde1dc6acf66d8ffeae42fe792a90", null ],
+    [ "tb_align_ralloc", "d0/d4c/malloc_8h.html#a1abb55145678ba544182cf3c05ca4581", null ],
     [ "tb_free", "d0/d4c/malloc_8h.html#a0f78320b14675c1ef1d040b653f2ab7d", null ],
     [ "tb_malloc", "d0/d4c/malloc_8h.html#a392ca65d7fd0d75a406d053fb3bf6a3e", null ],
     [ "tb_malloc0", "d0/d4c/malloc_8h.html#a0fb2c60fdef629bed34f072b2741d068", null ],

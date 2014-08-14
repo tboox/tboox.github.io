@@ -418,23 +418,129 @@ $(document).ready(function(){initNavTree('d4/de5/pool_8c_source.html','../../');
 <div class="line"><a name="l00333"></a><span class="lineno">  333</span>&#160;    <span class="comment">// ok?</span></div>
 <div class="line"><a name="l00334"></a><span class="lineno">  334</span>&#160;    <span class="keywordflow">return</span> ok;</div>
 <div class="line"><a name="l00335"></a><span class="lineno">  335</span>&#160;}</div>
-<div class="line"><a name="l00336"></a><span class="lineno">  336</span>&#160;<span class="preprocessor">#ifdef __tb_debug__</span></div>
-<div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;<span class="preprocessor"></span>tb_void_t tb_pool_dump(<a class="code" href="../../d6/d28/structtb__pool__ref__t.html">tb_pool_ref_t</a> pool)</div>
-<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160;{</div>
-<div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160;    <span class="comment">// check</span></div>
-<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160;    tb_pool_impl_t* impl = (tb_pool_impl_t*)pool;</div>
-<div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160;    tb_assert_and_check_return(impl &amp;&amp; impl-&gt;large_pool &amp;&amp; impl-&gt;small_pool);</div>
-<div class="line"><a name="l00342"></a><span class="lineno">  342</span>&#160;</div>
-<div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160;    <span class="comment">// enter</span></div>
-<div class="line"><a name="l00344"></a><span class="lineno">  344</span>&#160;    tb_spinlock_enter(&amp;impl-&gt;lock);</div>
+<div class="line"><a name="l00336"></a><span class="lineno"><a class="line" href="../../db/db7/pool_8h.html#a4db2e3c59db89e5c7aa77b3e4a6c2f19">  336</a></span>&#160;tb_pointer_t <a class="code" href="../../d4/de5/pool_8c.html#a4db2e3c59db89e5c7aa77b3e4a6c2f19">tb_pool_align_malloc_</a>(<a class="code" href="../../d6/d28/structtb__pool__ref__t.html">tb_pool_ref_t</a> pool, tb_size_t size, tb_size_t align __tb_debug_decl__)</div>
+<div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;{</div>
+<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160;    <span class="comment">// check</span></div>
+<div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160;    tb_assertf_abort(!(align &amp; 3), <span class="stringliteral">&quot;invalid alignment size: %lu&quot;</span>, align);</div>
+<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160;    tb_check_return_val(!(align &amp; 3), tb_null);</div>
+<div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160;</div>
+<div class="line"><a name="l00342"></a><span class="lineno">  342</span>&#160;    <span class="comment">// malloc it</span></div>
+<div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160;    tb_byte_t* data = (tb_byte_t*)<a class="code" href="../../d4/de5/pool_8c.html#ab4e537ced8d8d23a4ff36c6dfc59b3e5">tb_pool_malloc_</a>(pool, size + align __tb_debug_args__);</div>
+<div class="line"><a name="l00344"></a><span class="lineno">  344</span>&#160;    tb_check_return_val(data, tb_null);</div>
 <div class="line"><a name="l00345"></a><span class="lineno">  345</span>&#160;</div>
-<div class="line"><a name="l00346"></a><span class="lineno">  346</span>&#160;    <span class="comment">// dump pool</span></div>
-<div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160;    tb_small_pool_dump(impl-&gt;small_pool);</div>
+<div class="line"><a name="l00346"></a><span class="lineno">  346</span>&#160;    <span class="comment">// the different bytes</span></div>
+<div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160;    tb_byte_t diff = (tb_byte_t)((~(tb_long_t)data) &amp; (align - 1)) + 1;</div>
 <div class="line"><a name="l00348"></a><span class="lineno">  348</span>&#160;</div>
-<div class="line"><a name="l00349"></a><span class="lineno">  349</span>&#160;    <span class="comment">// leave</span></div>
-<div class="line"><a name="l00350"></a><span class="lineno">  350</span>&#160;    tb_spinlock_leave(&amp;impl-&gt;lock);</div>
-<div class="line"><a name="l00351"></a><span class="lineno">  351</span>&#160;}</div>
-<div class="line"><a name="l00352"></a><span class="lineno">  352</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00349"></a><span class="lineno">  349</span>&#160;    <span class="comment">// adjust the address</span></div>
+<div class="line"><a name="l00350"></a><span class="lineno">  350</span>&#160;    data += diff;</div>
+<div class="line"><a name="l00351"></a><span class="lineno">  351</span>&#160;</div>
+<div class="line"><a name="l00352"></a><span class="lineno">  352</span>&#160;    <span class="comment">// check</span></div>
+<div class="line"><a name="l00353"></a><span class="lineno">  353</span>&#160;    tb_assert_abort(!((tb_size_t)data &amp; (align - 1)));</div>
+<div class="line"><a name="l00354"></a><span class="lineno">  354</span>&#160;</div>
+<div class="line"><a name="l00355"></a><span class="lineno">  355</span>&#160;    <span class="comment">// save the different bytes</span></div>
+<div class="line"><a name="l00356"></a><span class="lineno">  356</span>&#160;    data[-1] = diff;</div>
+<div class="line"><a name="l00357"></a><span class="lineno">  357</span>&#160;</div>
+<div class="line"><a name="l00358"></a><span class="lineno">  358</span>&#160;    <span class="comment">// ok?</span></div>
+<div class="line"><a name="l00359"></a><span class="lineno">  359</span>&#160;    <span class="keywordflow">return</span> (tb_pointer_t)data;</div>
+<div class="line"><a name="l00360"></a><span class="lineno">  360</span>&#160;}</div>
+<div class="line"><a name="l00361"></a><span class="lineno"><a class="line" href="../../db/db7/pool_8h.html#ad66d9a45a25ae70d2c12b1e902338ccf">  361</a></span>&#160;tb_pointer_t <a class="code" href="../../d4/de5/pool_8c.html#ad66d9a45a25ae70d2c12b1e902338ccf">tb_pool_align_malloc0_</a>(<a class="code" href="../../d6/d28/structtb__pool__ref__t.html">tb_pool_ref_t</a> pool, tb_size_t size, tb_size_t align __tb_debug_decl__)</div>
+<div class="line"><a name="l00362"></a><span class="lineno">  362</span>&#160;{</div>
+<div class="line"><a name="l00363"></a><span class="lineno">  363</span>&#160;    <span class="comment">// malloc it</span></div>
+<div class="line"><a name="l00364"></a><span class="lineno">  364</span>&#160;    tb_pointer_t data = <a class="code" href="../../d4/de5/pool_8c.html#a4db2e3c59db89e5c7aa77b3e4a6c2f19">tb_pool_align_malloc_</a>(pool, size, align __tb_debug_args__);</div>
+<div class="line"><a name="l00365"></a><span class="lineno">  365</span>&#160;    tb_assert_and_check_return_val(data, tb_null);</div>
+<div class="line"><a name="l00366"></a><span class="lineno">  366</span>&#160;</div>
+<div class="line"><a name="l00367"></a><span class="lineno">  367</span>&#160;    <span class="comment">// clear it</span></div>
+<div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160;    tb_memset(data, 0, size);</div>
+<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;</div>
+<div class="line"><a name="l00370"></a><span class="lineno">  370</span>&#160;    <span class="comment">// ok</span></div>
+<div class="line"><a name="l00371"></a><span class="lineno">  371</span>&#160;    <span class="keywordflow">return</span> data;</div>
+<div class="line"><a name="l00372"></a><span class="lineno">  372</span>&#160;}</div>
+<div class="line"><a name="l00373"></a><span class="lineno"><a class="line" href="../../db/db7/pool_8h.html#a7aa8f9e824e78426b26bbeaa4893510b">  373</a></span>&#160;tb_pointer_t <a class="code" href="../../d4/de5/pool_8c.html#a7aa8f9e824e78426b26bbeaa4893510b">tb_pool_align_nalloc_</a>(<a class="code" href="../../d6/d28/structtb__pool__ref__t.html">tb_pool_ref_t</a> pool, tb_size_t item, tb_size_t size, tb_size_t align __tb_debug_decl__)</div>
+<div class="line"><a name="l00374"></a><span class="lineno">  374</span>&#160;{</div>
+<div class="line"><a name="l00375"></a><span class="lineno">  375</span>&#160;    <span class="keywordflow">return</span> <a class="code" href="../../d4/de5/pool_8c.html#a4db2e3c59db89e5c7aa77b3e4a6c2f19">tb_pool_align_malloc_</a>(pool, item * size, align __tb_debug_args__);</div>
+<div class="line"><a name="l00376"></a><span class="lineno">  376</span>&#160;}</div>
+<div class="line"><a name="l00377"></a><span class="lineno"><a class="line" href="../../db/db7/pool_8h.html#aff4c39d5af4e5c31ec7a609c1a10a065">  377</a></span>&#160;tb_pointer_t <a class="code" href="../../d4/de5/pool_8c.html#aff4c39d5af4e5c31ec7a609c1a10a065">tb_pool_align_nalloc0_</a>(<a class="code" href="../../d6/d28/structtb__pool__ref__t.html">tb_pool_ref_t</a> pool, tb_size_t item, tb_size_t size, tb_size_t align __tb_debug_decl__)</div>
+<div class="line"><a name="l00378"></a><span class="lineno">  378</span>&#160;{</div>
+<div class="line"><a name="l00379"></a><span class="lineno">  379</span>&#160;    <span class="comment">// nalloc it</span></div>
+<div class="line"><a name="l00380"></a><span class="lineno">  380</span>&#160;    tb_pointer_t data = <a class="code" href="../../d4/de5/pool_8c.html#a7aa8f9e824e78426b26bbeaa4893510b">tb_pool_align_nalloc_</a>(pool, item, size, align __tb_debug_args__);</div>
+<div class="line"><a name="l00381"></a><span class="lineno">  381</span>&#160;    tb_assert_and_check_return_val(data, tb_null);</div>
+<div class="line"><a name="l00382"></a><span class="lineno">  382</span>&#160;</div>
+<div class="line"><a name="l00383"></a><span class="lineno">  383</span>&#160;    <span class="comment">// clear it</span></div>
+<div class="line"><a name="l00384"></a><span class="lineno">  384</span>&#160;    tb_memset(data, 0, item * size);</div>
+<div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160;</div>
+<div class="line"><a name="l00386"></a><span class="lineno">  386</span>&#160;    <span class="comment">// ok</span></div>
+<div class="line"><a name="l00387"></a><span class="lineno">  387</span>&#160;    <span class="keywordflow">return</span> data;</div>
+<div class="line"><a name="l00388"></a><span class="lineno">  388</span>&#160;}</div>
+<div class="line"><a name="l00389"></a><span class="lineno"><a class="line" href="../../db/db7/pool_8h.html#a037be54b39af453a601356573b2b657b">  389</a></span>&#160;tb_pointer_t <a class="code" href="../../d4/de5/pool_8c.html#a037be54b39af453a601356573b2b657b">tb_pool_align_ralloc_</a>(<a class="code" href="../../d6/d28/structtb__pool__ref__t.html">tb_pool_ref_t</a> pool, tb_pointer_t data, tb_size_t size, tb_size_t align __tb_debug_decl__)</div>
+<div class="line"><a name="l00390"></a><span class="lineno">  390</span>&#160;{</div>
+<div class="line"><a name="l00391"></a><span class="lineno">  391</span>&#160;    <span class="comment">// check</span></div>
+<div class="line"><a name="l00392"></a><span class="lineno">  392</span>&#160;    tb_assert_and_check_return_val(data, tb_null);</div>
+<div class="line"><a name="l00393"></a><span class="lineno">  393</span>&#160;</div>
+<div class="line"><a name="l00394"></a><span class="lineno">  394</span>&#160;    <span class="comment">// check align</span></div>
+<div class="line"><a name="l00395"></a><span class="lineno">  395</span>&#160;    tb_assertf_abort(!(align &amp; 3), <span class="stringliteral">&quot;invalid alignment size: %lu&quot;</span>, align);</div>
+<div class="line"><a name="l00396"></a><span class="lineno">  396</span>&#160;    tb_check_return_val(!(align &amp; 3), tb_null);</div>
+<div class="line"><a name="l00397"></a><span class="lineno">  397</span>&#160;</div>
+<div class="line"><a name="l00398"></a><span class="lineno">  398</span>&#160;    <span class="comment">// check address </span></div>
+<div class="line"><a name="l00399"></a><span class="lineno">  399</span>&#160;    tb_assertf_abort(!((tb_size_t)data &amp; (align - 1)), <span class="stringliteral">&quot;invalid address %p&quot;</span>, data);</div>
+<div class="line"><a name="l00400"></a><span class="lineno">  400</span>&#160;    tb_check_return_val(!((tb_size_t)data &amp; (align - 1)), tb_null);</div>
+<div class="line"><a name="l00401"></a><span class="lineno">  401</span>&#160;</div>
+<div class="line"><a name="l00402"></a><span class="lineno">  402</span>&#160;    <span class="comment">// the different bytes</span></div>
+<div class="line"><a name="l00403"></a><span class="lineno">  403</span>&#160;    tb_byte_t diff = ((tb_byte_t*)data)[-1];</div>
+<div class="line"><a name="l00404"></a><span class="lineno">  404</span>&#160;</div>
+<div class="line"><a name="l00405"></a><span class="lineno">  405</span>&#160;    <span class="comment">// adjust the address</span></div>
+<div class="line"><a name="l00406"></a><span class="lineno">  406</span>&#160;    data = (tb_byte_t*)data - diff;</div>
+<div class="line"><a name="l00407"></a><span class="lineno">  407</span>&#160;</div>
+<div class="line"><a name="l00408"></a><span class="lineno">  408</span>&#160;    <span class="comment">// ralloc it</span></div>
+<div class="line"><a name="l00409"></a><span class="lineno">  409</span>&#160;    data = <a class="code" href="../../d4/de5/pool_8c.html#ad2e00a9a89f801a3f8c4ab99b3ff5587">tb_pool_ralloc_</a>(pool, data, size + align __tb_debug_args__);</div>
+<div class="line"><a name="l00410"></a><span class="lineno">  410</span>&#160;    tb_check_return_val(data, tb_null);</div>
+<div class="line"><a name="l00411"></a><span class="lineno">  411</span>&#160;</div>
+<div class="line"><a name="l00412"></a><span class="lineno">  412</span>&#160;    <span class="comment">// the different bytes</span></div>
+<div class="line"><a name="l00413"></a><span class="lineno">  413</span>&#160;    diff = (tb_byte_t)((~(tb_long_t)data) &amp; (align - 1)) + 1;</div>
+<div class="line"><a name="l00414"></a><span class="lineno">  414</span>&#160;</div>
+<div class="line"><a name="l00415"></a><span class="lineno">  415</span>&#160;    <span class="comment">// adjust the address</span></div>
+<div class="line"><a name="l00416"></a><span class="lineno">  416</span>&#160;    data = (tb_byte_t*)data + diff;</div>
+<div class="line"><a name="l00417"></a><span class="lineno">  417</span>&#160;</div>
+<div class="line"><a name="l00418"></a><span class="lineno">  418</span>&#160;    <span class="comment">// check</span></div>
+<div class="line"><a name="l00419"></a><span class="lineno">  419</span>&#160;    tb_assert_abort(!((tb_size_t)data &amp; (align - 1)));</div>
+<div class="line"><a name="l00420"></a><span class="lineno">  420</span>&#160;</div>
+<div class="line"><a name="l00421"></a><span class="lineno">  421</span>&#160;    <span class="comment">// save the different bytes</span></div>
+<div class="line"><a name="l00422"></a><span class="lineno">  422</span>&#160;    ((tb_byte_t*)data)[-1] = diff;</div>
+<div class="line"><a name="l00423"></a><span class="lineno">  423</span>&#160;</div>
+<div class="line"><a name="l00424"></a><span class="lineno">  424</span>&#160;    <span class="comment">// ok?</span></div>
+<div class="line"><a name="l00425"></a><span class="lineno">  425</span>&#160;    <span class="keywordflow">return</span> data;</div>
+<div class="line"><a name="l00426"></a><span class="lineno">  426</span>&#160;}</div>
+<div class="line"><a name="l00427"></a><span class="lineno"><a class="line" href="../../db/db7/pool_8h.html#a22553f411ef31e0037f430b11b0d1229">  427</a></span>&#160;tb_bool_t <a class="code" href="../../d4/de5/pool_8c.html#a22553f411ef31e0037f430b11b0d1229">tb_pool_align_free_</a>(<a class="code" href="../../d6/d28/structtb__pool__ref__t.html">tb_pool_ref_t</a> pool, tb_pointer_t data __tb_debug_decl__)</div>
+<div class="line"><a name="l00428"></a><span class="lineno">  428</span>&#160;{</div>
+<div class="line"><a name="l00429"></a><span class="lineno">  429</span>&#160;    <span class="comment">// check</span></div>
+<div class="line"><a name="l00430"></a><span class="lineno">  430</span>&#160;    tb_assert_and_check_return_val(data, tb_false);</div>
+<div class="line"><a name="l00431"></a><span class="lineno">  431</span>&#160;    tb_assert_abort(!((tb_size_t)data &amp; 3));</div>
+<div class="line"><a name="l00432"></a><span class="lineno">  432</span>&#160;</div>
+<div class="line"><a name="l00433"></a><span class="lineno">  433</span>&#160;    <span class="comment">// the different bytes</span></div>
+<div class="line"><a name="l00434"></a><span class="lineno">  434</span>&#160;    tb_byte_t diff = ((tb_byte_t*)data)[-1];</div>
+<div class="line"><a name="l00435"></a><span class="lineno">  435</span>&#160;</div>
+<div class="line"><a name="l00436"></a><span class="lineno">  436</span>&#160;    <span class="comment">// adjust the address</span></div>
+<div class="line"><a name="l00437"></a><span class="lineno">  437</span>&#160;    data = (tb_byte_t*)data - diff;</div>
+<div class="line"><a name="l00438"></a><span class="lineno">  438</span>&#160;</div>
+<div class="line"><a name="l00439"></a><span class="lineno">  439</span>&#160;    <span class="comment">// free it</span></div>
+<div class="line"><a name="l00440"></a><span class="lineno">  440</span>&#160;    <span class="keywordflow">return</span> <a class="code" href="../../d4/de5/pool_8c.html#accf8c8072dca99ffa32bd3c98ec85d7b">tb_pool_free_</a>(pool, data __tb_debug_args__);</div>
+<div class="line"><a name="l00441"></a><span class="lineno">  441</span>&#160;}</div>
+<div class="line"><a name="l00442"></a><span class="lineno">  442</span>&#160;<span class="preprocessor">#ifdef __tb_debug__</span></div>
+<div class="line"><a name="l00443"></a><span class="lineno">  443</span>&#160;<span class="preprocessor"></span>tb_void_t tb_pool_dump(<a class="code" href="../../d6/d28/structtb__pool__ref__t.html">tb_pool_ref_t</a> pool)</div>
+<div class="line"><a name="l00444"></a><span class="lineno">  444</span>&#160;{</div>
+<div class="line"><a name="l00445"></a><span class="lineno">  445</span>&#160;    <span class="comment">// check</span></div>
+<div class="line"><a name="l00446"></a><span class="lineno">  446</span>&#160;    tb_pool_impl_t* impl = (tb_pool_impl_t*)pool;</div>
+<div class="line"><a name="l00447"></a><span class="lineno">  447</span>&#160;    tb_assert_and_check_return(impl &amp;&amp; impl-&gt;large_pool &amp;&amp; impl-&gt;small_pool);</div>
+<div class="line"><a name="l00448"></a><span class="lineno">  448</span>&#160;</div>
+<div class="line"><a name="l00449"></a><span class="lineno">  449</span>&#160;    <span class="comment">// enter</span></div>
+<div class="line"><a name="l00450"></a><span class="lineno">  450</span>&#160;    tb_spinlock_enter(&amp;impl-&gt;lock);</div>
+<div class="line"><a name="l00451"></a><span class="lineno">  451</span>&#160;</div>
+<div class="line"><a name="l00452"></a><span class="lineno">  452</span>&#160;    <span class="comment">// dump pool</span></div>
+<div class="line"><a name="l00453"></a><span class="lineno">  453</span>&#160;    tb_small_pool_dump(impl-&gt;small_pool);</div>
+<div class="line"><a name="l00454"></a><span class="lineno">  454</span>&#160;</div>
+<div class="line"><a name="l00455"></a><span class="lineno">  455</span>&#160;    <span class="comment">// leave</span></div>
+<div class="line"><a name="l00456"></a><span class="lineno">  456</span>&#160;    tb_spinlock_leave(&amp;impl-&gt;lock);</div>
+<div class="line"><a name="l00457"></a><span class="lineno">  457</span>&#160;}</div>
+<div class="line"><a name="l00458"></a><span class="lineno">  458</span>&#160;<span class="preprocessor">#endif</span></div>
 <div class="ttc" id="pool_8c_html_a4a5e133b82b52b004a96ef74378a230f"><div class="ttname"><a href="../../d4/de5/pool_8c.html#a4a5e133b82b52b004a96ef74378a230f">tb_pool_nalloc0_</a></div><div class="ttdeci">tb_pointer_t tb_pool_nalloc0_(tb_pool_ref_t pool, tb_size_t item, tb_size_t size __tb_debug_decl__)</div><div class="ttdef"><b>Definition:</b> <a href="../../d4/de5/pool_8c_source.html#l00202">pool.c:202</a></div></div>
 <div class="ttc" id="singleton_8c_html_ae2d051d2b0f9d1e57edc719bafb025d1"><div class="ttname"><a href="../../d2/d2b/singleton_8c.html#ae2d051d2b0f9d1e57edc719bafb025d1">tb_singleton_instance</a></div><div class="ttdeci">tb_handle_t tb_singleton_instance(tb_size_t type, tb_singleton_init_func_t init, tb_singleton_exit_func_t exit, tb_singleton_kill_func_t kill)</div><div class="ttdef"><b>Definition:</b> <a href="../../d2/d2b/singleton_8c_source.html#l00117">singleton.c:117</a></div></div>
 <div class="ttc" id="pool_8c_html_a356d1e2af07b17c148fe2d6a7eadc802"><div class="ttname"><a href="../../d4/de5/pool_8c.html#a356d1e2af07b17c148fe2d6a7eadc802">tb_pool_exit</a></div><div class="ttdeci">tb_void_t tb_pool_exit(tb_pool_ref_t pool)</div><div class="ttdef"><b>Definition:</b> <a href="../../d4/de5/pool_8c_source.html#l00126">pool.c:126</a></div></div>
@@ -442,6 +548,8 @@ $(document).ready(function(){initNavTree('d4/de5/pool_8c_source.html','../../');
 <div class="ttc" id="pool_8c_html_a79d3eb2f823dc4eba41b540657a79d2f"><div class="ttname"><a href="../../d4/de5/pool_8c.html#a79d3eb2f823dc4eba41b540657a79d2f">tb_pool_malloc0_</a></div><div class="ttdeci">tb_pointer_t tb_pool_malloc0_(tb_pool_ref_t pool, tb_size_t size __tb_debug_decl__)</div><div class="ttdef"><b>Definition:</b> <a href="../../d4/de5/pool_8c_source.html#l00166">pool.c:166</a></div></div>
 <div class="ttc" id="pool_8h_html"><div class="ttname"><a href="../../db/db7/pool_8h.html">pool.h</a></div></div>
 <div class="ttc" id="lock__profiler_8c_html_a1d9fa5d8e9a2f2b414f8f2220b3ab788"><div class="ttname"><a href="../../dd/dcf/lock__profiler_8c.html#a1d9fa5d8e9a2f2b414f8f2220b3ab788">tb_lock_profiler_register</a></div><div class="ttdeci">tb_void_t tb_lock_profiler_register(tb_handle_t handle, tb_pointer_t lock, tb_char_t const *name)</div><div class="ttdef"><b>Definition:</b> <a href="../../dd/dcf/lock__profiler_8c_source.html#l00134">lock_profiler.c:134</a></div></div>
+<div class="ttc" id="pool_8c_html_a22553f411ef31e0037f430b11b0d1229"><div class="ttname"><a href="../../d4/de5/pool_8c.html#a22553f411ef31e0037f430b11b0d1229">tb_pool_align_free_</a></div><div class="ttdeci">tb_bool_t tb_pool_align_free_(tb_pool_ref_t pool, tb_pointer_t data __tb_debug_decl__)</div><div class="ttdef"><b>Definition:</b> <a href="../../d4/de5/pool_8c_source.html#l00427">pool.c:427</a></div></div>
+<div class="ttc" id="pool_8c_html_a037be54b39af453a601356573b2b657b"><div class="ttname"><a href="../../d4/de5/pool_8c.html#a037be54b39af453a601356573b2b657b">tb_pool_align_ralloc_</a></div><div class="ttdeci">tb_pointer_t tb_pool_align_ralloc_(tb_pool_ref_t pool, tb_pointer_t data, tb_size_t size, tb_size_t align __tb_debug_decl__)</div><div class="ttdef"><b>Definition:</b> <a href="../../d4/de5/pool_8c_source.html#l00389">pool.c:389</a></div></div>
 <div class="ttc" id="pool_8c_html_ad2e00a9a89f801a3f8c4ab99b3ff5587"><div class="ttname"><a href="../../d4/de5/pool_8c.html#ad2e00a9a89f801a3f8c4ab99b3ff5587">tb_pool_ralloc_</a></div><div class="ttdeci">tb_pointer_t tb_pool_ralloc_(tb_pool_ref_t pool, tb_pointer_t data, tb_size_t size __tb_debug_decl__)</div><div class="ttdef"><b>Definition:</b> <a href="../../d4/de5/pool_8c_source.html#l00220">pool.c:220</a></div></div>
 <div class="ttc" id="small__pool_8h_html"><div class="ttname"><a href="../../d1/d34/small__pool_8h.html">small_pool.h</a></div></div>
 <div class="ttc" id="large__pool_8c_html_ae9d575ad1cc6c1dd850f4c9287a795fe"><div class="ttname"><a href="../../d5/d46/large__pool_8c.html#ae9d575ad1cc6c1dd850f4c9287a795fe">tb_large_pool_malloc0_</a></div><div class="ttdeci">tb_pointer_t tb_large_pool_malloc0_(tb_large_pool_ref_t pool, tb_size_t size, tb_size_t *real __tb_debug_decl__)</div><div class="ttdef"><b>Definition:</b> <a href="../../d5/d46/large__pool_8c_source.html#l00119">large_pool.c:119</a></div></div>
@@ -452,8 +560,10 @@ $(document).ready(function(){initNavTree('d4/de5/pool_8c_source.html','../../');
 <div class="ttc" id="pool_8c_html_ad4ffa6fe1c6dcb7ca9c8e5d1a5ed630e"><div class="ttname"><a href="../../d4/de5/pool_8c.html#ad4ffa6fe1c6dcb7ca9c8e5d1a5ed630e">tb_pool_nalloc_</a></div><div class="ttdeci">tb_pointer_t tb_pool_nalloc_(tb_pool_ref_t pool, tb_size_t item, tb_size_t size __tb_debug_decl__)</div><div class="ttdef"><b>Definition:</b> <a href="../../d4/de5/pool_8c_source.html#l00184">pool.c:184</a></div></div>
 <div class="ttc" id="large__pool_8c_html_a04f6f066a153ec73ea9a453f849de804"><div class="ttname"><a href="../../d5/d46/large__pool_8c.html#a04f6f066a153ec73ea9a453f849de804">tb_large_pool_ralloc_</a></div><div class="ttdeci">tb_pointer_t tb_large_pool_ralloc_(tb_large_pool_ref_t pool, tb_pointer_t data, tb_size_t size, tb_size_t *real __tb_debug_decl__)</div><div class="ttdef"><b>Definition:</b> <a href="../../d5/d46/large__pool_8c_source.html#l00170">large_pool.c:170</a></div></div>
 <div class="ttc" id="large__pool_8h_html"><div class="ttname"><a href="../../db/d2d/large__pool_8h.html">large_pool.h</a></div></div>
+<div class="ttc" id="pool_8c_html_a4db2e3c59db89e5c7aa77b3e4a6c2f19"><div class="ttname"><a href="../../d4/de5/pool_8c.html#a4db2e3c59db89e5c7aa77b3e4a6c2f19">tb_pool_align_malloc_</a></div><div class="ttdeci">tb_pointer_t tb_pool_align_malloc_(tb_pool_ref_t pool, tb_size_t size, tb_size_t align __tb_debug_decl__)</div><div class="ttdef"><b>Definition:</b> <a href="../../d4/de5/pool_8c_source.html#l00336">pool.c:336</a></div></div>
 <div class="ttc" id="structtb__pool__data__head__t_html"><div class="ttname"><a href="../../d4/d3c/structtb__pool__data__head__t.html">tb_pool_data_head_t</a></div><div class="ttdef"><b>Definition:</b> <a href="../../d8/dad/memory_2impl_2prefix_8h_source.html#l00100">prefix.h:100</a></div></div>
 <div class="ttc" id="large__pool_8c_html_a0e42c79a372af6dbeea422dfb8bacb0a"><div class="ttname"><a href="../../d5/d46/large__pool_8c.html#a0e42c79a372af6dbeea422dfb8bacb0a">tb_large_pool_nalloc_</a></div><div class="ttdeci">tb_pointer_t tb_large_pool_nalloc_(tb_large_pool_ref_t pool, tb_size_t item, tb_size_t size, tb_size_t *real __tb_debug_decl__)</div><div class="ttdef"><b>Definition:</b> <a href="../../d5/d46/large__pool_8c_source.html#l00137">large_pool.c:137</a></div></div>
+<div class="ttc" id="pool_8c_html_aff4c39d5af4e5c31ec7a609c1a10a065"><div class="ttname"><a href="../../d4/de5/pool_8c.html#aff4c39d5af4e5c31ec7a609c1a10a065">tb_pool_align_nalloc0_</a></div><div class="ttdeci">tb_pointer_t tb_pool_align_nalloc0_(tb_pool_ref_t pool, tb_size_t item, tb_size_t size, tb_size_t align __tb_debug_decl__)</div><div class="ttdef"><b>Definition:</b> <a href="../../d4/de5/pool_8c_source.html#l00377">pool.c:377</a></div></div>
 <div class="ttc" id="small__pool_8c_html_a414d308b8d062d288ac36b19299defae"><div class="ttname"><a href="../../d9/d61/small__pool_8c.html#a414d308b8d062d288ac36b19299defae">tb_small_pool_free_</a></div><div class="ttdeci">tb_bool_t tb_small_pool_free_(tb_small_pool_ref_t pool, tb_pointer_t data __tb_debug_decl__)</div><div class="ttdef"><b>Definition:</b> <a href="../../d9/d61/small__pool_8c_source.html#l00539">small_pool.c:539</a></div></div>
 <div class="ttc" id="structtb__small__pool__ref__t_html"><div class="ttname"><a href="../../d3/df0/structtb__small__pool__ref__t.html">tb_small_pool_ref_t</a></div><div class="ttdef"><b>Definition:</b> <a href="../../d1/d34/small__pool_8h_source.html#l00089">small_pool.h:89</a></div></div>
 <div class="ttc" id="small__pool_8c_html_a2ac0e3d6a82f934dbbd7292777efd258"><div class="ttname"><a href="../../d9/d61/small__pool_8c.html#a2ac0e3d6a82f934dbbd7292777efd258">tb_small_pool_malloc0_</a></div><div class="ttdeci">tb_pointer_t tb_small_pool_malloc0_(tb_small_pool_ref_t pool, tb_size_t size __tb_debug_decl__)</div><div class="ttdef"><b>Definition:</b> <a href="../../d9/d61/small__pool_8c_source.html#l00315">small_pool.c:315</a></div></div>
@@ -468,14 +578,16 @@ $(document).ready(function(){initNavTree('d4/de5/pool_8c_source.html','../../');
 <div class="ttc" id="lock__profiler_8h_html_a2e39e387e9d9808919a203a717e922cd"><div class="ttname"><a href="../../d8/da8/lock__profiler_8h.html#a2e39e387e9d9808919a203a717e922cd">tb_lock_profiler</a></div><div class="ttdeci">__tb_extern_c_enter__ tb_handle_t tb_lock_profiler(tb_noarg_t)</div></div>
 <div class="ttc" id="pool_8c_html_accf8c8072dca99ffa32bd3c98ec85d7b"><div class="ttname"><a href="../../d4/de5/pool_8c.html#accf8c8072dca99ffa32bd3c98ec85d7b">tb_pool_free_</a></div><div class="ttdeci">tb_bool_t tb_pool_free_(tb_pool_ref_t pool, tb_pointer_t data __tb_debug_decl__)</div><div class="ttdef"><b>Definition:</b> <a href="../../d4/de5/pool_8c_source.html#l00293">pool.c:293</a></div></div>
 <div class="ttc" id="large__pool_8c_html_a47da9a9949c46fc379b252c8c41b072f"><div class="ttname"><a href="../../d5/d46/large__pool_8c.html#a47da9a9949c46fc379b252c8c41b072f">tb_large_pool_free_</a></div><div class="ttdeci">tb_bool_t tb_large_pool_free_(tb_large_pool_ref_t pool, tb_pointer_t data __tb_debug_decl__)</div><div class="ttdef"><b>Definition:</b> <a href="../../d5/d46/large__pool_8c_source.html#l00201">large_pool.c:201</a></div></div>
+<div class="ttc" id="pool_8c_html_a7aa8f9e824e78426b26bbeaa4893510b"><div class="ttname"><a href="../../d4/de5/pool_8c.html#a7aa8f9e824e78426b26bbeaa4893510b">tb_pool_align_nalloc_</a></div><div class="ttdeci">tb_pointer_t tb_pool_align_nalloc_(tb_pool_ref_t pool, tb_size_t item, tb_size_t size, tb_size_t align __tb_debug_decl__)</div><div class="ttdef"><b>Definition:</b> <a href="../../d4/de5/pool_8c_source.html#l00373">pool.c:373</a></div></div>
 <div class="ttc" id="small__pool_8c_html_ae489ccc69bae68a480dcf93e18bda17e"><div class="ttname"><a href="../../d9/d61/small__pool_8c.html#ae489ccc69bae68a480dcf93e18bda17e">tb_small_pool_exit</a></div><div class="ttdeci">tb_void_t tb_small_pool_exit(tb_small_pool_ref_t pool)</div><div class="ttdef"><b>Definition:</b> <a href="../../d9/d61/small__pool_8c_source.html#l00237">small_pool.c:237</a></div></div>
+<div class="ttc" id="pool_8c_html_ad66d9a45a25ae70d2c12b1e902338ccf"><div class="ttname"><a href="../../d4/de5/pool_8c.html#ad66d9a45a25ae70d2c12b1e902338ccf">tb_pool_align_malloc0_</a></div><div class="ttdeci">tb_pointer_t tb_pool_align_malloc0_(tb_pool_ref_t pool, tb_size_t size, tb_size_t align __tb_debug_decl__)</div><div class="ttdef"><b>Definition:</b> <a href="../../d4/de5/pool_8c_source.html#l00361">pool.c:361</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="../../dir_0c384bd6d37ce9f5a164ad71106c7e24.html">src</a></li><li class="navelem"><a class="el" href="../../dir_74c89af92d2f666610693d1f60c4bc85.html">tbox</a></li><li class="navelem"><a class="el" href="../../dir_3a63078a59df387997c588a5ecec1861.html">memory</a></li><li class="navelem"><a class="el" href="../../d4/de5/pool_8c.html">pool.c</a></li>
-    <li class="footer">Generated on Thu Aug 14 2014 11:09:54 for TBOX by
+    <li class="footer">Generated on Thu Aug 14 2014 17:58:56 for TBOX by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="../../doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

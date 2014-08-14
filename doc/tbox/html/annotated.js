@@ -36,7 +36,6 @@ var annotated =
     [ "tb_async_stream_cache_sync_t", "db/d75/structtb__async__stream__cache__sync__t.html", "db/d75/structtb__async__stream__cache__sync__t" ],
     [ "tb_async_stream_cache_writ_t", "de/d8e/structtb__async__stream__cache__writ__t.html", "de/d8e/structtb__async__stream__cache__writ__t" ],
     [ "tb_async_stream_clos_opening_t", "d5/db8/structtb__async__stream__clos__opening__t.html", "d5/db8/structtb__async__stream__clos__opening__t" ],
-    [ "tb_async_stream_impl_t", "d3/dc5/structtb__async__stream__impl__t.html", "d3/dc5/structtb__async__stream__impl__t" ],
     [ "tb_async_stream_open_read_t", "de/d1b/structtb__async__stream__open__read__t.html", "de/d1b/structtb__async__stream__open__read__t" ],
     [ "tb_async_stream_open_seek_t", "d6/d21/structtb__async__stream__open__seek__t.html", "d6/d21/structtb__async__stream__open__seek__t" ],
     [ "tb_async_stream_open_writ_t", "d2/d07/structtb__async__stream__open__writ__t.html", "d2/d07/structtb__async__stream__open__writ__t" ],
