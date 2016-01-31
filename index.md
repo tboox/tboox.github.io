@@ -2,11 +2,15 @@
 layout: default
 ---
 
+### Languages
+
+* [English](http://www.tboox.org)
+* [中文](http://www.tboox.net)
+
 # The TBOOX Open Source Projects
 
 * [TBOX](#tbox): The Treasure Box Library
 * [XMake](#xmake): The Automatic Cross-platform Build Tool
-
 
 <div id="tbox"></div>
 
