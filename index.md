@@ -4,8 +4,7 @@ layout: default
 
 ### Languages
 
-* [English](http://www.tboox.org)
-* [中文](http://www.tboox.net)
+* [中文](/cn)
 
 # The TBOOX Open Source Projects
 
