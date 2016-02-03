@@ -22,6 +22,9 @@ TBOX is a mutli-platform c library for unix, windows, mac, ios, android, etc.
 It is similar to glibc, but simpler and more convenient.
 It includes asio, stream, network, container, algorithm, object, memory, database, string, charset, math, regex, libc, libm, utils and other library modules.
 
+* [Documents](https://github.com/waruqi/tbox/wiki/documents)
+* [Github](https://github.com/waruqi/tbox)
+
 ## features
 
 #### the stream library
@@ -116,6 +119,9 @@ It includes asio, stream, network, container, algorithm, object, memory, databas
 xmake is a cross-platform automatic build tool.
 
 It is similar to cmake, automake, premake, but more convenient and easy to use.
+
+* [Documents](https://github.com/waruqi/xmake/wiki/documents)
+* [Github](https://github.com/waruqi/xmake)
 
 ## features
 
