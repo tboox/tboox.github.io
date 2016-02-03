@@ -1,6 +1,6 @@
 ---
-layout: post
+layout: post.cn
 title:  "欢迎来到TBOOX开源项目!"
 ---
 
-![](../images/logo2.jpg)
+![](/images/logo2.jpg)
