@@ -1,6 +1,7 @@
 ---
 layout: post.cn
 title:  "利用bloom filter算法处理大规模数据过滤"
+categories: tbox
 ---
 
 Bloom Filter是由Bloom在1970年提出的一种快速查找算法，通过多个hash算法来共同判断某个元素是否在某个集合内。可以用于网络爬虫的url重复过滤、垃圾邮件的过滤等等。
