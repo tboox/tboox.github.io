@@ -4,6 +4,10 @@ Jekyll-Pithy is a theme for Jekyll. Here is [my blog](http://wenva.github.io) wh
 
 ![image](https://raw.githubusercontent.com/smallmuou/Jekyll-Pithy/master/images/Jekyll-Pithy.png)
 
+# Jekyll Multiple Languages
+
+You need install [jekyll-langs plugins](http://jekyll-langs.liaohuqiu.net/)
+
 ### Usage
 * Clone it.
 * cd Jekyll-Pithy, and Run "jekyll serve"(You must install [jekyll](http://jekyllrb.com/) first)
