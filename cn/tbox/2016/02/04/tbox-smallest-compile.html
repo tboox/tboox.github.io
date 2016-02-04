@@ -5,11 +5,11 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width initial-scale=1">
 
-  <title>xmake工程描述入门</title>
-  <meta name="description" content="xmake的工程描述文件，摈弃了makefile的繁琐复杂，借鉴了premake的简洁明了，原生支持lua脚本，使得更加的灵活、方便扩展。">
+  <title>tbox的裁剪和定制化编译</title>
+  <meta name="description" content="默认编译出来的tbox库，支持的功能比较全，带有所有模块，并且支持ssl（依赖polarssl/openssl）、gzip（依赖zlib）、database（依赖sqlite3/mysql）。">
 
   <link rel="stylesheet" href="/css/main.css">
-  <link rel="canonical" href="http://tboox.org/cn/xmake/2016/02/03/xmake-description.html">
+  <link rel="canonical" href="http://tboox.org/cn/tbox/2016/02/04/tbox-smallest-compile.html">
   <link rel="alternate" type="application/atom+xml" title="TBOOX" href="http://tboox.org/feed.xml" />
   <script src="/scripts/jquery-1.11.2.min.js"></script>
   <script src="/scripts/pithy.js"></script>
@@ -89,72 +89,62 @@
         <div class="post">
   <br>
   <header class="post-header">
-    <h1 class="post-title">xmake工程描述入门</h1>
-    <p class="post-meta">Feb 3, 2016</p>
+    <h1 class="post-title">tbox的裁剪和定制化编译</h1>
+    <p class="post-meta">Feb 4, 2016</p>
   </header>
 
   <article class="post-content">
-    <p>xmake的工程描述文件，摈弃了makefile的繁琐复杂，借鉴了premake的简洁明了，原生支持lua脚本，使得更加的灵活、方便扩展。</p>
+    <p>默认编译出来的tbox库，支持的功能比较全，带有所有模块，并且支持ssl（依赖polarssl/openssl）、gzip（依赖zlib）、database（依赖sqlite3/mysql）。</p>
 
-<p>工程默认描述文件名为xmake.lua，支持多级目录嵌套，也可以通过以下命令，指定其他文件作为工程描述文件：</p>
+<p>因此生成的库文件偏大，而且会依赖三个第三方库，如果你用不到上述三个模块，完全可以自己配置编译所需要的模块，减小生成库的大小。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>xmake -f /tmp/xxx.lua
-xmake --file=xxx.lua
+<p>新版采用xmake进行构建，裁剪模块已经是相当方便了，默认情况下回去自动检测依赖的第三方库进行编译。</p>
+
+<p>如果要禁用某个第三方库或者模块，只要执行<code class="highlighter-rouge">xmake f --xxxx=false</code>就行了，所有第三方库依赖都是可选，完全可以禁用。。</p>
+
+<p>例如，禁用所有第三方库支持：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>xmake f --polarssl=false --sqlite3=false --openssl=false --mysql=false --zlib=false
 </code></pre>
 </div>
 
-<p>下面先来看一个最简单的例子：</p>
+<p>如果要最小化编译，可以禁用所有可选模块和特性：</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>-- 添加一个名为demo的目标到工程
-add_target("demo")
-
-    -- 设置目标程序类型为二进制可执行程序，一般为console的终端命令行程序
-    set_kind("binary")
-
-    -- 添加src目录下的所有c文件
-    add_files("src/*.c") 
+<div class="highlighter-rouge"><pre class="highlight"><code>xmake f --network=false --asio=false --charset=false --xml=false --database=false --zip=false --thread=false
 </code></pre>
 </div>
 
-<p>怎么样简单吧，这样就已经完成了一个最简单的工程描述。。</p>
+<p>tbox中使用float相关的代码，也是可以裁剪掉的，并且tbox还提供了一整套fixed16、fixed30、fixed6的定点运算库，来应付一些需要float运算的地方</p>
 
-<p>下面我们看一个稍微复杂一点的例子，这个例子中对release、debug模式进行了不同的设置：</p>
+<p>这个在图形算法上用的比较多，具体使用可以参考我的另外一个图形库项目：<a href="https://github.com/waruqi/gbox">gbox</a>，具体的裁剪如下：</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>-- 如果当前编译的是debug模式
-if modes("debug") then
-    
-    -- 启用调试符号
-    set_symbols("debug")
-
-    -- 禁用优化
-    set_optimize("none")
-end
-
--- 如果当前编译的是release模式
-if modes("release") then
-
-    -- 设置符号可见性为不可见
-    set_symbols("hidden")
-
-    -- 启用最快优化模式
-    set_optimize("fastest")
-
-    -- 去除所有符号信息，包括调试符号
-    set_strip("all")
-end
-
--- 添加一个名为test的目标
-add_target("test")
-
-    -- 将test编译成为静态库类型
-    set_kind("static")
-
-    -- 添加所有c++文件，包括子目录（注：**表明多级递归匹配模式）
-    add_files("src/**.cpp") 
+<div class="highlighter-rouge"><pre class="highlight"><code>xmake f --float=false
 </code></pre>
 </div>
 
-<p>其实也不是很复杂吧，由于采用lua语法，所以逻辑上更加的灵活，你完全可以用lua的分支、循环、函数等语法，进行更加灵活的配置。。</p>
+<p>只要执行上面的配置，跟float相关的操作接口，都会禁用，非常适合一些低端的嵌入式设备上。</p>
+
+<p>如果不想编译demo，节省时间，可以禁用demo模块：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>xmake f --demo=false
+</code></pre>
+</div>
+
+<p>如果想要更小的话，就只能启用release模式了，编译发布版本，这样符号信息也被完全strip了：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>xmake f -m release
+</code></pre>
+</div>
+
+<p>如果还想更小，可以修改xmake.lua，设置优化选项为最小化编译（当然，针对ios/android等移动端，tbox默认就是这么设置的）：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>set_optimize("smallest")
+</code></pre>
+</div>
+
+<p>如果把这些配置全部禁用，按照上述模式编译出来的tbox库，会相当小，虽然小了不少，但是该有的基础功能还是都有的。</p>
+
+<p>也可以根据自己的需要，启用部分模块和特性。</p>
 
 
   </article>

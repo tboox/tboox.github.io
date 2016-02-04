@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>    
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width initial-scale=1">
+
+  <title>xmake中add_files的使用</title>
+  <meta name="description" content="如果你看了工程描述入门，那么是否觉得通过 add_files 添加源文件相当的方便？">
+
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="canonical" href="http://tboox.org/cn/xmake/2016/02/04/xmake-project-add-files.html">
+  <link rel="alternate" type="application/atom+xml" title="TBOOX" href="http://tboox.org/feed.xml" />
+  <script src="/scripts/jquery-1.11.2.min.js"></script>
+  <script src="/scripts/pithy.js"></script>
+
+  <!-- baidu statistics -->
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?162f1cd478898a0686b0b5d5115e2af2";
+      var s = document.getElementsByTagName("script")[0]; 
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+</head>
+
+
+  <body>
+    <header class="header">
+	<div class="header-container">
+		<div class="nav">
+			
+				<li>
+					<a href="/cn/index.html">主页</a>
+				</li>			
+			
+			
+				<li>
+					<a href="/cn/blog.html">博客</a>
+				</li>			
+			
+			
+				<li>
+					<a href="/cn/documents.html">文档</a>
+				</li>			
+			
+			
+				<li>
+					<a href="/cn/downloads.html">下载</a>
+				</li>			
+			
+			
+				<li>
+					<a href="/cn/donation.html">捐助</a>
+				</li>			
+			
+			
+				<li>
+					<a href="/cn/about.html">关于</a>
+				</li>			
+			
+		</div>
+		<div class="description"> 欢迎来到TBOOX开源工程! </div>		
+		<ul class="social-links">
+			<li>
+				<a href="https://github.com/waruqi" title="Github">
+					<img width="19px" height="19px" src="/images/github.png"/>
+				</a>
+			</li>
+			<li>
+				<a href="/feed.xml" title="RSS">
+					<img width="19px" height="19px" src="/images/rss.png"/>
+				</a>
+			</li>
+			<li>
+				<a href="https://twitter.com/" title="Twitter">
+					<img width="19px" height="19px" src="/images/twitter.png"/>
+				</a>
+			</li>
+		</ul>		
+	</div>
+</header>
+
+    <br>
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="post">
+  <br>
+  <header class="post-header">
+    <h1 class="post-title">xmake中add_files的使用</h1>
+    <p class="post-meta">Feb 4, 2016</p>
+  </header>
+
+  <article class="post-content">
+    <p>如果你看了<a href="/cn/xmake/2016/02/03/xmake-project-description.html">工程描述入门</a>，那么是否觉得通过 add_files 添加源文件相当的方便？</p>
+
+<p>目前它可以支持<code class="highlighter-rouge">.c/.cpp/.s/.S/.m/.mm/.o/.obj/.a/.lib</code>这些后缀的源代码和库文件，其中通配符*表示匹配当前目录下文件，而**则匹配多级目录下的文件。</p>
+
+<p>例如：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>add_files("src/test_*.c")
+add_files("src/xxx/**.cpp")
+add_files("src/asm/*.S", "src/objc/**/hello.m")
+</code></pre>
+</div>
+
+<p>add_files的使用其实是相当灵活方便的，其匹配模式我借鉴了premake的风格，但是又对其进行了改善和增强。</p>
+
+<p>使得不仅可以匹配文件，还有可以在添加文件同时，过滤排除指定模式的一批文件。。</p>
+
+<p>例如：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>-- 递归添加src下的所有c文件，但是不包括src/impl/下的所有c文件
+add_files("src/**.c|impl/*.c")
+
+-- 添加src下的所有cpp文件，但是不包括src/test.cpp、src/hello.cpp以及src下所有带xx_前缀的cpp文件
+add_files("src/*.cpp|test.cpp|hello.cpp|xx_*.cpp")
+</code></pre>
+</div>
+
+<table>
+  <tbody>
+    <tr>
+      <td>其中分隔符</td>
+      <td>之后的都是需要排除的文件，这些文件也同样支持匹配模式，并且可以同时添加多个过滤模式，只要中间用</td>
+      <td>分割就行了。。</td>
+    </tr>
+  </tbody>
+</table>
+
+<table>
+  <tbody>
+    <tr>
+      <td>注： 为了使得描述上更加的精简，</td>
+      <td>之后的过滤描述都是基于起一个模式：src/*.cpp 中 *之前的目录为基础的。</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>所以上面的例子后面过滤的都是在src下的文件，这个是要注意的。。</p>
+
+<p>下面来看个<a href="https://github.com/waruqi/tbox">TBOX</a>的xmake.lua中<code class="highlighter-rouge">add_files</code>的例子：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>add_files("*.c") 
+add_files("asio/aioo.c") 
+add_files("asio/aiop.c") 
+add_files("math/**.c") 
+
+-- 这里过滤了libc/string/impl/**.c
+add_files("libc/**.c|string/impl/**.c") 
+
+add_files("utils/*.c|option.c") 
+add_files("prefix/**.c") 
+add_files("memory/**.c") 
+add_files("string/**.c") 
+
+-- 这里过滤了stream/**/charset.c，stream/**/zip.c，stream/**async_**.c，stream/transfer_pool.c
+add_files("stream/**.c|**/charset.c|**/zip.c|**async_**.c|transfer_pool.c") 
+
+-- 这里过滤了network/impl/ssl下的所有c文件
+add_files("network/**.c|impl/ssl/*.c") 
+
+add_files("algorithm/**.c") 
+add_files("container/**.c") 
+add_files("libm/libm.c") 
+add_files("libm/idivi8.c") 
+add_files("libm/ilog2i.c") 
+add_files("libm/isqrti.c") 
+add_files("libm/isqrti64.c") 
+add_files("libm/idivi8.c") 
+add_files("platform/*.c|aicp.c")
+
+-- 如果当前架构是arm，则添加arm相关的asm优化代码
+if archs("arm.*") then
+    add_files("utils/impl/crc_arm.S")
+end
+
+-- 如果当前启用了charset模块，那么添加对应的c文件（这里的文件在上面是被过滤掉的）
+-- options接口后续会详解
+if options("charset") then 
+    add_files("charset/**.c")
+    add_files("stream/impl/filter/charset.c")
+end
+</code></pre>
+</div>
+
+<p>添加文件的时候支持过滤一些文件的一个好处就是，可以为后续根据不同开关逻辑添加文件提供基础。</p>
+
+<p>尤其需要提一下的是，xmake还支持直接添加<code class="highlighter-rouge">.o/obj/.a/.lib</code>的对象文件和库文件到目标中</p>
+
+<p>这个跟add_links是有区别的，links是链接库中的代码，而这个是直接将静态库中的对象文件合并到目标程序中。。</p>
+
+<p>这个的详细介绍，可参看<a href="/cn/xmake/2016/02/04/xmake-merge-static-library.html">高级特性之合并静态库</a></p>
+
+
+  </article>
+</div>
+
+<div id="disqus_thread"></div>
+<script>
+    /**
+     *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+     *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables
+     */
+    /*
+    var disqus_config = function () {
+        this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+        this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+    };
+    */
+    (function() {  // DON'T EDIT BELOW THIS LINE
+        var d = document, s = d.createElement('script');
+        
+        s.src = '//zh-tboox.disqus.com/embed.js';
+        
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+      </div>
+    </div>
+    
+    <footer class="footer">
+  <div id="gotop">^</div>
+  <br>
+	@2016 tboox.org
+</footer>
+
+    
+  </body>
+
+</html>
