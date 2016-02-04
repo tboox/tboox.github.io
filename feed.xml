@@ -6,9 +6,1216 @@
 </description>
     <link>http://tboox.org/</link>
     <atom:link href="http://tboox.org/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Wed, 03 Feb 2016 23:54:10 +0800</pubDate>
-    <lastBuildDate>Wed, 03 Feb 2016 23:54:10 +0800</lastBuildDate>
+    <pubDate>Thu, 04 Feb 2016 09:51:00 +0800</pubDate>
+    <lastBuildDate>Thu, 04 Feb 2016 09:51:00 +0800</lastBuildDate>
     <generator>Jekyll v3.1.1</generator>
+    
+      <item>
+        <title>通过流进行解压缩文件</title>
+        <description>&lt;p&gt;这里为了使代码更加简洁，直接用了transfer来挂接两路流的传输操作。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;// 初始化文件输入流
+tb_stream_ref_t istream = tb_stream_init_from_url(&quot;/home/file.txt&quot;);
+
+// 初始化文件输出流
+tb_stream_ref_t ostream = tb_stream_init_from_file(&quot;/home/file.gz&quot;, TB_FILE_MODE_RW | TB_FILE_MODE_CREAT | TB_FILE_MODE_BINARY | TB_FILE_MODE_TRUNC);
+
+// 初始化解压缩流，以istream作为输入
+tb_stream_ref_t fstream = tb_stream_init_filter_from_zip(istream, TB_ZIP_ALGO_GZIP, TB_ZIP_ACTION_INFLATE);
+
+// 初始化压缩流，以istream作为输入
+//tb_stream_ref_t fstream = tb_stream_init_filter_from_zip(istream, TB_ZIP_ALGO_GZIP, TB_ZIP_ACTION_DEFLATE);    
+
+// 进行流传输，并且通过 fstream进行中间外挂解压、压缩
+if (istream &amp;amp;&amp;amp; ostream &amp;amp;&amp;amp; fstream) 
+{
+    /* 保存流数据，如果每个流都还没有调用tb_stream_open打开过
+     * 这里会自动帮你打开，这样上层接口使用上，看上去更加简洁明了
+     * 
+     * 后面三个参数主要用于：限速、进度信息回调，这些之后再详细说明
+     * 现在只需要传空就行了
+     *
+     * save 是 实际传输的数据大小，失败返回：-1
+     */
+    tb_hong_t save = tb_transfer_done(fstream, ostream, 0, tb_null, tb_null);
+}
+
+// 释放流数据
+if (fstream) tb_stream_exit(fstream);
+if (istream) tb_stream_exit(istream);
+if (ostream) tb_stream_exit(ostream);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+</description>
+        <pubDate>Thu, 04 Feb 2016 00:00:00 +0800</pubDate>
+        <link>http://tboox.org/cn/tbox/2016/02/04/stream-zip.html</link>
+        <guid isPermaLink="true">http://tboox.org/cn/tbox/2016/02/04/stream-zip.html</guid>
+        
+        
+        <category>tbox</category>
+        
+      </item>
+    
+      <item>
+        <title>线程池的使用</title>
+        <description>&lt;p&gt;TBOX的线程池通过在每个worker中批量一次拉取多个task，对锁的竞争进行了优化。&lt;/p&gt;
+
+&lt;p&gt;由于每个task的函数实现不会太多，所以可以根据每个task的函数地址做hash，统计出每个task执行所花费的平均时间。然后根据这个平均值来动态计算每个worker一次拉取的task的数量，TBOX里面默认每个worker一次拉取10s的task量，这样可以尽可能的避免worker间锁的频繁抢占。&lt;/p&gt;
+
+&lt;p&gt;所有从等待队列被拉取出来的task，都会被放到pending队列中去，如果等待队列中的task都被取完了，某个worker处于了空闲状态，就会尝试去pending中，重新拉取其他worker还没有执行到的task， 这样可以解决某些task耗时太长，将worker中剩余的task阻塞住的问题。&lt;/p&gt;
+
+&lt;p&gt;重新从pending队列中拉取其他worker的task，并没有通过锁来维护，而是通过原子操作判断task的状态来维护的，所以性能上还是可以保证的。&lt;/p&gt;
+
+&lt;p&gt;整个线程池，只用到了一个锁来维护内部的几个队列，每个worker在大部分情况都是独立运行的，只有在自己的所有task都执行完空闲时，才回去全局等待队列中取task，并且上层接口也提供了批量投递任务的接口，来最小化对锁的使用。&lt;/p&gt;
+
+&lt;p&gt;下面看下简单的使用例子：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;static tb_void_t tb_demo_task_time_done(tb_cpointer_t priv)
+{
+    tb_msleep((tb_size_t)(priv));
+}
+
+static tb_void_t tb_demo_task_time_exit(tb_cpointer_t priv)
+{
+}
+
+/* 投递一个60s的任务到全局线程池
+ *
+ * tb_thread_pool(): 全局线程池实例，如果不想用全局的，也可以自己创建个线程池
+ * &quot;60000ms&quot;: 指定的一个任务名，常量字符串
+ * tb_demo_task_time_done: 任务函数地址
+ * tb_demo_task_time_exit: 任务被执行完或取消的时候的清理函数，可以用于释放一些自有数据，这个是可选的，不用直接传tb_null
+ * (tb_cpointer_t)60000: 传递的私有数据指针，这里简单的传了个等待时间值进去
+ * tb_false: 是否为紧急任务， 如果为tb_true， 则这个任务会尽可能第一时间优先呗执行
+ */
+tb_thread_pool_task_post(tb_thread_pool(), &quot;60000ms&quot;, tb_demo_task_time_done, tb_demo_task_time_exit, (tb_cpointer_t)60000, tb_false);
+
+// 投递一个10s的紧急任务
+tb_thread_pool_task_post(tb_thread_pool(), &quot;10000ms&quot;, tb_demo_task_time_done, tb_null, (tb_cpointer_t)10000, tb_true);
+
+// 批量投递两个任务
+tb_thread_pool_task_t list[2] = {0};
+list[0].name = &quot;60000ms&quot;;
+list[0].done = tb_demo_task_time_done;
+list[0].exit = tb_demo_task_time_exit;
+list[0].priv = (tb_pointer_t)60000;
+list[0].urgent = tb_false;
+list[1].name = &quot;10000ms&quot;;
+list[1].done = tb_demo_task_time_done;
+list[1].exit = tb_null;
+list[1].priv = (tb_pointer_t)10000;
+list[1].urgent = tb_true;
+tb_thread_pool_task_post_list(tb_thread_pool(), list, 2);
+
+// 初始化并且投递一个10s的紧急任务, 返回一个有效句柄
+tb_thread_pool_task_ref_t task = tb_thread_pool_task_init(tb_thread_pool(), &quot;10000ms&quot;, tb_demo_task_time_done, tb_null, (tb_cpointer_t)10000, tb_true);
+if (task)
+{
+    // 取消这个任务，如果这个任务已经在执行中了，就没法取消了
+    tb_thread_pool_task_kill(tb_thread_pool(), task);
+    
+    // 等待任务取消或完成，超时值：-1：无限等待
+    tb_thread_pool_task_wait(tb_thread_pool(), task, -1);
+    
+    // 释放这个任务
+    tb_thread_pool_task_exit(tb_thread_pool(), task);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;如果不想用全局线程池，可以自己初始化一个：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;/* 初始化线程池
+ *
+ * 8：最大worker的数量，上限值，如果传0就是使用默认值
+ * 0: 每个worker线程的堆栈大小，如果传0就是使用默认值
+ */
+tb_thread_pool_ref_t thread_pool = tb_thread_pool_init(8, 0);
+if (thread_pool)
+{
+    // 投递一个10s的紧急任务
+    tb_thread_pool_task_post(thread_pool, &quot;10000ms&quot;, tb_demo_task_time_done, tb_null, (tb_cpointer_t)10000, tb_true);
+    
+    // 如果的调试模式下，可以dump整个线程池的状态和所有处理中的任务状态
+#ifdef __tb_debug__
+    tb_thread_pool_dump(thread_pool);
+#endif
+
+    // 等待所有任务执行完成或被取消
+    tb_thread_pool_task_wait_all(thread_pool, -1);
+    
+    // 退出线程池
+    tb_thread_pool_exit(thread_pool);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+</description>
+        <pubDate>Thu, 04 Feb 2016 00:00:00 +0800</pubDate>
+        <link>http://tboox.org/cn/tbox/2016/02/04/platform-thread-pool.html</link>
+        <guid isPermaLink="true">http://tboox.org/cn/tbox/2016/02/04/platform-thread-pool.html</guid>
+        
+        
+        <category>tbox</category>
+        
+      </item>
+    
+      <item>
+        <title>用c实现跨平台异常捕获机制</title>
+        <description>&lt;p&gt;TBOX封装了一套跨平台的异常捕获实现，来模拟windows的seh异常处理功能，而且是线程安全的。&lt;/p&gt;
+
+&lt;h3 id=&quot;linuxmac&quot;&gt;在linux/mac下的实现&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;使用signal 捕获异常信号&lt;/li&gt;
+  &lt;li&gt;使用sigsetjmp保存现场寄存器和信号掩码，出现异常后使用 siglongjmp 跳转到异常处理过程，并恢复状态&lt;/li&gt;
+  &lt;li&gt;使用线程局部存储维护 sigjmpbuf 寄存器现场状态堆栈，保证多线程安全，并且可以实现多层嵌套捕获处理。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;windows&quot;&gt;在windows下的实现&lt;/h3&gt;
+
+&lt;p&gt;这个就不用多说了，在vs下直接用 __try、__except 关键字就行了，如果在mingw下编译， 通过 setjmp实现也很方便。&lt;/p&gt;
+
+&lt;h3 id=&quot;section&quot;&gt;具体使用&lt;/h3&gt;
+
+&lt;p&gt;注： 由于使用setjmp 进行寄存器现场保护， 如果使用整型局部变量， 有可能会被编译器优化到寄存器中。
+所以try内部的修改，可能会在异常捕获后，被会恢复掉。
+最好加上volatile来禁止优化。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;__tb_volatile__ tb_size_t i = 0;
+__tb_try
+{
+    i++;
+    // 捕获段错误
+    *((__tb_volatile__ tb_size_t*)0) = 0;
+    // 捕获除0错误
+    // __tb_volatile__ tb_size_t a = 0; a /= a;
+}
+__tb_except(1)
+{
+    // __tb_except(1): 处理异常
+    // __tb_except(0): 路由异常到外层， 支持嵌套处理
+}
+__tb_end
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;section-1&quot;&gt;注意事项&lt;/h3&gt;
+
+&lt;p&gt;有些平台异常捕获是被禁用的，所以如果确实想要使用这种异常捕获机制，首先得确保对应平台下的配置文件plat/xxx/config.h&lt;/p&gt;
+
+&lt;p&gt;定义了TB_CONFIG_EXCEPTION_ENABLE这个宏，然后重新编译才行。&lt;/p&gt;
+
+&lt;p&gt;虽然tbox对异常支持的挺完善了，但是个人还是不建议太过频繁的使用异常捕获。&lt;/p&gt;
+
+</description>
+        <pubDate>Thu, 04 Feb 2016 00:00:00 +0800</pubDate>
+        <link>http://tboox.org/cn/tbox/2016/02/04/platform-exception.html</link>
+        <guid isPermaLink="true">http://tboox.org/cn/tbox/2016/02/04/platform-exception.html</guid>
+        
+        
+        <category>tbox</category>
+        
+      </item>
+    
+      <item>
+        <title>内存池架构</title>
+        <description>&lt;p&gt;TBOX的内存管理模型，参考了linux kernel的内存管理机制，并在其基础上做了一些改进和优化。&lt;/p&gt;
+
+&lt;h2 id=&quot;section&quot;&gt;内存整体架构&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/tbox/memorypool.png&quot; alt=&quot;内存池架构&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;largepool&quot;&gt;large_pool&lt;/h2&gt;
+&lt;p&gt;整个内存分配的最底层，都是基于large_pool的大块内存分配池，类似于linux的基于page的分配管理，不过有所不同的是，large_pool并没有像linux那样使用buddy算法进行(2^N)*page进行分配，这样如果需要2.1m的内存，需要分配4m的内存块，这样力度太大，非常浪费。&lt;/p&gt;
+
+&lt;p&gt;因此large_pool内部采用N*page的基于page_size为最小粒度进行分配，因此每次分配顶多浪费不到一页的空间。&lt;/p&gt;
+
+&lt;p&gt;而且如果需要的内存不到整页，剩下的内存也会一并返回给上层，如果上层需要（比如small_pool），可以充分利用这多余的部分内存空间，使得内存利用率达到最优化。&lt;/p&gt;
+
+&lt;p&gt;而且根据tb_init实际传入的参数需求，large_pool有两种模式：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;直接使用系统内存分配接口将进行大块内存的分配，并用双链维护，这种比较简单，就不多说了。&lt;/li&gt;
+  &lt;li&gt;在一大块连续内存上进行统一管理，实现内存分配。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;具体使用哪种方式，根据应用需求，一般的应用只需要使用方式1就行了，这个时候tb_init传tb_null就行了，如果是嵌入式应用，需要管理有限的一块内存空间，这个时候可以使用方式2， tb_init传入指定内存空间地址和大小。&lt;/p&gt;
+
+&lt;p&gt;这里就主要看下方式2的large_pool的内存结构（假设页大小是4KB）：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; --------------------------------------------------------------------------
+|                                     data                                 |
+ --------------------------------------------------------------------------
+                                     |
+ --------------------------------------------------------------------------
+| head | 4KB | 16KB | 8KB | 128KB | ... | 32KB |       ...       |  4KB*N  |
+ --------------------------------------------------------------------------
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;由于large_pool主要用于大块分配，而超小块的分配在上层small_pool中已经被分流掉了，所以这个应用中，large_pool不会太过频繁的分配，所以碎片量不会太大，为了进一步减少碎片的产生，在free时候都会对下一个邻近的空闲块进行合并。而malloc在分配当前空闲块空间不够的情况下，也会尝试对下一个邻近空闲块进行合并。&lt;/p&gt;
+
+&lt;p&gt;由于每个内存块都是邻近挨着的，也没用双链维护，没有内存块，都有个块头，合并过程仅仅只是改动内存块头部的size字段，这样的合并不会影响效率。&lt;/p&gt;
+
+&lt;p&gt;由于没像buddy算法那样，用双链维护空闲内存，虽然节省了链表维护的空间和时间，但是每次分配内存都要顺序遍历所有块，来查找空闲的内存，这样的效率实在太低了，为了解决这个问题，large_pool内部针对不同级别的块，进行了预测，每次free或者malloc的时候，如果都会把当前和邻近的空闲快，缓存到对应级别的预测池里面去，具体的分级如下：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; --------------------------------------
+| &amp;gt;0KB :      4KB       | &amp;gt; 0*page     | 
+|-----------------------|--------------
+| &amp;gt;4KB :      8KB       | &amp;gt; 1*page     | 
+|-----------------------|--------------
+| &amp;gt;8KB :    12-16KB     | &amp;gt; 2*page     | 
+|-----------------------|--------------
+| &amp;gt;16KB :   20-32KB     | &amp;gt; 4*page     | 
+|-----------------------|--------------
+| &amp;gt;32KB :   36-64KB     | &amp;gt; 8*page     | 
+|-----------------------|--------------
+| &amp;gt;64KB :   68-128KB    | &amp;gt; 16*page    | 
+|-----------------------|--------------
+| &amp;gt;128KB :  132-256KB   | &amp;gt; 32*page    | 
+|-----------------------|--------------
+| &amp;gt;256KB :  260-512KB   | &amp;gt; 64*page    | 
+|-----------------------|--------------
+| &amp;gt;512KB :  516-1024KB  | &amp;gt; 128*page   | 
+|-----------------------|--------------
+| &amp;gt;1024KB : 1028-...KB  | &amp;gt; 256*page   | 
+ --------------------------------------
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;由于通常不会分配太大块的内存，因此只要能够预测1m内存，就足够，而对于&amp;gt;1m的内存，这里也单独加了一个预测，来应对偶尔的超大块分配，并且使得整体分配流程更加的统一。&lt;/p&gt;
+
+&lt;p&gt;如果当前级别的预测块不存在，则会到下一级别的预测块中查找，如果都找不到，才回去遍历整个内存池。&lt;/p&gt;
+
+&lt;p&gt;实际测试下，每个块的预测成功基本都在95%以上，也就说大部分情况下，分配效率都是维持在O(1)级别的。&lt;/p&gt;
+
+&lt;h2 id=&quot;smallpool&quot;&gt;small_pool&lt;/h2&gt;
+
+&lt;p&gt;小块内存分配池&lt;/p&gt;
+
+&lt;p&gt;在上层每次调用malloc进行内存分配的时候，回去判断需要多大的内存，如果这个内存超过或者等于一页，则会直接从large_pool进行分配，如果小于一页，则会优先通过small_pool进行分配，small_pool针对小块的内存进行了高速缓存，并优化了空间管理和分配效率。&lt;/p&gt;
+
+&lt;p&gt;由于程序大部分情况下，都在使用小块内存，因此small_pool对内存的分配做了很大的分流，使得large_pool承受的压力减小，碎片量减少很多，而small_pool内部由于都是由fixed_pool来对固定大小的内存进行管理，是不会存在外部碎片的。而小块内存的粒度本身就很小，所以内部碎片量也相当少。&lt;/p&gt;
+
+&lt;p&gt;small_pool中的fixed_pool，就像是linux kernel中的slub，在small_pool中总共有12级别的fixed_pool，每个级别分别管理一种固定大小的内存块，具体级别如下：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; --------------------------------------
+|    fixed pool: 16B    |  1-16B       | 
+|--------------------------------------|
+|    fixed pool: 32B    |  17-32B      |  
+|--------------------------------------|
+|    fixed pool: 64B    |  33-64B      | 
+|--------------------------------------|
+|    fixed pool: 96B*   |  65-96B*     | 
+|--------------------------------------|
+|    fixed pool: 128B   |  97-128B     |  
+|--------------------------------------|
+|    fixed pool: 192B*  |  129-192B*   |  
+|--------------------------------------|
+|    fixed pool: 256B   |  193-256B    |  
+|--------------------------------------|
+|    fixed pool: 384B*  |  257-384B*   |  
+|--------------------------------------|
+|    fixed pool: 512B   |  385-512B    |  
+|--------------------------------------|
+|    fixed pool: 1024B  |  513-1024B   |  
+|--------------------------------------|
+|    fixed pool: 2048B  |  1025-2048B  |  
+|--------------------------------------|
+|    fixed pool: 3072B* |  2049-3072B* |  
+ -------------------------------------- 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;其中 96B, 192B，384B，3072B并不是按2的整数幂大小，这么做主要是为了更加有效的利用小块内存的空间减少内部碎片。&lt;/p&gt;
+
+&lt;h2 id=&quot;fixedpool&quot;&gt;fixed_pool&lt;/h2&gt;
+
+&lt;p&gt;顾名思义，fixed_pool就是用来管理固定大小的内存分配的，相当于linux中slub，而fixed_pool中又由多个slot组成，每个slot负责一块连续的内存空间，管理部分内存块的管理，类似linux中的slab， 每个slot由双链维护，并且参考linux的管理机制，分为三种slot管理方式：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;当前正在分配的slot&lt;/li&gt;
+  &lt;li&gt;部分空闲slots链表&lt;/li&gt;
+  &lt;li&gt;完全full的slots链表&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;具体结构如下：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;current:
+     --------------
+    |              |
+ --------------    |
+|     slot     |&amp;lt;--
+|--------------|
+||||||||||||||||  
+|--------------| 
+|              | 
+|--------------| 
+|              | 
+|--------------| 
+||||||||||||||||  
+|--------------| 
+|||||||||||||||| 
+|--------------| 
+|              | 
+ --------------  
+
+partial:
+
+ --------------       --------------               --------------
+|     slot     | &amp;lt;=&amp;gt; |     slot     | &amp;lt;=&amp;gt; ... &amp;lt;=&amp;gt; |     slot     |
+|--------------|     |--------------|             |--------------|
+||||||||||||||||     |              |             |              |
+|--------------|     |--------------|             |--------------|
+|              |     ||||||||||||||||             |              |
+|--------------|     |--------------|             |--------------|
+|              |     ||||||||||||||||             ||||||||||||||||
+|--------------|     |--------------|             |--------------|
+||||||||||||||||     ||||||||||||||||             |              |
+|--------------|     |--------------|             |--------------|
+||||||||||||||||     |              |             |              |
+|--------------|     |--------------|             |--------------|
+|              |     |              |             ||||||||||||||||
+--------------       --------------               --------------
+
+full:
+
+ --------------       --------------               --------------
+|     slot     | &amp;lt;=&amp;gt; |     slot     | &amp;lt;=&amp;gt; ... &amp;lt;=&amp;gt; |     slot     |
+|--------------|     |--------------|             |--------------|
+||||||||||||||||     ||||||||||||||||             ||||||||||||||||
+|--------------|     |--------------|             |--------------|
+||||||||||||||||     ||||||||||||||||             ||||||||||||||||
+|--------------|     |--------------|             |--------------|
+||||||||||||||||     ||||||||||||||||             ||||||||||||||||
+|--------------|     |--------------|             |--------------|
+||||||||||||||||     ||||||||||||||||             ||||||||||||||||
+|--------------|     |--------------|             |--------------|
+||||||||||||||||     ||||||||||||||||             ||||||||||||||||
+|--------------|     |--------------|             |--------------|
+||||||||||||||||     ||||||||||||||||             ||||||||||||||||
+ --------------       --------------               --------------
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;具体的分配算法&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;如果当前slot中还有空闲的块，优先从当前slot进行分配&lt;/li&gt;
+  &lt;li&gt;如果当前slot中没有空闲块，则把这个slot放到full链表中去&lt;/li&gt;
+  &lt;li&gt;从部分空闲slot链表中，挑一个空闲的slot进行分配，并把它设为当前分配状态。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;strong&gt;具体的释放算法&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;释放后如果这个slot完全空闲了，并且不是正在分配的slot，则把整个slot释放掉，这样既可以保证有一个可以分配的slot之外，还极大的降低了内存使用，也避免某些情况下频繁的释放分配slot。&lt;/li&gt;
+  &lt;li&gt;如果释放的slot属于full链表并且变为了部分空闲，则把这个slot移到部分空闲slot链表中去。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;strong&gt;额外要提一下的是&lt;/strong&gt;：&lt;/p&gt;
+
+&lt;p&gt;large_pool每次分配一块空间给一个slot的时候，残留下来的部分剩余空间(&amp;lt;1*page)， 也能直接返回给slot，让slot充分利用这部分数据，这样可以可以切分出更多地内存块。&lt;/p&gt;
+
+&lt;p&gt;例如：&lt;/p&gt;
+
+&lt;p&gt;fixed_pool每次增长一个包含256个32B内存块的slot（需要8192B大小+16B内部数据维护大小），其实在用large_pool分配的时候，需要8208B的大小，由于需要按页对齐（4KB），实际分配确占用了&lt;code class=&quot;highlighter-rouge&quot;&gt;8192+4096: 12288B&lt;/code&gt;的大小的空间。&lt;/p&gt;
+
+&lt;p&gt;但是large_pool支持把所有空间数据一并返回给上层，这样slot其实获取到了一个12288B大小的内存，并且也知道其实际大小为：12288B，因此实际切分了&lt;code class=&quot;highlighter-rouge&quot;&gt;(12288-(32B的slot内部维护数据))/32&lt;/code&gt;也就是383个内存块。&lt;/p&gt;
+
+&lt;p&gt;多维护了127个内存块，充分把large_pool的内部碎片也利用上了，进一步增加了内存利用率。&lt;/p&gt;
+
+&lt;h2 id=&quot;fixedpoolslot&quot;&gt;fixed_pool中的slot&lt;/h2&gt;
+
+&lt;p&gt;虽然类比与linux中的slab，但是其数据结构确跟slab不太一样，它并没有像slab那样，对每个空闲小块都用链表维护，而是直接用位段来维护是否空闲的信息，这样更加节省内存，而且通过优化算法，其分配效率和slab几乎一样。&lt;/p&gt;
+
+&lt;p&gt;在fixed_pool的slot的头部，专门有一小块独立的数据，用于维护每个小块的空闲信息，每个块只暂用一比特位的信息，来判断这个块是否空闲，由于没有内存块都是固定大小的，所以比特位的位置定位，完全可以通过索引计算得到。&lt;/p&gt;
+
+&lt;p&gt;而且每次释放和分配，都会去缓存一个双字大小的位信息端，来预测下一次的分配，由于是双字大小，总共有32个比特位，所以每次缓存，最多可以预测邻近32个内存块。因此大部分情况下，预测成功率一直都是&amp;gt;98%的，分配效率都维持在O(1)，比起large_pool的预测率还高很多，所以small_pool对large_pool的分流，还在一定程度上，进一步提高了内存分配效率。&lt;/p&gt;
+
+&lt;p&gt;而就算很倒霉，没预测成功，slot的顺序遍历来查找空闲快的算法，也相当高效，完全是高度优化的，下面就详细描述下。&lt;/p&gt;
+
+&lt;h3 id=&quot;slot&quot;&gt;slot的顺序遍历分配算法优化&lt;/h3&gt;
+
+&lt;p&gt;我们这里主要用到了gcc的几个内置函数：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;__builtin_clz：计算32位整数前导0的个数&lt;/li&gt;
+  &lt;li&gt;__builtin_ctz：计算32位整数后置0的个数&lt;/li&gt;
+  &lt;li&gt;__builtin_clzll：计算64位整数前导0的个数&lt;/li&gt;
+  &lt;li&gt;__builtin_ctzll：计算64位整数后置0的个数&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;其实这四个类似，我们这里就拿第一说明好了，为什么要使用__builtin_clz呢？其实就是为了在一个32位端里面，快速查找某个空闲位的索引，这样就能快速定位某个空闲块的位置了。&lt;/p&gt;
+
+&lt;p&gt;比如有一个32位的位段信息整数：x，计算对应空闲位0的索引，主需要：&lt;code class=&quot;highlighter-rouge&quot;&gt;__builtin_clz(~x)&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;简单吧，由于__builtin_clz这些内置函数，gcc用汇编针对不同平台高度优化过的，计算起来相当的快，那如果不是gcc的编译器怎么办呢？&lt;/p&gt;
+
+&lt;p&gt;没关系，我们可以自己用c实现个优化版本的，当然完全可以汇编继续优化，这里就先给个c的实现：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;!--lang:cpp--&amp;gt;
+static __tb_inline__ tb_size_t tb_bits_cl0_u32_be_inline(tb_uint32_t x)
+{
+    // check
+    tb_check_return_val(x, 32);
+
+    // done
+    tb_size_t n = 31;
+    if (x &amp;amp; 0xffff0000) { n -= 16;  x &amp;gt;&amp;gt;= 16;   }
+    if (x &amp;amp; 0xff00)     { n -= 8;   x &amp;gt;&amp;gt;= 8;    }
+    if (x &amp;amp; 0xf0)       { n -= 4;   x &amp;gt;&amp;gt;= 4;    }
+    if (x &amp;amp; 0xc)        { n -= 2;   x &amp;gt;&amp;gt;= 2;    }
+    if (x &amp;amp; 0x2)        { n--;                  }
+    return n;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;说白了，就是每次对半开，来减少判断次数，比起每次一位一位的枚举遍历，这种已经是相当高效了，更何况还有__builtin_clz呢。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;接下来就看下具体的遍历过程：&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;按4/8字节对齐位段的起始地址&lt;/li&gt;
+  &lt;li&gt;每次按4/8字节遍历位段数据，遍历过程利用cpu cache的大小，针对性的做循环展开，来优化性能。&lt;/li&gt;
+  &lt;li&gt;通过判断 !(x + 1) 来快速过滤 0xffffffff 这些已经满了的位段，进一步提高遍历效率。&lt;/li&gt;
+  &lt;li&gt;如果某个位段不是0xffffffff，则通过__builtin_clz(~x)计算实际的空闲块索引，并进行实际的分配。&lt;/li&gt;
+  &lt;li&gt;最后如果这个的32位的位段没有被分配满，可以把它进行缓存，来为下次分配做预测。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;stringpool&quot;&gt;string_pool&lt;/h2&gt;
+
+&lt;p&gt;讲到这，TBOX的内存池管理模型，基本算是大概讲完了，这里就简单提下string_pool，即：字符串池&lt;/p&gt;
+
+&lt;p&gt;string_pool主要针对上层应用而言的，针对某些频繁使用小型字符串，并且重复率很高的模块，就可以通过string_pool进行优化，进一步减少内存使用，string_pool内部通过引用计数+哈希表维护，针对相同的字符串只保存一份。&lt;/p&gt;
+
+&lt;p&gt;例如可以用于cookies中字符串维护、http中header部分的字符串维护等等。。&lt;/p&gt;
+
+</description>
+        <pubDate>Thu, 04 Feb 2016 00:00:00 +0800</pubDate>
+        <link>http://tboox.org/cn/tbox/2016/02/04/memory-pool.html</link>
+        <guid isPermaLink="true">http://tboox.org/cn/tbox/2016/02/04/memory-pool.html</guid>
+        
+        
+        <category>tbox</category>
+        
+      </item>
+    
+      <item>
+        <title>内存检测</title>
+        <description>&lt;p&gt;TBOX的内存分配在调试模式下，可以检测支持内存泄露和越界，而且还能精确定位到出问题的那块内存具体分配位置，和函数调用堆栈。&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;内存泄露检测&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;内存泄露的检测必须在程序退出的前一刻，调用tb_exit()的时候，才会执行，如果有泄露，会有详细输出到终端上。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;tb_void_t tb_demo_leak()
+{
+    tb_pointer_t data = tb_malloc0(10);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;输出：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[tbox]: [error]: leak: 0x7f9d5b058908 at tb_static_fixed_pool_dump(): 735, memory/impl/static_fixed_pool.c
+[tbox]: [error]: data: from: tb_demo_leak(): 43, memory/check.c
+[tbox]: [error]:     [0x000001050e742a]: 0   demo.b                              0x00000001050e742a tb_fixed_pool_malloc0_ + 186
+[tbox]: [error]:     [0x000001050f972b]: 1   demo.b                              0x00000001050f972b tb_small_pool_malloc0_ + 507
+[tbox]: [error]:     [0x000001050f593c]: 2   demo.b                              0x00000001050f593c tb_pool_malloc0_ + 540
+[tbox]: [error]:     [0x00000105063cd7]: 3   demo.b                              0x0000000105063cd7 tb_demo_leak + 55
+[tbox]: [error]:     [0x00000105063e44]: 4   demo.b                              0x0000000105063e44 tb_demo_memory_check_main + 20
+[tbox]: [error]:     [0x0000010505b08e]: 5   demo.b                              0x000000010505b08e main + 878
+[tbox]: [error]:     [0x007fff8c95a5fd]: 6   libdyld.dylib                       0x00007fff8c95a5fd start + 1
+[tbox]: [error]:     [0x00000000000002]: 7   ???                                 0x0000000000000002 0x0 + 2
+[tbox]: [error]: data: 0x7f9d5b058908, size: 10, patch: cc
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;内存越界检测&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;越界溢出的检测，是实时完成的，而且对libc也做了插桩，所以对常用strcpy，memset等的使用，都回去检测&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;tb_void_t tb_demo_overflow()
+{
+    tb_pointer_t data = tb_malloc0(10);
+    if (data)
+    {
+        tb_memset(data, 0, 11);
+        tb_free(data);
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;输出：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[tbox]: [memset]: [overflow]: [0x0 x 11] =&amp;gt; [0x7f950b044508, 10]
+[tbox]: [memset]: [overflow]: [0x0000010991a1c7]: 0   demo.b                              0x000000010991a1c7 tb_memset + 151
+[tbox]: [memset]: [overflow]: [0x000001098a2d01]: 1   demo.b                              0x00000001098a2d01 tb_demo_overflow + 97
+[tbox]: [memset]: [overflow]: [0x000001098a3044]: 2   demo.b                              0x00000001098a3044 tb_demo_memory_check_main + 20
+[tbox]: [memset]: [overflow]: [0x0000010989a28e]: 3   demo.b                              0x000000010989a28e main + 878
+[tbox]: [memset]: [overflow]: [0x007fff8c95a5fd]: 4   libdyld.dylib                       0x00007fff8c95a5fd start + 1
+[tbox]: [memset]: [overflow]: [0x00000000000002]: 5   ???                                 0x0000000000000002 0x0 + 2
+[tbox]: 	[malloc]: [from]: data: from: tb_demo_overflow(): 12, memory/check.c
+[tbox]: 	[malloc]: [from]:     [0x0000010992662a]: 0   demo.b                              0x000000010992662a tb_fixed_pool_malloc0_ + 186
+[tbox]: 	[malloc]: [from]:     [0x0000010993892b]: 1   demo.b                              0x000000010993892b tb_small_pool_malloc0_ + 507
+[tbox]: 	[malloc]: [from]:     [0x00000109934b3c]: 2   demo.b                              0x0000000109934b3c tb_pool_malloc0_ + 540
+[tbox]: 	[malloc]: [from]:     [0x000001098a2cd7]: 3   demo.b                              0x00000001098a2cd7 tb_demo_overflow + 55
+[tbox]: 	[malloc]: [from]:     [0x000001098a3044]: 4   demo.b                              0x00000001098a3044 tb_demo_memory_check_main + 20
+[tbox]: 	[malloc]: [from]:     [0x0000010989a28e]: 5   demo.b                              0x000000010989a28e main + 878
+[tbox]: 	[malloc]: [from]:     [0x007fff8c95a5fd]: 6   libdyld.dylib                       0x00007fff8c95a5fd start + 1
+[tbox]: 	[malloc]: [from]:     [0x00000000000002]: 7   ???                                 0x0000000000000002 0x0 + 2
+[tbox]: 	[malloc]: [from]: data: 0x7f950b044508, size: 10, patch: cc
+[tbox]: 	[malloc]: [from]: data: first 10-bytes:
+[tbox]: ===================================================================================================================================================
+[tbox]: 00000000   00 00 00 00  00 00 00 00  00 00                                                                         ..........
+[tbox]: [error]: abort at tb_memset(): 255, libc/string/memset.c
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;内存重叠覆盖检测&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;如果两块内存的copy发生了重叠，有可能会覆盖掉部分数据，导致bug，因此TBOX对此也做了些检测。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;tb_void_t tb_demo_overlap()
+{
+    tb_pointer_t data = tb_malloc(10);
+    if (data)
+    {
+        tb_memcpy(data, (tb_byte_t const*)data + 1, 5);
+        tb_free(data);
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;输出&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[tbox]: [memcpy]: [overlap]: [0x7fe9b5042509, 5] =&amp;gt; [0x7fe9b5042508, 5]
+[tbox]: [memcpy]: [overlap]: [0x000001094403b8]: 0   demo.b                              0x00000001094403b8 tb_memcpy + 632
+[tbox]: [memcpy]: [overlap]: [0x000001093c99f9]: 1   demo.b                              0x00000001093c99f9 tb_demo_overlap + 105
+[tbox]: [memcpy]: [overlap]: [0x000001093c9a44]: 2   demo.b                              0x00000001093c9a44 tb_demo_memory_check_main + 20
+[tbox]: [memcpy]: [overlap]: [0x000001093c0c8e]: 3   demo.b                              0x00000001093c0c8e main + 878
+[tbox]: [memcpy]: [overlap]: [0x007fff8c95a5fd]: 4   libdyld.dylib                       0x00007fff8c95a5fd start + 1
+[tbox]: [memcpy]: [overlap]: [0x00000000000002]: 5   ???                                 0x0000000000000002 0x0 + 2
+[tbox]: 	[malloc]: [from]: data: from: tb_demo_overlap(): 58, memory/check.c
+[tbox]: 	[malloc]: [from]:     [0x0000010945eadb]: 0   demo.b                              0x000000010945eadb tb_small_pool_malloc_ + 507
+[tbox]: 	[malloc]: [from]:     [0x0000010945b23c]: 1   demo.b                              0x000000010945b23c tb_pool_malloc_ + 540
+[tbox]: 	[malloc]: [from]:     [0x000001093c99c7]: 2   demo.b                              0x00000001093c99c7 tb_demo_overlap + 55
+[tbox]: 	[malloc]: [from]:     [0x000001093c9a44]: 3   demo.b                              0x00000001093c9a44 tb_demo_memory_check_main + 20
+[tbox]: 	[malloc]: [from]:     [0x000001093c0c8e]: 4   demo.b                              0x00000001093c0c8e main + 878
+[tbox]: 	[malloc]: [from]:     [0x007fff8c95a5fd]: 5   libdyld.dylib                       0x00007fff8c95a5fd start + 1
+[tbox]: 	[malloc]: [from]:     [0x00000000000002]: 6   ???                                 0x0000000000000002 0x0 + 2
+[tbox]: 	[malloc]: [from]: data: 0x7fe9b5042508, size: 10, patch: cc
+[tbox]: 	[malloc]: [from]: data: first 10-bytes:
+[tbox]: ===================================================================================================================================================
+[tbox]: 00000000   CC CC CC CC  CC CC CC CC  CC CC                                                                         ..........
+[tbox]: [error]: abort at tb_memcpy(): 125, libc/string/memcpy.c
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;内存双重释放检测&lt;/p&gt;
+
+    &lt;p&gt;tb_void_t tb_demo_free2()
+ {
+     tb_pointer_t data = tb_malloc0(10);
+     if (data)
+     {
+         tb_free(data);
+         tb_free(data);
+     }
+ }&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;输出&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[tbox]: [assert]: expr[((impl-&amp;gt;used_info)[(index) &amp;gt;&amp;gt; 3] &amp;amp; (0x1 &amp;lt;&amp;lt; ((index) &amp;amp; 7)))]: double free data: 0x7fd93386c708 at tb_static_fixed_pool_free(): 612, memory/impl/static_fixed_pool.c
+[tbox]:     [0x0000010c9f553c]: 0   demo.b                              0x000000010c9f553c tb_static_fixed_pool_free + 972
+[tbox]:     [0x0000010c9ee7a9]: 1   demo.b                              0x000000010c9ee7a9 tb_fixed_pool_free_ + 713
+[tbox]:     [0x0000010ca01ff5]: 2   demo.b                              0x000000010ca01ff5 tb_small_pool_free_ + 885
+[tbox]:     [0x0000010c9fdb4f]: 3   demo.b                              0x000000010c9fdb4f tb_pool_free_ + 751
+[tbox]:     [0x0000010c96ac8e]: 4   demo.b                              0x000000010c96ac8e tb_demo_free2 + 158
+[tbox]:     [0x0000010c96ae44]: 5   demo.b                              0x000000010c96ae44 tb_demo_memory_check_main + 20
+[tbox]:     [0x0000010c96208e]: 6   demo.b                              0x000000010c96208e main + 878
+[tbox]:     [0x007fff8c95a5fd]: 7   libdyld.dylib                       0x00007fff8c95a5fd start + 1
+[tbox]:     [0x00000000000002]: 8   ???                                 0x0000000000000002 0x0 + 2
+[tbox]: [error]: free(0x7fd93386c708) failed! at tb_demo_free2(): 37, memory/check.c at tb_static_fixed_pool_free(): 649, memory/impl/static_fixed_pool.c
+[tbox]: [error]: data: from: tb_demo_free2(): 33, memory/check.c
+[tbox]: [error]:     [0x0000010c9ee42a]: 0   demo.b                              0x000000010c9ee42a tb_fixed_pool_malloc0_ + 186
+[tbox]: [error]:     [0x0000010ca0072b]: 1   demo.b                              0x000000010ca0072b tb_small_pool_malloc0_ + 507
+[tbox]: [error]:     [0x0000010c9fc93c]: 2   demo.b                              0x000000010c9fc93c tb_pool_malloc0_ + 540
+[tbox]: [error]:     [0x0000010c96ac27]: 3   demo.b                              0x000000010c96ac27 tb_demo_free2 + 55
+[tbox]: [error]:     [0x0000010c96ae44]: 4   demo.b                              0x000000010c96ae44 tb_demo_memory_check_main + 20
+[tbox]: [error]:     [0x0000010c96208e]: 5   demo.b                              0x000000010c96208e main + 878
+[tbox]: [error]:     [0x007fff8c95a5fd]: 6   libdyld.dylib                       0x00007fff8c95a5fd start + 1
+[tbox]: [error]:     [0x00000000000002]: 7   ???                                 0x0000000000000002 0x0 + 2
+[tbox]: [error]: data: 0x7fd93386c708, size: 10, patch: cc
+[tbox]: [error]: data: first 10-bytes:
+[tbox]: ===================================================================================================================================================
+[tbox]: 00000000   00 00 00 00  00 00 00 00  00 00                                                                         ..........
+[tbox]: [error]: abort at tb_static_fixed_pool_free(): 655, memory/impl/static_fixed_pool.c
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+</description>
+        <pubDate>Thu, 04 Feb 2016 00:00:00 +0800</pubDate>
+        <link>http://tboox.org/cn/tbox/2016/02/04/memory-check.html</link>
+        <guid isPermaLink="true">http://tboox.org/cn/tbox/2016/02/04/memory-check.html</guid>
+        
+        
+        <category>tbox</category>
+        
+      </item>
+    
+      <item>
+        <title>迭代器的使用</title>
+        <description>&lt;p&gt;stl的容器库常用模式就是将容器、迭代器和算法的进行分离，容器专于存储，迭代器负责枚举，这样互相独立好处多多。&lt;/p&gt;
+
+&lt;p&gt;因此TBOX也借鉴了这种模式，不同的是没用模板，仅仅用了c语言来实现。容器库里面的大部分容器都是继承自迭代器的，所以迭代起来相当的方便。&lt;/p&gt;
+
+&lt;p&gt;下面先看个迭代器使用的例子：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;// 初始化一个双向链表，元素类型为tb_long_t， 满256个元素自动增长
+tb_list_ref_t list = tb_list_init(256, tb_item_func_long());
+if (list)
+{
+    // 插入一些元素
+    tb_list_insert_tail(list, (tb_cpointer_t)1);
+    tb_list_insert_tail(list, (tb_cpointer_t)2);
+    tb_list_insert_tail(list, (tb_cpointer_t)3);
+    tb_list_insert_tail(list, (tb_cpointer_t)4);
+    tb_list_insert_tail(list, (tb_cpointer_t)5);
+    
+    // 迭代遍历所有元素
+    tb_for_all (tb_long_t, item, list)
+    {
+        tb_trace_i(&quot;item: %ld&quot;, item);
+    }
+    
+    // 迭代遍历所有 &amp;gt; 3 的元素
+    tb_for_all_if (tb_long_t, item, list, item &amp;gt; 3)
+    {
+        tb_trace_i(&quot;item: %ld&quot;, item);
+    }
+    
+    // 反向迭代遍历所有元素，注：只有支持反向迭代的容器，才行，例如单链tb_single_list_t就不行
+    tb_rfor_all (tb_long_t, item, list)
+    {
+        tb_trace_i(&quot;item: %ld&quot;, item);
+    }
+    
+    // 反向迭代遍历所有 &amp;gt; 3 的元素
+    tb_rfor_all_if (tb_long_t, item, list, item &amp;gt; 3)
+    {
+        tb_trace_i(&quot;item: %ld&quot;, item);
+    }
+    
+    // 迭代遍历部分元素，这里认为传入迭代的头部和尾部，进行遍历所有
+    tb_for (tb_long_t, item, tb_iterator_head(list), tb_iterator_tail(list), list)
+    {
+        tb_trace_i(&quot;item: %ld&quot;, item);
+    }
+    
+    // 退出链表
+    tb_list_exit(list);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;怎么样简单吧，其实这里的 tb_for_all 是一个宏，如果把它展开的话，其实也可以这样遍历只不过看上去繁琐些，但是更加灵活：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;// 获取list的头部索引
+tb_size_t itor = tb_iterator_head(list);
+
+// 获取list的尾部索引
+tb_size_t tail = tb_iterator_tail(list);
+
+// 进行遍历，这里没去删除元素，所以不需要实时更新tail的值
+for (; itor != tail; itor = tb_iterator_next(list, itor))
+{
+    // 获取索引itor对应的元素
+    tb_long_t item = (tb_long_t)tb_iterator_item(list, itor);
+}
+
+// 进行遍历，并且删除元素，需要更新tail， 所以这个tb_for 就办不到了
+// tb_for为了效率，不会去更新tail的值
+while (itor != tb_iterator_tail(list, itor))
+{
+    // 获取索引itor对应的元素
+    tb_long_t item = (tb_long_t)tb_iterator_item(list, itor);
+    if (item &amp;gt; 3)
+    {
+        // 先保存下一个索引，避免删除当前元素后itor变为无效索引
+        tb_size_t next = tb_iterator_next(list, itor);
+        
+        // 使用迭代器删除
+        tb_iterator_remove(list, itor);
+        
+        // 或者使用容器删除
+//      tb_list_remove(list, itor);
+
+        // 继续下一个
+        itor = next;
+        continue ;
+    }
+    
+    // 继续下一个
+    itor = tb_iterator_next(list, itor);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这种方式其实也已经相当方便了，如果觉得上面的删除比较繁琐的话，可以使用算法库提供的remove函数来进行遍历删除，并且更加高效。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;// 回调函数
+tb_long_t tb_list_item_func(tb_iterator_ref_t iterator, tb_cpointer_t item, tb_cpointer_t priv);
+{
+    // 如果 &amp;gt; 3 就删除它
+    if ((tb_long_t)item &amp;gt; 3)
+    {
+        /* 标记这个元素为删除
+         * 
+         * 注：
+         * 这个时候容器内部还没有真正的删除它，里面做了些优化
+         * 来一次性删除一块连续的元素，这样效率会高好多
+         *
+         * 这种删除模式，是最快速的，尤其是对tb_vector_t这种有连续内存的容器，更为高效
+         * 避免了每删除一个元素，都要进行一遍tb_memmov内存的搬运
+         *
+         * 名字类似，vector的遍历删除使用：tb_vector_walk
+         */
+        return 0;
+    }
+    
+    // 返回1则继续下一个，返回-1则中断遍历
+    return 1;
+}
+
+// 遍历所有元素，并对每个元素调用回调函数
+tb_remove_if(list, tb_list_item_func, tb_null);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;还有一种遍历方式，就是使用算法库的tb_walk函数，这个和 tb_list_walk类似，但不提供删除功能。
+主要应用在通用化，模块化复杂遍历代码的地方：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;tb_bool_t tb_walk_item_func(tb_iterator_ref_t iterator, tb_pointer_t item, tb_pointer_t priv)
+{
+    // ...
+}
+
+// 遍历所有
+tb_walk_all(list, tb_walk_item_func, tb_null);
+
+// 反向遍历所有
+tb_rwalk_all(list, tb_walk_item_func, tb_null);
+
+// 通过迭代器索引，局部遍历
+tb_walk(list, tb_iterator_head(list), tb_iterator_tail(list), tb_walk_item_func, tb_null);
+
+// 反向通过迭代器索引，局部遍历
+tb_rwalk(list, tb_iterator_head(list), tb_iterator_tail(list), tb_walk_item_func, tb_null);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;总结下：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;tb_for系列：用于小代码块的简单逻辑遍历&lt;/li&gt;
+  &lt;li&gt;直接使用迭代器：用于小代码块复杂逻辑遍历&lt;/li&gt;
+  &lt;li&gt;容器的tb_xxx_walk：用于复杂代码块、高效删除元素时的遍历&lt;/li&gt;
+  &lt;li&gt;tb_walk系列：用于复杂代码块，不需要删除时的遍历&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;迭代器主要由如下几种访问模式，不同容器支持的力度不一样：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;/// the iterator mode type
+typedef enum __tb_iterator_mode_t
+{
+    TB_ITERATOR_MODE_FORWARD        = 1     //!&amp;lt; 前向遍历迭代器，大部分容器都支持
+,   TB_ITERATOR_MODE_REVERSE        = 2     //!&amp;lt; 反向向遍历迭代器, 单链不支持
+,   TB_ITERATOR_MODE_RACCESS        = 4     //!&amp;lt; 随机访问迭代器，链表、队列、堆栈等不支持，最常用就是vector
+,   TB_ITERATOR_MODE_MUTABLE        = 8     //!&amp;lt; 易变的迭代器，同一个迭代器索引的值有可能因为删除某个元素而改变，例如：vector
+,   TB_ITERATOR_MODE_READONLY       = 16    //!&amp;lt; 只读访问迭代器，不提供删除、替换等操作
+
+}tb_iterator_mode_t; 常用的一些迭代器接口：
+
+// 获取迭代器访问模式
+tb_size_t       tb_iterator_mode(tb_iterator_ref_t iterator);
+
+// 获取迭代器对应容器的元素总数
+tb_size_t       tb_iterator_size(tb_iterator_ref_t iterator);
+
+// 获取迭代器的头部索引
+tb_size_t       tb_iterator_head(tb_iterator_ref_t iterator);
+
+// 获取迭代器的最后一个元素的索引
+tb_size_t       tb_iterator_last(tb_iterator_ref_t iterator);
+
+// 获取迭代器的尾部索引，不指向实际元素，一般用于判断结束
+tb_size_t       tb_iterator_tail(tb_iterator_ref_t iterator);
+
+// 获取迭代器的先前一个元素的索引
+tb_size_t       tb_iterator_prev(tb_iterator_ref_t iterator, tb_size_t itor);
+
+// 获取迭代器的下一个元素的索引
+tb_size_t       tb_iterator_next(tb_iterator_ref_t iterator, tb_size_t itor);
+
+// 获取迭代器索引指向的元素
+tb_pointer_t    tb_iterator_item(tb_iterator_ref_t iterator, tb_size_t itor);
+
+// 删除迭代器索引指向的元素
+tb_void_t       tb_iterator_remove(tb_iterator_ref_t iterator, tb_size_t itor);
+
+// 复制迭代器索引指向的元素
+tb_void_t       tb_iterator_copy(tb_iterator_ref_t iterator, tb_size_t itor, tb_cpointer_t item);
+
+// 比较迭代器索引指向的两个元素
+tb_long_t       tb_iterator_comp(tb_iterator_ref_t iterator, tb_cpointer_t ltem, tb_cpointer_t rtem);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;你也可以将常用的原始数组，迭代器化，来支持迭代，并用于所有算法：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;// 根据一个tb_long_t[]数组，生成迭代器, size 为数组元素个数
+tb_iterator_t   tb_iterator_init_long(tb_long_t* data, tb_size_t size);
+
+// 根据一个tb_size_t[]数组，生成迭代器, size 为数组元素个数
+tb_iterator_t   tb_iterator_init_size(tb_size_t* data, tb_size_t size);
+
+// 根据一个tb_char_t*[]字符串数组，生成迭代器, size 为数组元素个数
+tb_iterator_t   tb_iterator_init_str(tb_char_t** data, tb_size_t size);
+
+// 根据一个tb_pointer_t[]指针数组，生成迭代器, size 为数组元素个数
+tb_iterator_t   tb_iterator_init_ptr(tb_pointer_t* data, tb_size_t size);
+
+// 根据一个tb_struct_xxxx_t[]结构体数组，生成迭代器, size 为数组元素个数, step == sizeof(tb_struct_xxxx_t)
+tb_iterator_t   tb_iterator_init_mem(tb_pointer_t data, tb_size_t size, tb_size_t step);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+</description>
+        <pubDate>Thu, 04 Feb 2016 00:00:00 +0800</pubDate>
+        <link>http://tboox.org/cn/tbox/2016/02/04/iterator.html</link>
+        <guid isPermaLink="true">http://tboox.org/cn/tbox/2016/02/04/iterator.html</guid>
+        
+        
+        <category>tbox</category>
+        
+      </item>
+    
+      <item>
+        <title>哈希容器的使用</title>
+        <description>&lt;p&gt;stl的容器库非常强大，但是为了要兼容各种元素类型，采用了模板进行泛化，这样的好处就是使用非常的方便，但是编译器会对使用到的每种类型都进行一遍实例化，用的类型太多的话不仅影响编译速度而且生成的可执行文件也很冗余。&lt;/p&gt;
+
+&lt;p&gt;因此，TBOX在设计容器架构的时候，引入tb_item_func_t类型，来设置容器使用的成员类型，这样在实现容器通用性的同时，也不会产生过的冗余，而且容器接口操作上，同样相当的便利。&lt;/p&gt;
+
+&lt;p&gt;可以先看个简单使用哈希的例子：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;/* 初始化hash, 哈希桶大小8
+ * 键：大小写敏感字符串
+ * 值：long整型
+ */
+tb_hash_ref_t hash = tb_hash_init(8, tb_item_func_str(tb_true), tb_item_func_long());
+if (hash)
+{
+    // 设置键值对：&quot;key&quot; =&amp;gt; 123
+    tb_hash_set(hash, &quot;key&quot;, (tb_pointer_t)123);
+
+    // 获取值
+    tb_long_t value = (tb_long_t)tb_hash_get(hash, &quot;key&quot;);
+
+    // 退出hash
+    tb_hash_exit(hash);
+}
+
+/* 初始化hash, 哈希桶大小: TB_HASH_BULK_SIZE_MICRO
+ * 键：tb_struct_xxxx_t 结构体类型，内存数据由hash内部自己维护, 后面两个参数设置成员的释放回调函数
+ * 值：true类型，永远是tb_true, 这种hash相当于stl的set&amp;lt;tb_struct_xxxx_t&amp;gt;，内部会去优化掉value占用的内存
+ */
+tb_hash_ref_t hash = tb_hash_init(TB_HASH_BULK_SIZE_MICRO, tb_item_func_mem(sizeof(tb_struct_xxxx_t), tb_null, tb_null), tb_item_func_true());
+if (hash)
+{
+    // 初始化tb_struct_xxxx_t
+    tb_struct_xxxx_t xxxx = {0};
+
+    // 设置键值对：xxxx =&amp;gt; tb_true
+    tb_hash_set(hash, &amp;amp;xxxx, (tb_pointer_t)tb_true);
+
+    // 判断键是否存在
+    if (tb_hash_get(hash, &amp;amp;xxxx)) 
+    {
+        // ...
+    }
+
+    // 退出hash
+    tb_hash_exit(hash);
+}
+
+/* 初始化hash, 哈希桶大小使用默认大小: 0
+ * 键：大小写不敏感字符串
+ * 值：uint8整型
+ */
+tb_hash_ref_t hash = tb_hash_init(0, tb_item_func_str(tb_false), tb_item_func_uint8());
+if (hash)
+{
+    // 设置键值对：&quot;key&quot; =&amp;gt; 123
+    tb_hash_set(hash, &quot;key&quot;, (tb_pointer_t)123);
+
+    // 获取u位整型键值
+    tb_uint8_t value = (tb_uint8_t)tb_hash_get(hash, &quot;key&quot;);
+
+    // 退出hash
+    tb_hash_exit(hash);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;怎么样，简单吧。各种类型项都是可以在键值上互用的，而且会去适配tb_hash_get和tb_hash_set等容器接口参数。&lt;/p&gt;
+
+&lt;p&gt;你也可以很方便的在初始化容器的时候，自定义成员释放函数、成员比较函数、哈希计算函数等，例如：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;// 指针成员释放函数
+static tb_void_t tb_hash_item_ptr_free(tb_item_func_t* func, tb_pointer_t buff)
+{
+    // 断言检测
+    tb_assert_and_check_return(func &amp;amp;&amp;amp; buff);
+
+    // 获取用户私有数据
+    tb_pointer_t priv = func-&amp;gt;priv;
+
+    /* 获取成员数据，这里为tb_pointer_t类型，buff是指向成员数据的指针
+     *
+     * 如果是tb_item_func_str()项类型，数据就是：
+     * tb_char_t* data = *((tb_char_t**)buff);
+     *    
+     * 如果是tb_item_func_mem()项类型，数据就是：
+     * tb_byte_t* data = (tb_byte_t*)buff;
+     *
+     * 因为tb_item_func_mem是吧成员数据的内存都放到了容器里面维护，所以
+     * buff指向的就是成员数据本身的地址
+     *
+     * 而str、ptr只是把指针存到了容器中，所以item指向的是指针的地址，这个需要
+     * 注意的，不然很容易出问题
+     */
+    tb_pointer_t data = *((tb_pointer_t*)buff);
+    
+    // 释放它
+    if (data) tb_free(data);
+
+    // 清空成员数据
+    *((tb_pointer_t*)buff) = tb_null;
+}
+
+// long 比较函数，改成反序比较
+static tb_long_t tb_hash_item_long_comp(tb_item_func_t* func, tb_cpointer_t ldata, tb_cpointer_t rdata)
+{
+    return ((tb_long_t)ldata &amp;lt; (tb_long_t)rdata? 1 : ((tb_long_t)ldata &amp;gt; (tb_long_t)rdata? -1 : 0));
+}
+
+// 初始化long整型比较函数
+tb_item_func_t func = tb_item_func_long();
+
+// 替换比较函数, ptr有快捷的传入方式，当然也可以这样传
+func.comp = tb_hash_item_long_comp;
+
+// 初始化hash
+tb_hash_ref_t hash = tb_hash_init(0, func, tb_item_func_ptr(tb_hash_item_ptr_free, &quot;private data&quot;));
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+</description>
+        <pubDate>Thu, 04 Feb 2016 00:00:00 +0800</pubDate>
+        <link>http://tboox.org/cn/tbox/2016/02/04/container-hash.html</link>
+        <guid isPermaLink="true">http://tboox.org/cn/tbox/2016/02/04/container-hash.html</guid>
+        
+        
+        <category>tbox</category>
+        
+      </item>
+    
+      <item>
+        <title>排序和查找算法的使用</title>
+        <description>&lt;p&gt;TBOX提供了各种常用算法，对容器中的元素进行各种操作，这里主要介绍下排序和查找算法。&lt;/p&gt;
+
+&lt;p&gt;排序算法目前支持如下几种：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;快速排序：tb_quick_sort&lt;/li&gt;
+  &lt;li&gt;堆排序：  tb_heap_sort&lt;/li&gt;
+  &lt;li&gt;插入排序：tb_bubble_sort&lt;/li&gt;
+  &lt;li&gt;冒泡排序：tb_insert_sort&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;并且提供通用的tb_sort接口，对各种排序算法进行自动适配，使得任何情况下，性能都是最优的。
+例如：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;对具有随机迭代特性的容器，采用快速排序来优化&lt;/li&gt;
+  &lt;li&gt;对具有随机迭代特性，并且是超大规模的容器，采用堆排序&lt;/li&gt;
+  &lt;li&gt;对只能线性迭代的容器采用冒泡排序&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;所以一般情况下，只需要调用tb_sort就行了&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;// 初始化一个vector，元素类型为tb_long_t， 满256个元素自动增长
+tb_vector_ref_t vector = tb_vector_init(256, tb_item_func_long());
+if (vector)
+{
+    // 插入一些元素
+    tb_vector_insert_tail(vector, (tb_cpointer_t)10);
+    tb_vector_insert_tail(vector, (tb_cpointer_t)2);
+    tb_vector_insert_tail(vector, (tb_cpointer_t)5);
+    tb_vector_insert_tail(vector, (tb_cpointer_t)6);
+    tb_vector_insert_tail(vector, (tb_cpointer_t)9);
+   
+    // 排序所有，第二个参数是比较器函数，默认使用容器内置的比较器
+    tb_sort_all(vector, tb_null);
+
+    // 释放vector
+    tb_vector_exit(vector);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;对于查找算法，目前提供：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;线性查找：    tb_find&lt;/li&gt;
+  &lt;li&gt;反向线性查找：tb_rfind&lt;/li&gt;
+  &lt;li&gt;二分法查找：  tb_binary_find&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;如果容器具有随机迭代特性，你就可以使用二分查找来优化，例如：vector、原生数组等等。。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;// 初始化一个vector，元素类型为tb_long_t， 满256个元素自动增长
+tb_vector_ref_t vector = tb_vector_init(256, tb_item_func_long());
+if (vector)
+{
+    // 插入一些有序元素
+    tb_vector_insert_tail(vector, (tb_cpointer_t)1);
+    tb_vector_insert_tail(vector, (tb_cpointer_t)2);
+    tb_vector_insert_tail(vector, (tb_cpointer_t)4);
+    tb_vector_insert_tail(vector, (tb_cpointer_t)6);
+    tb_vector_insert_tail(vector, (tb_cpointer_t)9);
+   
+    // 使用二分查找法，快速查找元素，算法复杂度O(log2)
+    tb_size_t itor = tb_binary_find_all(vector, (tb_cpointer_t)5);
+    if (itor != tb_iterator_tail(vector))
+    {
+        // 获取元素值：5
+        tb_size_t value = tb_iterator_item(vector, itor);
+    }
+
+    // 释放vector
+    tb_vector_exit(vector);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;你也可以指定比较器函数，来更灵活的进行查找。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;// 按降序比较函数
+static tb_long_t your_comp_func(tb_iterator_ref_t iterator, tb_cpointer_t ltem, tb_cpointer_t rtem)
+{
+    return ((tb_long_t)ltem &amp;lt; (tb_long_t)rtem? 1 : ((tb_long_t)ltem &amp;gt; (tb_long_t)rtem? -1 : 0));
+}
+
+// 初始化一个vector，元素类型为tb_long_t， 满256个元素自动增长
+tb_vector_ref_t vector = tb_vector_init(256, tb_item_func_long());
+if (vector)
+{
+    // 插入一些有序元素
+    tb_vector_insert_tail(vector, (tb_cpointer_t)1);
+    tb_vector_insert_tail(vector, (tb_cpointer_t)2);
+    tb_vector_insert_tail(vector, (tb_cpointer_t)4);
+    tb_vector_insert_tail(vector, (tb_cpointer_t)6);
+    tb_vector_insert_tail(vector, (tb_cpointer_t)9);
+   
+    // 使用二分查找法，快速查找元素，并且指定自己的比较器函数
+    tb_size_t itor = tb_binary_find_all_if(vector, your_comp_func, tb_null);
+    if (itor != tb_iterator_tail(vector))
+    {
+        // 获取元素值：5
+        tb_size_t value = tb_iterator_item(vector, itor);
+    }
+
+    // 释放vector
+    tb_vector_exit(vector);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;原生的数组也是可以使用算法进行比较的，下面给个比较常用的查找例子：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;// 定义一个字符集操作的数据结构
+typedef struct __tb_charset_t
+{
+    tb_size_t           type;
+    tb_char_t const*    name;
+    tb_long_t           (*get)(tb_static_stream_ref_t sstream, tb_bool_t be, tb_uint32_t* ch);
+    tb_long_t           (*set)(tb_static_stream_ref_t sstream, tb_bool_t be, tb_uint32_t ch);
+
+}tb_charset_t;
+
+// 定义一个原生数组
+static tb_charset_t charsets[] =
+{
+    {TB_CHARSET_TYPE_ASCII,     &quot;ascii&quot;,    tb_charset_ascii_get,   tb_charset_ascii_set    }
+,   {TB_CHARSET_TYPE_GB2312,    &quot;gb2312&quot;,   tb_charset_gb2312_get,  tb_charset_gb2312_set   }
+,   {TB_CHARSET_TYPE_GBK,       &quot;gbk&quot;,      tb_charset_gb2312_get,  tb_charset_gb2312_set   }
+,   {TB_CHARSET_TYPE_ISO8859,   &quot;iso8859&quot;,  tb_charset_iso8859_get, tb_charset_iso8859_set  }
+,   {TB_CHARSET_TYPE_UCS2,      &quot;ucs3&quot;,     tb_charset_ucs2_get,    tb_charset_ucs2_set     }
+,   {TB_CHARSET_TYPE_UCS4,      &quot;ucs4&quot;,     tb_charset_ucs4_get,    tb_charset_ucs4_set     }
+,   {TB_CHARSET_TYPE_UTF16,     &quot;utf16&quot;,    tb_charset_utf16_get,   tb_charset_utf16_set    }
+,   {TB_CHARSET_TYPE_UTF32,     &quot;utf32&quot;,    tb_charset_utf32_get,   tb_charset_utf32_set    }
+,   {TB_CHARSET_TYPE_UTF8,      &quot;utf8&quot;,     tb_charset_utf8_get,    tb_charset_utf8_set     }
+};
+
+// 按名字查找比较函数
+static tb_long_t tb_charset_comp_by_name(tb_iterator_ref_t iterator, tb_cpointer_t item, tb_cpointer_t name)
+{
+    return tb_stricmp(((tb_charset_ref_t)item)-&amp;gt;name, (tb_char_t const*)name);
+}
+
+// 将原生的数组，初始化成一个迭代器
+tb_iterator_t iterator = tb_iterator_init_mem(charsets, tb_arrayn(charsets), sizeof(tb_charset_t));
+
+// 针对这个迭代器根据名字进行二分法查找
+tb_size_t itor = tb_binary_find_all_if(&amp;amp;iterator, tb_charset_comp_by_name, &quot;utf8&quot;);
+
+// 如果找到
+if (itor != tb_iterator_tail(&amp;amp;iterator))
+{
+    // 获取元素对象
+    tb_charset_t* charset = (tb_charset_t*)tb_iterator_item(&amp;amp;iterator, itor);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;注：上面的例子摘录自TBOX库内部的代码，仅供参考，不能直接copy使用。&lt;/p&gt;
+
+</description>
+        <pubDate>Thu, 04 Feb 2016 00:00:00 +0800</pubDate>
+        <link>http://tboox.org/cn/tbox/2016/02/04/algorithm-sort-find.html</link>
+        <guid isPermaLink="true">http://tboox.org/cn/tbox/2016/02/04/algorithm-sort-find.html</guid>
+        
+        
+        <category>tbox</category>
+        
+      </item>
     
       <item>
         <title>xmake工程描述入门</title>
@@ -344,32 +1551,6 @@ typedef enum __tb_bloom_filter_probability_e
         
         
         <category>tbox</category>
-        
-      </item>
-    
-      <item>
-        <title>Welcome to TBOOX!</title>
-        <description>&lt;p&gt;&lt;img src=&quot;/images/logo2.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-</description>
-        <pubDate>Sat, 30 Jan 2016 00:00:00 +0800</pubDate>
-        <link>http://tboox.org/tboox/2016/01/30/welcome-to-tboox.html</link>
-        <guid isPermaLink="true">http://tboox.org/tboox/2016/01/30/welcome-to-tboox.html</guid>
-        
-        
-        <category>tboox</category>
-        
-      </item>
-    
-      <item>
-        <title>欢迎来到TBOOX开源项目!</title>
-        <description>&lt;p&gt;&lt;img src=&quot;/images/logo2.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-</description>
-        <pubDate>Sat, 30 Jan 2016 00:00:00 +0800</pubDate>
-        <link>http://tboox.org/cn/tboox/2016/01/30/welcome-to-tboox.html</link>
-        <guid isPermaLink="true">http://tboox.org/cn/tboox/2016/01/30/welcome-to-tboox.html</guid>
-        
-        
-        <category>tboox</category>
         
       </item>
     
