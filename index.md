@@ -254,4 +254,3 @@ The simple xmake.lua file:
         -- add files
         add_files("src/*.c") 
 
-
