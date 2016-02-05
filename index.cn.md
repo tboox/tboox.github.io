@@ -1,5 +1,5 @@
 ---
-layout: default.cn
+layout: page.cn
 ---
 
 ### Languages
