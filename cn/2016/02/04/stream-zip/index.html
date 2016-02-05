@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>通过流进行解压缩文件</title>
+	<meta name="description" content="这里为了使代码更加简洁，直接用了transfer来挂接两路流的传输操作。">
+	
+	<link rel="canonical" href="http://tboox.org/cn/2016/02/04/stream-zip/">
+	<link rel="alternate" type="application/rss+xml" title="TBOOX" href="http://tboox.org/feed.xml" />
+	
+	<!-- <link rel="stylesheet" href="/css/main.css"> -->
+    
+    <link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/index.css">
+	<script type="text/javascript" src="/static/js/jquery-1.11.1.min.js"></script>
+	<script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/static/css/monokai_sublime.min.css">
+	<script type="text/javascript" src="/static/js/highlight.min.js"></script>
+
+    <!--
+    <link rel="stylesheet" type="text/css" href="http://apps.bdimg.com/libs/bootstrap/3.3.0/css/bootstrap.min.css">
+	<script type="text/javascript" src="http://apps.bdimg.com/libs/jquery/2.1.1/jquery.min.js"></script>
+	<script type="text/javascript" src="http://apps.bdimg.com/libs/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="http://apps.bdimg.com/libs/highlight.js/8.4/styles/monokai_sublime.min.css">
+	<script type="text/javascript" src="http://apps.bdimg.com/libs/highlight.js/8.4/highlight.min.js"></script>
+    -->
+    
+	<script type="text/javascript" src="/static/js/index.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+
+    <!-- baidu statistics -->
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?162f1cd478898a0686b0b5d5115e2af2";
+      var s = document.getElementsByTagName("script")[0]; 
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+</head>
+
+
+ <!--  <body data-spy="scroll" data-target="#myAffix"> -->
+  <body>
+
+    <header>
+
+<!-- navbar -->
+  <nav class="navbar navbar-inverse">
+  <div class="container">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">TBOOX</a>
+      <p class="navbar-text"></p>
+    </div>
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav navbar-right">
+
+        
+          <li>
+        
+        <a href="/cn">主页</a></li>
+
+        
+          
+          
+            
+              <li>
+            
+            <a href="/cn/blog/"><span class="glyphicon "></span> 博客</a></li>
+          
+          
+        
+          
+        
+          
+          
+            
+              <li>
+            
+            <a href="/cn/documents/"><span class="glyphicon "></span> 文档</a></li>
+          
+          
+        
+          
+        
+          
+          
+            
+              <li>
+            
+            <a href="/cn/downloads/"><span class="glyphicon "></span> 下载</a></li>
+          
+          
+        
+          
+        
+          
+          
+            
+              <li>
+            
+            <a href="/cn/donation/"><span class="glyphicon "></span> 捐助</a></li>
+          
+          
+        
+          
+        
+          
+          
+            
+              <li>
+            
+            <a href="/cn/about/"><span class="glyphicon "></span> 关于</a></li>
+          
+          
+        
+          
+        
+          
+        
+          
+          
+          
+        
+          
+        
+      </ul>
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+
+</header>
+
+
+    <div id="main" class="container main">
+      <div class="row">
+  <div id="myArticle" class="col-sm-9">
+    <div class="post-area post">
+      <header>
+        <h1>通过流进行解压缩文件</h1>
+        <p>Feb 4, 2016</p>
+      </header>
+      <hr>
+      <article>
+        <p>这里为了使代码更加简洁，直接用了transfer来挂接两路流的传输操作。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>// 初始化文件输入流
+tb_stream_ref_t istream = tb_stream_init_from_url("/home/file.txt");
+
+// 初始化文件输出流
+tb_stream_ref_t ostream = tb_stream_init_from_file("/home/file.gz", TB_FILE_MODE_RW | TB_FILE_MODE_CREAT | TB_FILE_MODE_BINARY | TB_FILE_MODE_TRUNC);
+
+// 初始化解压缩流，以istream作为输入
+tb_stream_ref_t fstream = tb_stream_init_filter_from_zip(istream, TB_ZIP_ALGO_GZIP, TB_ZIP_ACTION_INFLATE);
+
+// 初始化压缩流，以istream作为输入
+//tb_stream_ref_t fstream = tb_stream_init_filter_from_zip(istream, TB_ZIP_ALGO_GZIP, TB_ZIP_ACTION_DEFLATE);    
+
+// 进行流传输，并且通过 fstream进行中间外挂解压、压缩
+if (istream &amp;&amp; ostream &amp;&amp; fstream) 
+{
+    /* 保存流数据，如果每个流都还没有调用tb_stream_open打开过
+     * 这里会自动帮你打开，这样上层接口使用上，看上去更加简洁明了
+     * 
+     * 后面三个参数主要用于：限速、进度信息回调，这些之后再详细说明
+     * 现在只需要传空就行了
+     *
+     * save 是 实际传输的数据大小，失败返回：-1
+     */
+    tb_hong_t save = tb_transfer_done(fstream, ostream, 0, tb_null, tb_null);
+}
+
+// 释放流数据
+if (fstream) tb_stream_exit(fstream);
+if (istream) tb_stream_exit(istream);
+if (ostream) tb_stream_exit(ostream);
+</code></pre>
+</div>
+
+
+      </article>
+      <hr>
+    </div>
+	    
+  </div>
+  
+  <div id="content" class="col-sm-3">
+    <!-- <div id="myAffix" class="shadow-bottom-center hidden-xs" data-spy="affix" data-offset-top="0" data-offset-bottom="-20"> -->
+    <div id="myAffix" class="shadow-bottom-center hidden-xs" >
+      <div class="categories-list-header">
+        Content
+      </div>
+      <div class="content-text"></div>
+    </div>
+  </div>
+  
+</div>
+
+    </div>
+
+    
+    <div id="top" data-toggle="tooltip" data-placement="left" title="返回到顶部">
+      <a href="javascript:;">
+        <div class="arrow"></div>
+        <div class="stick"></div>
+      </a>
+    </div>
+
+    <footer class="">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <a href="mailto:waruqi@gmail.com"><span class="glyphicon glyphicon-envelope"></span> waruqi@gmail.com</a>
+        <span class="point"></span>
+        
+          <a href="https://github.com/waruqi">
+            <span class="icon">
+              <svg viewBox="0 0 16 16">
+                <path fill="#aaa" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/>
+              </svg>
+            </span>
+            Github
+            <!-- <span>waruqi</span> -->
+          </a>
+          
+          <span class="point"></span>
+          <span><a href="/feed.xml">RSS</a></span>
+          <span class="point"></span>
+          <span>&copy; 2016 TBOOX</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+    <script type="text/javascript">
+    function OnClickNewPost()
+    {
+        var title = prompt("Please enter title of your post");
+        if (title!=null){
+            title = title.replace(" ", "-");
+            var currentdate = new Date();
+            var urlNewPage = "?filename=_posts/" 
+                + currentdate.getFullYear() + "-" + (currentdate.getMonth()+1) + "-" + currentdate.getDate() + "-" + title + ".md";
+                
+            var defaultText =  [
+                '---',
+                'layout: post',
+                'comments: true',
+                'categories: diary',
+                '---',
+                '## Title',
+                'text'
+                ].join('\n');
+            urlNewPage += "&value=" + encodeURIComponent(defaultText);
+            window.open(urlNewPage);
+        }
+    }
+    
+    $(function() {
+      // CreateNewPostLinks
+      $('.newpost').each(function(){
+          $(this).click(OnClickNewPost);
+      });
+    });
+</script>
+  
+  </body>
+</html>

@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>内存池架构</title>
+	<meta name="description" content="TBOX的内存管理模型，参考了linux kernel的内存管理机制，并在其基础上做了一些改进和优化。">
+	
+	<link rel="canonical" href="http://tboox.org/cn/2016/02/04/tbox-memory-pool/">
+	<link rel="alternate" type="application/rss+xml" title="TBOOX" href="http://tboox.org/feed.xml" />
+	
+	<!-- <link rel="stylesheet" href="/css/main.css"> -->
+    
+    <link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/index.css">
+	<script type="text/javascript" src="/static/js/jquery-1.11.1.min.js"></script>
+	<script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/static/css/monokai_sublime.min.css">
+	<script type="text/javascript" src="/static/js/highlight.min.js"></script>
+
+    <!--
+    <link rel="stylesheet" type="text/css" href="http://apps.bdimg.com/libs/bootstrap/3.3.0/css/bootstrap.min.css">
+	<script type="text/javascript" src="http://apps.bdimg.com/libs/jquery/2.1.1/jquery.min.js"></script>
+	<script type="text/javascript" src="http://apps.bdimg.com/libs/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="http://apps.bdimg.com/libs/highlight.js/8.4/styles/monokai_sublime.min.css">
+	<script type="text/javascript" src="http://apps.bdimg.com/libs/highlight.js/8.4/highlight.min.js"></script>
+    -->
+    
+	<script type="text/javascript" src="/static/js/index.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+ <!--  <body data-spy="scroll" data-target="#myAffix"> -->
+  <body>
+
+    <header>
+
+<!-- navbar -->
+  <nav class="navbar navbar-inverse">
+  <div class="container">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">TBOOX</a>
+      <p class="navbar-text"></p>
+    </div>
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav navbar-right">
+
+        
+          <li>
+        
+        <a href="/">Home</a></li>
+
+        
+          
+            
+              <li>
+            
+            <a href="/blog/"><span class="glyphicon "></span> Blog</a></li>
+          
+        
+          
+            
+              <li>
+            
+            <a href="/documents/"><span class="glyphicon "></span> Documents</a></li>
+          
+        
+          
+            
+              <li>
+            
+            <a href="/downloads/"><span class="glyphicon "></span> Downloads</a></li>
+          
+        
+          
+            
+              <li>
+            
+            <a href="/donation/"><span class="glyphicon "></span> Donation</a></li>
+          
+        
+          
+            
+              <li>
+            
+            <a href="/about/"><span class="glyphicon "></span> About</a></li>
+          
+        
+          
+        
+          
+        
+      </ul>
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+
+</header>
+
+    <div id="main" class="container main">
+      <div class="row">
+  <div id="myArticle" class="col-sm-9">
+    <div class="post-area post">
+      <header>
+        <h1>内存池架构</h1>
+        <p>Feb 4, 2016</p>
+      </header>
+      <hr>
+      <article>
+        <p>TBOX的内存管理模型，参考了linux kernel的内存管理机制，并在其基础上做了一些改进和优化。</p>
+
+<h2 id="section">内存整体架构</h2>
+
+<p><img src="/images/tbox/memorypool.png" alt="内存池架构" /></p>
+
+<h2 id="largepool">large_pool</h2>
+<p>整个内存分配的最底层，都是基于large_pool的大块内存分配池，类似于linux的基于page的分配管理，不过有所不同的是，large_pool并没有像linux那样使用buddy算法进行(2^N)*page进行分配，这样如果需要2.1m的内存，需要分配4m的内存块，这样力度太大，非常浪费。</p>
+
+<p>因此large_pool内部采用N*page的基于page_size为最小粒度进行分配，因此每次分配顶多浪费不到一页的空间。</p>
+
+<p>而且如果需要的内存不到整页，剩下的内存也会一并返回给上层，如果上层需要（比如small_pool），可以充分利用这多余的部分内存空间，使得内存利用率达到最优化。</p>
+
+<p>而且根据tb_init实际传入的参数需求，large_pool有两种模式：</p>
+
+<ol>
+  <li>直接使用系统内存分配接口将进行大块内存的分配，并用双链维护，这种比较简单，就不多说了。</li>
+  <li>在一大块连续内存上进行统一管理，实现内存分配。</li>
+</ol>
+
+<p>具体使用哪种方式，根据应用需求，一般的应用只需要使用方式1就行了，这个时候tb_init传tb_null就行了，如果是嵌入式应用，需要管理有限的一块内存空间，这个时候可以使用方式2， tb_init传入指定内存空间地址和大小。</p>
+
+<p>这里就主要看下方式2的large_pool的内存结构（假设页大小是4KB）：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code> --------------------------------------------------------------------------
+|                                     data                                 |
+ --------------------------------------------------------------------------
+                                     |
+ --------------------------------------------------------------------------
+| head | 4KB | 16KB | 8KB | 128KB | ... | 32KB |       ...       |  4KB*N  |
+ --------------------------------------------------------------------------
+</code></pre>
+</div>
+
+<p>由于large_pool主要用于大块分配，而超小块的分配在上层small_pool中已经被分流掉了，所以这个应用中，large_pool不会太过频繁的分配，所以碎片量不会太大，为了进一步减少碎片的产生，在free时候都会对下一个邻近的空闲块进行合并。而malloc在分配当前空闲块空间不够的情况下，也会尝试对下一个邻近空闲块进行合并。</p>
+
+<p>由于每个内存块都是邻近挨着的，也没用双链维护，没有内存块，都有个块头，合并过程仅仅只是改动内存块头部的size字段，这样的合并不会影响效率。</p>
+
+<p>由于没像buddy算法那样，用双链维护空闲内存，虽然节省了链表维护的空间和时间，但是每次分配内存都要顺序遍历所有块，来查找空闲的内存，这样的效率实在太低了，为了解决这个问题，large_pool内部针对不同级别的块，进行了预测，每次free或者malloc的时候，如果都会把当前和邻近的空闲快，缓存到对应级别的预测池里面去，具体的分级如下：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code> --------------------------------------
+| &gt;0KB :      4KB       | &gt; 0*page     | 
+|-----------------------|--------------
+| &gt;4KB :      8KB       | &gt; 1*page     | 
+|-----------------------|--------------
+| &gt;8KB :    12-16KB     | &gt; 2*page     | 
+|-----------------------|--------------
+| &gt;16KB :   20-32KB     | &gt; 4*page     | 
+|-----------------------|--------------
+| &gt;32KB :   36-64KB     | &gt; 8*page     | 
+|-----------------------|--------------
+| &gt;64KB :   68-128KB    | &gt; 16*page    | 
+|-----------------------|--------------
+| &gt;128KB :  132-256KB   | &gt; 32*page    | 
+|-----------------------|--------------
+| &gt;256KB :  260-512KB   | &gt; 64*page    | 
+|-----------------------|--------------
+| &gt;512KB :  516-1024KB  | &gt; 128*page   | 
+|-----------------------|--------------
+| &gt;1024KB : 1028-...KB  | &gt; 256*page   | 
+ --------------------------------------
+</code></pre>
+</div>
+
+<p>由于通常不会分配太大块的内存，因此只要能够预测1m内存，就足够，而对于&gt;1m的内存，这里也单独加了一个预测，来应对偶尔的超大块分配，并且使得整体分配流程更加的统一。</p>
+
+<p>如果当前级别的预测块不存在，则会到下一级别的预测块中查找，如果都找不到，才回去遍历整个内存池。</p>
+
+<p>实际测试下，每个块的预测成功基本都在95%以上，也就说大部分情况下，分配效率都是维持在O(1)级别的。</p>
+
+<h2 id="smallpool">small_pool</h2>
+
+<p>小块内存分配池</p>
+
+<p>在上层每次调用malloc进行内存分配的时候，回去判断需要多大的内存，如果这个内存超过或者等于一页，则会直接从large_pool进行分配，如果小于一页，则会优先通过small_pool进行分配，small_pool针对小块的内存进行了高速缓存，并优化了空间管理和分配效率。</p>
+
+<p>由于程序大部分情况下，都在使用小块内存，因此small_pool对内存的分配做了很大的分流，使得large_pool承受的压力减小，碎片量减少很多，而small_pool内部由于都是由fixed_pool来对固定大小的内存进行管理，是不会存在外部碎片的。而小块内存的粒度本身就很小，所以内部碎片量也相当少。</p>
+
+<p>small_pool中的fixed_pool，就像是linux kernel中的slub，在small_pool中总共有12级别的fixed_pool，每个级别分别管理一种固定大小的内存块，具体级别如下：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code> --------------------------------------
+|    fixed pool: 16B    |  1-16B       | 
+|--------------------------------------|
+|    fixed pool: 32B    |  17-32B      |  
+|--------------------------------------|
+|    fixed pool: 64B    |  33-64B      | 
+|--------------------------------------|
+|    fixed pool: 96B*   |  65-96B*     | 
+|--------------------------------------|
+|    fixed pool: 128B   |  97-128B     |  
+|--------------------------------------|
+|    fixed pool: 192B*  |  129-192B*   |  
+|--------------------------------------|
+|    fixed pool: 256B   |  193-256B    |  
+|--------------------------------------|
+|    fixed pool: 384B*  |  257-384B*   |  
+|--------------------------------------|
+|    fixed pool: 512B   |  385-512B    |  
+|--------------------------------------|
+|    fixed pool: 1024B  |  513-1024B   |  
+|--------------------------------------|
+|    fixed pool: 2048B  |  1025-2048B  |  
+|--------------------------------------|
+|    fixed pool: 3072B* |  2049-3072B* |  
+ -------------------------------------- 
+</code></pre>
+</div>
+
+<p>其中 96B, 192B，384B，3072B并不是按2的整数幂大小，这么做主要是为了更加有效的利用小块内存的空间减少内部碎片。</p>
+
+<h2 id="fixedpool">fixed_pool</h2>
+
+<p>顾名思义，fixed_pool就是用来管理固定大小的内存分配的，相当于linux中slub，而fixed_pool中又由多个slot组成，每个slot负责一块连续的内存空间，管理部分内存块的管理，类似linux中的slab， 每个slot由双链维护，并且参考linux的管理机制，分为三种slot管理方式：</p>
+
+<ol>
+  <li>当前正在分配的slot</li>
+  <li>部分空闲slots链表</li>
+  <li>完全full的slots链表</li>
+</ol>
+
+<p>具体结构如下：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>current:
+     --------------
+    |              |
+ --------------    |
+|     slot     |&lt;--
+|--------------|
+||||||||||||||||  
+|--------------| 
+|              | 
+|--------------| 
+|              | 
+|--------------| 
+||||||||||||||||  
+|--------------| 
+|||||||||||||||| 
+|--------------| 
+|              | 
+ --------------  
+
+partial:
+
+ --------------       --------------               --------------
+|     slot     | &lt;=&gt; |     slot     | &lt;=&gt; ... &lt;=&gt; |     slot     |
+|--------------|     |--------------|             |--------------|
+||||||||||||||||     |              |             |              |
+|--------------|     |--------------|             |--------------|
+|              |     ||||||||||||||||             |              |
+|--------------|     |--------------|             |--------------|
+|              |     ||||||||||||||||             ||||||||||||||||
+|--------------|     |--------------|             |--------------|
+||||||||||||||||     ||||||||||||||||             |              |
+|--------------|     |--------------|             |--------------|
+||||||||||||||||     |              |             |              |
+|--------------|     |--------------|             |--------------|
+|              |     |              |             ||||||||||||||||
+--------------       --------------               --------------
+
+full:
+
+ --------------       --------------               --------------
+|     slot     | &lt;=&gt; |     slot     | &lt;=&gt; ... &lt;=&gt; |     slot     |
+|--------------|     |--------------|             |--------------|
+||||||||||||||||     ||||||||||||||||             ||||||||||||||||
+|--------------|     |--------------|             |--------------|
+||||||||||||||||     ||||||||||||||||             ||||||||||||||||
+|--------------|     |--------------|             |--------------|
+||||||||||||||||     ||||||||||||||||             ||||||||||||||||
+|--------------|     |--------------|             |--------------|
+||||||||||||||||     ||||||||||||||||             ||||||||||||||||
+|--------------|     |--------------|             |--------------|
+||||||||||||||||     ||||||||||||||||             ||||||||||||||||
+|--------------|     |--------------|             |--------------|
+||||||||||||||||     ||||||||||||||||             ||||||||||||||||
+ --------------       --------------               --------------
+</code></pre>
+</div>
+
+<p><strong>具体的分配算法</strong></p>
+
+<ol>
+  <li>如果当前slot中还有空闲的块，优先从当前slot进行分配</li>
+  <li>如果当前slot中没有空闲块，则把这个slot放到full链表中去</li>
+  <li>从部分空闲slot链表中，挑一个空闲的slot进行分配，并把它设为当前分配状态。</li>
+</ol>
+
+<p><strong>具体的释放算法</strong></p>
+
+<ol>
+  <li>释放后如果这个slot完全空闲了，并且不是正在分配的slot，则把整个slot释放掉，这样既可以保证有一个可以分配的slot之外，还极大的降低了内存使用，也避免某些情况下频繁的释放分配slot。</li>
+  <li>如果释放的slot属于full链表并且变为了部分空闲，则把这个slot移到部分空闲slot链表中去。</li>
+</ol>
+
+<p><strong>额外要提一下的是</strong>：</p>
+
+<p>large_pool每次分配一块空间给一个slot的时候，残留下来的部分剩余空间(&lt;1*page)， 也能直接返回给slot，让slot充分利用这部分数据，这样可以可以切分出更多地内存块。</p>
+
+<p>例如：</p>
+
+<p>fixed_pool每次增长一个包含256个32B内存块的slot（需要8192B大小+16B内部数据维护大小），其实在用large_pool分配的时候，需要8208B的大小，由于需要按页对齐（4KB），实际分配确占用了<code class="highlighter-rouge">8192+4096: 12288B</code>的大小的空间。</p>
+
+<p>但是large_pool支持把所有空间数据一并返回给上层，这样slot其实获取到了一个12288B大小的内存，并且也知道其实际大小为：12288B，因此实际切分了<code class="highlighter-rouge">(12288-(32B的slot内部维护数据))/32</code>也就是383个内存块。</p>
+
+<p>多维护了127个内存块，充分把large_pool的内部碎片也利用上了，进一步增加了内存利用率。</p>
+
+<h2 id="fixedpoolslot">fixed_pool中的slot</h2>
+
+<p>虽然类比与linux中的slab，但是其数据结构确跟slab不太一样，它并没有像slab那样，对每个空闲小块都用链表维护，而是直接用位段来维护是否空闲的信息，这样更加节省内存，而且通过优化算法，其分配效率和slab几乎一样。</p>
+
+<p>在fixed_pool的slot的头部，专门有一小块独立的数据，用于维护每个小块的空闲信息，每个块只暂用一比特位的信息，来判断这个块是否空闲，由于没有内存块都是固定大小的，所以比特位的位置定位，完全可以通过索引计算得到。</p>
+
+<p>而且每次释放和分配，都会去缓存一个双字大小的位信息端，来预测下一次的分配，由于是双字大小，总共有32个比特位，所以每次缓存，最多可以预测邻近32个内存块。因此大部分情况下，预测成功率一直都是&gt;98%的，分配效率都维持在O(1)，比起large_pool的预测率还高很多，所以small_pool对large_pool的分流，还在一定程度上，进一步提高了内存分配效率。</p>
+
+<p>而就算很倒霉，没预测成功，slot的顺序遍历来查找空闲快的算法，也相当高效，完全是高度优化的，下面就详细描述下。</p>
+
+<h3 id="slot">slot的顺序遍历分配算法优化</h3>
+
+<p>我们这里主要用到了gcc的几个内置函数：</p>
+
+<ol>
+  <li>__builtin_clz：计算32位整数前导0的个数</li>
+  <li>__builtin_ctz：计算32位整数后置0的个数</li>
+  <li>__builtin_clzll：计算64位整数前导0的个数</li>
+  <li>__builtin_ctzll：计算64位整数后置0的个数</li>
+</ol>
+
+<p>其实这四个类似，我们这里就拿第一说明好了，为什么要使用__builtin_clz呢？其实就是为了在一个32位端里面，快速查找某个空闲位的索引，这样就能快速定位某个空闲块的位置了。</p>
+
+<p>比如有一个32位的位段信息整数：x，计算对应空闲位0的索引，主需要：<code class="highlighter-rouge">__builtin_clz(~x)</code></p>
+
+<p>简单吧，由于__builtin_clz这些内置函数，gcc用汇编针对不同平台高度优化过的，计算起来相当的快，那如果不是gcc的编译器怎么办呢？</p>
+
+<p>没关系，我们可以自己用c实现个优化版本的，当然完全可以汇编继续优化，这里就先给个c的实现：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>&lt;!--lang:cpp--&gt;
+static __tb_inline__ tb_size_t tb_bits_cl0_u32_be_inline(tb_uint32_t x)
+{
+    // check
+    tb_check_return_val(x, 32);
+
+    // done
+    tb_size_t n = 31;
+    if (x &amp; 0xffff0000) { n -= 16;  x &gt;&gt;= 16;   }
+    if (x &amp; 0xff00)     { n -= 8;   x &gt;&gt;= 8;    }
+    if (x &amp; 0xf0)       { n -= 4;   x &gt;&gt;= 4;    }
+    if (x &amp; 0xc)        { n -= 2;   x &gt;&gt;= 2;    }
+    if (x &amp; 0x2)        { n--;                  }
+    return n;
+}
+</code></pre>
+</div>
+
+<p>说白了，就是每次对半开，来减少判断次数，比起每次一位一位的枚举遍历，这种已经是相当高效了，更何况还有__builtin_clz呢。</p>
+
+<p><strong>接下来就看下具体的遍历过程：</strong></p>
+
+<ol>
+  <li>按4/8字节对齐位段的起始地址</li>
+  <li>每次按4/8字节遍历位段数据，遍历过程利用cpu cache的大小，针对性的做循环展开，来优化性能。</li>
+  <li>通过判断 !(x + 1) 来快速过滤 0xffffffff 这些已经满了的位段，进一步提高遍历效率。</li>
+  <li>如果某个位段不是0xffffffff，则通过__builtin_clz(~x)计算实际的空闲块索引，并进行实际的分配。</li>
+  <li>最后如果这个的32位的位段没有被分配满，可以把它进行缓存，来为下次分配做预测。</li>
+</ol>
+
+<h2 id="stringpool">string_pool</h2>
+
+<p>讲到这，TBOX的内存池管理模型，基本算是大概讲完了，这里就简单提下string_pool，即：字符串池</p>
+
+<p>string_pool主要针对上层应用而言的，针对某些频繁使用小型字符串，并且重复率很高的模块，就可以通过string_pool进行优化，进一步减少内存使用，string_pool内部通过引用计数+哈希表维护，针对相同的字符串只保存一份。</p>
+
+<p>例如可以用于cookies中字符串维护、http中header部分的字符串维护等等。。</p>
+
+
+      </article>
+      <hr>
+    </div>
+	    
+  </div>
+  
+  <div id="content" class="col-sm-3">
+    <!-- <div id="myAffix" class="shadow-bottom-center hidden-xs" data-spy="affix" data-offset-top="0" data-offset-bottom="-20"> -->
+    <div id="myAffix" class="shadow-bottom-center hidden-xs" >
+      <div class="categories-list-header">
+        Content
+      </div>
+      <div class="content-text"></div>
+    </div>
+  </div>
+  
+</div>
+
+    </div>
+
+    
+    <div id="top" data-toggle="tooltip" data-placement="left" title="back to top">
+      <a href="javascript:;">
+        <div class="arrow"></div>
+        <div class="stick"></div>
+      </a>
+    </div>
+
+    <footer class="">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <a href="mailto:waruqi@gmail.com"><span class="glyphicon glyphicon-envelope"></span> waruqi@gmail.com</a>
+        <span class="point"></span>
+        
+          <a href="https://github.com/waruqi">
+            <span class="icon">
+              <svg viewBox="0 0 16 16">
+                <path fill="#aaa" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/>
+              </svg>
+            </span>
+            Github
+            <!-- <span>waruqi</span> -->
+          </a>
+          
+          <span class="point"></span>
+          <span><a href="/feed.xml">RSS</a></span>
+          <span class="point"></span>
+          <span>&copy; 2016 TBOOX</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+    <script type="text/javascript">
+    function OnClickNewPost()
+    {
+        var title = prompt("Please enter title of your post");
+        if (title!=null){
+            title = title.replace(" ", "-");
+            var currentdate = new Date();
+            var urlNewPage = "?filename=_posts/" 
+                + currentdate.getFullYear() + "-" + (currentdate.getMonth()+1) + "-" + currentdate.getDate() + "-" + title + ".md";
+                
+            var defaultText =  [
+                '---',
+                'layout: post',
+                'comments: true',
+                'categories: diary',
+                '---',
+                '## Title',
+                'text'
+                ].join('\n');
+            urlNewPage += "&value=" + encodeURIComponent(defaultText);
+            window.open(urlNewPage);
+        }
+    }
+    
+    $(function() {
+      // CreateNewPostLinks
+      $('.newpost').each(function(){
+          $(this).click(OnClickNewPost);
+      });
+    });
+</script>
+  
+  </body>
+</html>

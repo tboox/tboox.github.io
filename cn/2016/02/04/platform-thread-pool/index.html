@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>线程池的使用</title>
+	<meta name="description" content="TBOX的线程池通过在每个worker中批量一次拉取多个task，对锁的竞争进行了优化。">
+	
+	<link rel="canonical" href="http://tboox.org/cn/2016/02/04/platform-thread-pool/">
+	<link rel="alternate" type="application/rss+xml" title="TBOOX" href="http://tboox.org/feed.xml" />
+	
+	<!-- <link rel="stylesheet" href="/css/main.css"> -->
+    
+    <link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/index.css">
+	<script type="text/javascript" src="/static/js/jquery-1.11.1.min.js"></script>
+	<script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/static/css/monokai_sublime.min.css">
+	<script type="text/javascript" src="/static/js/highlight.min.js"></script>
+
+    <!--
+    <link rel="stylesheet" type="text/css" href="http://apps.bdimg.com/libs/bootstrap/3.3.0/css/bootstrap.min.css">
+	<script type="text/javascript" src="http://apps.bdimg.com/libs/jquery/2.1.1/jquery.min.js"></script>
+	<script type="text/javascript" src="http://apps.bdimg.com/libs/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="http://apps.bdimg.com/libs/highlight.js/8.4/styles/monokai_sublime.min.css">
+	<script type="text/javascript" src="http://apps.bdimg.com/libs/highlight.js/8.4/highlight.min.js"></script>
+    -->
+    
+	<script type="text/javascript" src="/static/js/index.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+
+    <!-- baidu statistics -->
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?162f1cd478898a0686b0b5d5115e2af2";
+      var s = document.getElementsByTagName("script")[0]; 
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+</head>
+
+
+ <!--  <body data-spy="scroll" data-target="#myAffix"> -->
+  <body>
+
+    <header>
+
+<!-- navbar -->
+  <nav class="navbar navbar-inverse">
+  <div class="container">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">TBOOX</a>
+      <p class="navbar-text"></p>
+    </div>
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav navbar-right">
+
+        
+          <li>
+        
+        <a href="/cn">主页</a></li>
+
+        
+          
+          
+            
+              <li>
+            
+            <a href="/cn/blog/"><span class="glyphicon "></span> 博客</a></li>
+          
+          
+        
+          
+        
+          
+          
+            
+              <li>
+            
+            <a href="/cn/documents/"><span class="glyphicon "></span> 文档</a></li>
+          
+          
+        
+          
+        
+          
+          
+            
+              <li>
+            
+            <a href="/cn/downloads/"><span class="glyphicon "></span> 下载</a></li>
+          
+          
+        
+          
+        
+          
+          
+            
+              <li>
+            
+            <a href="/cn/donation/"><span class="glyphicon "></span> 捐助</a></li>
+          
+          
+        
+          
+        
+          
+          
+            
+              <li>
+            
+            <a href="/cn/about/"><span class="glyphicon "></span> 关于</a></li>
+          
+          
+        
+          
+        
+          
+        
+          
+          
+          
+        
+          
+        
+      </ul>
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+
+</header>
+
+
+    <div id="main" class="container main">
+      <div class="row">
+  <div id="myArticle" class="col-sm-9">
+    <div class="post-area post">
+      <header>
+        <h1>线程池的使用</h1>
+        <p>Feb 4, 2016</p>
+      </header>
+      <hr>
+      <article>
+        <p>TBOX的线程池通过在每个worker中批量一次拉取多个task，对锁的竞争进行了优化。</p>
+
+<p>由于每个task的函数实现不会太多，所以可以根据每个task的函数地址做hash，统计出每个task执行所花费的平均时间。然后根据这个平均值来动态计算每个worker一次拉取的task的数量，TBOX里面默认每个worker一次拉取10s的task量，这样可以尽可能的避免worker间锁的频繁抢占。</p>
+
+<p>所有从等待队列被拉取出来的task，都会被放到pending队列中去，如果等待队列中的task都被取完了，某个worker处于了空闲状态，就会尝试去pending中，重新拉取其他worker还没有执行到的task， 这样可以解决某些task耗时太长，将worker中剩余的task阻塞住的问题。</p>
+
+<p>重新从pending队列中拉取其他worker的task，并没有通过锁来维护，而是通过原子操作判断task的状态来维护的，所以性能上还是可以保证的。</p>
+
+<p>整个线程池，只用到了一个锁来维护内部的几个队列，每个worker在大部分情况都是独立运行的，只有在自己的所有task都执行完空闲时，才回去全局等待队列中取task，并且上层接口也提供了批量投递任务的接口，来最小化对锁的使用。</p>
+
+<p>下面看下简单的使用例子：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>static tb_void_t tb_demo_task_time_done(tb_cpointer_t priv)
+{
+    tb_msleep((tb_size_t)(priv));
+}
+
+static tb_void_t tb_demo_task_time_exit(tb_cpointer_t priv)
+{
+}
+
+/* 投递一个60s的任务到全局线程池
+ *
+ * tb_thread_pool(): 全局线程池实例，如果不想用全局的，也可以自己创建个线程池
+ * "60000ms": 指定的一个任务名，常量字符串
+ * tb_demo_task_time_done: 任务函数地址
+ * tb_demo_task_time_exit: 任务被执行完或取消的时候的清理函数，可以用于释放一些自有数据，这个是可选的，不用直接传tb_null
+ * (tb_cpointer_t)60000: 传递的私有数据指针，这里简单的传了个等待时间值进去
+ * tb_false: 是否为紧急任务， 如果为tb_true， 则这个任务会尽可能第一时间优先呗执行
+ */
+tb_thread_pool_task_post(tb_thread_pool(), "60000ms", tb_demo_task_time_done, tb_demo_task_time_exit, (tb_cpointer_t)60000, tb_false);
+
+// 投递一个10s的紧急任务
+tb_thread_pool_task_post(tb_thread_pool(), "10000ms", tb_demo_task_time_done, tb_null, (tb_cpointer_t)10000, tb_true);
+
+// 批量投递两个任务
+tb_thread_pool_task_t list[2] = {0};
+list[0].name = "60000ms";
+list[0].done = tb_demo_task_time_done;
+list[0].exit = tb_demo_task_time_exit;
+list[0].priv = (tb_pointer_t)60000;
+list[0].urgent = tb_false;
+list[1].name = "10000ms";
+list[1].done = tb_demo_task_time_done;
+list[1].exit = tb_null;
+list[1].priv = (tb_pointer_t)10000;
+list[1].urgent = tb_true;
+tb_thread_pool_task_post_list(tb_thread_pool(), list, 2);
+
+// 初始化并且投递一个10s的紧急任务, 返回一个有效句柄
+tb_thread_pool_task_ref_t task = tb_thread_pool_task_init(tb_thread_pool(), "10000ms", tb_demo_task_time_done, tb_null, (tb_cpointer_t)10000, tb_true);
+if (task)
+{
+    // 取消这个任务，如果这个任务已经在执行中了，就没法取消了
+    tb_thread_pool_task_kill(tb_thread_pool(), task);
+    
+    // 等待任务取消或完成，超时值：-1：无限等待
+    tb_thread_pool_task_wait(tb_thread_pool(), task, -1);
+    
+    // 释放这个任务
+    tb_thread_pool_task_exit(tb_thread_pool(), task);
+}
+</code></pre>
+</div>
+
+<p>如果不想用全局线程池，可以自己初始化一个：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>/* 初始化线程池
+ *
+ * 8：最大worker的数量，上限值，如果传0就是使用默认值
+ * 0: 每个worker线程的堆栈大小，如果传0就是使用默认值
+ */
+tb_thread_pool_ref_t thread_pool = tb_thread_pool_init(8, 0);
+if (thread_pool)
+{
+    // 投递一个10s的紧急任务
+    tb_thread_pool_task_post(thread_pool, "10000ms", tb_demo_task_time_done, tb_null, (tb_cpointer_t)10000, tb_true);
+    
+    // 如果的调试模式下，可以dump整个线程池的状态和所有处理中的任务状态
+#ifdef __tb_debug__
+    tb_thread_pool_dump(thread_pool);
+#endif
+
+    // 等待所有任务执行完成或被取消
+    tb_thread_pool_task_wait_all(thread_pool, -1);
+    
+    // 退出线程池
+    tb_thread_pool_exit(thread_pool);
+}
+</code></pre>
+</div>
+
+
+      </article>
+      <hr>
+    </div>
+	    
+  </div>
+  
+  <div id="content" class="col-sm-3">
+    <!-- <div id="myAffix" class="shadow-bottom-center hidden-xs" data-spy="affix" data-offset-top="0" data-offset-bottom="-20"> -->
+    <div id="myAffix" class="shadow-bottom-center hidden-xs" >
+      <div class="categories-list-header">
+        Content
+      </div>
+      <div class="content-text"></div>
+    </div>
+  </div>
+  
+</div>
+
+    </div>
+
+    
+    <div id="top" data-toggle="tooltip" data-placement="left" title="返回到顶部">
+      <a href="javascript:;">
+        <div class="arrow"></div>
+        <div class="stick"></div>
+      </a>
+    </div>
+
+    <footer class="">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <a href="mailto:waruqi@gmail.com"><span class="glyphicon glyphicon-envelope"></span> waruqi@gmail.com</a>
+        <span class="point"></span>
+        
+          <a href="https://github.com/waruqi">
+            <span class="icon">
+              <svg viewBox="0 0 16 16">
+                <path fill="#aaa" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/>
+              </svg>
+            </span>
+            Github
+            <!-- <span>waruqi</span> -->
+          </a>
+          
+          <span class="point"></span>
+          <span><a href="/feed.xml">RSS</a></span>
+          <span class="point"></span>
+          <span>&copy; 2016 TBOOX</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+    <script type="text/javascript">
+    function OnClickNewPost()
+    {
+        var title = prompt("Please enter title of your post");
+        if (title!=null){
+            title = title.replace(" ", "-");
+            var currentdate = new Date();
+            var urlNewPage = "?filename=_posts/" 
+                + currentdate.getFullYear() + "-" + (currentdate.getMonth()+1) + "-" + currentdate.getDate() + "-" + title + ".md";
+                
+            var defaultText =  [
+                '---',
+                'layout: post',
+                'comments: true',
+                'categories: diary',
+                '---',
+                '## Title',
+                'text'
+                ].join('\n');
+            urlNewPage += "&value=" + encodeURIComponent(defaultText);
+            window.open(urlNewPage);
+        }
+    }
+    
+    $(function() {
+      // CreateNewPostLinks
+      $('.newpost').each(function(){
+          $(this).click(OnClickNewPost);
+      });
+    });
+</script>
+  
+  </body>
+</html>
