@@ -142,14 +142,14 @@ It is similar to cmake, automake, premake, but more convenient and easy to use.
 8. run a given target
 9. describe the project file using lua script, more flexible and simple
 
-	-- xmake.lua
-    add_target("console")
+        -- xmake.lua
+        add_target("console")
 
-        -- set kind
-        set_kind("binary")
+            -- set kind
+            set_kind("binary")
 
-        -- add files
-        add_files("src/*.c") 
+            -- add files
+            add_files("src/*.c") 
 
 10. custom platforms and toolchains
 11. custom rules for package/compiler/linker
