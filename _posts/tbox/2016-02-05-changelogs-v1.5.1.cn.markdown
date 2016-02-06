@@ -1,6 +1,7 @@
 ---
 layout: post.cn
 title:  "tbox v1.5.1 更新内容"
+comments: true
 categories: tbox
 ---
 

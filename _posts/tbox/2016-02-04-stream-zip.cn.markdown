@@ -1,6 +1,7 @@
 ---
 layout: post.cn
 title:  "通过流进行解压缩文件"
+comments: true
 categories: tbox
 ---
 

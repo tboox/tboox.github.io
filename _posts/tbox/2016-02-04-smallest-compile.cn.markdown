@@ -1,6 +1,7 @@
 ---
 layout: post.cn
 title:  "tbox的裁剪和定制化编译"
+comments: true
 categories: tbox
 ---
 

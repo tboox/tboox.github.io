@@ -1,6 +1,7 @@
 ---
 layout: post.cn
 title:  "排序和查找算法的使用"
+comments: true
 categories: tbox
 ---
 

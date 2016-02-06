@@ -1,6 +1,7 @@
 ---
 layout: post.cn
 title:  "xmake高级特性之合并静态库"
+comments: true
 categories: xmake
 ---
 

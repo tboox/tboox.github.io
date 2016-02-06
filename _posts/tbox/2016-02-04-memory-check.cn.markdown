@@ -1,6 +1,7 @@
 ---
 layout: post.cn
 title:  "内存检测"
+comments: true
 categories: tbox
 ---
 

@@ -1,6 +1,7 @@
 ---
 layout: post.cn
 title:  "使用xmake编译工程"
+comments: true
 categories: xmake
 ---
 

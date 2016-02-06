@@ -1,6 +1,7 @@
 ---
 layout: post.cn
 title:  "内存池架构"
+comments: true
 categories: tbox
 ---
 

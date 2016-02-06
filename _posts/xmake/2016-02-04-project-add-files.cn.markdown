@@ -1,6 +1,7 @@
 ---
 layout: post.cn
 title:  "xmake中add_files的使用"
+comments: true
 categories: xmake
 ---
 
