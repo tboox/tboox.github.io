@@ -33,6 +33,9 @@ permalink: /donation/
 
 <img src="/static/img/alipay.png" alt="alipay" width="256" height="256">
 
+### Weixin 
+
+<img src="/static/img/weixin.png" alt="weixin" width="256" height="256">
 
 ### Supporters
 

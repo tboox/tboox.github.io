@@ -37,6 +37,10 @@ TBOOX属于个人开源项目，它的发展需要您的帮助，如果您愿意
 
 账号：waruqi@gmail.com
 
+### 微信 
+
+<img src="/static/img/weixin.png" alt="weixin" width="256" height="256">
+
 ## 捐助者名单
 
 ####2016.01.29
