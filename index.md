@@ -9,6 +9,7 @@ layout: page
 # The TBOOX Open Source Projects
 
 * [TBOX](#tbox): The Treasure Box Library
+* [GBOX](#gbox): The Graphic Box Library
 * [XMake](#xmake): The Automatic Cross-platform Build Tool
 
 <div id="tbox"></div>
@@ -193,6 +194,20 @@ please install xmake first: [xmake](https://github.com/waruqi/xmake)
         tb_exit();
         return 0;
     }
+
+<div id="gbox"></div>
+
+# The Graphic Box Library (GBOX)
+
+## introduction
+
+GBOX is a mutli-platform c graphic library.
+
+It is now in the early stages of development only for reference and learning.
+
+If you are interesting to this project, please view the source code.
+
+* [Github](https://github.com/waruqi/gbox)
 
 <div id="xmake"></div>
 

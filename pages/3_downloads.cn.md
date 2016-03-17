@@ -12,6 +12,12 @@ permalink: /downloads/
 * [OSC镜像](http://git.oschina.net/tboox/tbox)
 * [Coding镜像](https://coding.net/u/waruqi/p/tbox/git)
 
+## GBOX
+
+* [代码](https://github.com/waruqi/gbox)
+* [OSC镜像](http://git.oschina.net/tboox/gbox)
+* [Coding镜像](https://coding.net/u/waruqi/p/gbox/git)
+
 ## XMake
 
 * [代码](https://github.com/waruqi/xmake)

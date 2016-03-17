@@ -10,6 +10,10 @@ permalink: /downloads/
 * [Codes](https://github.com/waruqi/tbox)
 * [Releases](https://github.com/waruqi/tbox/releases)
 
+## GBOX
+
+* [Codes](https://github.com/waruqi/gbox)
+
 ## XMake
 
 * [Codes](https://github.com/waruqi/xmake)
