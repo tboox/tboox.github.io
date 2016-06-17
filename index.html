@@ -364,50 +364,22 @@ int main(int argc, char** argv)
 
 <p>It is similar to cmake, automake, premake, but more convenient and easy to use.</p>
 
-<ul>
-  <li><a href="https://github.com/waruqi/xmake/wiki/documents">Documents</a></li>
-  <li><a href="https://github.com/waruqi/xmake">Github</a></li>
-</ul>
-
-<h2 id="features-1">features</h2>
+<h4 id="features-1">features</h4>
 
 <ol>
   <li>create projects and supports many project templates</li>
   <li>support c/c++, objc/c++, swift and assembly language</li>
   <li>automatically probe the host environment and configure project</li>
-  <li>build and rebuild project</li>
-  <li>clean generated target files</li>
-  <li>package the project targets automatically
-    <ul>
-      <li>*.ipa for ios(feature)</li>
-      <li>*.apk for android(feature)</li>
-      <li>*.pkg for library</li>
-      <li>*.app for macosx(feature)</li>
-      <li>*.exe for windows</li>
-      <li>others</li>
-    </ul>
-  </li>
-  <li>install target</li>
-  <li>run a given target</li>
-  <li>
-    <p>describe the project file using lua script, more flexible and simple</p>
-
-    <div class="highlighter-rouge"><pre class="highlight"><code> -- xmake.lua
- add_target("console")
-
-     -- set kind
-     set_kind("binary")
-
-     -- add files
-     add_files("src/*.c") 
-</code></pre>
-    </div>
-  </li>
-  <li>custom platforms and toolchains</li>
-  <li>custom rules for package/compiler/linker</li>
+  <li>provide some built-in actions (config, build, package, clean, install, uninstall and run)</li>
+  <li>provide some built-in plugins (doxygen, macro, project)</li>
+  <li>project some built-in macros (batch packaging)</li>
+  <li>describe the project file using lua script, more flexible and simple</li>
+  <li>custom packages, platforms, plugins, templates, tasks, macros, options and actions</li>
+  <li>do not generate makefile and build project directly</li>
+  <li>support multitasking with argument: -j</li>
 </ol>
 
-<h2 id="examples">examples</h2>
+<h4 id="examples">examples</h4>
 
 <p>create a c++ console project:</p>
 
@@ -416,9 +388,9 @@ int main(int argc, char** argv)
 </code></pre>
 </div>
 
-<p>project makefile:xmake.lua</p>
+<p>project xmakefile: xmake.lua</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>add_target("console")
+<div class="highlighter-rouge"><pre class="highlight"><code>target("console")
     set_kind("binary")
     add_files("src/*.c") 
 </code></pre>
@@ -428,21 +400,19 @@ int main(int argc, char** argv)
 
 <p>This is optional, if you compile the targets only for linux, macosx and windows and the default compilation mode is release.</p>
 
-<p>The configuration arguments will be cached and you need not input all arguments each time.</p>
-
 <div class="highlighter-rouge"><pre class="highlight"><code>   xmake f -p iphoneos -m debug
-or xmake f --ldflags="-Lxxx -lxxx"
 or xmake f --plat=macosx --arch=x86_64
+or xmake f -p windows
 or xmake config --plat=iphoneos --mode=debug
-or xmake config --plat=iphonesimulator
 or xmake config --plat=android --arch=armv7-a --ndk=xxxxx
-or xmake config --cross=i386-mingw32- --toolchains=/xxx/bin
-or xmake config --cxflags="-Dxxx -Ixxx"
+or xmake config -p linux -a i386
+or xmake config -p mingw --cross=i386-mingw32- --toolchains=/xxx/bin
+or xmake config -p mingw --sdk=/mingwsdk
 or xmake config --help
 </code></pre>
 </div>
 
-<p>compile project:</p>
+<p>compile project：</p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code>   xmake
 or xmake -r
@@ -450,17 +420,16 @@ or xmake --rebuild
 </code></pre>
 </div>
 
-<p>run target:</p>
+<p>run target：</p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code>   xmake r console
 or xmake run console
 </code></pre>
 </div>
 
-<p>package all:</p>
+<p>package all：</p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code>   xmake p
-or xmake p --archs="armv7, arm64"
 or xmake package
 or xmake package console
 or xmake package -o /tmp
@@ -468,7 +437,16 @@ or xmake package --output=/tmp
 </code></pre>
 </div>
 
-<p>install targets:</p>
+<p>package all archs using macro:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>   xmake m package 
+or xmake m package -p iphoneos
+or xmake m package -p macosx -f "-m debug" -o /tmp/
+or xmake m package --help
+</code></pre>
+</div>
+
+<p>install targets：</p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code>   xmake i
 or xmake install
@@ -485,6 +463,7 @@ or run:</p>
 or xmake --help
 or xmake config --help
 or xmake package --help
+or xmake macro --help
 ...
 </code></pre>
 </div>
@@ -492,7 +471,7 @@ or xmake package --help
 <p>The simple xmake.lua file:</p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code>-- the debug mode
-if modes("debug") then
+if is_mode("debug") then
     
     -- enable the debug symbols
     set_symbols("debug")
@@ -502,7 +481,7 @@ if modes("debug") then
 end
 
 -- the release mode
-if modes("release") then
+if is_mode("release") then
 
     -- set the symbols visibility: hidden
     set_symbols("hidden")
@@ -515,7 +494,7 @@ if modes("release") then
 end
 
 -- add target
-add_target("test")
+target("test")
 
     -- set kind
     set_kind("static")
