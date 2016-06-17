@@ -219,50 +219,29 @@ xmake is a cross-platform automatic build tool.
 
 It is similar to cmake, automake, premake, but more convenient and easy to use.
 
-* [Documents](https://github.com/waruqi/xmake/wiki/documents)
-* [Github](https://github.com/waruqi/xmake)
-
-## features
+####features
 
 1. create projects and supports many project templates
 2. support c/c++, objc/c++, swift and assembly language
 3. automatically probe the host environment and configure project 
-4. build and rebuild project 
-5. clean generated target files
-6. package the project targets automatically
-   - *.ipa for ios(feature)
-   - *.apk for android(feature)
-   - *.pkg for library
-   - *.app for macosx(feature)
-   - *.exe for windows
-   - others
+4. provide some built-in actions (config, build, package, clean, install, uninstall and run)
+5. provide some built-in plugins (doxygen, macro, project) 
+6. project some built-in macros (batch packaging)
+7. describe the project file using lua script, more flexible and simple
+8. custom packages, platforms, plugins, templates, tasks, macros, options and actions
+9. do not generate makefile and build project directly
+10. support multitasking with argument: -j 
 
-7. install target
-8. run a given target
-9. describe the project file using lua script, more flexible and simple
-
-        -- xmake.lua
-        add_target("console")
-
-            -- set kind
-            set_kind("binary")
-
-            -- add files
-            add_files("src/*.c") 
-
-10. custom platforms and toolchains
-11. custom rules for package/compiler/linker
-
-## examples
+####examples
 
 create a c++ console project:
 
         xmake create -l c++ -t 1 console
      or xmake create --language=c++ --template=1 console
 
-project makefile:xmake.lua
+project xmakefile: xmake.lua
 
-    add_target("console")
+    target("console")
         set_kind("binary")
         add_files("src/*.c") 
 
@@ -270,39 +249,43 @@ configure project:
 
    This is optional, if you compile the targets only for linux, macosx and windows and the default compilation mode is release.
 
-   The configuration arguments will be cached and you need not input all arguments each time.
-
        xmake f -p iphoneos -m debug
-    or xmake f --ldflags="-Lxxx -lxxx"
     or xmake f --plat=macosx --arch=x86_64
+    or xmake f -p windows
     or xmake config --plat=iphoneos --mode=debug
-    or xmake config --plat=iphonesimulator
     or xmake config --plat=android --arch=armv7-a --ndk=xxxxx
-    or xmake config --cross=i386-mingw32- --toolchains=/xxx/bin
-    or xmake config --cxflags="-Dxxx -Ixxx"
+    or xmake config -p linux -a i386
+    or xmake config -p mingw --cross=i386-mingw32- --toolchains=/xxx/bin
+    or xmake config -p mingw --sdk=/mingwsdk
     or xmake config --help
 
-compile project:
-     
+compile project：
+ 
        xmake
     or xmake -r
     or xmake --rebuild
 
-run target:
+run target：
 
        xmake r console
     or xmake run console
 
-package all:
+package all：
 
        xmake p
-    or xmake p --archs="armv7, arm64"
     or xmake package
     or xmake package console
     or xmake package -o /tmp
     or xmake package --output=/tmp
 
-install targets:
+package all archs using macro:
+       
+       xmake m package 
+    or xmake m package -p iphoneos
+    or xmake m package -p macosx -f "-m debug" -o /tmp/
+    or xmake m package --help
+
+install targets：
 
        xmake i
     or xmake install
@@ -317,12 +300,13 @@ or run:
     or xmake --help
     or xmake config --help
     or xmake package --help
+    or xmake macro --help
     ...
 
 The simple xmake.lua file:
 
     -- the debug mode
-    if modes("debug") then
+    if is_mode("debug") then
         
         -- enable the debug symbols
         set_symbols("debug")
@@ -332,7 +316,7 @@ The simple xmake.lua file:
     end
 
     -- the release mode
-    if modes("release") then
+    if is_mode("release") then
 
         -- set the symbols visibility: hidden
         set_symbols("hidden")
@@ -345,7 +329,7 @@ The simple xmake.lua file:
     end
 
     -- add target
-    add_target("test")
+    target("test")
 
         -- set kind
         set_kind("static")
