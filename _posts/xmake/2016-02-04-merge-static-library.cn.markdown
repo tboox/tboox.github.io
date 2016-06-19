@@ -12,7 +12,7 @@ xmake的add_files接口不仅可以添加源代码文件进行编译，还可以
 
 例如：
 
-    add_target("test")
+    target("test")
         
          -- 生成静态库：libtest.a
          set_kind("static")
@@ -29,7 +29,7 @@ target的类型也没有限定，你也可以指定输出为动态库：shared�
 
 例如：
 
-    add_target("test2")
+    target("test2")
         
          -- 生成动态库：libtest2.so
          set_kind("shared")

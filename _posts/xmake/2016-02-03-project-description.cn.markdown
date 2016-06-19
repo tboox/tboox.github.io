@@ -15,7 +15,7 @@ xmake的工程描述文件，摈弃了makefile的繁琐复杂，借鉴了premake
 下面先来看一个最简单的例子：
 
     -- 添加一个名为demo的目标到工程
-    add_target("demo")
+    target("demo")
 
         -- 设置目标程序类型为二进制可执行程序，一般为console的终端命令行程序
         set_kind("binary")
@@ -28,7 +28,7 @@ xmake的工程描述文件，摈弃了makefile的繁琐复杂，借鉴了premake
 下面我们看一个稍微复杂一点的例子，这个例子中对release、debug模式进行了不同的设置：
 
     -- 如果当前编译的是debug模式
-    if modes("debug") then
+    if is_mode("debug") then
         
         -- 启用调试符号
         set_symbols("debug")
@@ -38,7 +38,7 @@ xmake的工程描述文件，摈弃了makefile的繁琐复杂，借鉴了premake
     end
 
     -- 如果当前编译的是release模式
-    if modes("release") then
+    if is_mode("release") then
 
         -- 设置符号可见性为不可见
         set_symbols("hidden")
@@ -51,7 +51,7 @@ xmake的工程描述文件，摈弃了makefile的繁琐复杂，借鉴了premake
     end
 
     -- 添加一个名为test的目标
-    add_target("test")
+    target("test")
 
         -- 将test编译成为静态库类型
         set_kind("static")

@@ -65,7 +65,7 @@ add_files的使用其实是相当灵活方便的，其匹配模式我借鉴了pr
     add_files("platform/*.c|aicp.c")
 
     -- 如果当前架构是arm，则添加arm相关的asm优化代码
-    if archs("arm.*") then
+    if is_arch("arm.*") then
         add_files("utils/impl/crc_arm.S")
     end
 
