@@ -5,10 +5,10 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>xmake高级特性之合并静态库</title>
-	<meta name="description" content="xmake的add_files接口不仅可以添加源代码文件进行编译，还可以直接添加.o/obj对象文件、以及.a/lib的库文件到编译目标中，这个跟add_links是有区别的">
+	<title>插件开发之import类库</title>
+	<meta name="description" content="import的主要用于导入xmake的扩展类库以及一些自定义的类库模块，一般用于 自定义脚本(on_build, on_run ..)、插件开发、模板开发、平台扩展、自定义任务task等地方。">
 	
-	<link rel="canonical" href="http://tboox.org/cn/2016/02/04/merge-static-library/">
+	<link rel="canonical" href="http://tboox.org/2016/06/09/api-import.cn%E5%89%AF%E6%9C%AC/">
 	<link rel="alternate" type="application/rss+xml" title="TBOOX" href="http://tboox.org/feed.xml" />
     <link rel="stylesheet" type="text/css" href="/static/css/all.css">
 	<script type="text/javascript" src="/static/js/all.js"></script>
@@ -94,55 +94,91 @@
   <div id="myArticle" class="col-sm-9">
     <div class="post-area post">
       <header>
-        <h1>xmake高级特性之合并静态库</h1>
-        <p>Feb 4, 2016</p>
+        <h1>插件开发之import类库</h1>
+        <p>Jun 9, 2016</p>
       </header>
       <hr>
       <article>
-        <p>xmake的add_files接口不仅可以添加源代码文件进行编译，还可以直接添加<em>.o/obj对象文件、以及</em>.a/lib的库文件到编译目标中，这个跟add_links是有区别的</p>
+        <p>import的主要用于导入xmake的扩展类库以及一些自定义的类库模块，一般用于 自定义脚本(on_build, on_run ..)、插件开发、模板开发、平台扩展、自定义任务task等地方。</p>
 
-<ul>
-  <li>add_links：只能添加链接，例如： -lxxxx 这种，链接的目标也只能是可执行程序、动态库，而且只会链接需要的代码进去</li>
-  <li>add_files：是直接将静态库中的所有对象文件，解包、重新打包到新的target中，这个target可以是新的静态库，也可以是可执行程序、或者动态库</li>
-</ul>
+<p>导入机制如下：</p>
 
-<p>例如：</p>
+<ol>
+  <li>优先从当前脚本目录下导入</li>
+  <li>再从扩展类库中导入</li>
+</ol>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>target("test")
+<p>导入的语法规则：</p>
+
+<p>基于.的类库路径规则，例如：</p>
+
+<p>导入core核心扩展模块</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>import("core.base.option")
+import("core.project")
+import("core.project.task")
+import("core")
+
+function main()
     
-     -- 生成静态库：libtest.a
-     set_kind("static")
+    -- 获取参数选项
+    print(option.get("version"))
 
-     -- 添加对象文件
-     add_files("obj/*.o")
-
-     -- 添加静态库，将里面的对象文件重新打包到libtest.a中，生成新的静态库
-     add_files("lib/*.a")
+    -- 运行任务和插件
+    task.run("hello")
+    project.task.run("hello")
+    core.project.task.run("hello")
+end
 </code></pre>
 </div>
 
-<p>这个target模块，可以没有任何源码，单纯的将所有静态库、对象文件重新打包到一个新的静态库中，当然再加一些源文件也是可以的</p>
+<p>导入当前目录下的自定义模块：</p>
 
-<p>target的类型也没有限定，你也可以指定输出为动态库：shared，可执行程序：binary</p>
+<p>目录结构：</p>
 
-<p>例如：</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>target("test2")
-    
-     -- 生成动态库：libtest2.so
-     set_kind("shared")
-
-     -- 添加对象文件
-     add_files("obj/*.o")
-
-     -- 添加静态库libtest.a中的所有对象文件
-     add_files("lib/libtest.a")
-
-     -- 添加一些源文件
-     add_files("src/*.c")
+<div class="highlighter-rouge"><pre class="highlight"><code>plugin
+  - xmake.lua
+  - main.lua
+  - modules
+    - hello1.lua
+    - hello2.lua
 </code></pre>
 </div>
 
+<p>在main.lua中导入modules</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>import("modules.hello1")
+import("modules.hello2")
+</code></pre>
+</div>
+
+<p>导入后就可以直接使用里面的所有公有接口，私有接口用_前缀标示，表明不会被导出，不会被外部调用到。。</p>
+
+<p>除了当前目录，我们还可以导入其他指定目录里面的类库，例如：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>import("hello3", {rootdir = "/home/xxx/modules"})
+</code></pre>
+</div>
+
+<p>为了防止命名冲突，导入后还可以指定的别名：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>import("core.platform.platform", {alias = "p"})
+
+function main()
+ 
+    -- 这样我们就可以使用p来调用platform模块的plats接口，获取所有xmake支持的平台列表了
+    table.dump(p.plats())
+end
+</code></pre>
+</div>
+
+<p>import不仅可以导入类库，还支持导入的同时作为继承导入，实现模块间的继承关系</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>import("xxx.xxx", {inherit = true})
+</code></pre>
+</div>
+
+<p>这样导入的不是这个模块的引用，而是导入的这个模块的所有公有接口本身，这样就会跟当前模块的接口进行合并，实现模块间的继承</p>
 
       </article>
       <hr>
@@ -157,8 +193,8 @@
     </div>
 	<script>
 		var disqus_config = function () {
-			this.page.url = "http://www.tboox.org/cn/2016/02/04/merge-static-library/"; 
-			this.page.identifier = "/cn/2016/02/04/merge-static-library"; 
+			this.page.url = "http://www.tboox.org/2016/06/09/api-import.cn%E5%89%AF%E6%9C%AC/"; 
+			this.page.identifier = "/2016/06/09/api-import.cn副本"; 
 		};
 		(function() {
 			var d = document, s = d.createElement('script');

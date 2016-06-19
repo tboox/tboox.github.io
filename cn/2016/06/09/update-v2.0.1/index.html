@@ -5,10 +5,10 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>xmake高级特性之合并静态库</title>
-	<meta name="description" content="xmake的add_files接口不仅可以添加源代码文件进行编译，还可以直接添加.o/obj对象文件、以及.a/lib的库文件到编译目标中，这个跟add_links是有区别的">
+	<title>xmake v2.0.1发布</title>
+	<meta name="description" content="更新内容（此版本重构了90%的代码）:">
 	
-	<link rel="canonical" href="http://tboox.org/cn/2016/02/04/merge-static-library/">
+	<link rel="canonical" href="http://tboox.org/cn/2016/06/09/update-v2.0.1/">
 	<link rel="alternate" type="application/rss+xml" title="TBOOX" href="http://tboox.org/feed.xml" />
     <link rel="stylesheet" type="text/css" href="/static/css/all.css">
 	<script type="text/javascript" src="/static/js/all.js"></script>
@@ -94,54 +94,41 @@
   <div id="myArticle" class="col-sm-9">
     <div class="post-area post">
       <header>
-        <h1>xmake高级特性之合并静态库</h1>
-        <p>Feb 4, 2016</p>
+        <h1>xmake v2.0.1发布</h1>
+        <p>Jun 9, 2016</p>
       </header>
       <hr>
       <article>
-        <p>xmake的add_files接口不仅可以添加源代码文件进行编译，还可以直接添加<em>.o/obj对象文件、以及</em>.a/lib的库文件到编译目标中，这个跟add_links是有区别的</p>
+        <p>更新内容（此版本重构了90%的代码）:</p>
 
-<ul>
-  <li>add_links：只能添加链接，例如： -lxxxx 这种，链接的目标也只能是可执行程序、动态库，而且只会链接需要的代码进去</li>
-  <li>add_files：是直接将静态库中的所有对象文件，解包、重新打包到新的target中，这个target可以是新的静态库，也可以是可执行程序、或者动态库</li>
-</ul>
-
-<p>例如：</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>target("test")
-    
-     -- 生成静态库：libtest.a
-     set_kind("static")
-
-     -- 添加对象文件
-     add_files("obj/*.o")
-
-     -- 添加静态库，将里面的对象文件重新打包到libtest.a中，生成新的静态库
-     add_files("lib/*.a")
-</code></pre>
-</div>
-
-<p>这个target模块，可以没有任何源码，单纯的将所有静态库、对象文件重新打包到一个新的静态库中，当然再加一些源文件也是可以的</p>
-
-<p>target的类型也没有限定，你也可以指定输出为动态库：shared，可执行程序：binary</p>
-
-<p>例如：</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>target("test2")
-    
-     -- 生成动态库：libtest2.so
-     set_kind("shared")
-
-     -- 添加对象文件
-     add_files("obj/*.o")
-
-     -- 添加静态库libtest.a中的所有对象文件
-     add_files("lib/libtest.a")
-
-     -- 添加一些源文件
-     add_files("src/*.c")
-</code></pre>
-</div>
+<ol>
+  <li>重构整个xmake.lua描述文件的解释器，更加的灵活可扩展</li>
+  <li>更加严格的语法检测机制</li>
+  <li>更加严格的作用域管理，实现沙盒引擎，对xmake.lua中脚本进行沙盒化处理，使得xmake.lua更加的安全</li>
+  <li>简化模板的开发，简单几行描述就可以扩展一个新的自定义工程模板</li>
+  <li>增加task任务机制，可运行自定义任务脚本</li>
+  <li>实现plugin扩展机制，可以很方便扩展实现自定义插件，目前已实现的一些内置插件
+    <ul>
+      <li>project文件导出插件(目前已支持makefile的生成，后续会支持：vs, xcode等工程的生成)</li>
+      <li>hello xmake插件（插件demo）</li>
+      <li>doxygen文档生成插件</li>
+      <li>自定义宏脚本插件（支持动态宏记录、宏回放、匿名宏、批量导入、导出等功能）</li>
+    </ul>
+  </li>
+  <li>完全模块化platforms、tools、templates、actions，以及通过自注册机制，只需把自定义的脚本放入对应目录，就可实现快速扩展</li>
+  <li>针对所有可扩展脚本所需api进行大量简化，并实现大量类库，通过import机制进行导入使用</li>
+  <li>移除对gnu make/nmake等make工具的依赖，不再需要makefile，实现自己的make算法，</li>
+  <li>优化构建速度，支持多任务编译(支持vs编译器)（实测：比v1.0.4提升x4倍的构建性能）</li>
+  <li>优化自动检测机制，更加的稳定和准确</li>
+  <li>修改部分工程描述api，增强扩展性，减少一些命名歧义（对低版本向下兼容）</li>
+  <li>实现异常捕获机制，简化上层调用逻辑</li>
+  <li>优化静态库合并：<code class="highlighter-rouge">add_files("*.a")</code>，修复一些bug</li>
+  <li>增加显示全局构建进度</li>
+  <li>优化交叉编译，通过–sdk=xxx参数实现更加方便智能的进行交叉编译配置，简化mingw平台的编译配置</li>
+  <li>简化命令行配置开关, 支持<code class="highlighter-rouge">xmake config --xxx=[y|n|yes|no|true|false]</code>等开关值</li>
+  <li>增加多个option进行宏绑定，实现配置一个参数，就可以同时对多个配置进行生效</li>
+  <li>合并iphoneos和iphonesimulator平台，以及watchos和watchsimulator平台，通过arch来区分，使得打包更加方便，能够支持一次性打包iphoneos的所有arch到一个包中</li>
+</ol>
 
 
       </article>
@@ -157,8 +144,8 @@
     </div>
 	<script>
 		var disqus_config = function () {
-			this.page.url = "http://www.tboox.org/cn/2016/02/04/merge-static-library/"; 
-			this.page.identifier = "/cn/2016/02/04/merge-static-library"; 
+			this.page.url = "http://www.tboox.org/cn/2016/06/09/update-v2.0.1/"; 
+			this.page.identifier = "/cn/2016/06/09/update-v2.0.1"; 
 		};
 		(function() {
 			var d = document, s = d.createElement('script');

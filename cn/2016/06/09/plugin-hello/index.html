@@ -5,10 +5,10 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>xmake高级特性之合并静态库</title>
-	<meta name="description" content="xmake的add_files接口不仅可以添加源代码文件进行编译，还可以直接添加.o/obj对象文件、以及.a/lib的库文件到编译目标中，这个跟add_links是有区别的">
+	<title>插件开发之hello xmake</title>
+	<meta name="description" content="xmake从v2.0开始，全面支持插件模式，我们可以很方便的扩展实现自己的插件，并且xmake也提供了一些内建的使用插件">
 	
-	<link rel="canonical" href="http://tboox.org/cn/2016/02/04/merge-static-library/">
+	<link rel="canonical" href="http://tboox.org/cn/2016/06/09/plugin-hello/">
 	<link rel="alternate" type="application/rss+xml" title="TBOOX" href="http://tboox.org/feed.xml" />
     <link rel="stylesheet" type="text/css" href="/static/css/all.css">
 	<script type="text/javascript" src="/static/js/all.js"></script>
@@ -94,55 +94,106 @@
   <div id="myArticle" class="col-sm-9">
     <div class="post-area post">
       <header>
-        <h1>xmake高级特性之合并静态库</h1>
-        <p>Feb 4, 2016</p>
+        <h1>插件开发之hello xmake</h1>
+        <p>Jun 9, 2016</p>
       </header>
       <hr>
       <article>
-        <p>xmake的add_files接口不仅可以添加源代码文件进行编译，还可以直接添加<em>.o/obj对象文件、以及</em>.a/lib的库文件到编译目标中，这个跟add_links是有区别的</p>
+        <p>xmake从v2.0开始，全面支持插件模式，我们可以很方便的扩展实现自己的插件，并且xmake也提供了一些内建的使用插件</p>
+
+<p>我们可以执行下 <code class="highlighter-rouge">xmake -h</code> 看下当前支持的插件：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Plugins: 
+    l, lua                                 Run the lua script.
+    m, macro                               Run the given macro.
+       doxygen                             Generate the doxygen document.
+       hello                               Hello xmake!
+       project                             Create the project file.
+</code></pre>
+</div>
 
 <ul>
-  <li>add_links：只能添加链接，例如： -lxxxx 这种，链接的目标也只能是可执行程序、动态库，而且只会链接需要的代码进去</li>
-  <li>add_files：是直接将静态库中的所有对象文件，解包、重新打包到新的target中，这个target可以是新的静态库，也可以是可执行程序、或者动态库</li>
+  <li>lua: 运行lua脚本的插件</li>
+  <li>macro: 这个很实用，宏脚本插件，可以手动录制多条xmake命令并且回放，也可以通过脚本实现一些复杂的宏脚本，这个我们后续会更加详细的介绍</li>
+  <li>doxygen：一键生成doxygen文档的插件</li>
+  <li>hello: 插件demo，仅仅显示一句话：’hello xmake!’</li>
+  <li>project： 生成工程文件的插件，目前仅支持(makefile)，后续还会支持(vs,xcode等工程)的生成</li>
 </ul>
 
-<p>例如：</p>
+<p>接下来我们介绍下本文的重点，一个简单的hello xmake插件的开发，代码如下：</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>target("test")
-    
-     -- 生成静态库：libtest.a
-     set_kind("static")
+<div class="highlighter-rouge"><pre class="highlight"><code>-- 定义一个名叫hello的插件任务
+task("hello")
 
-     -- 添加对象文件
-     add_files("obj/*.o")
+    -- 设置类型为插件
+    set_category("plugin")
 
-     -- 添加静态库，将里面的对象文件重新打包到libtest.a中，生成新的静态库
-     add_files("lib/*.a")
+    -- 插件运行的入口
+    on_run(function ()
+
+        -- 显示hello xmake!
+        print("hello xmake!")
+
+    end)
+
+    -- 设置插件的命令行选项，这里没有任何参数选项，仅仅显示插件描述
+    set_menu({
+                    -- usage
+                    usage = "xmake hello [options]"
+
+                    -- description
+                ,   description = "Hello xmake!"
+
+                    -- options
+                ,   options = {}
+                }) 
 </code></pre>
 </div>
 
-<p>这个target模块，可以没有任何源码，单纯的将所有静态库、对象文件重新打包到一个新的静态库中，当然再加一些源文件也是可以的</p>
+<p>这个插件的文件结构如下：</p>
 
-<p>target的类型也没有限定，你也可以指定输出为动态库：shared，可执行程序：binary</p>
-
-<p>例如：</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>target("test2")
-    
-     -- 生成动态库：libtest2.so
-     set_kind("shared")
-
-     -- 添加对象文件
-     add_files("obj/*.o")
-
-     -- 添加静态库libtest.a中的所有对象文件
-     add_files("lib/libtest.a")
-
-     -- 添加一些源文件
-     add_files("src/*.c")
+<div class="highlighter-rouge"><pre class="highlight"><code>hello
+ - xmake.lua
 </code></pre>
 </div>
 
+<p>现在一个最简单的插件写完了，那怎么让它被xmake检测到呢，有三种方式：</p>
+
+<ol>
+  <li>把 hello 这个文件夹放置在 xmake的插件安装目录 xmake/plugins，这个里面都是些内建的插件</li>
+  <li>把 hello 文件夹防止在 ~/.xmake/plugins 用户全局目录，这样对当前xmake 全局生效</li>
+  <li>把 hello 文件夹防止在任意地方，通过在工程描述文件xmake.lua中调用<code class="highlighter-rouge">add_plugindirs("./hello")</code> 添加当前的工程的插件搜索目录，这样只对当前工程生效</li>
+</ol>
+
+<p>接下来，我们尝试运行下这个插件：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>xmake hello
+</code></pre>
+</div>
+
+<p>显示结果：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>hello xmake!
+</code></pre>
+</div>
+
+<p>当然你可以通过<code class="highlighter-rouge">set_menu</code>中添加一些自定义的参数，这个等后续再详细介绍</p>
+
+<p>最后我们还可以在target自定义的脚本中运行这个插件：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>target("demo")
+    
+    -- 构建之后运行插件
+    after_build(function (target)
+  
+        -- 导入task模块
+        import("core.project.task")
+
+        -- 运行插件任务
+        task.run("hello")
+    end)
+</code></pre>
+</div>
 
       </article>
       <hr>
@@ -157,8 +208,8 @@
     </div>
 	<script>
 		var disqus_config = function () {
-			this.page.url = "http://www.tboox.org/cn/2016/02/04/merge-static-library/"; 
-			this.page.identifier = "/cn/2016/02/04/merge-static-library"; 
+			this.page.url = "http://www.tboox.org/cn/2016/06/09/plugin-hello/"; 
+			this.page.identifier = "/cn/2016/06/09/plugin-hello"; 
 		};
 		(function() {
 			var d = document, s = d.createElement('script');

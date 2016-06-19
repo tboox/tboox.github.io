@@ -5,9 +5,1193 @@
     <description>Welcome to the website for the TBOOX Open Source Project!</description>
     <link>http://tboox.org/</link>
     <atom:link href="http://tboox.org/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Fri, 17 Jun 2016 17:14:16 +0800</pubDate>
-    <lastBuildDate>Fri, 17 Jun 2016 17:14:16 +0800</lastBuildDate>
+    <pubDate>Sun, 19 Jun 2016 20:31:21 +0800</pubDate>
+    <lastBuildDate>Sun, 19 Jun 2016 20:31:21 +0800</lastBuildDate>
     <generator>Jekyll v3.1.1</generator>
+    
+      <item>
+        <title>xmake v2.0.1发布</title>
+        <description>&lt;p&gt;更新内容（此版本重构了90%的代码）:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;重构整个xmake.lua描述文件的解释器，更加的灵活可扩展&lt;/li&gt;
+  &lt;li&gt;更加严格的语法检测机制&lt;/li&gt;
+  &lt;li&gt;更加严格的作用域管理，实现沙盒引擎，对xmake.lua中脚本进行沙盒化处理，使得xmake.lua更加的安全&lt;/li&gt;
+  &lt;li&gt;简化模板的开发，简单几行描述就可以扩展一个新的自定义工程模板&lt;/li&gt;
+  &lt;li&gt;增加task任务机制，可运行自定义任务脚本&lt;/li&gt;
+  &lt;li&gt;实现plugin扩展机制，可以很方便扩展实现自定义插件，目前已实现的一些内置插件
+    &lt;ul&gt;
+      &lt;li&gt;project文件导出插件(目前已支持makefile的生成，后续会支持：vs, xcode等工程的生成)&lt;/li&gt;
+      &lt;li&gt;hello xmake插件（插件demo）&lt;/li&gt;
+      &lt;li&gt;doxygen文档生成插件&lt;/li&gt;
+      &lt;li&gt;自定义宏脚本插件（支持动态宏记录、宏回放、匿名宏、批量导入、导出等功能）&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;完全模块化platforms、tools、templates、actions，以及通过自注册机制，只需把自定义的脚本放入对应目录，就可实现快速扩展&lt;/li&gt;
+  &lt;li&gt;针对所有可扩展脚本所需api进行大量简化，并实现大量类库，通过import机制进行导入使用&lt;/li&gt;
+  &lt;li&gt;移除对gnu make/nmake等make工具的依赖，不再需要makefile，实现自己的make算法，&lt;/li&gt;
+  &lt;li&gt;优化构建速度，支持多任务编译(支持vs编译器)（实测：比v1.0.4提升x4倍的构建性能）&lt;/li&gt;
+  &lt;li&gt;优化自动检测机制，更加的稳定和准确&lt;/li&gt;
+  &lt;li&gt;修改部分工程描述api，增强扩展性，减少一些命名歧义（对低版本向下兼容）&lt;/li&gt;
+  &lt;li&gt;实现异常捕获机制，简化上层调用逻辑&lt;/li&gt;
+  &lt;li&gt;优化静态库合并：&lt;code class=&quot;highlighter-rouge&quot;&gt;add_files(&quot;*.a&quot;)&lt;/code&gt;，修复一些bug&lt;/li&gt;
+  &lt;li&gt;增加显示全局构建进度&lt;/li&gt;
+  &lt;li&gt;优化交叉编译，通过–sdk=xxx参数实现更加方便智能的进行交叉编译配置，简化mingw平台的编译配置&lt;/li&gt;
+  &lt;li&gt;简化命令行配置开关, 支持&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake config --xxx=[y|n|yes|no|true|false]&lt;/code&gt;等开关值&lt;/li&gt;
+  &lt;li&gt;增加多个option进行宏绑定，实现配置一个参数，就可以同时对多个配置进行生效&lt;/li&gt;
+  &lt;li&gt;合并iphoneos和iphonesimulator平台，以及watchos和watchsimulator平台，通过arch来区分，使得打包更加方便，能够支持一次性打包iphoneos的所有arch到一个包中&lt;/li&gt;
+&lt;/ol&gt;
+
+</description>
+        <pubDate>Thu, 09 Jun 2016 00:00:00 +0800</pubDate>
+        <link>http://tboox.org/cn/2016/06/09/update-v2.0.1/</link>
+        <guid isPermaLink="true">http://tboox.org/cn/2016/06/09/update-v2.0.1/</guid>
+        
+        
+        <category>xmake</category>
+        
+      </item>
+    
+      <item>
+        <title>插件开发之类库使用</title>
+        <description>&lt;p&gt;xmake通过import接口，可以在自定义脚本中导入各种内置类库和扩展类库模块，使得xmake的插件开发具有更多的灵活性，提供更丰富的功能。&lt;/p&gt;
+
+&lt;p&gt;我们先看下，目前xmake提供的一些类库：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;.
+├── _g.lua
+├── assert.lua
+├── catch.lua
+├── coroutine.lua
+├── debug.lua
+├── finally.lua
+├── format.lua
+├── ifelse.lua
+├── import
+│   └── core
+│       ├── base
+│       │   └── option.lua
+│       ├── platform
+│       │   ├── environment.lua
+│       │   ├── menu.lua
+│       │   └── platform.lua
+│       ├── project
+│       │   ├── cache.lua
+│       │   ├── config.lua
+│       │   ├── global.lua
+│       │   ├── history.lua
+│       │   ├── menu.lua
+│       │   ├── package.lua
+│       │   ├── project.lua
+│       │   ├── target.lua
+│       │   ├── task.lua
+│       │   └── template.lua
+│       └── tool
+│           ├── compiler.lua
+│           ├── linker.lua
+│           └── tool.lua
+├── import.lua
+├── inherit.lua
+├── insert.lua
+├── io.lua
+├── ipairs.lua
+├── math.lua
+├── os.lua
+├── pairs.lua
+├── path.lua
+├── print.lua
+├── printf.lua
+├── raise.lua
+├── string.lua
+├── table.lua
+├── tonumber.lua
+├── tostring.lua
+├── try.lua
+├── utils.lua
+└── vformat.lua
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;在根目录下的模块和api都是属于内建的，不需要import也可以直接使用，属于常用api，提供了xmake最基础的特性。。&lt;/p&gt;
+
+&lt;p&gt;在子目录下的是扩展模块，需要import后才能使用，导入规则见&lt;a href=&quot;/cn/2016/06/09/api-import/&quot;&gt;import&lt;/a&gt;，例如：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;import(&quot;core.project.task&quot;)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;需要注意的是：xmake对自定义的脚本采用了异常处理机制，大部分情况下，调用的api是不需要判断返回值状态是否成功，如果出错了，会立即中断，并且显示错误信息&lt;/p&gt;
+
+&lt;p&gt;这样语法上更加的精简可读，并且更安全，所有api的输入输出，内部都有检测，状态不对会立即自动报错。&lt;/p&gt;
+
+&lt;p&gt;当然如果我们想要自己获取这个异常的状态，做一些逻辑上的处理，可以通过try/catch来实现，使用起来也非常简单。&lt;/p&gt;
+
+&lt;p&gt;下面简单介绍下一些常用的内置模块api，这些模块不需要import就可以使用的哦。：）&lt;/p&gt;
+
+&lt;h4 id=&quot;os&quot;&gt;os模块&lt;/h4&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;-- 运行shell命令，如果运行失败直接中断，并显示出错信息，我们不需要判断返回值
+os.run(&quot;echo hello xmake!&quot;)
+
+-- 复制文件
+os.cp(&quot;/tmp/src&quot;, &quot;/tmp/dst&quot;)
+
+-- 删除文件或者目录
+os.rm(&quot;/tmp/dir&quot;)
+
+-- 移动文件
+os.mv(&quot;/tmp/old&quot;, &quot;/tmp/new&quot;)
+
+-- 判断文件是否存在
+if os.isfile(&quot;/tmp/file&quot;) then
+end
+
+-- 判断目录是否存在
+if os.isdir(&quot;/tmp/dir&quot;) then
+end
+
+-- 匹配遍历文件，*为非递归匹配，**为递归匹配
+for _, file in ipairs(os.match(&quot;src/*.c&quot;)) do
+    print(file)
+end
+
+-- 匹配遍历目录，*为非递归匹配，**为递归匹配
+for _, file in ipairs(os.match(&quot;src/*&quot;, true)) do
+    print(file)
+end
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;api&quot;&gt;常用api&lt;/h4&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;-- 抛出异常，立即中断
+raise()
+
+-- 抛出异常，立即中断，并抛出异常错误信息
+raise(&quot;error info&quot;)
+
+-- 抛出异常，立即中断，并抛出异常错误代码
+raise(-1)
+
+-- 显示输出并换行，支持格式化输出，跟lua的print稍有不同
+print(&quot;hello %s&quot;, &quot;xmake&quot;)
+
+-- 显示输出不换行
+printf(&quot;hello %s&quot;, &quot;xmake&quot;)
+
+-- 格式化字符串
+s = format(&quot;hello %s&quot;, &quot;xmake&quot;)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;api-1&quot;&gt;异常捕获api&lt;/h4&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;try
+{
+    -- try块，里面抛出异常
+    function ()
+        raise(&quot;error&quot;)
+    end,
+
+    catch
+    {
+        -- catch块，捕获异常
+        function (errors)
+            print(errors)
+        end
+    }
+}
+
+-- 获取try块的返回值，如果没有异常的话返回true
+local ok = try
+{
+    -- try块，里面抛出异常
+    function ()
+        -- may be error
+        return true
+    end
+}
+
+try
+{
+    -- try块，里面抛出异常
+    function ()
+        raise(&quot;error&quot;)
+    end,
+
+    catch
+    {
+        -- catch块，捕获异常
+        function (errors)
+            print(errors)
+        end
+    },
+
+    finally
+    { 
+        -- finally 块
+        function ()
+        end
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;path&quot;&gt;path模块&lt;/h4&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;-- 获取相对路径
+path.relative(&quot;/tmp/a&quot;)
+
+-- 获取绝对路径
+path.absolute(&quot;src&quot;)
+
+-- 获取目录
+path.directory(&quot;/tmp/a&quot;)
+
+-- 获取文件名 test.c
+path.filename(&quot;/tmp/test.c&quot;)
+
+-- 获取base名 test
+path.basename(&quot;/tmp/test.c&quot;)
+
+-- 获取扩展名
+path.extension(&quot;/tmp/test.c&quot;)
+
+-- 拼接路径 /tmp/test.c
+path.join(&quot;/tmp&quot;, &quot;test.c&quot;)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;io-&quot;&gt;io 模块&lt;/h4&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;-- 打开一个写文件
+file = io.open(&quot;/tmp/a&quot;, &quot;w&quot;)
+
+-- 写文件数据
+file:write(&quot;hello&quot;)
+
+-- 写文件格式化行
+file:print(&quot;hello %s&quot;, &quot;xmake&quot;)
+
+-- 写文件格式化不换行
+file:printf(&quot;hello %s&quot;, &quot;xmake&quot;)
+
+-- 关闭文件
+file:close()
+
+-- 序列化写一个lua对象到文件
+io.save(&quot;/tmp/a&quot;, object)
+
+-- 反序列化读取一个文件对象
+object = io.load(&quot;/tmp/a&quot;)
+
+-- 读取文件数据，并显示
+io.cat(&quot;/tmp/a&quot;)
+
+-- 模式替换文件内容, 替换空格字符为 &quot;space&quot;
+io.gsub(&quot;/tmp/a&quot;, &quot;%s&quot;, &quot;space&quot;)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;还有一些是lua的常用模块，这里就不多说了，例如：&lt;code class=&quot;highlighter-rouge&quot;&gt;string, table, debug, coroutine, pairs, ipairs, tostring, tonumber&lt;/code&gt; 等等&lt;/p&gt;
+</description>
+        <pubDate>Thu, 09 Jun 2016 00:00:00 +0800</pubDate>
+        <link>http://tboox.org/cn/2016/06/09/plugin-modules/</link>
+        <guid isPermaLink="true">http://tboox.org/cn/2016/06/09/plugin-modules/</guid>
+        
+        
+        <category>xmake</category>
+        
+      </item>
+    
+      <item>
+        <title>插件使用之宏脚本记录</title>
+        <description>&lt;p&gt;xmake 提供了一些内置的比较实用的插件，其中宏脚本插件是最具有代表性和实用性的，也是xmake比较推荐的一款插件，那它有哪些使用功能呢？&lt;/p&gt;
+
+&lt;p&gt;我们先来看下：&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake macro --help&lt;/code&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Usage: xmake macro|m [options] [name] [arguments]
+
+Run the given macro.
+
+Options: 
+        --backtrace                        Print backtrace information for debugging.
+        --version                          Print the version number and exit.
+    -h, --help                             Print this help message and exit.
+                                           
+    -F FILE, --file=FILE                   Read a given xmake.lua file.
+    -P PROJECT, --project=PROJECT          Change to the given project directory.
+                                           Search priority:
+                                               1. The Given Command Argument
+                                               2. The Envirnoment Variable: XMAKE_PROJECT_DIR
+                                               3. The Current Directory
+                                           
+    -v, --verbose                          Print lots of verbose information.
+    -b, --begin                            Start to record macro.
+                                           .e.g
+                                           Record macro with name: test
+                                               xmake macro --begin
+                                               xmake config --plat=macosx
+                                               xmake clean
+                                               xmake -r
+                                               xmake package
+                                               xmake macro --end test
+    -e, --end                              Stop to record macro.
+                                           
+        --show                             Show the content of the given macro.
+    -l, --list                             List all macros.
+    -d, --delete                           Delete the given macro.
+    -c, --clear                            Clear the all macros.
+                                           
+        --import=IMPORT                    Import the given macro file or directory.
+                                           .e.g
+                                               xmake macro --import=/xxx/macro.lua test
+                                               xmake macro --import=/xxx/macrodir
+        --export=EXPORT                    Export the given macro to file or directory.
+                                           .e.g
+                                               xmake macro --export=/xxx/macro.lua test
+                                               xmake macro --export=/xxx/macrodir
+                                           
+    name                                   Set the macro name. (default: .)
+                                           .e.g
+                                              Run the given macro:     xmake macro test
+                                              Run the anonymous macro: xmake macro .
+    arguments ...                          Set the macro arguments.
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;看帮助菜单描述，它提供了一些功能：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;手动记录和回放多条执行过的xmake命令&lt;/li&gt;
+  &lt;li&gt;支持快速的匿名宏创建和回放&lt;/li&gt;
+  &lt;li&gt;支持命名宏的长久记录和重用&lt;/li&gt;
+  &lt;li&gt;支持宏脚本的批量导入和导出&lt;/li&gt;
+  &lt;li&gt;支持宏脚本的删除、显示等管理功能&lt;/li&gt;
+  &lt;li&gt;支持自定义高级宏脚本，以及参数配置&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;看功能还是蛮多的，那这个宏脚本主要用于哪些场景呢，比如：&lt;/p&gt;
+
+&lt;p&gt;我们需要编译打包各个平台的所有架构的库，如果按照每次：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake f -p android --ndk=/xxx/ndk -a armv7-a
+xmake p
+xmake f -p mingw --sdk=/mingwsdk
+xmake p
+xmake f -p linux --sdk=/toolsdk --toolchains=/xxxx/bin
+xmake p
+xmake f -p iphoneos -a armv7
+xmake p
+xmake f -p iphoneos -a arm64
+xmake p
+xmake f -p iphoneos -a armv7s
+xmake p
+xmake f -p iphoneos -a i386
+xmake p
+xmake f -p iphoneos -a x86_64
+xmake p
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;那还是相当累人的，而且这些命令有可能需要重复执行，每次都这么敲一遍多累啊，如果像交叉编译这种，配置参数更多更复杂的情况，那么会更累&lt;/p&gt;
+
+&lt;p&gt;这个时候就需要宏脚本出场了，而且这些宏记录下来后，你可以导出它们，提供给其他人使用，而不需要每次叫他们如何去配置，如何去编译打包了&lt;/p&gt;
+
+&lt;p&gt;闲话少说，我们先来看下如何记录一个简单宏脚本。。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# 开始记录宏
+xmake macro --begin
+
+# 执行一些xmake命令
+xmake f -p android --ndk=/xxx/ndk -a armv7-a
+xmake p
+xmake f -p mingw --sdk=/mingwsdk
+xmake p
+xmake f -p linux --sdk=/toolsdk --toolchains=/xxxx/bin
+xmake p
+xmake f -p iphoneos -a armv7
+xmake p
+xmake f -p iphoneos -a arm64
+xmake p
+xmake f -p iphoneos -a armv7s
+xmake p
+xmake f -p iphoneos -a i386
+xmake p
+xmake f -p iphoneos -a x86_64
+xmake p
+
+# 结束宏记录，这里不设置宏名字，所以记录的是一个匿名宏
+xmake macro --end 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;好了，接下来我们就开始回放执行这个宏了。。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# 之前最近记录的一次匿名宏
+xmake macro .
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;匿名宏的好处就是快速记录，快速回放，如果需要长久保存，就需要给宏去个名字，也很简单：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# 结束记录，并且命名为test宏
+xmake macro --end test
+
+# 回放这个test宏
+xmake macro test
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;宏的管理：删除、导入、导出这些比较简单，可以敲：&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake macro --help&lt;/code&gt; 自行看下&lt;/p&gt;
+
+&lt;p&gt;我们来看下宏脚本记录下来的内容：&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake macro --show test&lt;/code&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;function main()
+    
+    os.exec(&quot;xmake f -p android --ndk=/xxx/ndk -a armv7-a&quot;)
+    os.exec(&quot;xmake p&quot;)
+    os.exec(&quot;xmake f -p mingw --sdk=/mingwsdk&quot;)
+    os.exec(&quot;xmake p&quot;)
+    os.exec(&quot;xmake f -p linux --sdk=/toolsdk --toolchains=/xxxx/bin&quot;)
+    os.exec(&quot;xmake p&quot;)
+    os.exec(&quot;xmake f -p iphoneos -a armv7&quot;)
+    os.exec(&quot;xmake p&quot;)
+    os.exec(&quot;xmake f -p iphoneos -a arm64&quot;)
+    os.exec(&quot;xmake p&quot;)
+    os.exec(&quot;xmake f -p iphoneos -a armv7s&quot;)
+    os.exec(&quot;xmake p&quot;)
+    os.exec(&quot;xmake f -p iphoneos -a i386&quot;)
+    os.exec(&quot;xmake p&quot;)
+    os.exec(&quot;xmake f -p iphoneos -a x86_64&quot;)
+    os.exec(&quot;xmake p&quot;)  
+end
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;其实就是个lua的脚本，里面你可以使用一切插件开发中使用的类库和内建api，你可以通过import导入他们来使用，并编写一些高级的宏脚本。。&lt;/p&gt;
+
+&lt;p&gt;更加高级的宏脚本写法可以参考：&lt;a href=&quot;/cn/2016/06/09/plugin-macro-package/&quot;&gt;插件使用之批量打包&lt;/a&gt;&lt;/p&gt;
+</description>
+        <pubDate>Thu, 09 Jun 2016 00:00:00 +0800</pubDate>
+        <link>http://tboox.org/cn/2016/06/09/plugin-macro/</link>
+        <guid isPermaLink="true">http://tboox.org/cn/2016/06/09/plugin-macro/</guid>
+        
+        
+        <category>xmake</category>
+        
+      </item>
+    
+      <item>
+        <title>插件使用之批量打包</title>
+        <description>&lt;p&gt;xmake提供了一些比较实用的内置宏脚本，比如 批量打包宏脚本 &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake macro package&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;这个宏脚本可以批量打包指定平台的所有架构，例如：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# 批量打包当前平台的所有架构
+xmake macro package 
+
+# 批量打包iphoneos平台的所有架构
+xmake macro package -p iphoneos
+
+# 批量打包iphoneos平台的所有架构，并且传入&quot;-m debug&quot;给 `xmake config` 进行打包debug版本，包输出到/tmp/output目录
+xmake macro package -p iphoneos -f &quot;-m debug&quot; -o /tmp/output
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这个打包宏针对iphoneos平台，还会自动将所有arch的包打成一个universal包。&lt;/p&gt;
+
+&lt;p&gt;针对这个宏的详细使用说明，可以参看：&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake macro package --help&lt;/code&gt;&lt;/p&gt;
+</description>
+        <pubDate>Thu, 09 Jun 2016 00:00:00 +0800</pubDate>
+        <link>http://tboox.org/cn/2016/06/09/plugin-macro-package/</link>
+        <guid isPermaLink="true">http://tboox.org/cn/2016/06/09/plugin-macro-package/</guid>
+        
+        
+        <category>xmake</category>
+        
+      </item>
+    
+      <item>
+        <title>插件开发之hello xmake</title>
+        <description>&lt;p&gt;xmake从v2.0开始，全面支持插件模式，我们可以很方便的扩展实现自己的插件，并且xmake也提供了一些内建的使用插件&lt;/p&gt;
+
+&lt;p&gt;我们可以执行下 &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake -h&lt;/code&gt; 看下当前支持的插件：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Plugins: 
+    l, lua                                 Run the lua script.
+    m, macro                               Run the given macro.
+       doxygen                             Generate the doxygen document.
+       hello                               Hello xmake!
+       project                             Create the project file.
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;lua: 运行lua脚本的插件&lt;/li&gt;
+  &lt;li&gt;macro: 这个很实用，宏脚本插件，可以手动录制多条xmake命令并且回放，也可以通过脚本实现一些复杂的宏脚本，这个我们后续会更加详细的介绍&lt;/li&gt;
+  &lt;li&gt;doxygen：一键生成doxygen文档的插件&lt;/li&gt;
+  &lt;li&gt;hello: 插件demo，仅仅显示一句话：’hello xmake!’&lt;/li&gt;
+  &lt;li&gt;project： 生成工程文件的插件，目前仅支持(makefile)，后续还会支持(vs,xcode等工程)的生成&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;接下来我们介绍下本文的重点，一个简单的hello xmake插件的开发，代码如下：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;-- 定义一个名叫hello的插件任务
+task(&quot;hello&quot;)
+
+    -- 设置类型为插件
+    set_category(&quot;plugin&quot;)
+
+    -- 插件运行的入口
+    on_run(function ()
+
+        -- 显示hello xmake!
+        print(&quot;hello xmake!&quot;)
+
+    end)
+
+    -- 设置插件的命令行选项，这里没有任何参数选项，仅仅显示插件描述
+    set_menu({
+                    -- usage
+                    usage = &quot;xmake hello [options]&quot;
+
+                    -- description
+                ,   description = &quot;Hello xmake!&quot;
+
+                    -- options
+                ,   options = {}
+                }) 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这个插件的文件结构如下：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;hello
+ - xmake.lua
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;现在一个最简单的插件写完了，那怎么让它被xmake检测到呢，有三种方式：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;把 hello 这个文件夹放置在 xmake的插件安装目录 xmake/plugins，这个里面都是些内建的插件&lt;/li&gt;
+  &lt;li&gt;把 hello 文件夹防止在 ~/.xmake/plugins 用户全局目录，这样对当前xmake 全局生效&lt;/li&gt;
+  &lt;li&gt;把 hello 文件夹防止在任意地方，通过在工程描述文件xmake.lua中调用&lt;code class=&quot;highlighter-rouge&quot;&gt;add_plugindirs(&quot;./hello&quot;)&lt;/code&gt; 添加当前的工程的插件搜索目录，这样只对当前工程生效&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;接下来，我们尝试运行下这个插件：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake hello
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;显示结果：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;hello xmake!
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;当然你可以通过&lt;code class=&quot;highlighter-rouge&quot;&gt;set_menu&lt;/code&gt;中添加一些自定义的参数，这个等后续再详细介绍&lt;/p&gt;
+
+&lt;p&gt;最后我们还可以在target自定义的脚本中运行这个插件：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;target(&quot;demo&quot;)
+    
+    -- 构建之后运行插件
+    after_build(function (target)
+  
+        -- 导入task模块
+        import(&quot;core.project.task&quot;)
+
+        -- 运行插件任务
+        task.run(&quot;hello&quot;)
+    end)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+</description>
+        <pubDate>Thu, 09 Jun 2016 00:00:00 +0800</pubDate>
+        <link>http://tboox.org/cn/2016/06/09/plugin-hello/</link>
+        <guid isPermaLink="true">http://tboox.org/cn/2016/06/09/plugin-hello/</guid>
+        
+        
+        <category>xmake</category>
+        
+      </item>
+    
+      <item>
+        <title>插件开发之参数配置</title>
+        <description>&lt;p&gt;我们继续以之前讲解的hello插件为基础，现在为其增加参数配置选项，并且指定一个独立的脚本文件中进行开发，这样我们就可以写一些更复杂的插件&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;-- 定义一个名叫hello的插件任务
+task(&quot;hello&quot;)
+
+    -- 设置类型为插件
+    set_category(&quot;plugin&quot;)
+
+    -- 插件运行的入口，这里指定main，说明从当前插件目录的main.lua脚本中加载插件入口
+    on_run(&quot;main&quot;)
+
+    -- 设置插件的命令行选项，这里没有任何参数选项，仅仅显示插件描述
+    set_menu({
+                    -- usage
+                    usage = &quot;xmake hello [options]&quot;
+
+                    -- description
+                ,   description = &quot;Hello xmake!&quot;
+
+                    -- 定义两个参数选项
+                    -- xmake hello --output=&quot;xxx&quot; 指定输出的内容
+                    -- xmake hello -v 显示插件版本
+                ,   options = 
+                    {
+                        -- 第一个值设置简写：xmake hello -o xxx
+                        -- 第二个值设置全称：xmake hello --output=xxx
+                        -- 第三个值设置类型：kv是键值对，k是仅有key没有值(-v --version)，v是值类型没有key
+                        -- 第四个值指定参数描述信息
+                        {&#39;o&#39;, &quot;output&quot;,     &quot;kv&quot;, nil,      &quot;Set the output content.&quot;  }
+                    ,   {&#39;v&#39;, &quot;version&quot;,    &quot;k&quot;,  &quot;1.0&quot;,    &quot;Show the version.&quot;        }
+                    }
+                }) 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这个插件的文件结构如下：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;hello
+ - xmake.lua
+ - main.lua
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;xmake.lua为插件的描述文件，指定一些描述信息，main.lua为插件运行入口，代码如下：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;-- 导入选项模块
+import(&quot;core.base.option&quot;)
+
+-- main.lua入口函数
+function main()
+ 
+    -- 显示版本？
+    if option.get(&quot;version&quot;) then
+        print(&quot;version: %s&quot;, option.get(&quot;version&quot;))
+    else
+        -- 显示内容
+        print(&quot;hello %s!&quot;, option.get(&quot;output&quot;) or &quot;xmake&quot;)
+    end
+end
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;到此一个稍微高级些插件就完成了，我们只需要执行：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake hello --version
+xmake hello -v
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;来显示版本，执行：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake hello -o xxx
+xmake hello --output=xxx
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;来显示内容，或者执行：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake hello -h
+xmake hello --help
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;来显示菜单，这个选项是内置的，不需要自定义&lt;/p&gt;
+
+&lt;p&gt;其中，我们用到了&lt;a href=&quot;/cn/2016/06/09/api-import/&quot;&gt;import&lt;/a&gt;这个api，这个api主要用于导入一些扩展的类库，实现一些高级的功能&lt;/p&gt;
+
+&lt;p&gt;并且还可以导入一些自定义的模块，例如我想在当前这个插件目录下新增一个模块 echo 用于回显信息，可以在hello目录下增加一个脚本文件：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;hello
+ - xmake.lua
+ - main.lua
+ - echo.lua
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;echo.lua的内容如下：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;-- 增加一个显示信息的接口show
+function show(info)
+    print(info)
+end
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;然后在main.lua里面导入这个模块就可以使用了：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;-- 导入选项模块
+import(&quot;core.project.option&quot;)
+
+-- 导入当前插件目录下echo模块
+import(&quot;echo&quot;)
+
+-- main.lua入口函数
+function main()
+ 
+    -- 使用echo模块来显示
+    if option.get(&quot;version&quot;) then
+        echo.show(&quot;version: %s&quot;, option.get(&quot;version&quot;))
+    else
+        -- 显示内容
+        echo.show(&quot;hello %s!&quot;, option.get(&quot;output&quot;) or &quot;xmake&quot;)
+    end
+end
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;怎么样，简单吧import后，就可以直接使用这个模块的所有公有接口，像show就是被导出的公有接口&lt;/p&gt;
+
+&lt;p&gt;如果一些接口是私有的不想被导出怎么办呢，只需要加上 _ 前缀就行了，例如：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;-- 私有接口
+function _print(info)
+    print(info)
+    print(_g.info)
+end
+
+-- 公有接口
+function show(info)
+    _print(info)
+    _g.info = info
+end
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;注：其中_g是全局私有变量，用于模块内部全局私有数据的维护和传递&lt;/p&gt;
+</description>
+        <pubDate>Thu, 09 Jun 2016 00:00:00 +0800</pubDate>
+        <link>http://tboox.org/cn/2016/06/09/plugin-arguments/</link>
+        <guid isPermaLink="true">http://tboox.org/cn/2016/06/09/plugin-arguments/</guid>
+        
+        
+        <category>xmake</category>
+        
+      </item>
+    
+      <item>
+        <title>高级特性之自定义task任务</title>
+        <description>&lt;p&gt;task是xmake 2.0开始新增的特性，也是插件开发的核心，在 &lt;a href=&quot;/cn/2016/06/09/plugin-hello/&quot;&gt;插件开发之hello xmake&lt;/a&gt; 中我们简单介绍了下task的定义和使用&lt;/p&gt;
+
+&lt;p&gt;当然task不仅可以用来写插件，而且还可以写一些简单的自定义任务。。&lt;/p&gt;
+
+&lt;p&gt;我们先看下一个简单task实现：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;-- 定义一个名叫hello的task任务
+task(&quot;hello&quot;)
+
+    -- task运行的入口
+    on_run(function ()
+
+        -- 显示hello xmake!
+        print(&quot;hello xmake!&quot;)
+
+    end)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这是一个最简单的task，相比插件task，它少了对 set_menu 的设置，当然你也可以加上，好、这样就个可以在命令行中调用它。。&lt;/p&gt;
+
+&lt;p&gt;而这个hello task没有设置set_menu，那么只能在自定义脚本里面调用了。。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;target(&quot;demo&quot;)
+
+    -- 自定义clean action
+    on_clean(function(target)
+
+        -- 导入task模块
+        import(&quot;core.project.task&quot;)
+
+        -- 运行这个hello task
+        task.run(&quot;hello&quot;)
+    end)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;如果想要增加参数传递，有两种方式：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;通过set_menu添加一个命令行的选项菜单，通过option模块来访问参数（支持命令行、脚本传参）&lt;/li&gt;
+  &lt;li&gt;直接通过脚本传参&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;我们先看下第二种比较简单，不需要定义命令行菜单，只需要task定义和调用处双方约定好参数规则就行：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;-- 直接传参，{} 这个是给第一种选项传参使用，这里置空
+-- 这里在最后面传入了两个参数：arg1, arg2
+task.run(&quot;hello&quot;, {}, &quot;arg1&quot;, &quot;arg2&quot;)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;那如何获取这两个参数呢？&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;-- 定义一个名叫hello的task任务
+task(&quot;hello&quot;)
+
+    -- task运行的入口，定义为两个参数
+    on_run(function (arg1, arg2)
+
+        -- 显示hello xmake!
+        print(&quot;hello xmake: %s %s!&quot;, arg1, arg2)
+
+    end)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;怎么样简单吧，当然这种传参方式没法通过命令行进行外部传参，所以一般用于一些内置的task间调用，像插件这种高级task，就需要第一种传参方式了&lt;/p&gt;
+
+&lt;p&gt;这个详情请参考：&lt;a href=&quot;/cn/2016/06/09/plugin-arguments/&quot;&gt;插件开发之参数配置&lt;/a&gt;&lt;/p&gt;
+</description>
+        <pubDate>Thu, 09 Jun 2016 00:00:00 +0800</pubDate>
+        <link>http://tboox.org/cn/2016/06/09/custom-task/</link>
+        <guid isPermaLink="true">http://tboox.org/cn/2016/06/09/custom-task/</guid>
+        
+        
+        <category>xmake</category>
+        
+      </item>
+    
+      <item>
+        <title>高级特性之自定义脚本使用</title>
+        <description>&lt;p&gt;xmake提供了自定义打包、安装、运行脚本，可以更加灵活的针对个人实际需求来操作xmake&lt;/p&gt;
+
+&lt;p&gt;这里用一个例子详细说明下，比如有个需求，我需要自动编译、安装、运行android app工程，并且能够支持jni
+可以进行如下操作&lt;/p&gt;
+
+&lt;p&gt;首先创建个基于ant的android app工程，目录结构如下：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;app
+└── android
+    ├── AndroidManifest.xml
+    ├── ant.properties
+    ├── bin
+    │   └── Demo-debug.apk
+    ├── build.xml
+    ├── jni
+    │   └── demo.c
+    ├── libs
+    │   └── armeabi
+    │       └── libdemo.so
+    ├── local.properties
+    ├── proguard-project.txt
+    ├── project.properties
+    ├── res
+    │   ├── drawable-hdpi
+    │   │   └── ic_launcher.png
+    │   ├── drawable-ldpi
+    │   │   └── ic_launcher.png
+    │   ├── drawable-mdpi
+    │   │   └── ic_launcher.png
+    │   ├── drawable-xhdpi
+    │   │   └── ic_launcher.png
+    │   ├── layout
+    │   │   └── main.xml
+    │   └── values
+    │       └── strings.xml
+    ├── src
+    │   └── com
+    │       └── demo
+    │           └── DemoTest.java
+    └── xmake.lua
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;新版本中对自定义脚本进行了重大升级，支持了task机制，以及类库import机制，写法上也更加的精简可读&lt;/p&gt;
+
+&lt;p&gt;我们可以对比下新老版本的自定义脚本写法，当然新版的xmake对这些老的api也是向下兼容的，如果还在使用老版本api，也是不影响使用的。。&lt;/p&gt;
+
+&lt;p&gt;我们重点讲解下新版的写法：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;-- 定义一个android app的测试demo
+target(&quot;demo&quot;)
+
+    -- 生成动态库：libdemo.so
+    set_kind(&quot;shared&quot;)
+
+    -- 设置对象的输出目录，可选
+    set_objectdir(&quot;$(buildir)/.objs&quot;)
+
+    -- 每次编译完的libdemo.so的生成目录，设置为app/libs/armeabi
+    set_targetdir(&quot;libs/armeabi&quot;)
+
+    -- 添加jni的代码文件
+    add_files(&quot;jni/*.c&quot;)
+
+    -- 设置自定义打包脚本，在使用xmake编译完libdemo.so后，执行xmake p进行打包
+    -- 会自动使用ant将app编译成apk文件
+    --
+    on_package(function (target) 
+            
+                    -- trace
+                    print(&quot;buiding app&quot;)
+
+                    -- 使用ant编译app成apk文件，输出信息重定向到日志文件
+                    os.run(&quot;ant debug&quot;) 
+                end)
+
+
+    -- 设置自定义安装脚本，自动安装apk文件
+    on_install(function (target) 
+
+                    -- trace
+                    print(&quot;installing app&quot;)
+
+                    -- 使用adb安装打包生成的apk文件
+                    os.run(&quot;adb install -r ./bin/Demo-debug.apk&quot;)
+                end)
+
+
+    -- 设置自定义运行脚本，自动运行安装好的app程序，并且自动获取设备输出信息
+    on_run(function (target) 
+
+                -- run it
+                os.run(&quot;adb shell am start -n com.demo/com.demo.DemoTest&quot;)
+                os.run(&quot;adb logcat&quot;)
+            end)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;修改完xmake.lua后，就可以很方便的使用了：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# 重新编译工程，生成libdemo.so到app/libs/armeabi
+xmake -r
+
+# 打包app为apk
+xmake p
+
+# 安装apk到设备上
+xmake i
+
+# 运行app，并获取日志信息
+xmake r demo
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;如果觉得上面的步骤有点繁琐，可以简化成：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# 安装的时候，会先去自动打包，所以可以省略xmake p
+xmake -r; xmake i; xmake r demo
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;如果是增量编译，不需要重建，可以继续简化：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake i; xmake r demo
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;当然，由于是根据自己的实际需求自定义的脚本，可能跨平台性有点弱，像这里只能支持android的编译平台，&lt;/p&gt;
+
+&lt;p&gt;我们继续重点说下新版本中这些的api的使用，xmake针对 构建、打包、清除、安装、卸载、运行都提供了对应的自定义脚本入口&lt;/p&gt;
+
+&lt;p&gt;下面的on_xxx接口会直接替换内置的实现&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;on_build: 自定义构建脚本&lt;/li&gt;
+  &lt;li&gt;on_clean: 自定义清除脚本&lt;/li&gt;
+  &lt;li&gt;on_package: 自定义打包脚本&lt;/li&gt;
+  &lt;li&gt;on_install: 自定义安装脚本&lt;/li&gt;
+  &lt;li&gt;on_uninstall: 自定义卸载脚本&lt;/li&gt;
+  &lt;li&gt;on_run: 自定义运行脚本&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;下面的 before_xxx接口，会在on_xxx之前执行&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;before_build: 在构建之前执行一些自定义脚本&lt;/li&gt;
+  &lt;li&gt;before_clean: 在清除之前执行一些自定义脚本&lt;/li&gt;
+  &lt;li&gt;before_package: 在打包之前执行一些自定义脚本&lt;/li&gt;
+  &lt;li&gt;before_install: 在安装之前执行一些自定义脚本&lt;/li&gt;
+  &lt;li&gt;before_uninstall: 在卸载之前执行一些自定义脚本&lt;/li&gt;
+  &lt;li&gt;before_run: 在运行之前执行一些自定义脚本&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;下面的 after_xxx接口，会在on_xxx之后执行&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;after_build: 在构建之后执行一些自定义脚本&lt;/li&gt;
+  &lt;li&gt;after_clean: 在清除之后执行一些自定义脚本&lt;/li&gt;
+  &lt;li&gt;after_package: 在打包之后执行一些自定义脚本&lt;/li&gt;
+  &lt;li&gt;after_install: 在安装之后执行一些自定义脚本&lt;/li&gt;
+  &lt;li&gt;after_uninstall: 在卸载之后执行一些自定义脚本&lt;/li&gt;
+  &lt;li&gt;after_run: 在运行之后执行一些自定义脚本&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;这些api的原型都是：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;function (target) 
+end
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;其中的参数就是当前的target，你可以从中获取一些基本信息，例如：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;on_run(function (target)
+
+     -- 显示目标名
+     print(target:name())
+
+     -- 显示目标文件路径
+     print(target:targetfile())
+
+     -- 显示目标的构建类型
+     print(target:get(&quot;kind&quot;))
+
+     -- 显示目标的宏定义
+     print(target:get(&quot;defines&quot;))
+
+     -- 其他通过 set_/add_接口设置的target信息，都可以通过 target:get(&quot;xxx&quot;) 来获取
+end)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;自定义脚本中，其作用域和xmake.lua上层的描述域是不同的，xmake里面有严格的沙盒管理，不会导致互相冲突&lt;/p&gt;
+
+&lt;p&gt;而且自定义脚本内部提供了大量内建类库和扩展类库，以供使用，扩展类库可以通过 &lt;a href=&quot;/cn/2016/06/09/api-import/&quot;&gt;import&lt;/a&gt; 进行导入， 例如&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;on_run(function (target)
+   
+    -- 导入工程类
+    import(&quot;core.project.project&quot;)
+
+    -- 获取当前工程目录
+    print(project.directory())
+end)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;详细的扩展类库使用，见 &lt;a href=&quot;/cn/2016/06/09/api-import/&quot;&gt;import&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;一些内建类库有：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;os: 系统类库&lt;/li&gt;
+  &lt;li&gt;string: 字符串类库&lt;/li&gt;
+  &lt;li&gt;path: 路径类库&lt;/li&gt;
+  &lt;li&gt;table: table和array处理&lt;/li&gt;
+  &lt;li&gt;io: 文件io处理&lt;/li&gt;
+  &lt;li&gt;coroutine: 协程类库&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;一些内建的api有：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;raise：引发异常&lt;/li&gt;
+  &lt;li&gt;try/catch/finally: 异常捕获处理&lt;/li&gt;
+  &lt;li&gt;print/printf：打印&lt;/li&gt;
+  &lt;li&gt;format: 格式化字符串&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;更多详细类库和内建api介绍，见后续介绍。。。&lt;/p&gt;
+</description>
+        <pubDate>Thu, 09 Jun 2016 00:00:00 +0800</pubDate>
+        <link>http://tboox.org/cn/2016/06/09/custom-action/</link>
+        <guid isPermaLink="true">http://tboox.org/cn/2016/06/09/custom-action/</guid>
+        
+        
+        <category>xmake</category>
+        
+      </item>
+    
+      <item>
+        <title>插件开发之import类库</title>
+        <description>&lt;p&gt;import的主要用于导入xmake的扩展类库以及一些自定义的类库模块，一般用于 自定义脚本(on_build, on_run ..)、插件开发、模板开发、平台扩展、自定义任务task等地方。&lt;/p&gt;
+
+&lt;p&gt;导入机制如下：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;优先从当前脚本目录下导入&lt;/li&gt;
+  &lt;li&gt;再从扩展类库中导入&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;导入的语法规则：&lt;/p&gt;
+
+&lt;p&gt;基于.的类库路径规则，例如：&lt;/p&gt;
+
+&lt;p&gt;导入core核心扩展模块&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;import(&quot;core.base.option&quot;)
+import(&quot;core.project&quot;)
+import(&quot;core.project.task&quot;)
+import(&quot;core&quot;)
+
+function main()
+    
+    -- 获取参数选项
+    print(option.get(&quot;version&quot;))
+
+    -- 运行任务和插件
+    task.run(&quot;hello&quot;)
+    project.task.run(&quot;hello&quot;)
+    core.project.task.run(&quot;hello&quot;)
+end
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;导入当前目录下的自定义模块：&lt;/p&gt;
+
+&lt;p&gt;目录结构：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;plugin
+  - xmake.lua
+  - main.lua
+  - modules
+    - hello1.lua
+    - hello2.lua
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;在main.lua中导入modules&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;import(&quot;modules.hello1&quot;)
+import(&quot;modules.hello2&quot;)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;导入后就可以直接使用里面的所有公有接口，私有接口用_前缀标示，表明不会被导出，不会被外部调用到。。&lt;/p&gt;
+
+&lt;p&gt;除了当前目录，我们还可以导入其他指定目录里面的类库，例如：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;import(&quot;hello3&quot;, {rootdir = &quot;/home/xxx/modules&quot;})
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;为了防止命名冲突，导入后还可以指定的别名：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;import(&quot;core.platform.platform&quot;, {alias = &quot;p&quot;})
+
+function main()
+ 
+    -- 这样我们就可以使用p来调用platform模块的plats接口，获取所有xmake支持的平台列表了
+    table.dump(p.plats())
+end
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;import不仅可以导入类库，还支持导入的同时作为继承导入，实现模块间的继承关系&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;import(&quot;xxx.xxx&quot;, {inherit = true})
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这样导入的不是这个模块的引用，而是导入的这个模块的所有公有接口本身，这样就会跟当前模块的接口进行合并，实现模块间的继承&lt;/p&gt;
+</description>
+        <pubDate>Thu, 09 Jun 2016 00:00:00 +0800</pubDate>
+        <link>http://tboox.org/cn/2016/06/09/api-import/</link>
+        <guid isPermaLink="true">http://tboox.org/cn/2016/06/09/api-import/</guid>
+        
+        
+        <category>xmake</category>
+        
+      </item>
     
       <item>
         <title>自定义流的实现和使用</title>
@@ -340,981 +1524,6 @@ while (1)
         <pubDate>Thu, 17 Mar 2016 00:00:00 +0800</pubDate>
         <link>http://tboox.org/cn/2016/03/17/stream-custom/</link>
         <guid isPermaLink="true">http://tboox.org/cn/2016/03/17/stream-custom/</guid>
-        
-        
-        <category>tbox</category>
-        
-      </item>
-    
-      <item>
-        <title>tbox v1.5.1 更新内容</title>
-        <description>&lt;ol&gt;
-  &lt;li&gt;优化stream，支持对字符设备文件的读写&lt;/li&gt;
-  &lt;li&gt;自动检测所有系统libc接口，优先使用系统版本&lt;/li&gt;
-  &lt;li&gt;修复android下的一些bug&lt;/li&gt;
-  &lt;li&gt;修改tb_init接口，增加allocator自定义内存分配器参数，实现用户的侵入式内存管理&lt;/li&gt;
-  &lt;li&gt;重构内存管理，完全采用分配器allocator模式，可以灵活切换内存管理，支持原生系统内存、静态buffer内存、内存池等各种分配方式&lt;/li&gt;
-  &lt;li&gt;支持自定义内存分配器，并且能够在debug模式下，获取每次分配的代码位置信息，用于自定义追踪&lt;/li&gt;
-  &lt;li&gt;增加轻量级static_pool来维护整块buffer的内存分配，适合局部管理部分内存，pool虽然也能维护，但是底层基于large_pool，比较重量级，适合全局管理内存&lt;/li&gt;
-  &lt;li&gt;修复stream的seek问题&lt;/li&gt;
-  &lt;li&gt;增加stream快速读取全部数据到string的接口&lt;/li&gt;
-  &lt;li&gt;增加adler32 hash算法&lt;/li&gt;
-  &lt;li&gt;增加tb_memmem接口&lt;/li&gt;
-  &lt;li&gt;重定义assert，debug模式遇到assert直接abort执行&lt;/li&gt;
-  &lt;li&gt;采用pcre/pcre2/posix regex实现正则表达式库&lt;/li&gt;
-&lt;/ol&gt;
-
-</description>
-        <pubDate>Fri, 05 Feb 2016 00:00:00 +0800</pubDate>
-        <link>http://tboox.org/cn/2016/02/05/changelogs-v1.5.1/</link>
-        <guid isPermaLink="true">http://tboox.org/cn/2016/02/05/changelogs-v1.5.1/</guid>
-        
-        
-        <category>tbox</category>
-        
-      </item>
-    
-      <item>
-        <title>使用xmake编译工程</title>
-        <description>&lt;p&gt;如果你只想编译当前主机环境的平台，例如在windows上编译windows版本，在macosx上编译macosx版本，那么你只需要敲以下命令即可：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;因为xmake默认会去检测当前的环境，默认编译当前主机的平台版本，不需要做额外的配置，并且默认编译的是release版本。&lt;/p&gt;
-
-&lt;p&gt;如果工程里面有多个目标，那么上面的命令，会去编译所有目标，如果只想编译指定一个目标，例如：test，那么只需执行：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake test
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;如果你想编译debug版本，那么需要做些简单的配置：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake config --mode=debug
-xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;xmake针对每个命令和参数，都提供了简写版本：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake f -m debug
-xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;注：为了提高灵活性，release版本和debug版本的编译选项设置，需要自己在工程描述文件中描述，如果没有设置的话，release和debug版本生成的程序是一样的。&lt;/p&gt;
-
-&lt;p&gt;如果你想强制重新构建所有，可以执行：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake -r
-xmake --rebuild
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;如果要指定编译具体某个架构，可以这么进行编译：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake f -a armv7
-xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;一般情况下，如果没有指定架构，默认会去使用指定平台的默认架构，例如：macosx下默认是x86_64，iphoneos下士armv7&lt;/p&gt;
-
-&lt;p&gt;如果想要指定编译其他平台，例如在macosx上编译iphoneos的版本，那么：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake f -p iphoneos
-xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;编译android版本：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake f -p android --ndk=xxxx
-xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;虽然配置完后，每次编译不需要重新配置，但是如果切换编译目标平台到ios、linux，那么之前ndk的设置就被清除了，下次得重新配置。&lt;/p&gt;
-
-&lt;p&gt;如果想要更加方便的不同平台间来回切换编译，可以将ndk设置到全局配置中，例如：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;-- 将ndk设置到全局配置中
-xmake g --ndk=xxx
-
--- 切换到android编译平台，不需要每次都设置ndk了
-xmake f -p android
-xmake -r
-
--- 切换到ios编译平台
-xmake f -p iphoneos
-xmake -r
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;编译windows版本，很简单，只要你机子装了vs，xmake会去自动检测，不需要做额外的配置，只需要打开cmd，进入你的工程目录，
-然后执行xmake就行了。&lt;/p&gt;
-
-&lt;p&gt;使用其他交叉工具链进行编译：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake f -p android -a armv7-a --cross=arm-linux-androideabi- --toolchains=/xxxx/bin
-xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;默认在编译配置的时候，会去缓存上一次的配置，这样每次配置只需要修改部分参数就行了，不需要每次全部重新配置&lt;/p&gt;
-
-&lt;p&gt;如果你想重新配置所有，清楚原有的缓存，可以加上–clean参数：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake f -c
-xmake f --clean
-xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;xmake在配置的时候，会去检测工程依赖的一些接口和链接库，如果你想要看具体详细的配置检测信息，可以加上–verbose参数，回显配置信息&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake f -c -v
-xmake f --clean --verbose
-xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;xmake还支持在编译的时候，手动设置一些编译选项和工具，你可以执行&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f --help&lt;/code&gt;看下：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Usage: xmake config|f [options] [target]
-
-Configure the project.
-
-Options: 
-    -c, --clean                            Clean the cached configure and configure all again.
-                                           
-    -p PLAT, --plat=PLAT                   Compile for the given platform. (default: macosx)
-                                               - android
-                                               - iphoneos
-                                               - iphonesimulator
-                                               - linux
-                                               - macosx
-                                               - mingw
-                                               - watchos
-                                               - watchsimulator
-                                               - windows
-    -a ARCH, --arch=ARCH                   Compile for the given architecture. (default: auto)
-                                               - android: armv5te armv6 armv7-a armv8-a arm64-v8a
-                                               - iphoneos: armv7 armv7s arm64
-                                               - iphonesimulator: i386 x86_64
-                                               - linux: i386 x86_64
-                                               - macosx: i386 x86_64
-                                               - mingw: i386 x86_64
-                                               - watchos: armv7 armv7s arm64
-                                               - watchsimulator: i386 x86_64
-                                               - windows: x86 x64 amd64 x86_amd64
-    -m MODE, --mode=MODE                   Compile for the given mode. (default: release)
-                                               - debug
-                                               - release
-                                               - profile
-    -k KIND, --kind=KIND                   Compile for the given target kind. (default: static)
-                                               - static
-                                               - shared
-                                               - binary
-        --host=HOST                        The current host environment. (default: macosx)
-                                           
-        --make=MAKE                        Set the make path. (default: auto)
-        --ccache=CCACHE                    Enable or disable the c/c++ compiler cache. (default: auto)
-                                           
-        --cross=CROSS                      The cross toolchains prefix
-                                           .e.g
-                                               - i386-mingw32-
-                                               - arm-linux-androideabi-
-        --toolchains=TOOLCHAINS            The cross toolchains directory
-                                           
-        --cc=CC                            The C Compiler
-        --cxx=CXX                          The C++ Compiler
-        --cflags=CFLAGS                    The C Compiler Flags
-        --cxflags=CXFLAGS                  The C/C++ compiler Flags
-        --cxxflags=CXXFLAGS                The C++ Compiler Flags
-                                           
-        --as=AS                            The Assembler
-        --asflags=ASFLAGS                  The Assembler Flags
-                                           
-        --sc=SC                            The Swift Compiler
-        --scflags=SCFLAGS                  The Swift Compiler Flags
-                                           
-        --ld=LD                            The Linker
-        --ldflags=LDFLAGS                  The Binary Linker Flags
-                                           
-        --ar=AR                            The Static Library Linker
-        --arflags=ARFLAGS                  The Static Library Linker Flags
-                                           
-        --sh=SH                            The Shared Library Linker
-        --shflags=SHFLAGS                  The Shared Library Linker Flags
-                                           
-        --ndk=NDK                          The NDK Directory
-        --ndk_sdkver=NDK_SDKVER            The SDK Version for NDK (default: auto)
-                                           
-        --mm=MM                            The Objc Compiler
-        --mxx=MXX                          The Objc++ Compiler
-        --mflags=MFLAGS                    The Objc Compiler Flags
-        --mxflags=MXFLAGS                  The Objc/c++ Compiler Flags
-        --mxxflags=MXXFLAGS                The Objc++ Compiler Flags
-                                           
-        --xcode_dir=XCODE_DIR              The Xcode Application Directory (default: auto)
-        --xcode_sdkver=XCODE_SDKVER        The SDK Version for Xcode (default: auto)
-        --target_minver=TARGET_MINVER      The Target Minimal Version (default: auto)
-                                           
-        --mobileprovision=MOBILEPROVISION  The Provisioning Profile File (default: auto)
-        --codesign=CODESIGN                The Code Signing Indentity (default: auto)
-        --entitlements=ENTITLEMENTS        The Code Signing Entitlements (default: auto)
-                                           
-        --vs=VS                            The Microsoft Visual Studio (default: auto)
-                                           
-    -f FILE, --file=FILE                   Read a given xmake.lua file. (default: xmake.lua)
-    -P PROJECT, --project=PROJECT          Change to the given project directory.
-                                           Search priority:
-                                               1. The Given Command Argument
-                                               2. The Envirnoment Variable: XMAKE_PROJECT_DIR
-                                               3. The Current Directory
-    -o BUILDIR, --buildir=BUILDIR          Set the build directory. (default: build)
-                                           
-    -v, --verbose                          Print lots of verbose information.
-        --version                          Print the version number and exit.
-    -h, --help                             Print this help message and exit.
-                                           
-    target                                 Configure for the given target. (default: all)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-</description>
-        <pubDate>Thu, 04 Feb 2016 00:00:00 +0800</pubDate>
-        <link>http://tboox.org/cn/2016/02/04/project-compile/</link>
-        <guid isPermaLink="true">http://tboox.org/cn/2016/02/04/project-compile/</guid>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>xmake中add_files的使用</title>
-        <description>&lt;p&gt;如果你看了&lt;a href=&quot;/cn/2016/02/03/project-description/&quot;&gt;工程描述入门&lt;/a&gt;，那么是否觉得通过 add_files 添加源文件相当的方便？&lt;/p&gt;
-
-&lt;p&gt;目前它可以支持&lt;code class=&quot;highlighter-rouge&quot;&gt;.c/.cpp/.s/.S/.m/.mm/.o/.obj/.a/.lib&lt;/code&gt;这些后缀的源代码和库文件，其中通配符*表示匹配当前目录下文件，而**则匹配多级目录下的文件。&lt;/p&gt;
-
-&lt;p&gt;例如：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;add_files(&quot;src/test_*.c&quot;)
-add_files(&quot;src/xxx/**.cpp&quot;)
-add_files(&quot;src/asm/*.S&quot;, &quot;src/objc/**/hello.m&quot;)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;add_files的使用其实是相当灵活方便的，其匹配模式我借鉴了premake的风格，但是又对其进行了改善和增强。&lt;/p&gt;
-
-&lt;p&gt;使得不仅可以匹配文件，还有可以在添加文件同时，过滤排除指定模式的一批文件。。&lt;/p&gt;
-
-&lt;p&gt;例如：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;-- 递归添加src下的所有c文件，但是不包括src/impl/下的所有c文件
-add_files(&quot;src/**.c|impl/*.c&quot;)
-
--- 添加src下的所有cpp文件，但是不包括src/test.cpp、src/hello.cpp以及src下所有带xx_前缀的cpp文件
-add_files(&quot;src/*.cpp|test.cpp|hello.cpp|xx_*.cpp&quot;)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;table&gt;
-  &lt;tbody&gt;
-    &lt;tr&gt;
-      &lt;td&gt;其中分隔符&lt;/td&gt;
-      &lt;td&gt;之后的都是需要排除的文件，这些文件也同样支持匹配模式，并且可以同时添加多个过滤模式，只要中间用&lt;/td&gt;
-      &lt;td&gt;分割就行了。。&lt;/td&gt;
-    &lt;/tr&gt;
-  &lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;table&gt;
-  &lt;tbody&gt;
-    &lt;tr&gt;
-      &lt;td&gt;注： 为了使得描述上更加的精简，&lt;/td&gt;
-      &lt;td&gt;之后的过滤描述都是基于起一个模式：src/*.cpp 中 *之前的目录为基础的。&lt;/td&gt;
-    &lt;/tr&gt;
-  &lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;p&gt;所以上面的例子后面过滤的都是在src下的文件，这个是要注意的。。&lt;/p&gt;
-
-&lt;p&gt;下面来看个&lt;a href=&quot;https://github.com/waruqi/tbox&quot;&gt;TBOX&lt;/a&gt;的xmake.lua中&lt;code class=&quot;highlighter-rouge&quot;&gt;add_files&lt;/code&gt;的例子：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;add_files(&quot;*.c&quot;) 
-add_files(&quot;asio/aioo.c&quot;) 
-add_files(&quot;asio/aiop.c&quot;) 
-add_files(&quot;math/**.c&quot;) 
-
--- 这里过滤了libc/string/impl/**.c
-add_files(&quot;libc/**.c|string/impl/**.c&quot;) 
-
-add_files(&quot;utils/*.c|option.c&quot;) 
-add_files(&quot;prefix/**.c&quot;) 
-add_files(&quot;memory/**.c&quot;) 
-add_files(&quot;string/**.c&quot;) 
-
--- 这里过滤了stream/**/charset.c，stream/**/zip.c，stream/**async_**.c，stream/transfer_pool.c
-add_files(&quot;stream/**.c|**/charset.c|**/zip.c|**async_**.c|transfer_pool.c&quot;) 
-
--- 这里过滤了network/impl/ssl下的所有c文件
-add_files(&quot;network/**.c|impl/ssl/*.c&quot;) 
-
-add_files(&quot;algorithm/**.c&quot;) 
-add_files(&quot;container/**.c&quot;) 
-add_files(&quot;libm/libm.c&quot;) 
-add_files(&quot;libm/idivi8.c&quot;) 
-add_files(&quot;libm/ilog2i.c&quot;) 
-add_files(&quot;libm/isqrti.c&quot;) 
-add_files(&quot;libm/isqrti64.c&quot;) 
-add_files(&quot;libm/idivi8.c&quot;) 
-add_files(&quot;platform/*.c|aicp.c&quot;)
-
--- 如果当前架构是arm，则添加arm相关的asm优化代码
-if archs(&quot;arm.*&quot;) then
-    add_files(&quot;utils/impl/crc_arm.S&quot;)
-end
-
--- 如果当前启用了charset模块，那么添加对应的c文件（这里的文件在上面是被过滤掉的）
--- options接口后续会详解
-if options(&quot;charset&quot;) then 
-    add_files(&quot;charset/**.c&quot;)
-    add_files(&quot;stream/impl/filter/charset.c&quot;)
-end
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;添加文件的时候支持过滤一些文件的一个好处就是，可以为后续根据不同开关逻辑添加文件提供基础。&lt;/p&gt;
-
-&lt;p&gt;尤其需要提一下的是，xmake还支持直接添加&lt;code class=&quot;highlighter-rouge&quot;&gt;.o/obj/.a/.lib&lt;/code&gt;的对象文件和库文件到目标中&lt;/p&gt;
-
-&lt;p&gt;这个跟add_links是有区别的，links是链接库中的代码，而这个是直接将静态库中的对象文件合并到目标程序中。。&lt;/p&gt;
-
-&lt;p&gt;这个的详细介绍，可参看&lt;a href=&quot;/cn/2016/02/04/merge-static-library/&quot;&gt;高级特性之合并静态库&lt;/a&gt;&lt;/p&gt;
-
-</description>
-        <pubDate>Thu, 04 Feb 2016 00:00:00 +0800</pubDate>
-        <link>http://tboox.org/cn/2016/02/04/project-add-files/</link>
-        <guid isPermaLink="true">http://tboox.org/cn/2016/02/04/project-add-files/</guid>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>xmake高级特性之合并静态库</title>
-        <description>&lt;p&gt;xmake的add_files接口不仅可以添加源代码文件进行编译，还可以直接添加&lt;em&gt;.o/obj对象文件、以及&lt;/em&gt;.a/lib的库文件到编译目标中，这个跟add_links是有区别的&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;add_links：只能添加链接，例如： -lxxxx 这种，链接的目标也只能是可执行程序、动态库，而且只会链接需要的代码进去&lt;/li&gt;
-  &lt;li&gt;add_files：是直接将静态库中的所有对象文件，解包、重新打包到新的target中，这个target可以是新的静态库，也可以是可执行程序、或者动态库&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;例如：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;add_target(&quot;test&quot;)
-    
-     -- 生成静态库：libtest.a
-     set_kind(&quot;static&quot;)
-
-     -- 添加对象文件
-     add_files(&quot;obj/*.o&quot;)
-
-     -- 添加静态库，将里面的对象文件重新打包到libtest.a中，生成新的静态库
-     add_files(&quot;lib/*.a&quot;)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;这个target模块，可以没有任何源码，单纯的将所有静态库、对象文件重新打包到一个新的静态库中，当然再加一些源文件也是可以的&lt;/p&gt;
-
-&lt;p&gt;target的类型也没有限定，你也可以指定输出为动态库：shared，可执行程序：binary&lt;/p&gt;
-
-&lt;p&gt;例如：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;add_target(&quot;test2&quot;)
-    
-     -- 生成动态库：libtest2.so
-     set_kind(&quot;shared&quot;)
-
-     -- 添加对象文件
-     add_files(&quot;obj/*.o&quot;)
-
-     -- 添加静态库libtest.a中的所有对象文件
-     add_files(&quot;lib/libtest.a&quot;)
-
-     -- 添加一些源文件
-     add_files(&quot;src/*.c&quot;)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-</description>
-        <pubDate>Thu, 04 Feb 2016 00:00:00 +0800</pubDate>
-        <link>http://tboox.org/cn/2016/02/04/merge-static-library/</link>
-        <guid isPermaLink="true">http://tboox.org/cn/2016/02/04/merge-static-library/</guid>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>通过流进行解压缩文件</title>
-        <description>&lt;p&gt;这里为了使代码更加简洁，直接用了transfer来挂接两路流的传输操作。&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;// 初始化文件输入流
-tb_stream_ref_t istream = tb_stream_init_from_url(&quot;/home/file.txt&quot;);
-
-// 初始化文件输出流
-tb_stream_ref_t ostream = tb_stream_init_from_file(&quot;/home/file.gz&quot;, TB_FILE_MODE_RW | TB_FILE_MODE_CREAT | TB_FILE_MODE_BINARY | TB_FILE_MODE_TRUNC);
-
-// 初始化解压缩流，以istream作为输入
-tb_stream_ref_t fstream = tb_stream_init_filter_from_zip(istream, TB_ZIP_ALGO_GZIP, TB_ZIP_ACTION_INFLATE);
-
-// 初始化压缩流，以istream作为输入
-//tb_stream_ref_t fstream = tb_stream_init_filter_from_zip(istream, TB_ZIP_ALGO_GZIP, TB_ZIP_ACTION_DEFLATE);    
-
-// 进行流传输，并且通过 fstream进行中间外挂解压、压缩
-if (istream &amp;amp;&amp;amp; ostream &amp;amp;&amp;amp; fstream) 
-{
-    /* 保存流数据，如果每个流都还没有调用tb_stream_open打开过
-     * 这里会自动帮你打开，这样上层接口使用上，看上去更加简洁明了
-     * 
-     * 后面三个参数主要用于：限速、进度信息回调，这些之后再详细说明
-     * 现在只需要传空就行了
-     *
-     * save 是 实际传输的数据大小，失败返回：-1
-     */
-    tb_hong_t save = tb_transfer_done(fstream, ostream, 0, tb_null, tb_null);
-}
-
-// 释放流数据
-if (fstream) tb_stream_exit(fstream);
-if (istream) tb_stream_exit(istream);
-if (ostream) tb_stream_exit(ostream);
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-</description>
-        <pubDate>Thu, 04 Feb 2016 00:00:00 +0800</pubDate>
-        <link>http://tboox.org/cn/2016/02/04/stream-zip/</link>
-        <guid isPermaLink="true">http://tboox.org/cn/2016/02/04/stream-zip/</guid>
-        
-        
-        <category>tbox</category>
-        
-      </item>
-    
-      <item>
-        <title>tbox的裁剪和定制化编译</title>
-        <description>&lt;p&gt;默认编译出来的tbox库，支持的功能比较全，带有所有模块，并且支持ssl（依赖polarssl/openssl）、gzip（依赖zlib）、database（依赖sqlite3/mysql）。&lt;/p&gt;
-
-&lt;p&gt;因此生成的库文件偏大，而且会依赖三个第三方库，如果你用不到上述三个模块，完全可以自己配置编译所需要的模块，减小生成库的大小。&lt;/p&gt;
-
-&lt;p&gt;新版采用xmake进行构建，裁剪模块已经是相当方便了，默认情况下回去自动检测依赖的第三方库进行编译。&lt;/p&gt;
-
-&lt;p&gt;如果要禁用某个第三方库或者模块，只要执行&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f --xxxx=false&lt;/code&gt;就行了，所有第三方库依赖都是可选，完全可以禁用。。&lt;/p&gt;
-
-&lt;p&gt;例如，禁用所有第三方库支持：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake f --polarssl=false --sqlite3=false --openssl=false --mysql=false --zlib=false
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;如果要最小化编译，可以禁用所有可选模块和特性：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake f --network=false --asio=false --charset=false --xml=false --database=false --zip=false --thread=false
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;tbox中使用float相关的代码，也是可以裁剪掉的，并且tbox还提供了一整套fixed16、fixed30、fixed6的定点运算库，来应付一些需要float运算的地方&lt;/p&gt;
-
-&lt;p&gt;这个在图形算法上用的比较多，具体使用可以参考我的另外一个图形库项目：&lt;a href=&quot;https://github.com/waruqi/gbox&quot;&gt;gbox&lt;/a&gt;，具体的裁剪如下：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake f --float=false
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;只要执行上面的配置，跟float相关的操作接口，都会禁用，非常适合一些低端的嵌入式设备上。&lt;/p&gt;
-
-&lt;p&gt;如果不想编译demo，节省时间，可以禁用demo模块：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake f --demo=false
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;如果想要更小的话，就只能启用release模式了，编译发布版本，这样符号信息也被完全strip了：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake f -m release
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;如果还想更小，可以修改xmake.lua，设置优化选项为最小化编译（当然，针对ios/android等移动端，tbox默认就是这么设置的）：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;set_optimize(&quot;smallest&quot;)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;如果把这些配置全部禁用，按照上述模式编译出来的tbox库，会相当小，虽然小了不少，但是该有的基础功能还是都有的。&lt;/p&gt;
-
-&lt;p&gt;也可以根据自己的需要，启用部分模块和特性。&lt;/p&gt;
-
-</description>
-        <pubDate>Thu, 04 Feb 2016 00:00:00 +0800</pubDate>
-        <link>http://tboox.org/cn/2016/02/04/smallest-compile/</link>
-        <guid isPermaLink="true">http://tboox.org/cn/2016/02/04/smallest-compile/</guid>
-        
-        
-        <category>tbox</category>
-        
-      </item>
-    
-      <item>
-        <title>线程池的使用</title>
-        <description>&lt;p&gt;TBOX的线程池通过在每个worker中批量一次拉取多个task，对锁的竞争进行了优化。&lt;/p&gt;
-
-&lt;p&gt;由于每个task的函数实现不会太多，所以可以根据每个task的函数地址做hash，统计出每个task执行所花费的平均时间。然后根据这个平均值来动态计算每个worker一次拉取的task的数量，TBOX里面默认每个worker一次拉取10s的task量，这样可以尽可能的避免worker间锁的频繁抢占。&lt;/p&gt;
-
-&lt;p&gt;所有从等待队列被拉取出来的task，都会被放到pending队列中去，如果等待队列中的task都被取完了，某个worker处于了空闲状态，就会尝试去pending中，重新拉取其他worker还没有执行到的task， 这样可以解决某些task耗时太长，将worker中剩余的task阻塞住的问题。&lt;/p&gt;
-
-&lt;p&gt;重新从pending队列中拉取其他worker的task，并没有通过锁来维护，而是通过原子操作判断task的状态来维护的，所以性能上还是可以保证的。&lt;/p&gt;
-
-&lt;p&gt;整个线程池，只用到了一个锁来维护内部的几个队列，每个worker在大部分情况都是独立运行的，只有在自己的所有task都执行完空闲时，才回去全局等待队列中取task，并且上层接口也提供了批量投递任务的接口，来最小化对锁的使用。&lt;/p&gt;
-
-&lt;p&gt;下面看下简单的使用例子：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;static tb_void_t tb_demo_task_time_done(tb_cpointer_t priv)
-{
-    tb_msleep((tb_size_t)(priv));
-}
-
-static tb_void_t tb_demo_task_time_exit(tb_cpointer_t priv)
-{
-}
-
-/* 投递一个60s的任务到全局线程池
- *
- * tb_thread_pool(): 全局线程池实例，如果不想用全局的，也可以自己创建个线程池
- * &quot;60000ms&quot;: 指定的一个任务名，常量字符串
- * tb_demo_task_time_done: 任务函数地址
- * tb_demo_task_time_exit: 任务被执行完或取消的时候的清理函数，可以用于释放一些自有数据，这个是可选的，不用直接传tb_null
- * (tb_cpointer_t)60000: 传递的私有数据指针，这里简单的传了个等待时间值进去
- * tb_false: 是否为紧急任务， 如果为tb_true， 则这个任务会尽可能第一时间优先呗执行
- */
-tb_thread_pool_task_post(tb_thread_pool(), &quot;60000ms&quot;, tb_demo_task_time_done, tb_demo_task_time_exit, (tb_cpointer_t)60000, tb_false);
-
-// 投递一个10s的紧急任务
-tb_thread_pool_task_post(tb_thread_pool(), &quot;10000ms&quot;, tb_demo_task_time_done, tb_null, (tb_cpointer_t)10000, tb_true);
-
-// 批量投递两个任务
-tb_thread_pool_task_t list[2] = {0};
-list[0].name = &quot;60000ms&quot;;
-list[0].done = tb_demo_task_time_done;
-list[0].exit = tb_demo_task_time_exit;
-list[0].priv = (tb_pointer_t)60000;
-list[0].urgent = tb_false;
-list[1].name = &quot;10000ms&quot;;
-list[1].done = tb_demo_task_time_done;
-list[1].exit = tb_null;
-list[1].priv = (tb_pointer_t)10000;
-list[1].urgent = tb_true;
-tb_thread_pool_task_post_list(tb_thread_pool(), list, 2);
-
-// 初始化并且投递一个10s的紧急任务, 返回一个有效句柄
-tb_thread_pool_task_ref_t task = tb_thread_pool_task_init(tb_thread_pool(), &quot;10000ms&quot;, tb_demo_task_time_done, tb_null, (tb_cpointer_t)10000, tb_true);
-if (task)
-{
-    // 取消这个任务，如果这个任务已经在执行中了，就没法取消了
-    tb_thread_pool_task_kill(tb_thread_pool(), task);
-    
-    // 等待任务取消或完成，超时值：-1：无限等待
-    tb_thread_pool_task_wait(tb_thread_pool(), task, -1);
-    
-    // 释放这个任务
-    tb_thread_pool_task_exit(tb_thread_pool(), task);
-}
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;如果不想用全局线程池，可以自己初始化一个：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;/* 初始化线程池
- *
- * 8：最大worker的数量，上限值，如果传0就是使用默认值
- * 0: 每个worker线程的堆栈大小，如果传0就是使用默认值
- */
-tb_thread_pool_ref_t thread_pool = tb_thread_pool_init(8, 0);
-if (thread_pool)
-{
-    // 投递一个10s的紧急任务
-    tb_thread_pool_task_post(thread_pool, &quot;10000ms&quot;, tb_demo_task_time_done, tb_null, (tb_cpointer_t)10000, tb_true);
-    
-    // 如果的调试模式下，可以dump整个线程池的状态和所有处理中的任务状态
-#ifdef __tb_debug__
-    tb_thread_pool_dump(thread_pool);
-#endif
-
-    // 等待所有任务执行完成或被取消
-    tb_thread_pool_task_wait_all(thread_pool, -1);
-    
-    // 退出线程池
-    tb_thread_pool_exit(thread_pool);
-}
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-</description>
-        <pubDate>Thu, 04 Feb 2016 00:00:00 +0800</pubDate>
-        <link>http://tboox.org/cn/2016/02/04/platform-thread-pool/</link>
-        <guid isPermaLink="true">http://tboox.org/cn/2016/02/04/platform-thread-pool/</guid>
-        
-        
-        <category>tbox</category>
-        
-      </item>
-    
-      <item>
-        <title>用c实现跨平台异常捕获机制</title>
-        <description>&lt;p&gt;TBOX封装了一套跨平台的异常捕获实现，来模拟windows的seh异常处理功能，而且是线程安全的。&lt;/p&gt;
-
-&lt;h3 id=&quot;linuxmac&quot;&gt;在linux/mac下的实现&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;使用signal 捕获异常信号&lt;/li&gt;
-  &lt;li&gt;使用sigsetjmp保存现场寄存器和信号掩码，出现异常后使用 siglongjmp 跳转到异常处理过程，并恢复状态&lt;/li&gt;
-  &lt;li&gt;使用线程局部存储维护 sigjmpbuf 寄存器现场状态堆栈，保证多线程安全，并且可以实现多层嵌套捕获处理。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;windows&quot;&gt;在windows下的实现&lt;/h3&gt;
-
-&lt;p&gt;这个就不用多说了，在vs下直接用 __try、__except 关键字就行了，如果在mingw下编译， 通过 setjmp实现也很方便。&lt;/p&gt;
-
-&lt;h3 id=&quot;section&quot;&gt;具体使用&lt;/h3&gt;
-
-&lt;p&gt;注： 由于使用setjmp 进行寄存器现场保护， 如果使用整型局部变量， 有可能会被编译器优化到寄存器中。
-所以try内部的修改，可能会在异常捕获后，被会恢复掉。
-最好加上volatile来禁止优化。&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;__tb_volatile__ tb_size_t i = 0;
-__tb_try
-{
-    i++;
-    // 捕获段错误
-    *((__tb_volatile__ tb_size_t*)0) = 0;
-    // 捕获除0错误
-    // __tb_volatile__ tb_size_t a = 0; a /= a;
-}
-__tb_except(1)
-{
-    // __tb_except(1): 处理异常
-    // __tb_except(0): 路由异常到外层， 支持嵌套处理
-}
-__tb_end
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;section-1&quot;&gt;注意事项&lt;/h3&gt;
-
-&lt;p&gt;有些平台异常捕获是被禁用的，所以如果确实想要使用这种异常捕获机制，首先得确保对应平台下的配置文件plat/xxx/config.h&lt;/p&gt;
-
-&lt;p&gt;定义了TB_CONFIG_EXCEPTION_ENABLE这个宏，然后重新编译才行。&lt;/p&gt;
-
-&lt;p&gt;虽然tbox对异常支持的挺完善了，但是个人还是不建议太过频繁的使用异常捕获。&lt;/p&gt;
-
-</description>
-        <pubDate>Thu, 04 Feb 2016 00:00:00 +0800</pubDate>
-        <link>http://tboox.org/cn/2016/02/04/platform-exception/</link>
-        <guid isPermaLink="true">http://tboox.org/cn/2016/02/04/platform-exception/</guid>
-        
-        
-        <category>tbox</category>
-        
-      </item>
-    
-      <item>
-        <title>内存池架构</title>
-        <description>&lt;p&gt;TBOX的内存管理模型，参考了linux kernel的内存管理机制，并在其基础上做了一些改进和优化。&lt;/p&gt;
-
-&lt;h2 id=&quot;section&quot;&gt;内存整体架构&lt;/h2&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/tbox/memorypool.png&quot; alt=&quot;内存池架构&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;largepool&quot;&gt;large_pool&lt;/h2&gt;
-&lt;p&gt;整个内存分配的最底层，都是基于large_pool的大块内存分配池，类似于linux的基于page的分配管理，不过有所不同的是，large_pool并没有像linux那样使用buddy算法进行(2^N)*page进行分配，这样如果需要2.1m的内存，需要分配4m的内存块，这样力度太大，非常浪费。&lt;/p&gt;
-
-&lt;p&gt;因此large_pool内部采用N*page的基于page_size为最小粒度进行分配，因此每次分配顶多浪费不到一页的空间。&lt;/p&gt;
-
-&lt;p&gt;而且如果需要的内存不到整页，剩下的内存也会一并返回给上层，如果上层需要（比如small_pool），可以充分利用这多余的部分内存空间，使得内存利用率达到最优化。&lt;/p&gt;
-
-&lt;p&gt;而且根据tb_init实际传入的参数需求，large_pool有两种模式：&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;直接使用系统内存分配接口将进行大块内存的分配，并用双链维护，这种比较简单，就不多说了。&lt;/li&gt;
-  &lt;li&gt;在一大块连续内存上进行统一管理，实现内存分配。&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;具体使用哪种方式，根据应用需求，一般的应用只需要使用方式1就行了，这个时候tb_init传tb_null就行了，如果是嵌入式应用，需要管理有限的一块内存空间，这个时候可以使用方式2， tb_init传入指定内存空间地址和大小。&lt;/p&gt;
-
-&lt;p&gt;这里就主要看下方式2的large_pool的内存结构（假设页大小是4KB）：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; --------------------------------------------------------------------------
-|                                     data                                 |
- --------------------------------------------------------------------------
-                                     |
- --------------------------------------------------------------------------
-| head | 4KB | 16KB | 8KB | 128KB | ... | 32KB |       ...       |  4KB*N  |
- --------------------------------------------------------------------------
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;由于large_pool主要用于大块分配，而超小块的分配在上层small_pool中已经被分流掉了，所以这个应用中，large_pool不会太过频繁的分配，所以碎片量不会太大，为了进一步减少碎片的产生，在free时候都会对下一个邻近的空闲块进行合并。而malloc在分配当前空闲块空间不够的情况下，也会尝试对下一个邻近空闲块进行合并。&lt;/p&gt;
-
-&lt;p&gt;由于每个内存块都是邻近挨着的，也没用双链维护，没有内存块，都有个块头，合并过程仅仅只是改动内存块头部的size字段，这样的合并不会影响效率。&lt;/p&gt;
-
-&lt;p&gt;由于没像buddy算法那样，用双链维护空闲内存，虽然节省了链表维护的空间和时间，但是每次分配内存都要顺序遍历所有块，来查找空闲的内存，这样的效率实在太低了，为了解决这个问题，large_pool内部针对不同级别的块，进行了预测，每次free或者malloc的时候，如果都会把当前和邻近的空闲快，缓存到对应级别的预测池里面去，具体的分级如下：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; --------------------------------------
-| &amp;gt;0KB :      4KB       | &amp;gt; 0*page     | 
-|-----------------------|--------------
-| &amp;gt;4KB :      8KB       | &amp;gt; 1*page     | 
-|-----------------------|--------------
-| &amp;gt;8KB :    12-16KB     | &amp;gt; 2*page     | 
-|-----------------------|--------------
-| &amp;gt;16KB :   20-32KB     | &amp;gt; 4*page     | 
-|-----------------------|--------------
-| &amp;gt;32KB :   36-64KB     | &amp;gt; 8*page     | 
-|-----------------------|--------------
-| &amp;gt;64KB :   68-128KB    | &amp;gt; 16*page    | 
-|-----------------------|--------------
-| &amp;gt;128KB :  132-256KB   | &amp;gt; 32*page    | 
-|-----------------------|--------------
-| &amp;gt;256KB :  260-512KB   | &amp;gt; 64*page    | 
-|-----------------------|--------------
-| &amp;gt;512KB :  516-1024KB  | &amp;gt; 128*page   | 
-|-----------------------|--------------
-| &amp;gt;1024KB : 1028-...KB  | &amp;gt; 256*page   | 
- --------------------------------------
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;由于通常不会分配太大块的内存，因此只要能够预测1m内存，就足够，而对于&amp;gt;1m的内存，这里也单独加了一个预测，来应对偶尔的超大块分配，并且使得整体分配流程更加的统一。&lt;/p&gt;
-
-&lt;p&gt;如果当前级别的预测块不存在，则会到下一级别的预测块中查找，如果都找不到，才回去遍历整个内存池。&lt;/p&gt;
-
-&lt;p&gt;实际测试下，每个块的预测成功基本都在95%以上，也就说大部分情况下，分配效率都是维持在O(1)级别的。&lt;/p&gt;
-
-&lt;h2 id=&quot;smallpool&quot;&gt;small_pool&lt;/h2&gt;
-
-&lt;p&gt;小块内存分配池&lt;/p&gt;
-
-&lt;p&gt;在上层每次调用malloc进行内存分配的时候，回去判断需要多大的内存，如果这个内存超过或者等于一页，则会直接从large_pool进行分配，如果小于一页，则会优先通过small_pool进行分配，small_pool针对小块的内存进行了高速缓存，并优化了空间管理和分配效率。&lt;/p&gt;
-
-&lt;p&gt;由于程序大部分情况下，都在使用小块内存，因此small_pool对内存的分配做了很大的分流，使得large_pool承受的压力减小，碎片量减少很多，而small_pool内部由于都是由fixed_pool来对固定大小的内存进行管理，是不会存在外部碎片的。而小块内存的粒度本身就很小，所以内部碎片量也相当少。&lt;/p&gt;
-
-&lt;p&gt;small_pool中的fixed_pool，就像是linux kernel中的slub，在small_pool中总共有12级别的fixed_pool，每个级别分别管理一种固定大小的内存块，具体级别如下：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; --------------------------------------
-|    fixed pool: 16B    |  1-16B       | 
-|--------------------------------------|
-|    fixed pool: 32B    |  17-32B      |  
-|--------------------------------------|
-|    fixed pool: 64B    |  33-64B      | 
-|--------------------------------------|
-|    fixed pool: 96B*   |  65-96B*     | 
-|--------------------------------------|
-|    fixed pool: 128B   |  97-128B     |  
-|--------------------------------------|
-|    fixed pool: 192B*  |  129-192B*   |  
-|--------------------------------------|
-|    fixed pool: 256B   |  193-256B    |  
-|--------------------------------------|
-|    fixed pool: 384B*  |  257-384B*   |  
-|--------------------------------------|
-|    fixed pool: 512B   |  385-512B    |  
-|--------------------------------------|
-|    fixed pool: 1024B  |  513-1024B   |  
-|--------------------------------------|
-|    fixed pool: 2048B  |  1025-2048B  |  
-|--------------------------------------|
-|    fixed pool: 3072B* |  2049-3072B* |  
- -------------------------------------- 
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;其中 96B, 192B，384B，3072B并不是按2的整数幂大小，这么做主要是为了更加有效的利用小块内存的空间减少内部碎片。&lt;/p&gt;
-
-&lt;h2 id=&quot;fixedpool&quot;&gt;fixed_pool&lt;/h2&gt;
-
-&lt;p&gt;顾名思义，fixed_pool就是用来管理固定大小的内存分配的，相当于linux中slub，而fixed_pool中又由多个slot组成，每个slot负责一块连续的内存空间，管理部分内存块的管理，类似linux中的slab， 每个slot由双链维护，并且参考linux的管理机制，分为三种slot管理方式：&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;当前正在分配的slot&lt;/li&gt;
-  &lt;li&gt;部分空闲slots链表&lt;/li&gt;
-  &lt;li&gt;完全full的slots链表&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;具体结构如下：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;current:
-     --------------
-    |              |
- --------------    |
-|     slot     |&amp;lt;--
-|--------------|
-||||||||||||||||  
-|--------------| 
-|              | 
-|--------------| 
-|              | 
-|--------------| 
-||||||||||||||||  
-|--------------| 
-|||||||||||||||| 
-|--------------| 
-|              | 
- --------------  
-
-partial:
-
- --------------       --------------               --------------
-|     slot     | &amp;lt;=&amp;gt; |     slot     | &amp;lt;=&amp;gt; ... &amp;lt;=&amp;gt; |     slot     |
-|--------------|     |--------------|             |--------------|
-||||||||||||||||     |              |             |              |
-|--------------|     |--------------|             |--------------|
-|              |     ||||||||||||||||             |              |
-|--------------|     |--------------|             |--------------|
-|              |     ||||||||||||||||             ||||||||||||||||
-|--------------|     |--------------|             |--------------|
-||||||||||||||||     ||||||||||||||||             |              |
-|--------------|     |--------------|             |--------------|
-||||||||||||||||     |              |             |              |
-|--------------|     |--------------|             |--------------|
-|              |     |              |             ||||||||||||||||
---------------       --------------               --------------
-
-full:
-
- --------------       --------------               --------------
-|     slot     | &amp;lt;=&amp;gt; |     slot     | &amp;lt;=&amp;gt; ... &amp;lt;=&amp;gt; |     slot     |
-|--------------|     |--------------|             |--------------|
-||||||||||||||||     ||||||||||||||||             ||||||||||||||||
-|--------------|     |--------------|             |--------------|
-||||||||||||||||     ||||||||||||||||             ||||||||||||||||
-|--------------|     |--------------|             |--------------|
-||||||||||||||||     ||||||||||||||||             ||||||||||||||||
-|--------------|     |--------------|             |--------------|
-||||||||||||||||     ||||||||||||||||             ||||||||||||||||
-|--------------|     |--------------|             |--------------|
-||||||||||||||||     ||||||||||||||||             ||||||||||||||||
-|--------------|     |--------------|             |--------------|
-||||||||||||||||     ||||||||||||||||             ||||||||||||||||
- --------------       --------------               --------------
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;&lt;strong&gt;具体的分配算法&lt;/strong&gt;&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;如果当前slot中还有空闲的块，优先从当前slot进行分配&lt;/li&gt;
-  &lt;li&gt;如果当前slot中没有空闲块，则把这个slot放到full链表中去&lt;/li&gt;
-  &lt;li&gt;从部分空闲slot链表中，挑一个空闲的slot进行分配，并把它设为当前分配状态。&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;&lt;strong&gt;具体的释放算法&lt;/strong&gt;&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;释放后如果这个slot完全空闲了，并且不是正在分配的slot，则把整个slot释放掉，这样既可以保证有一个可以分配的slot之外，还极大的降低了内存使用，也避免某些情况下频繁的释放分配slot。&lt;/li&gt;
-  &lt;li&gt;如果释放的slot属于full链表并且变为了部分空闲，则把这个slot移到部分空闲slot链表中去。&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;&lt;strong&gt;额外要提一下的是&lt;/strong&gt;：&lt;/p&gt;
-
-&lt;p&gt;large_pool每次分配一块空间给一个slot的时候，残留下来的部分剩余空间(&amp;lt;1*page)， 也能直接返回给slot，让slot充分利用这部分数据，这样可以可以切分出更多地内存块。&lt;/p&gt;
-
-&lt;p&gt;例如：&lt;/p&gt;
-
-&lt;p&gt;fixed_pool每次增长一个包含256个32B内存块的slot（需要8192B大小+16B内部数据维护大小），其实在用large_pool分配的时候，需要8208B的大小，由于需要按页对齐（4KB），实际分配确占用了&lt;code class=&quot;highlighter-rouge&quot;&gt;8192+4096: 12288B&lt;/code&gt;的大小的空间。&lt;/p&gt;
-
-&lt;p&gt;但是large_pool支持把所有空间数据一并返回给上层，这样slot其实获取到了一个12288B大小的内存，并且也知道其实际大小为：12288B，因此实际切分了&lt;code class=&quot;highlighter-rouge&quot;&gt;(12288-(32B的slot内部维护数据))/32&lt;/code&gt;也就是383个内存块。&lt;/p&gt;
-
-&lt;p&gt;多维护了127个内存块，充分把large_pool的内部碎片也利用上了，进一步增加了内存利用率。&lt;/p&gt;
-
-&lt;h2 id=&quot;fixedpoolslot&quot;&gt;fixed_pool中的slot&lt;/h2&gt;
-
-&lt;p&gt;虽然类比与linux中的slab，但是其数据结构确跟slab不太一样，它并没有像slab那样，对每个空闲小块都用链表维护，而是直接用位段来维护是否空闲的信息，这样更加节省内存，而且通过优化算法，其分配效率和slab几乎一样。&lt;/p&gt;
-
-&lt;p&gt;在fixed_pool的slot的头部，专门有一小块独立的数据，用于维护每个小块的空闲信息，每个块只暂用一比特位的信息，来判断这个块是否空闲，由于没有内存块都是固定大小的，所以比特位的位置定位，完全可以通过索引计算得到。&lt;/p&gt;
-
-&lt;p&gt;而且每次释放和分配，都会去缓存一个双字大小的位信息端，来预测下一次的分配，由于是双字大小，总共有32个比特位，所以每次缓存，最多可以预测邻近32个内存块。因此大部分情况下，预测成功率一直都是&amp;gt;98%的，分配效率都维持在O(1)，比起large_pool的预测率还高很多，所以small_pool对large_pool的分流，还在一定程度上，进一步提高了内存分配效率。&lt;/p&gt;
-
-&lt;p&gt;而就算很倒霉，没预测成功，slot的顺序遍历来查找空闲快的算法，也相当高效，完全是高度优化的，下面就详细描述下。&lt;/p&gt;
-
-&lt;h3 id=&quot;slot&quot;&gt;slot的顺序遍历分配算法优化&lt;/h3&gt;
-
-&lt;p&gt;我们这里主要用到了gcc的几个内置函数：&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;__builtin_clz：计算32位整数前导0的个数&lt;/li&gt;
-  &lt;li&gt;__builtin_ctz：计算32位整数后置0的个数&lt;/li&gt;
-  &lt;li&gt;__builtin_clzll：计算64位整数前导0的个数&lt;/li&gt;
-  &lt;li&gt;__builtin_ctzll：计算64位整数后置0的个数&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;其实这四个类似，我们这里就拿第一说明好了，为什么要使用__builtin_clz呢？其实就是为了在一个32位端里面，快速查找某个空闲位的索引，这样就能快速定位某个空闲块的位置了。&lt;/p&gt;
-
-&lt;p&gt;比如有一个32位的位段信息整数：x，计算对应空闲位0的索引，主需要：&lt;code class=&quot;highlighter-rouge&quot;&gt;__builtin_clz(~x)&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;简单吧，由于__builtin_clz这些内置函数，gcc用汇编针对不同平台高度优化过的，计算起来相当的快，那如果不是gcc的编译器怎么办呢？&lt;/p&gt;
-
-&lt;p&gt;没关系，我们可以自己用c实现个优化版本的，当然完全可以汇编继续优化，这里就先给个c的实现：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;!--lang:cpp--&amp;gt;
-static __tb_inline__ tb_size_t tb_bits_cl0_u32_be_inline(tb_uint32_t x)
-{
-    // check
-    tb_check_return_val(x, 32);
-
-    // done
-    tb_size_t n = 31;
-    if (x &amp;amp; 0xffff0000) { n -= 16;  x &amp;gt;&amp;gt;= 16;   }
-    if (x &amp;amp; 0xff00)     { n -= 8;   x &amp;gt;&amp;gt;= 8;    }
-    if (x &amp;amp; 0xf0)       { n -= 4;   x &amp;gt;&amp;gt;= 4;    }
-    if (x &amp;amp; 0xc)        { n -= 2;   x &amp;gt;&amp;gt;= 2;    }
-    if (x &amp;amp; 0x2)        { n--;                  }
-    return n;
-}
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;说白了，就是每次对半开，来减少判断次数，比起每次一位一位的枚举遍历，这种已经是相当高效了，更何况还有__builtin_clz呢。&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;接下来就看下具体的遍历过程：&lt;/strong&gt;&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;按4/8字节对齐位段的起始地址&lt;/li&gt;
-  &lt;li&gt;每次按4/8字节遍历位段数据，遍历过程利用cpu cache的大小，针对性的做循环展开，来优化性能。&lt;/li&gt;
-  &lt;li&gt;通过判断 !(x + 1) 来快速过滤 0xffffffff 这些已经满了的位段，进一步提高遍历效率。&lt;/li&gt;
-  &lt;li&gt;如果某个位段不是0xffffffff，则通过__builtin_clz(~x)计算实际的空闲块索引，并进行实际的分配。&lt;/li&gt;
-  &lt;li&gt;最后如果这个的32位的位段没有被分配满，可以把它进行缓存，来为下次分配做预测。&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h2 id=&quot;stringpool&quot;&gt;string_pool&lt;/h2&gt;
-
-&lt;p&gt;讲到这，TBOX的内存池管理模型，基本算是大概讲完了，这里就简单提下string_pool，即：字符串池&lt;/p&gt;
-
-&lt;p&gt;string_pool主要针对上层应用而言的，针对某些频繁使用小型字符串，并且重复率很高的模块，就可以通过string_pool进行优化，进一步减少内存使用，string_pool内部通过引用计数+哈希表维护，针对相同的字符串只保存一份。&lt;/p&gt;
-
-&lt;p&gt;例如可以用于cookies中字符串维护、http中header部分的字符串维护等等。。&lt;/p&gt;
-
-</description>
-        <pubDate>Thu, 04 Feb 2016 00:00:00 +0800</pubDate>
-        <link>http://tboox.org/cn/2016/02/04/memory-pool/</link>
-        <guid isPermaLink="true">http://tboox.org/cn/2016/02/04/memory-pool/</guid>
         
         
         <category>tbox</category>
