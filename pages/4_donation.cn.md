@@ -5,7 +5,7 @@ comments: false
 permalink: /donation/
 ---
 
-TBOOX属于个人开源项目，它的发展需要您的帮助，如果您愿意支持TBOOX项目的开发，欢迎为其捐赠，支持它的发展。
+TBOOX的所有项目都是属于个人开源项目，它的发展需要您的帮助，如果您愿意支持TBOOX项目的开发，欢迎为其捐赠，支持它的发展。
 
 ## Paypal
 
@@ -37,11 +37,17 @@ TBOOX属于个人开源项目，它的发展需要您的帮助，如果您愿意
 
 账号：waruqi@gmail.com
 
-### 微信 
+## 微信 
 
 <img src="/static/img/weixin.png" alt="weixin" width="256" height="256">
 
+## Patreon
+
+[在Patreon上支持TBOOX](https://www.patreon.com/tboox)
+
 ## 捐助者名单
+
+### TBOX
 
 ####2016.01.29
 * [Evgeny Kulikov](xak@list.ru): $2

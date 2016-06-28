@@ -16,126 +16,155 @@ layout: page
 
 # The Treasure Box Library (TBOX)
 
-## introduction
+## Introduction
 
-TBOX is a mutli-platform c library for unix, windows, mac, ios, android, etc.
+TBOX is a glib-like cross-platform C library that is simple to use yet powerful in nature.
 
-It is similar to glibc, but simpler and more convenient.
-It includes asio, stream, network, container, algorithm, object, memory, database, string, charset, math, regex, libc, libm, utils and other library modules.
+The project focuses on making C development easier and provides many modules (.e.g stream, asio, regex, container, algorithm ...), 
+so that any developer can quickly pick it up and enjoy the productivity boost when developing in C language.
+
+Supports the following platforms:
+
+- Windows
+- Macosx
+- Linux
+- Android
+- iOS
+
+If you want to know more, please refer to:
 
 * [Documents](https://github.com/waruqi/tbox/wiki/documents)
 * [Github](https://github.com/waruqi/tbox)
 
-## features
+## Features
 
-#### the stream library
-- supports file, data, http and socket source
-- supports the stream filter for gzip, charset and...
-- implements transfer for two stream
-- implements transfer pool (asio) for multi-stream
-- implements the static buffer stream for parsing data
+#### The stream library
+- Supports file, data, http and socket source
+- Supports the stream filter for gzip, charset and...
+- Implements transfer for two stream
+- Implements transfer pool (asio) for multi-stream
+- Implements the static buffer stream for parsing data
 
-#### the asynchronous io library
-- supports reactor and proactor mode
-- using epoll, poll, select, kqueue and iocp os system api
+#### The asynchronous io library
+- Supports reactor and proactor mode
+- Uses epoll, poll, select, kqueue and iocp os system api
 
-#### the database library
-- supports mysql and sqlite3 database and enumerates data using the iterator mode
+#### The database library
+- Supports mysql and sqlite3 database and enumerates data using the iterator mode
 
-#### the xml parser library
-- supports DOM and SAX mode and supports xpath
+#### The xml parser library
+- Supports DOM and SAX mode and Supports xpath
 
-#### the serialization and deserialization library. 
-- supports xml, json, bplist, xplist, binary formats
+#### The serialization and deserialization library. 
+- Supports xml, json, bplist, xplist, binary formats
 
-#### the memory library
-- implements some memory pools for optimizing memory
-- supports fast memory error detecting. it can detect the following types of bugs for the debug mode:
+#### The memory library
+- Implements some memory pools for optimizing memory
+- Supports fast memory error detecting. it can detect the following types of bugs for the debug mode:
   - out-of-bounds accesses to heap and globals
   - use-after-free
   - double-free, invalid free
   - memory leaks
 
-#### the container library
-- implements hash table, single list, double list, vector, stack, queue
-  and min/max heap. supports iterator mode for algorithm
+#### The container library
+- Implements hash table, single list, double list, vector, stack, queue
+  and min/max heap. Supports iterator mode for algorithm
 
-#### the algorithm library
-- using the iterator mode
-- implements find, binary find and reverse find algorithm
-- implements sort, bubble sort, quick sort, heap sort and insert sort algorithm
-- implements count, walk items, reverse walk items, for_all and rfor_all
+#### The algorithm library
+- Uses the iterator mode
+- Implements find, binary find and reverse find algorithm
+- Implements sort, bubble sort, quick sort, heap sort and insert sort algorithm
+- Implements count, walk items, reverse walk items, for_all and rfor_all
 
-#### the network library
-- implements dns(cached), ssl(openssl and polarssl), http and cookies
-- supports asynchronous io mode for dns, ssl and http using the asio and stream library
+#### The network library
+- Implements dns(cached), ssl(openssl and polarssl), http and cookies
+- Supports asynchronous io mode for dns, ssl and http using the asio and stream library
 
-#### the platform library
-- implements timer, fast and low precision timer
-- implements atomic and atomic64 operation
-- implements spinlock, mutex, event, semaphore, thread and thread pool 
-- implements file, socket operation
+#### The platform library
+- Implements timer, fast and low precision timer
+- Implements atomic and atomic64 operation
+- Implements spinlock, mutex, event, semaphore, thread and thread pool 
+- Implements file, socket operation
 
-#### the charset library
-- supports utf8, utf16, gbk, gb2312, uc2 and uc4
-- supports big endian and little endian mode
+#### The charset library
+- Supports utf8, utf16, gbk, gb2312, uc2 and uc4
+- Supports big endian and little endian mode
 
-#### the zip library
-- supports gzip, zlibraw, zlib formats using the zlib library if exists
-- implements lzsw, lz77 and rlc algorithm
+#### The zip library
+- Supports gzip, zlibraw, zlib formats using the zlib library if exists
+- Implements lzsw, lz77 and rlc algorithm
 
-#### the utils library
-- implements base32, base64 encoder and decoder
-- implements crc32, adler32, md5 and sha1 hash algorithm
-- implements assert and trace output for the debug mode
-- implements bits operation for parsing u8, u16, u32, u64 data
+#### The utils library
+- Implements base32, base64 encoder and decoder
+- Implements crc32, adler32, md5 and sha1 hash algorithm
+- Implements assert and trace output for the debug mode
+- Implements bits operation for parsing u8, u16, u32, u64 data
 
-#### the math library
-- implements random generator
-- implements fast fixed-point calculation, supports 6-bits, 16-bits, 30-bits fixed-point number
+#### The math library
+- Implements random generator
+- Implements fast fixed-point calculation, Supports 6-bits, 16-bits, 30-bits fixed-point number
 
-#### the libc library
-- implements lightweight libc library interfaces, the interface name contains tb_xxx prefix for avoiding conflict
-- implements strixxx strrxxx wcsixxx wcsrxxx interface extension
+#### The libc library
+- Implements lightweight libc library interfaces, the interface name contains `tb_xxx` prefix for avoiding conflict
+- Implements strixxx strrxxx wcsixxx wcsrxxx interface extension
 - optimizes some frequently-used interface, .e.g. memset, memcpy, strcpy ... 
-- implements memset_u16, memset_u32, memset_u64 extension interfaces
+- Implements `memset_u16`, `memset_u32`, `memset_u64` extension interfaces
 
-#### the libm library
-- implements lightweight libm library interfaces, the interface name contains tb_xxx prefix for avoiding conflict
-- supports float and double type
+#### The libm library
+- Implements lightweight libm library interfaces, the interface name contains `tb_xxx` prefix for avoiding conflict
+- Supports float and double type
 
-#### the regex library
-- supports match and replace
-- supports global/multiline/caseless mode
+#### The regex library
+- Supports match and replace
+- Supports global/multiline/caseless mode
 - uses pcre, pcre2 and posix regex modules
 
-## projects
+## In the Plans
+- Add coroutine module 
+- Add server module
+- Reconstruction xml module
+- Add more algorithms and container
+- Optimizes more libc interfaces 
+- Implements more libm interfaces and not wrap it only
 
-some projects using tbox:
+## Projects
+
+Some projects using tbox:
 
 * [gbox](https://github.com/waruqi/gbox)
 * [itrace](https://github.com/waruqi/itrace)
 * [more](https://github.com/waruqi/tbox/wiki/tbox-projects)
 
-## build
+## Build
 
-please install xmake first: [xmake](https://github.com/waruqi/xmake)
+Please install xmake first: [xmake](https://github.com/waruqi/xmake)
 
-    // build for the host platform
+    # build for the host platform
     cd ./tbox
     xmake
 
-    // build for the iphoneos platform
+    # build for the mingw platform
+    cd ./tbox
+    xmake f -p mingw --sdk=/home/mingwsdk 
+    xmake
+    
+    # build for the iphoneos platform
     cd ./tbox
     xmake f -p iphoneos 
     xmake
     
-    // build for the android platform
+    # build for the android platform
     cd ./tbox
     xmake f -p android --ndk=xxxxx
     xmake
+    
+    # build for the linux cross-platform
+    cd ./tbox
+    xmake f -p linux --sdk=/home/sdk # --toolchains=/home/sdk/bin
+    xmake
 
-## example
+    
+## Example
 
     #include "tbox/tbox.h"
 
@@ -194,6 +223,7 @@ please install xmake first: [xmake](https://github.com/waruqi/xmake)
         tb_exit();
         return 0;
     }
+
 
 <div id="gbox"></div>
 
