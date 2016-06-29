@@ -229,15 +229,55 @@ Please install xmake first: [xmake](https://github.com/waruqi/xmake)
 
 # The Graphic Box Library (GBOX)
 
-## Introduction
-
-GBOX is a mutli-platform c graphic library.
+gbox is a mutli-platform c graphic library. 
 
 It is now in the early stages of development only for reference and learning.
 
 If you are interesting to this project, please view the source code.
 
-* [Github](https://github.com/waruqi/gbox)
+####Features
+
+- Support 2d vector drawing
+- Support matrix transform
+- Support fill and stroke for solid, gradient and image
+- Support custom path and drawing
+- Support float and fixed point computation
+- Provide custom drawing devices
+- Support OpenGL ES 1.0/2.0 
+- Support soft algorithm for drawing
+- Implement mesh structure and algorithm
+- Implement complex polygon tessellator and triangulation
+- Support odd and nonzero fill
+- Implement polygon scanning algorithm
+- Provide multi-platform windows(.e.g glut, sdl and x11, framebuffer, ios, android in the feature)
+
+####In the plans
+
+- Draw svg images
+- Implement anti-aliasing
+- More drawing devices and windows
+- Draw text 
+- Development ui and game engine
+
+####Build
+
+please install xmake first: [xmake](https://github.com/waruqi/xmake)
+
+    cd ./gbox
+    xmake
+
+####Documents
+
+* [Documents](https://github.com/waruqi/gbox/wiki/documents)
+* [Codes](https://github.com/waruqi/gbox)
+
+####Contacts
+
+- Email:   	    
+	- waruqi@gmail.com
+- Website: 	    
+	- http://www.tboox.org
+	- http://www.tboox.net
 
 <div id="xmake"></div>
 
