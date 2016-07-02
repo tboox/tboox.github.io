@@ -10,6 +10,7 @@ permalink: /about/
 * 邮箱: [waruqi@gmail.com](waruqi@gmail.com)
 * 网站: [http://www.tboox.org](http://www.tboox.org/cn)
 * 镜像: [http://www.tboox.net](http://www.tboox.net/cn)
+* xmake: [http://xmake.io](http://xmake.io/cn)
 * github: [https://github.com/waruqi](https://github.com/waruqi)
 * twitter: [https://twitter.com/waruqi](https://twitter.com/waruqi)
 * qq群: 343118190
