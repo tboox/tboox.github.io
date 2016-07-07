@@ -5,9 +5,344 @@
     <description>Welcome to the website for the TBOOX Open Source Project!</description>
     <link>http://tboox.org/</link>
     <atom:link href="http://tboox.org/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Wed, 06 Jul 2016 14:11:30 +0800</pubDate>
-    <lastBuildDate>Wed, 06 Jul 2016 14:11:30 +0800</lastBuildDate>
+    <pubDate>Thu, 07 Jul 2016 09:35:30 +0800</pubDate>
+    <lastBuildDate>Thu, 07 Jul 2016 09:35:30 +0800</lastBuildDate>
     <generator>Jekyll v3.1.1</generator>
+    
+      <item>
+        <title>xmake插件开发之类库使用</title>
+        <description>&lt;p&gt;xmake通过import接口，可以在自定义脚本中导入各种内置类库和扩展类库模块，使得xmake的插件开发具有更多的灵活性，提供更丰富的功能。&lt;/p&gt;
+
+&lt;p&gt;我们先看下，目前xmake提供的一些类库：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;.
+├── _g.lua
+├── assert.lua
+├── catch.lua
+├── coroutine.lua
+├── debug.lua
+├── finally.lua
+├── format.lua
+├── ifelse.lua
+├── import
+│   └── core
+│       ├── base
+│       │   └── option.lua
+│       ├── platform
+│       │   ├── environment.lua
+│       │   ├── menu.lua
+│       │   └── platform.lua
+│       ├── project
+│       │   ├── cache.lua
+│       │   ├── config.lua
+│       │   ├── global.lua
+│       │   ├── history.lua
+│       │   ├── menu.lua
+│       │   ├── package.lua
+│       │   ├── project.lua
+│       │   ├── target.lua
+│       │   ├── task.lua
+│       │   └── template.lua
+│       └── tool
+│           ├── compiler.lua
+│           ├── linker.lua
+│           └── tool.lua
+├── import.lua
+├── inherit.lua
+├── insert.lua
+├── io.lua
+├── ipairs.lua
+├── math.lua
+├── os.lua
+├── pairs.lua
+├── path.lua
+├── print.lua
+├── printf.lua
+├── raise.lua
+├── string.lua
+├── table.lua
+├── tonumber.lua
+├── tostring.lua
+├── try.lua
+├── utils.lua
+└── vformat.lua
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;在根目录下的模块和api都是属于内建的，不需要import也可以直接使用，属于常用api，提供了xmake最基础的特性。。&lt;/p&gt;
+
+&lt;p&gt;在子目录下的是扩展模块，需要import后才能使用，导入规则见&lt;a href=&quot;/cn/2016/06/09/api-import/&quot;&gt;import&lt;/a&gt;，例如：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;import(&quot;core.project.task&quot;)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;需要注意的是：xmake对自定义的脚本采用了异常处理机制，大部分情况下，调用的api是不需要判断返回值状态是否成功，如果出错了，会立即中断，并且显示错误信息&lt;/p&gt;
+
+&lt;p&gt;这样语法上更加的精简可读，并且更安全，所有api的输入输出，内部都有检测，状态不对会立即自动报错。&lt;/p&gt;
+
+&lt;p&gt;当然如果我们想要自己获取这个异常的状态，做一些逻辑上的处理，可以通过try/catch来实现，使用起来也非常简单。&lt;/p&gt;
+
+&lt;p&gt;下面简单介绍下一些常用的内置模块api，这些模块不需要import就可以使用的哦。：）&lt;/p&gt;
+
+&lt;h4 id=&quot;os&quot;&gt;os模块&lt;/h4&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;-- 运行shell命令，如果运行失败直接中断，并显示出错信息，我们不需要判断返回值
+os.run(&quot;echo hello xmake!&quot;)
+
+-- 复制文件
+os.cp(&quot;/tmp/src&quot;, &quot;/tmp/dst&quot;)
+
+-- 删除文件或者目录
+os.rm(&quot;/tmp/dir&quot;)
+
+-- 移动文件
+os.mv(&quot;/tmp/old&quot;, &quot;/tmp/new&quot;)
+
+-- 判断文件是否存在
+if os.isfile(&quot;/tmp/file&quot;) then
+end
+
+-- 判断目录是否存在
+if os.isdir(&quot;/tmp/dir&quot;) then
+end
+
+-- 匹配遍历文件，*为非递归匹配，**为递归匹配
+for _, file in ipairs(os.match(&quot;src/*.c&quot;)) do
+    print(file)
+end
+
+-- 匹配遍历目录，*为非递归匹配，**为递归匹配
+for _, file in ipairs(os.match(&quot;src/*&quot;, true)) do
+    print(file)
+end
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;api&quot;&gt;常用api&lt;/h4&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;-- 抛出异常，立即中断
+raise()
+
+-- 抛出异常，立即中断，并抛出异常错误信息
+raise(&quot;error info&quot;)
+
+-- 抛出异常，立即中断，并抛出异常错误代码
+raise(-1)
+
+-- 显示输出并换行，支持格式化输出，跟lua的print稍有不同
+print(&quot;hello %s&quot;, &quot;xmake&quot;)
+
+-- 显示输出不换行
+printf(&quot;hello %s&quot;, &quot;xmake&quot;)
+
+-- 格式化字符串
+s = format(&quot;hello %s&quot;, &quot;xmake&quot;)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;api-1&quot;&gt;异常捕获api&lt;/h4&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;try
+{
+    -- try块，里面抛出异常
+    function ()
+        raise(&quot;error&quot;)
+    end,
+
+    catch
+    {
+        -- catch块，捕获异常
+        function (errors)
+            print(errors)
+        end
+    }
+}
+
+-- 获取try块的返回值，如果没有异常的话返回true
+local ok = try
+{
+    -- try块，里面抛出异常
+    function ()
+        -- may be error
+        return true
+    end
+}
+
+try
+{
+    -- try块，里面抛出异常
+    function ()
+        raise(&quot;error&quot;)
+    end,
+
+    catch
+    {
+        -- catch块，捕获异常
+        function (errors)
+            print(errors)
+        end
+    },
+
+    finally
+    { 
+        -- finally 块
+        function ()
+        end
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;path&quot;&gt;path模块&lt;/h4&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;-- 获取相对路径
+path.relative(&quot;/tmp/a&quot;)
+
+-- 获取绝对路径
+path.absolute(&quot;src&quot;)
+
+-- 获取目录
+path.directory(&quot;/tmp/a&quot;)
+
+-- 获取文件名 test.c
+path.filename(&quot;/tmp/test.c&quot;)
+
+-- 获取base名 test
+path.basename(&quot;/tmp/test.c&quot;)
+
+-- 获取扩展名
+path.extension(&quot;/tmp/test.c&quot;)
+
+-- 拼接路径 /tmp/test.c
+path.join(&quot;/tmp&quot;, &quot;test.c&quot;)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;io-&quot;&gt;io 模块&lt;/h4&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;-- 打开一个写文件
+file = io.open(&quot;/tmp/a&quot;, &quot;w&quot;)
+
+-- 写文件数据
+file:write(&quot;hello&quot;)
+
+-- 写文件格式化行
+file:print(&quot;hello %s&quot;, &quot;xmake&quot;)
+
+-- 写文件格式化不换行
+file:printf(&quot;hello %s&quot;, &quot;xmake&quot;)
+
+-- 关闭文件
+file:close()
+
+-- 序列化写一个lua对象到文件
+io.save(&quot;/tmp/a&quot;, object)
+
+-- 反序列化读取一个文件对象
+object = io.load(&quot;/tmp/a&quot;)
+
+-- 读取文件数据，并显示
+io.cat(&quot;/tmp/a&quot;)
+
+-- 模式替换文件内容, 替换空格字符为 &quot;space&quot;
+io.gsub(&quot;/tmp/a&quot;, &quot;%s&quot;, &quot;space&quot;)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;还有一些是lua的常用模块，这里就不多说了，例如：&lt;code class=&quot;highlighter-rouge&quot;&gt;string, table, debug, coroutine, pairs, ipairs, tostring, tonumber&lt;/code&gt; 等等&lt;/p&gt;
+
+</description>
+        <pubDate>Thu, 07 Jul 2016 00:00:00 +0800</pubDate>
+        <link>http://tboox.org/cn/2016/07/07/plugin-modules/</link>
+        <guid isPermaLink="true">http://tboox.org/cn/2016/07/07/plugin-modules/</guid>
+        
+        
+        <category>xmake</category>
+        
+      </item>
+    
+      <item>
+        <title>插件使用之加载自定义lua脚本</title>
+        <description>&lt;p&gt;xmake里面的lua脚本加载插件，可以让你方便调试和编写一些自定义的lua脚本，这个时候xmake就是一个纯lua的加载引擎。。&lt;/p&gt;
+
+&lt;p&gt;例如，我想写个简单的&lt;code class=&quot;highlighter-rouge&quot;&gt;hello xmake!&lt;/code&gt;的lua脚本，可以自己建个 &lt;code class=&quot;highlighter-rouge&quot;&gt;hello.lua&lt;/code&gt; 文件，编写如下脚本：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;function main()
+    print(&quot;hello xmake!&quot;)
+end
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;main&lt;/code&gt;是入口函数，就跟平常写c类似，然后加载执行下这个lua脚本就行了：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;    xmake lua /home/xxx/hello.lua
+or  xmake l /tmp/hello.lua
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;下面在来个稍微高级点的，我要传递参数进来，可以这么写：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;function main(argv)
+    -- 打印所有参数值
+    for _, value in ipairs(argv) do
+        print(value)
+    end
+
+    -- 或者可以直接dump所有
+    table.dump(argv)
+end
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;然后我们执行下，试试：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake lua /tmp/hello.lua hello xmake
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;简单吧，当然除了lua内置的大部分模块，例如：&lt;code class=&quot;highlighter-rouge&quot;&gt;os, string, table, ...&lt;/code&gt; 等等，xmake的lua加载器还提供其他更丰富的模块类库
+可以通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;import&lt;/code&gt; 导入后使用，所有导入的模块支持跟插件开发中使用的类库是一样的，具体类库的使用，请参考：&lt;a href=&quot;cn/2016/07/07/plugin-modules/&quot;&gt;插件开发之类库使用&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;下面我主要介绍下，&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake lua&lt;/code&gt;插件提供的一些内置shell脚本，这些脚本是linux下的一些shell工具子集，用于实现跨平台执行，例如：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake lua cat
+xmake lua cp
+xmake lua echo
+xmake lua mv
+xmake lua rm
+xmake lua rmdir
+xmake lua mkdir
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;现在提供的工具不是很多，但是以后可以慢慢扩充，扩展起来还是很方便的，只需要把对应脚本：&lt;code class=&quot;highlighter-rouge&quot;&gt;cat.lua&lt;/code&gt; 放到 &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake lua&lt;/code&gt;插件目录的 scripts 目录下就行了。。&lt;/p&gt;
+
+&lt;p&gt;例如我想要跨平台运行 cat 命令，可以这么执行：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;    xmake lua cat /tmp/a
+or  xmake l cat c:\\a.txt
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;等以后工具扩充的越来越多，相当于在各个平台下，有了一套完善的linux的shell工具，方便日常开发使用&lt;/p&gt;
+
+&lt;p&gt;如果你想要看下xmake当前版本支持了哪些内置的shell工具，可以执行：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;    xmake lua -l
+or  xmake lua --list
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+</description>
+        <pubDate>Thu, 07 Jul 2016 00:00:00 +0800</pubDate>
+        <link>http://tboox.org/cn/2016/07/07/plugin-lua/</link>
+        <guid isPermaLink="true">http://tboox.org/cn/2016/07/07/plugin-lua/</guid>
+        
+        
+        <category>xmake</category>
+        
+      </item>
     
       <item>
         <title>xmake v2.0.2 update!</title>
@@ -553,164 +888,6 @@ Options:
         <pubDate>Sun, 26 Jun 2016 00:00:00 +0800</pubDate>
         <link>http://tboox.org/2016/06/26/compile-project/</link>
         <guid isPermaLink="true">http://tboox.org/2016/06/26/compile-project/</guid>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>A simple xmake.lua</title>
-        <description>&lt;p&gt;A simplest xmake.lua&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;-- define a target with named &#39;demo&#39;
-target(&quot;demo&quot;)
-
-    -- set the target kind, .e.g &#39;binary&#39; is a console program
-    -- - static: a static library
-    -- - shared: a shared library
-    set_kind(&quot;binary&quot;)
-
-    -- add all c source files in the directory: src
-    add_files(&quot;src/*.c&quot;) 
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;And we run the following command for building it.&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;Next, we write another xmake.lua for switching ‘debug’ or ‘release’ mode.&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;-- is debug now?
-if is_mode(&quot;debug&quot;) then
-    
-    -- enable debug symbols for debugger
-    set_symbols(&quot;debug&quot;)
-
-    -- disable optimization
-    set_optimize(&quot;none&quot;)
-end
-
--- is release now?
-if is_mode(&quot;release&quot;) then
-
-    -- set visibility as hidden
-    set_symbols(&quot;hidden&quot;)
-
-    -- enable optimization for fastest mode
-    set_optimize(&quot;fastest&quot;)
-
-    -- strip all symbols
-    set_strip(&quot;all&quot;)
-end
-
--- define a target
-target(&quot;test&quot;)
-
-    -- set the program kind as a static library
-    set_kind(&quot;static&quot;)
-
-    -- add all c++ files recursively
-    add_files(&quot;src/**.cpp&quot;) 
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;We configure this project with the debug mode now.&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake f -m debug
-#xmake config --mode=debug
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;And we build it.&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-</description>
-        <pubDate>Sun, 26 Jun 2016 00:00:00 +0800</pubDate>
-        <link>http://tboox.org/2016/06/26/a-simple-demo/</link>
-        <guid isPermaLink="true">http://tboox.org/2016/06/26/a-simple-demo/</guid>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>xmake后期发展随想</title>
-        <description>&lt;p&gt;随着xmake v2.0.1 版本的发布，这大半年的辛苦总算告一段落，这个版本我基本上重构整个项目的90%的代码，几乎算是重写了，但结果还算挺满意的。。&lt;/p&gt;
-
-&lt;p&gt;因为上个版本的架构设计的不是很好，不能很好进行扩展，也不支持插件模式，语法设计上也不严谨，容易出现各种隐患，这对于后期维护和发展来说，已经出现了不可逾越的瓶颈。。&lt;/p&gt;
-
-&lt;p&gt;每个项目到了一定阶段，都是要不断重构，重新构思整体架构，才能使得项目不断的向好的方向演进。。&lt;/p&gt;
-
-&lt;p&gt;（当然如果是公司项目就另当别论了，坑太多，历史负担较重，不是说要重构就能让你重构的。=。=）&lt;/p&gt;
-
-&lt;p&gt;回归正题，目前xmake基本上所有模块都是可扩展的：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;插件扩展&lt;/li&gt;
-  &lt;li&gt;工程模板扩展&lt;/li&gt;
-  &lt;li&gt;平台架构扩展&lt;/li&gt;
-  &lt;li&gt;action扩展&lt;/li&gt;
-  &lt;li&gt;option选项扩展&lt;/li&gt;
-  &lt;li&gt;自定义task任务机制&lt;/li&gt;
-  &lt;li&gt;宏脚本扩展&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;模块化和可扩展性，使得xmake整体是高度解耦的，整个core的内核算法实现非常轻量，其他模块如果我们想要扩展它，只需要把自己实现的脚本放到对应目录，就可以实现自注册，自加载。。&lt;/p&gt;
-
-&lt;p&gt;并且每个插件模块内部都有严格的作用域控制、沙盒化处理，非常安全，不会干扰到其他插件。。&lt;/p&gt;
-
-&lt;p&gt;下一个大版本，我打算开始研究下，怎么去实现完善的依赖包管理，目前的一些想法和构思：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;自动检测依赖包，如果存在直接链接编译，如果不存在，从远程仓库中自动下载对应版本，进行本地编译安装，然后自动集成和链接&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;支持多架构、多平台以及交叉平台的包管理&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;参考homebrew的包管理思想，将仓库放在项目中，通过git维护&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;为了实现交叉平台的包管理，仓库的包描述，除了提供包原代码的url外，还提供移植描述脚本&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;可能我说的有点模糊，先说说现有的一些包管理工具，例如：homebrew、apt-get、pacman等等。。&lt;/p&gt;
-
-&lt;p&gt;大同小异，都是下载、自动编译、安装集成到系统中，不过都只能支持pc原有的主机平台，并不支持交叉平台&lt;/p&gt;
-
-&lt;p&gt;例如：在windows上我要自动加载安装一个ios armv7s的包，集成到我的项目中。。这就不行了。&lt;/p&gt;
-
-&lt;p&gt;而xmake的下个版本，打算做的就是这个，简单的说：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;我要做一个移植仓库，实现一人移植，万人使用&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;以后，如果用xmake编译项目，这个项目中说需要链接 android 版本 armv7-a 的 libpng.a，那么xmake 就会先检测本地仓库是否存在，不存在的话，就会从移植仓库中，check处移植脚本，自动进行本地移植编译，然后链接到这个项目中去。。。&lt;/p&gt;
-
-&lt;p&gt;明白了吗，是不是很有趣。。？&lt;/p&gt;
-
-&lt;p&gt;现在的开源项目越来越多，平台也越来越多，但是很多c/c++项目的移植工作相当麻烦，不同项目编译方式区别很大，平台支持力度也各不一样。。&lt;/p&gt;
-
-&lt;p&gt;而我们平常移植后，基本上只能自己使用，没法分享给别人&lt;/p&gt;
-
-&lt;p&gt;而下个版本，xmake要做的就是让其他人不用重新再移植一边，只要有人移植过，把移植过程记录成移植脚本，push到xmake的移植仓库中，让所有人共享移植成果。。这是多美妙的一件事哈。。：）&lt;/p&gt;
-
-&lt;p&gt;我表达能力有限，貌似有点啰嗦了，最后我对xmake的期望就是：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;它不仅仅是个跨平台构建工具，也将会成为移植神器，一人移植，万人共享就是xmake的目标！&lt;/code&gt;&lt;/p&gt;
-
-</description>
-        <pubDate>Sat, 25 Jun 2016 00:00:00 +0800</pubDate>
-        <link>http://tboox.org/cn/2016/06/25/v2.1.1-goal/</link>
-        <guid isPermaLink="true">http://tboox.org/cn/2016/06/25/v2.1.1-goal/</guid>
         
         
         <category>xmake</category>
