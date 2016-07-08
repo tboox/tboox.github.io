@@ -12,6 +12,8 @@ xmake提供了自定义打包、安装、运行脚本，可以更加灵活的针
 
 首先创建个基于ant的android app工程，目录结构如下：
 
+<!-- more -->
+
     app
     └── android
         ├── AndroidManifest.xml

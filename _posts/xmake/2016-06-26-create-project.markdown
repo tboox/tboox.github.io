@@ -26,9 +26,11 @@ The default language is C language and `-t/--template` argument is used to get s
 
 Only supports three templates which are console, static library and shared library.
 
-We will add some application templates in feature.
+We will add some application templates in the future.
 
 We need note that the template's ID is variable. 
+
+<!-- more -->
 
 You can run `xmake create --help` to get more arguments info for template.
 

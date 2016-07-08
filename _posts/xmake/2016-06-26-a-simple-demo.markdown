@@ -22,6 +22,8 @@ And we run the following command for building it.
 
     xmake
 
+<!-- more -->
+
 Next, we write another xmake.lua for switching 'debug' or 'release' mode.
 
     -- is debug now?

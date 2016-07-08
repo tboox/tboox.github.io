@@ -34,6 +34,8 @@ xmake里面的lua脚本加载插件，可以让你方便调试和编写一些自
 
     xmake lua /tmp/hello.lua hello xmake
 
+<!-- more -->
+
 简单吧，当然除了lua内置的大部分模块，例如：`os, string, table, ...` 等等，xmake的lua加载器还提供其他更丰富的模块类库
 可以通过 `import` 导入后使用，所有导入的模块支持跟插件开发中使用的类库是一样的，具体类库的使用，请参考：[插件开发之类库使用](/cn/2016/07/07/plugin-modules/)
 

@@ -9,6 +9,8 @@ xmake通过import接口，可以在自定义脚本中导入各种内置类库和
 
 我们先看下，目前xmake提供的一些类库：
 
+<!-- more -->
+
     .
     ├── _g.lua
     ├── assert.lua

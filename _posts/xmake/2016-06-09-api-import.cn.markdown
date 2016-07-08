@@ -34,6 +34,8 @@ import的主要用于导入xmake的扩展类库以及一些自定义的类库模
         core.project.task.run("hello")
     end
 
+<!-- more -->
+
 导入当前目录下的自定义模块：
 
 目录结构：

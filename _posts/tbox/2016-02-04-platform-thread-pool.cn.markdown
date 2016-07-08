@@ -17,6 +17,8 @@ TBOX的线程池通过在每个worker中批量一次拉取多个task，对锁的
 
 下面看下简单的使用例子：
 
+<!-- more -->
+
     static tb_void_t tb_demo_task_time_done(tb_cpointer_t priv)
     {
         tb_msleep((tb_size_t)(priv));

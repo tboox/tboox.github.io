@@ -7,6 +7,8 @@ categories: xmake
 
 xmake 提供了一些内置的比较实用的插件，其中宏脚本插件是最具有代表性和实用性的，也是xmake比较推荐的一款插件，那它有哪些使用功能呢？
 
+<!-- more -->
+
 我们先来看下：`xmake macro --help`
 
     Usage: xmake macro|m [options] [name] [arguments]

@@ -29,6 +29,8 @@ We provide shorthand for each command, for example:
 
 Please run `xmake --help` to get more info about it.
 
+<!-- more -->
+
 We need to describe them for the debug and release compile mode in xmake.lua file, for example:
 
     -- the debug mode

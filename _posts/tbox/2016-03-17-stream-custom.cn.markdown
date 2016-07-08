@@ -32,6 +32,8 @@ tbox中提供了常用的一些stream模块，例如：data、file、http、sock
         tb_stream_exit(stream);
     }
 
+<!-- more -->
+
 这样的好处是，操作io的模块不需要关心实际的数据流协议，只管从stream中读写数据就行了，实现数据和业务逻辑的解耦。。
 
 但是tbox提供的这些内置stream模块，有时候没法完全咱们的实际需求，例如：
