@@ -52,8 +52,21 @@ icon: th-list
                     {% endfor %}
                 </ul>
             </div>
+            
             <!-- 其他div框放到这里 -->
-            <!-- <div class="side">bbbb</div> -->
+            {% if site.adsbygoogle_client %}
+            <br>
+            <div class="side">
+                <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+                <ins class="adsbygoogle"
+                     style="display:inline-block;width:336px;height:280px"
+                     data-ad-client="{{ adsbygoogle_client }}"
+                     data-ad-slot="{{ adsbygoogle_slot }}"></ins>
+                <script>
+                (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </div> 
+            {% endif %}
         </div>
     </div>
 </div>

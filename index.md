@@ -144,15 +144,30 @@ layout: default
                 </div>
             </div>
 
-            <!-- <div class="side">
+            <div class="side">
                 <div>
                     <i class="fa fa-external-link"></i>
                     Links
                 </div>
                 <ul  class="content-ul">
-
+                  <li><a href="http://xmake.io">XMake</a></li>
+                  <li><a href="https://github.com/waruqi">Github</a></li>
                 </ul>
-            </div> -->
+            </div> 
+
+            {% if site.adsbygoogle_client %}
+            <div class="side">
+                <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+                <ins class="adsbygoogle"
+                     style="display:inline-block;width:336px;height:280px"
+                     data-ad-client="{{ adsbygoogle_client }}"
+                     data-ad-slot="{{ adsbygoogle_slot }}"></ins>
+                <script>
+                (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </div> 
+            {% endif %}
+
         </div>
     </div>
 </div>
