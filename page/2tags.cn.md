@@ -11,9 +11,7 @@ icon: tags
         <hr>
         {% capture tags %}
           {% for tag in site.tags %}
-            {% if post.url contains '/cn/' %}
             {{ tag[0] }}
-          {% endif %}
           {% endfor %}
         {% endcapture %}
         {% assign sortedtags = tags | split:' ' | sort %}

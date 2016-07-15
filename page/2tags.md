@@ -11,9 +11,7 @@ icon: tags
         <hr>
         {% capture tags %}
           {% for tag in site.tags %}
-            {% unless post.url contains '/cn/' %}
             {{ tag[0] }}
-          {% endunless %}
           {% endfor %}
         {% endcapture %}
         {% assign sortedtags = tags | split:' ' | sort %}
@@ -22,7 +20,6 @@ icon: tags
         {% for tag in sortedtags %}
           <h2 id="{{ tag }}">{{ tag }}</h2>
           {% for post in site.tags[tag] %}
-            {% unless post.url contains '/cn/' %}
             <li>
                 <time>
                 {{ post.date | date:"%F" }} {{ post.date | date: "%a" }}.
@@ -32,7 +29,6 @@ icon: tags
                 {% include category.html %}
                 {% include tag.html %}
             </li>
-          {% endunless %}
           {% endfor %}
         {% endfor %}
         </ul>
