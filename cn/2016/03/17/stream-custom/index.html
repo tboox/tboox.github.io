@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title>自定义流的实现和使用</title>
-    <meta name="description" content="tbox中提供了常用的一些stream模块，例如：data、file、http、sock等，可以通过指定不同的url，使用相同的接口进行数据流的读写，非常的方便。例如：// init streamtb_stream_ref_t stream = tb_stream_init_from_url("http://ww...">
+    <meta name="description" content="tbox中提供了常用的一些stream模块，例如：data、file、http、sock等，可以通过指定不同的url，使用相同的接口进行数据流的读写，非常的方便。例如：    // init stream    tb_stream_ref_t stream = tb_stream_init_from_url("h...">
 
     <link rel="shortcut icon" href="/favicon.ico?" type="image/x-icon">
     <link rel="icon" href="/favicon.ico?" type="image/x-icon">
@@ -245,26 +245,26 @@
 
 <p>例如：</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>// init stream
-tb_stream_ref_t stream = tb_stream_init_from_url("http://www.xxx.com/file.txt");
-if (stream)
-{
-    // open stream
-    if (tb_stream_open(stream))
-    {
-        // read line
-        tb_long_t size = 0;
-        tb_char_t line[TB_STREAM_BLOCK_MAXN];
-        while ((size = tb_stream_bread_line(stream, line, sizeof(line))) &gt;= 0)
-        {
-            // trace
-            tb_trace_i("line: %s", line);
-        }
-    }
+<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="c1">// init stream
+</span>    <span class="n">tb_stream_ref_t</span> <span class="n">stream</span> <span class="o">=</span> <span class="n">tb_stream_init_from_url</span><span class="p">(</span><span class="s">"http://www.xxx.com/file.txt"</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">stream</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// open stream
+</span>        <span class="k">if</span> <span class="p">(</span><span class="n">tb_stream_open</span><span class="p">(</span><span class="n">stream</span><span class="p">))</span>
+        <span class="p">{</span>
+            <span class="c1">// read line
+</span>            <span class="n">tb_long_t</span> <span class="n">size</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+            <span class="n">tb_char_t</span> <span class="n">line</span><span class="p">[</span><span class="n">TB_STREAM_BLOCK_MAXN</span><span class="p">];</span>
+            <span class="k">while</span> <span class="p">((</span><span class="n">size</span> <span class="o">=</span> <span class="n">tb_stream_bread_line</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">line</span><span class="p">)))</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="c1">// trace
+</span>                <span class="n">tb_trace_i</span><span class="p">(</span><span class="s">"line: %s"</span><span class="p">,</span> <span class="n">line</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
 
-    // exit stream
-    tb_stream_exit(stream);
-}
+        <span class="c1">// exit stream
+</span>        <span class="n">tb_stream_exit</span><span class="p">(</span><span class="n">stream</span><span class="p">);</span>
+    <span class="p">}</span>
 </code></pre>
 </div>
 
@@ -280,240 +280,240 @@ if (stream)
 
 <p>我们先定义个一个stream类型，例如：</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>// 用户自定义流类型：实时流
-#define TB_STREAM_TYPE_REAL         (TB_STREAM_TYPE_USER + 1)
-
-// 定义一个控制流代码，之后tb_stream_ctrl需要
-#define TM_STREAM_CTRL_REAL_PUSH    TB_STREAM_CTRL(TM_STREAM_TYPE_REAL, 1)
-</code></pre>
+<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="c1">// 用户自定义流类型：实时流
+</span>    <span class="cp">#define TB_STREAM_TYPE_REAL         (TB_STREAM_TYPE_USER + 1)
+</span>
+    <span class="c1">// 定义一个控制流代码，之后tb_stream_ctrl需要
+</span>    <span class="cp">#define TM_STREAM_CTRL_REAL_PUSH    TB_STREAM_CTRL(TM_STREAM_TYPE_REAL, 1)
+</span></code></pre>
 </div>
 
 <p>定义个自定义流的数据结构，用于维护咱们的私有数据</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>// 实时流类型
-typedef struct __tb_stream_real_t
-{
-    // 这里定义了一个数据块buffer的队列，用于缓存不断送入的数据
-    tb_queue_ref_t      buffers;
+<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="c1">// 实时流类型
+</span>    <span class="k">typedef</span> <span class="k">struct</span> <span class="n">__tb_stream_real_t</span>
+    <span class="p">{</span>
+        <span class="c1">// 这里定义了一个数据块buffer的队列，用于缓存不断送入的数据
+</span>        <span class="n">tb_queue_ref_t</span>      <span class="n">buffers</span><span class="p">;</span>
 
-    // 总的数据大小
-    tb_size_t           size;
+        <span class="c1">// 总的数据大小
+</span>        <span class="n">tb_size_t</span>           <span class="n">size</span><span class="p">;</span>
 
-}tb_stream_real_t, *tb_stream_real_ref_t;
+    <span class="p">}</span><span class="n">tb_stream_real_t</span><span class="p">,</span> <span class="o">*</span><span class="n">tb_stream_real_ref_t</span><span class="p">;</span>
 
-// 定义一个buffer块类型，用于维护单个数据块
-typedef struct __tm_real_buffer_t
-{
-    // 数据地址
-    tb_byte_t*          data;
+    <span class="c1">// 定义一个buffer块类型，用于维护单个数据块
+</span>    <span class="k">typedef</span> <span class="k">struct</span> <span class="n">__tm_real_buffer_t</span>
+    <span class="p">{</span>
+        <span class="c1">// 数据地址
+</span>        <span class="n">tb_byte_t</span><span class="o">*</span>          <span class="n">data</span><span class="p">;</span>
 
-    // 这个buffer总大小
-    tb_size_t           size;
+        <span class="c1">// 这个buffer总大小
+</span>        <span class="n">tb_size_t</span>           <span class="n">size</span><span class="p">;</span>
 
-    // 在这个buffer中，当前读取到的数据
-    tb_size_t           read;
+        <span class="c1">// 在这个buffer中，当前读取到的数据
+</span>        <span class="n">tb_size_t</span>           <span class="n">read</span><span class="p">;</span>
 
-}tm_real_buffer_t, *tm_real_buffer_ref_t;
+    <span class="p">}</span><span class="n">tm_real_buffer_t</span><span class="p">,</span> <span class="o">*</span><span class="n">tm_real_buffer_ref_t</span><span class="p">;</span>
 </code></pre>
 </div>
 
 <p>创建一个stream实例，注册一些需要的回调接口</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>// 初始化创建个一个实时流
-tb_stream_ref_t tb_stream_init_real()
-{
-    return tb_stream_init(  TB_STREAM_TYPE_REAL
-                        ,   sizeof(tb_stream_real_t)
-                        ,   0           // stream缓存大小（file/sock有用），这里禁用了，因为咱们的流不需要缓存读取
-                        ,   tb_stream_real_open
-                        ,   tb_stream_real_clos
-                        ,   tb_stream_real_exit
-                        ,   tb_stream_real_ctrl
-                        ,   tb_stream_real_wait
-                        ,   tb_stream_real_read
-                        ,   tb_null     // 写回调，这里不需要
-                        ,   tb_null     // seek，我们这里不需要
-                        ,   tb_null     // 刷新写数据，不需要
-                        ,   tb_null);   // kill当前的stream，很少用，一般用于中断内部读写
-}
+<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="c1">// 初始化创建个一个实时流
+</span>    <span class="n">tb_stream_ref_t</span> <span class="nf">tb_stream_init_real</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="n">tb_stream_init</span><span class="p">(</span>  <span class="n">TB_STREAM_TYPE_REAL</span>
+                            <span class="p">,</span>   <span class="k">sizeof</span><span class="p">(</span><span class="n">tb_stream_real_t</span><span class="p">)</span>
+                            <span class="p">,</span>   <span class="mi">0</span>           <span class="c1">// stream缓存大小（file/sock有用），这里禁用了，因为咱们的流不需要缓存读取
+</span>                            <span class="p">,</span>   <span class="n">tb_stream_real_open</span>
+                            <span class="p">,</span>   <span class="n">tb_stream_real_clos</span>
+                            <span class="p">,</span>   <span class="n">tb_stream_real_exit</span>
+                            <span class="p">,</span>   <span class="n">tb_stream_real_ctrl</span>
+                            <span class="p">,</span>   <span class="n">tb_stream_real_wait</span>
+                            <span class="p">,</span>   <span class="n">tb_stream_real_read</span>
+                            <span class="p">,</span>   <span class="n">tb_null</span>     <span class="c1">// 写回调，这里不需要
+</span>                            <span class="p">,</span>   <span class="n">tb_null</span>     <span class="c1">// seek，我们这里不需要
+</span>                            <span class="p">,</span>   <span class="n">tb_null</span>     <span class="c1">// 刷新写数据，不需要
+</span>                            <span class="p">,</span>   <span class="n">tb_null</span><span class="p">);</span>   <span class="c1">// kill当前的stream，很少用，一般用于中断内部读写
+</span>    <span class="p">}</span>
 </code></pre>
 </div>
 
 <p>下面就是具体的回调接口实现了</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>// 实现open回调接口，用于打开stream，tb_stream_open会用到
-static tb_bool_t tb_stream_real_open(tb_stream_ref_t stream)
-{
-    // check
-    tb_stream_real_ref_t rstream = (tb_stream_real_ref_t)stream;
-    tb_assert_and_check_return_val(rstream, tb_false);
+<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="c1">// 实现open回调接口，用于打开stream，tb_stream_open会用到
+</span>    <span class="k">static</span> <span class="n">tb_bool_t</span> <span class="nf">tb_stream_real_open</span><span class="p">(</span><span class="n">tb_stream_ref_t</span> <span class="n">stream</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// check
+</span>        <span class="n">tb_stream_real_ref_t</span> <span class="n">rstream</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_stream_real_ref_t</span><span class="p">)</span><span class="n">stream</span><span class="p">;</span>
+        <span class="n">tb_assert_and_check_return_val</span><span class="p">(</span><span class="n">rstream</span><span class="p">,</span> <span class="n">tb_false</span><span class="p">);</span>
 
-    // 初始化一个buffer队列，并注册自动释放接口：tb_real_buffer_exit，之后有说明
-    rstream-&gt;buffers = tb_queue_init(0, tb_element_mem(sizeof(tb_real_buffer_t), tb_real_buffer_exit, tb_null));
+        <span class="c1">// 初始化一个buffer队列，并注册自动释放接口：tb_real_buffer_exit，之后有说明
+</span>        <span class="n">rstream</span><span class="o">-&gt;</span><span class="n">buffers</span> <span class="o">=</span> <span class="n">tb_queue_init</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">tb_element_mem</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">tb_real_buffer_t</span><span class="p">),</span> <span class="n">tb_real_buffer_exit</span><span class="p">,</span> <span class="n">tb_null</span><span class="p">));</span>
 
-    // init size
-    rstream-&gt;size = 0;
+        <span class="c1">// init size
+</span>        <span class="n">rstream</span><span class="o">-&gt;</span><span class="n">size</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 
-    // ok
-    return !!rstream-&gt;buffers;
-}
+        <span class="c1">// ok
+</span>        <span class="k">return</span> <span class="o">!!</span><span class="n">rstream</span><span class="o">-&gt;</span><span class="n">buffers</span><span class="p">;</span>
+    <span class="p">}</span>
 
-// 实现close回调接口，用于关闭stream，tb_stream_clos会用到
-static tb_bool_t tb_stream_real_clos(tb_stream_ref_t stream)
-{
-    // check
-    tb_stream_real_ref_t rstream = (tb_stream_real_ref_t)stream;
-    tb_assert_and_check_return_val(rstream, tb_false);
-    
-    // exit buffers
-    if (rstream-&gt;buffers) tb_queue_exit(rstream-&gt;buffers);
-    rstream-&gt;buffers = tb_null;
+    <span class="c1">// 实现close回调接口，用于关闭stream，tb_stream_clos会用到
+</span>    <span class="k">static</span> <span class="n">tb_bool_t</span> <span class="nf">tb_stream_real_clos</span><span class="p">(</span><span class="n">tb_stream_ref_t</span> <span class="n">stream</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// check
+</span>        <span class="n">tb_stream_real_ref_t</span> <span class="n">rstream</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_stream_real_ref_t</span><span class="p">)</span><span class="n">stream</span><span class="p">;</span>
+        <span class="n">tb_assert_and_check_return_val</span><span class="p">(</span><span class="n">rstream</span><span class="p">,</span> <span class="n">tb_false</span><span class="p">);</span>
+        
+        <span class="c1">// exit buffers
+</span>        <span class="k">if</span> <span class="p">(</span><span class="n">rstream</span><span class="o">-&gt;</span><span class="n">buffers</span><span class="p">)</span> <span class="n">tb_queue_exit</span><span class="p">(</span><span class="n">rstream</span><span class="o">-&gt;</span><span class="n">buffers</span><span class="p">);</span>
+        <span class="n">rstream</span><span class="o">-&gt;</span><span class="n">buffers</span> <span class="o">=</span> <span class="n">tb_null</span><span class="p">;</span>
 
-    // ok
-    return tb_true;
-}
+        <span class="c1">// ok
+</span>        <span class="k">return</span> <span class="n">tb_true</span><span class="p">;</span>
+    <span class="p">}</span>
 
-// 实现exit回调接口，用于销毁stream，tb_stream_exit会用到
-static tb_void_t tb_stream_real_exit(tb_stream_ref_t stream)
-{
-    // check
-    tb_stream_real_ref_t rstream = (tb_stream_real_ref_t)stream;
-    tb_assert_and_check_return(rstream);
-    
-    // exit buffers
-    if (rstream-&gt;buffers) tb_queue_exit(rstream-&gt;buffers);
-    rstream-&gt;buffers = tb_null;
+    <span class="c1">// 实现exit回调接口，用于销毁stream，tb_stream_exit会用到
+</span>    <span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">tb_stream_real_exit</span><span class="p">(</span><span class="n">tb_stream_ref_t</span> <span class="n">stream</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// check
+</span>        <span class="n">tb_stream_real_ref_t</span> <span class="n">rstream</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_stream_real_ref_t</span><span class="p">)</span><span class="n">stream</span><span class="p">;</span>
+        <span class="n">tb_assert_and_check_return</span><span class="p">(</span><span class="n">rstream</span><span class="p">);</span>
+        
+        <span class="c1">// exit buffers
+</span>        <span class="k">if</span> <span class="p">(</span><span class="n">rstream</span><span class="o">-&gt;</span><span class="n">buffers</span><span class="p">)</span> <span class="n">tb_queue_exit</span><span class="p">(</span><span class="n">rstream</span><span class="o">-&gt;</span><span class="n">buffers</span><span class="p">);</span>
+        <span class="n">rstream</span><span class="o">-&gt;</span><span class="n">buffers</span> <span class="o">=</span> <span class="n">tb_null</span><span class="p">;</span>
 
-    // clear size
-    rstream-&gt;size = 0;
-}
+        <span class="c1">// clear size
+</span>        <span class="n">rstream</span><span class="o">-&gt;</span><span class="n">size</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="p">}</span>
 
-// 实现read回调接口，用于读取数据，tb_stream_read/tb_stream_bread等接口会用到
-static tb_long_t tb_stream_real_read(tb_stream_ref_t stream, tb_byte_t* data, tb_size_t size)
-{
-    // check
-    tb_stream_real_ref_t rstream = (tb_stream_real_ref_t)stream;
-    tb_assert_and_check_return_val(rstream &amp;&amp; rstream-&gt;buffers, -1);
+    <span class="c1">// 实现read回调接口，用于读取数据，tb_stream_read/tb_stream_bread等接口会用到
+</span>    <span class="k">static</span> <span class="n">tb_long_t</span> <span class="nf">tb_stream_real_read</span><span class="p">(</span><span class="n">tb_stream_ref_t</span> <span class="n">stream</span><span class="p">,</span> <span class="n">tb_byte_t</span><span class="o">*</span> <span class="n">data</span><span class="p">,</span> <span class="n">tb_size_t</span> <span class="n">size</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// check
+</span>        <span class="n">tb_stream_real_ref_t</span> <span class="n">rstream</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_stream_real_ref_t</span><span class="p">)</span><span class="n">stream</span><span class="p">;</span>
+        <span class="n">tb_assert_and_check_return_val</span><span class="p">(</span><span class="n">rstream</span> <span class="o">&amp;&amp;</span> <span class="n">rstream</span><span class="o">-&gt;</span><span class="n">buffers</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">);</span>
 
-    // check
-    tb_check_return_val(data, -1);
-    tb_check_return_val(size, 0);
+        <span class="c1">// check
+</span>        <span class="n">tb_check_return_val</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+        <span class="n">tb_check_return_val</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
 
-    // 依次从队列头部读取每块buffer的数据，直到读满为止
-    tb_long_t read = 0;
-    while (read &lt; size &amp;&amp; tb_queue_size(rstream-&gt;buffers))
-    {
-        // get buffer
-        tb_real_buffer_ref_t buffer = tb_queue_get(rstream-&gt;buffers);
-        tb_assert_and_check_break(buffer &amp;&amp; buffer-&gt;data &amp;&amp; buffer-&gt;size);
+        <span class="c1">// 依次从队列头部读取每块buffer的数据，直到读满为止
+</span>        <span class="n">tb_long_t</span> <span class="n">read</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="k">while</span> <span class="p">(</span><span class="n">read</span> <span class="o">&lt;</span> <span class="n">size</span> <span class="o">&amp;&amp;</span> <span class="n">tb_queue_size</span><span class="p">(</span><span class="n">rstream</span><span class="o">-&gt;</span><span class="n">buffers</span><span class="p">))</span>
+        <span class="p">{</span>
+            <span class="c1">// get buffer
+</span>            <span class="n">tb_real_buffer_ref_t</span> <span class="n">buffer</span> <span class="o">=</span> <span class="n">tb_queue_get</span><span class="p">(</span><span class="n">rstream</span><span class="o">-&gt;</span><span class="n">buffers</span><span class="p">);</span>
+            <span class="n">tb_assert_and_check_break</span><span class="p">(</span><span class="n">buffer</span> <span class="o">&amp;&amp;</span> <span class="n">buffer</span><span class="o">-&gt;</span><span class="n">data</span> <span class="o">&amp;&amp;</span> <span class="n">buffer</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">);</span>
 
-        // read data
-        if (buffer-&gt;read &lt; buffer-&gt;size)
-        {
-            // calculate the need size
-            tb_size_t need = tb_min(size - read, buffer-&gt;size - buffer-&gt;read);
+            <span class="c1">// read data
+</span>            <span class="k">if</span> <span class="p">(</span><span class="n">buffer</span><span class="o">-&gt;</span><span class="n">read</span> <span class="o">&lt;</span> <span class="n">buffer</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="c1">// calculate the need size
+</span>                <span class="n">tb_size_t</span> <span class="n">need</span> <span class="o">=</span> <span class="n">tb_min</span><span class="p">(</span><span class="n">size</span> <span class="o">-</span> <span class="n">read</span><span class="p">,</span> <span class="n">buffer</span><span class="o">-&gt;</span><span class="n">size</span> <span class="o">-</span> <span class="n">buffer</span><span class="o">-&gt;</span><span class="n">read</span><span class="p">);</span>
 
-            // copy data
-            tb_memcpy(data + read, buffer-&gt;data + buffer-&gt;read, need);
+                <span class="c1">// copy data
+</span>                <span class="n">tb_memcpy</span><span class="p">(</span><span class="n">data</span> <span class="o">+</span> <span class="n">read</span><span class="p">,</span> <span class="n">buffer</span><span class="o">-&gt;</span><span class="n">data</span> <span class="o">+</span> <span class="n">buffer</span><span class="o">-&gt;</span><span class="n">read</span><span class="p">,</span> <span class="n">need</span><span class="p">);</span>
 
-            // update the read size for buffer
-            buffer-&gt;read += need;
+                <span class="c1">// update the read size for buffer
+</span>                <span class="n">buffer</span><span class="o">-&gt;</span><span class="n">read</span> <span class="o">+=</span> <span class="n">need</span><span class="p">;</span>
 
-            // update the total read size
-            read += need;
-        }
+                <span class="c1">// update the total read size
+</span>                <span class="n">read</span> <span class="o">+=</span> <span class="n">need</span><span class="p">;</span>
+            <span class="p">}</span>
 
-        // 将读空的buffer释放掉
-        if (buffer-&gt;read == buffer-&gt;size)
-            tb_queue_pop(rstream-&gt;buffers);
-    }
+            <span class="c1">// 将读空的buffer释放掉
+</span>            <span class="k">if</span> <span class="p">(</span><span class="n">buffer</span><span class="o">-&gt;</span><span class="n">read</span> <span class="o">==</span> <span class="n">buffer</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">)</span>
+                <span class="n">tb_queue_pop</span><span class="p">(</span><span class="n">rstream</span><span class="o">-&gt;</span><span class="n">buffers</span><span class="p">);</span>
+        <span class="p">}</span>
 
-    // ok?
-    return read;
-}
+        <span class="c1">// ok?
+</span>        <span class="k">return</span> <span class="n">read</span><span class="p">;</span>
+    <span class="p">}</span>
 
-// 实现wait回调接口，用于等待数据，tb_stream_wait/tb_stream_bread等阻塞读取接口会用到
-static tb_long_t tb_stream_real_wait(tb_stream_ref_t stream, tb_size_t wait, tb_long_t timeout)
-{
-    // check
-    tb_stream_real_ref_t rstream = (tb_stream_real_ref_t)stream;
-    tb_assert_and_check_return_val(rstream &amp;&amp; rstream-&gt;buffers, -1);
+    <span class="c1">// 实现wait回调接口，用于等待数据，tb_stream_wait/tb_stream_bread等阻塞读取接口会用到
+</span>    <span class="k">static</span> <span class="n">tb_long_t</span> <span class="nf">tb_stream_real_wait</span><span class="p">(</span><span class="n">tb_stream_ref_t</span> <span class="n">stream</span><span class="p">,</span> <span class="n">tb_size_t</span> <span class="n">wait</span><span class="p">,</span> <span class="n">tb_long_t</span> <span class="n">timeout</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// check
+</span>        <span class="n">tb_stream_real_ref_t</span> <span class="n">rstream</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_stream_real_ref_t</span><span class="p">)</span><span class="n">stream</span><span class="p">;</span>
+        <span class="n">tb_assert_and_check_return_val</span><span class="p">(</span><span class="n">rstream</span> <span class="o">&amp;&amp;</span> <span class="n">rstream</span><span class="o">-&gt;</span><span class="n">buffers</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">);</span>
 
-    // 当前是否有数据可读？
-    return tb_queue_size(rstream-&gt;buffers)? TB_STREAM_WAIT_READ : TB_STREAM_WAIT_NONE;
-}
+        <span class="c1">// 当前是否有数据可读？
+</span>        <span class="k">return</span> <span class="n">tb_queue_size</span><span class="p">(</span><span class="n">rstream</span><span class="o">-&gt;</span><span class="n">buffers</span><span class="p">)</span><span class="o">?</span> <span class="n">TB_STREAM_WAIT_READ</span> <span class="o">:</span> <span class="n">TB_STREAM_WAIT_NONE</span><span class="p">;</span>
+    <span class="p">}</span>
 
-// 实现ctrl回调接口，用于设置和获取一些状态，扩展一些自定义的接口，tb_stream_ctrl接口会用到
-static tb_bool_t tb_stream_real_ctrl(tb_stream_ref_t stream, tb_size_t ctrl, tb_va_list_t args)
-{
-    // check
-    tb_stream_real_ref_t rstream = (tb_stream_real_ref_t)stream;
-    tb_assert_and_check_return_val(rstream, tb_false);
+    <span class="c1">// 实现ctrl回调接口，用于设置和获取一些状态，扩展一些自定义的接口，tb_stream_ctrl接口会用到
+</span>    <span class="k">static</span> <span class="n">tb_bool_t</span> <span class="nf">tb_stream_real_ctrl</span><span class="p">(</span><span class="n">tb_stream_ref_t</span> <span class="n">stream</span><span class="p">,</span> <span class="n">tb_size_t</span> <span class="n">ctrl</span><span class="p">,</span> <span class="n">tb_va_list_t</span> <span class="n">args</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// check
+</span>        <span class="n">tb_stream_real_ref_t</span> <span class="n">rstream</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_stream_real_ref_t</span><span class="p">)</span><span class="n">stream</span><span class="p">;</span>
+        <span class="n">tb_assert_and_check_return_val</span><span class="p">(</span><span class="n">rstream</span><span class="p">,</span> <span class="n">tb_false</span><span class="p">);</span>
 
-    // ctrl
-    switch (ctrl)
-    {
-    case TB_STREAM_CTRL_GET_SIZE:
-        {
-            // the psize
-            tb_hong_t* psize = (tb_hong_t*)tb_va_arg(args, tb_hong_t*);
-            tb_assert_and_check_break(psize);
+        <span class="c1">// ctrl
+</span>        <span class="k">switch</span> <span class="p">(</span><span class="n">ctrl</span><span class="p">)</span>
+        <span class="p">{</span>
+        <span class="k">case</span> <span class="n">TB_STREAM_CTRL_GET_SIZE</span><span class="p">:</span>
+            <span class="p">{</span>
+                <span class="c1">// the psize
+</span>                <span class="n">tb_hong_t</span><span class="o">*</span> <span class="n">psize</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_hong_t</span><span class="o">*</span><span class="p">)</span><span class="n">tb_va_arg</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">tb_hong_t</span><span class="o">*</span><span class="p">);</span>
+                <span class="n">tb_assert_and_check_break</span><span class="p">(</span><span class="n">psize</span><span class="p">);</span>
 
-            // 获取数据流大小，tb_stream_size有用到
-            *psize = rstream-&gt;size;
+                <span class="c1">// 获取数据流大小，tb_stream_size有用到
+</span>                <span class="o">*</span><span class="n">psize</span> <span class="o">=</span> <span class="n">rstream</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">;</span>
 
-            // ok
-            return tb_true;
-        }   
-        // 在另外一端通过tb_stream_ctrl来不断的送入数据块到stream
-    case TB_STREAM_CTRL_REAL_PUSH:
-        {
-            // check
-            tb_assert_and_check_break(rstream-&gt;buffers);
+                <span class="c1">// ok
+</span>                <span class="k">return</span> <span class="n">tb_true</span><span class="p">;</span>
+            <span class="p">}</span>   
+            <span class="c1">// 在另外一端通过tb_stream_ctrl来不断的送入数据块到stream
+</span>        <span class="k">case</span> <span class="n">TB_STREAM_CTRL_REAL_PUSH</span><span class="p">:</span>
+            <span class="p">{</span>
+                <span class="c1">// check
+</span>                <span class="n">tb_assert_and_check_break</span><span class="p">(</span><span class="n">rstream</span><span class="o">-&gt;</span><span class="n">buffers</span><span class="p">);</span>
 
-            // the data and size
-            tb_byte_t const*    data = (tb_byte_t const*)tb_va_arg(args, tb_byte_t const*);
-            tb_size_t           size = (tb_size_t)tb_va_arg(args, tb_size_t);
-            tb_assert_and_check_break(data &amp;&amp; size);
+                <span class="c1">// the data and size
+</span>                <span class="n">tb_byte_t</span> <span class="k">const</span><span class="o">*</span>    <span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_byte_t</span> <span class="k">const</span><span class="o">*</span><span class="p">)</span><span class="n">tb_va_arg</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">tb_byte_t</span> <span class="k">const</span><span class="o">*</span><span class="p">);</span>
+                <span class="n">tb_size_t</span>           <span class="n">size</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_size_t</span><span class="p">)</span><span class="n">tb_va_arg</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">tb_size_t</span><span class="p">);</span>
+                <span class="n">tb_assert_and_check_break</span><span class="p">(</span><span class="n">data</span> <span class="o">&amp;&amp;</span> <span class="n">size</span><span class="p">);</span>
 
-            // 压入一个数据块
-            tb_real_buffer_t buffer;
-            buffer.data = tb_memdup(data, size);
-            buffer.size = size;
-            buffer.read = 0;
-            tb_queue_put(rstream-&gt;buffers, &amp;buffer);
+                <span class="c1">// 压入一个数据块
+</span>                <span class="n">tb_real_buffer_t</span> <span class="n">buffer</span><span class="p">;</span>
+                <span class="n">buffer</span><span class="p">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">tb_memdup</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
+                <span class="n">buffer</span><span class="p">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">size</span><span class="p">;</span>
+                <span class="n">buffer</span><span class="p">.</span><span class="n">read</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+                <span class="n">tb_queue_put</span><span class="p">(</span><span class="n">rstream</span><span class="o">-&gt;</span><span class="n">buffers</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">buffer</span><span class="p">);</span>
 
-            // 更新总的数据大小
-            rstream-&gt;size += size;
+                <span class="c1">// 更新总的数据大小
+</span>                <span class="n">rstream</span><span class="o">-&gt;</span><span class="n">size</span> <span class="o">+=</span> <span class="n">size</span><span class="p">;</span>
 
-            // ok
-            return tb_true;
-        }
-    default:
-        break;
-    }
+                <span class="c1">// ok
+</span>                <span class="k">return</span> <span class="n">tb_true</span><span class="p">;</span>
+            <span class="p">}</span>
+        <span class="nl">default:</span>
+            <span class="k">break</span><span class="p">;</span>
+        <span class="p">}</span>
 
-    // failed
-    return tb_false;
-}
+        <span class="c1">// failed
+</span>        <span class="k">return</span> <span class="n">tb_false</span><span class="p">;</span>
+    <span class="p">}</span>
 </code></pre>
 </div>
 
 <p>通过上面四步， 基本上一个自定义流就实现好了，上面说的<code class="highlighter-rouge">tb_real_buffer_exit</code>主要用于queue维护的buffer的自动释放
 详细说明和使用见容器章节，下面附属相关实现：</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>static tb_void_t tb_real_buffer_exit(tb_element_ref_t element, tb_pointer_t buff)
-{
-    // check
-    tb_real_buffer_ref_t buffer = (tb_real_buffer_ref_t)buff;
-    tb_assert_and_check_return(buffer);
+<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">tb_real_buffer_exit</span><span class="p">(</span><span class="n">tb_element_ref_t</span> <span class="n">element</span><span class="p">,</span> <span class="n">tb_pointer_t</span> <span class="n">buff</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// check
+</span>        <span class="n">tb_real_buffer_ref_t</span> <span class="n">buffer</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_real_buffer_ref_t</span><span class="p">)</span><span class="n">buff</span><span class="p">;</span>
+        <span class="n">tb_assert_and_check_return</span><span class="p">(</span><span class="n">buffer</span><span class="p">);</span>
 
-    // exit it
-    if (buffer-&gt;data) tb_free(buffer-&gt;data);
-    buffer-&gt;data = tb_null;
-    buffer-&gt;size = 0;
-    buffer-&gt;read = 0;
-}
+        <span class="c1">// exit it
+</span>        <span class="k">if</span> <span class="p">(</span><span class="n">buffer</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">)</span> <span class="n">tb_free</span><span class="p">(</span><span class="n">buffer</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">);</span>
+        <span class="n">buffer</span><span class="o">-&gt;</span><span class="n">data</span> <span class="o">=</span> <span class="n">tb_null</span><span class="p">;</span>
+        <span class="n">buffer</span><span class="o">-&gt;</span><span class="n">size</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="n">buffer</span><span class="o">-&gt;</span><span class="n">read</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="p">}</span>
 </code></pre>
 </div>
 
@@ -521,26 +521,26 @@ static tb_bool_t tb_stream_real_ctrl(tb_stream_ref_t stream, tb_size_t ctrl, tb_
 
 <p>接收端</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>// init stream
-tb_stream_ref_t stream = tb_stream_init_real();
-if (stream)
-{
-    // open stream
-    if (tb_stream_open(stream))
-    {
-        // read line
-        tb_long_t size = 0;
-        tb_char_t line[TB_STREAM_BLOCK_MAXN];
-        while ((size = tb_stream_bread_line(stream, line, sizeof(line))) &gt;= 0)
-        {
-            // trace
-            tb_trace_i("line: %s", line);
-        }
-    }
+<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="c1">// init stream
+</span>    <span class="n">tb_stream_ref_t</span> <span class="n">stream</span> <span class="o">=</span> <span class="n">tb_stream_init_real</span><span class="p">();</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">stream</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// open stream
+</span>        <span class="k">if</span> <span class="p">(</span><span class="n">tb_stream_open</span><span class="p">(</span><span class="n">stream</span><span class="p">))</span>
+        <span class="p">{</span>
+            <span class="c1">// read line
+</span>            <span class="n">tb_long_t</span> <span class="n">size</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+            <span class="n">tb_char_t</span> <span class="n">line</span><span class="p">[</span><span class="n">TB_STREAM_BLOCK_MAXN</span><span class="p">];</span>
+            <span class="k">while</span> <span class="p">((</span><span class="n">size</span> <span class="o">=</span> <span class="n">tb_stream_bread_line</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">line</span><span class="p">)))</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="c1">// trace
+</span>                <span class="n">tb_trace_i</span><span class="p">(</span><span class="s">"line: %s"</span><span class="p">,</span> <span class="n">line</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
 
-    // exit stream
-    tb_stream_exit(stream);
-}
+        <span class="c1">// exit stream
+</span>        <span class="n">tb_stream_exit</span><span class="p">(</span><span class="n">stream</span><span class="p">);</span>
+    <span class="p">}</span>
 </code></pre>
 </div>
 
@@ -548,16 +548,16 @@ if (stream)
 
 <p>输入端</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>// 将数据不停的送入stream中
-while (1)
-{
-    // fill data
-    tb_byte_t data[8192];
-    tb_memset(data, 0xff, sizeof(data));
+<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="c1">// 将数据不停的送入stream中
+</span>    <span class="k">while</span> <span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// fill data
+</span>        <span class="n">tb_byte_t</span> <span class="n">data</span><span class="p">[</span><span class="mi">8192</span><span class="p">];</span>
+        <span class="n">tb_memset</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="mh">0xff</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">data</span><span class="p">));</span>
 
-    // push data
-    tb_stream_ctrl(stream, TB_STREAM_CTRL_REAL_PUSH, data, sizeof(data));
-}
+        <span class="c1">// push data
+</span>        <span class="n">tb_stream_ctrl</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">TB_STREAM_CTRL_REAL_PUSH</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">data</span><span class="p">));</span>
+    <span class="p">}</span>
 </code></pre>
 </div>
 

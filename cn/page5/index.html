@@ -329,39 +329,38 @@
                 <div class="excerpt">
                     <p>这里为了使代码更加简洁，直接用了transfer来挂接两路流的传输操作。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>// 初始化文件输入流
-tb_stream_ref_t istream = tb_stream_init_from_url("/home/file.txt");
+<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="c1">// 初始化文件输入流
+</span>    <span class="n">tb_stream_ref_t</span> <span class="n">istream</span> <span class="o">=</span> <span class="n">tb_stream_init_from_url</span><span class="p">(</span><span class="s">"/home/file.txt"</span><span class="p">);</span>
 
-// 初始化文件输出流
-tb_stream_ref_t ostream = tb_stream_init_from_file("/home/file.gz", TB_FILE_MODE_RW | TB_FILE_MODE_CREAT | TB_FILE_MODE_BINARY | TB_FILE_MODE_TRUNC);
+    <span class="c1">// 初始化文件输出流
+</span>    <span class="n">tb_stream_ref_t</span> <span class="n">ostream</span> <span class="o">=</span> <span class="n">tb_stream_init_from_file</span><span class="p">(</span><span class="s">"/home/file.gz"</span><span class="p">,</span> <span class="n">TB_FILE_MODE_RW</span> <span class="o">|</span> <span class="n">TB_FILE_MODE_CREAT</span> <span class="o">|</span> <span class="n">TB_FILE_MODE_BINARY</span> <span class="o">|</span> <span class="n">TB_FILE_MODE_TRUNC</span><span class="p">);</span>
 
-// 初始化解压缩流，以istream作为输入
-tb_stream_ref_t fstream = tb_stream_init_filter_from_zip(istream, TB_ZIP_ALGO_GZIP, TB_ZIP_ACTION_INFLATE);
+    <span class="c1">// 初始化解压缩流，以istream作为输入
+</span>    <span class="n">tb_stream_ref_t</span> <span class="n">fstream</span> <span class="o">=</span> <span class="n">tb_stream_init_filter_from_zip</span><span class="p">(</span><span class="n">istream</span><span class="p">,</span> <span class="n">TB_ZIP_ALGO_GZIP</span><span class="p">,</span> <span class="n">TB_ZIP_ACTION_INFLATE</span><span class="p">);</span>
 
-// 初始化压缩流，以istream作为输入
-//tb_stream_ref_t fstream = tb_stream_init_filter_from_zip(istream, TB_ZIP_ALGO_GZIP, TB_ZIP_ACTION_DEFLATE);    
+    <span class="c1">// 初始化压缩流，以istream作为输入
+</span>    <span class="c1">//tb_stream_ref_t fstream = tb_stream_init_filter_from_zip(istream, TB_ZIP_ALGO_GZIP, TB_ZIP_ACTION_DEFLATE);    
+</span>
+    <span class="c1">// 进行流传输，并且通过 fstream进行中间外挂解压、压缩
+</span>    <span class="k">if</span> <span class="p">(</span><span class="n">istream</span> <span class="o">&amp;&amp;</span> <span class="n">ostream</span> <span class="o">&amp;&amp;</span> <span class="n">fstream</span><span class="p">)</span> 
+    <span class="p">{</span>
+        <span class="cm">/* 保存流数据，如果每个流都还没有调用tb_stream_open打开过
+         * 这里会自动帮你打开，这样上层接口使用上，看上去更加简洁明了
+         * 
+         * 后面三个参数主要用于：限速、进度信息回调，这些之后再详细说明
+         * 现在只需要传空就行了
+         *
+         * save 是 实际传输的数据大小，失败返回：-1
+         */</span>
+        <span class="n">tb_hong_t</span> <span class="n">save</span> <span class="o">=</span> <span class="n">tb_transfer_done</span><span class="p">(</span><span class="n">fstream</span><span class="p">,</span> <span class="n">ostream</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">tb_null</span><span class="p">,</span> <span class="n">tb_null</span><span class="p">);</span>
+    <span class="p">}</span>
 
-// 进行流传输，并且通过 fstream进行中间外挂解压、压缩
-if (istream &amp;&amp; ostream &amp;&amp; fstream) 
-{
-    /* 保存流数据，如果每个流都还没有调用tb_stream_open打开过
-     * 这里会自动帮你打开，这样上层接口使用上，看上去更加简洁明了
-     * 
-     * 后面三个参数主要用于：限速、进度信息回调，这些之后再详细说明
-     * 现在只需要传空就行了
-     *
-     * save 是 实际传输的数据大小，失败返回：-1
-     */
-    tb_hong_t save = tb_transfer_done(fstream, ostream, 0, tb_null, tb_null);
-}
-
-// 释放流数据
-if (fstream) tb_stream_exit(fstream);
-if (istream) tb_stream_exit(istream);
-if (ostream) tb_stream_exit(ostream);
+    <span class="c1">// 释放流数据
+</span>    <span class="k">if</span> <span class="p">(</span><span class="n">fstream</span><span class="p">)</span> <span class="n">tb_stream_exit</span><span class="p">(</span><span class="n">fstream</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">istream</span><span class="p">)</span> <span class="n">tb_stream_exit</span><span class="p">(</span><span class="n">istream</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ostream</span><span class="p">)</span> <span class="n">tb_stream_exit</span><span class="p">(</span><span class="n">ostream</span><span class="p">);</span>
 </code></pre>
 </div>
-
 
                 </div>
                 <div class="read-all">
@@ -438,13 +437,13 @@ if (ostream) tb_stream_exit(ostream);
 
 <p>例如，禁用所有第三方库支持：</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>xmake f --polarssl=false --sqlite3=false --openssl=false --mysql=false --zlib=false
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    xmake f --polarssl<span class="o">=</span><span class="nb">false</span> --sqlite3<span class="o">=</span><span class="nb">false</span> --openssl<span class="o">=</span><span class="nb">false</span> --mysql<span class="o">=</span><span class="nb">false</span> --zlib<span class="o">=</span><span class="nb">false</span>
 </code></pre>
 </div>
 
 <p>如果要最小化编译，可以禁用所有可选模块和特性：</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>xmake f --network=false --asio=false --charset=false --xml=false --database=false --zip=false --thread=false
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    xmake f --network<span class="o">=</span><span class="nb">false</span> --asio<span class="o">=</span><span class="nb">false</span> --charset<span class="o">=</span><span class="nb">false</span> --xml<span class="o">=</span><span class="nb">false</span> --database<span class="o">=</span><span class="nb">false</span> --zip<span class="o">=</span><span class="nb">false</span> --thread<span class="o">=</span><span class="nb">false</span>
 </code></pre>
 </div>
 
@@ -612,23 +611,31 @@ if (ostream) tb_stream_exit(ostream);
 所以try内部的修改，可能会在异常捕获后，被会恢复掉。
 最好加上volatile来禁止优化。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>__tb_volatile__ tb_size_t i = 0;
-__tb_try
-{
-    i++;
-    // 捕获段错误
-    *((__tb_volatile__ tb_size_t*)0) = 0;
-    // 捕获除0错误
-    // __tb_volatile__ tb_size_t a = 0; a /= a;
-}
-__tb_except(1)
-{
-    // __tb_except(1): 处理异常
-    // __tb_except(0): 路由异常到外层， 支持嵌套处理
-}
-__tb_end
+<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="n">__tb_volatile__</span> <span class="n">tb_size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="n">__tb_try</span>
+    <span class="p">{</span>
+        <span class="n">i</span><span class="o">++</span><span class="p">;</span>
+        <span class="c1">// 捕获段错误
+</span>        <span class="o">*</span><span class="p">((</span><span class="n">__tb_volatile__</span> <span class="n">tb_size_t</span><span class="o">*</span><span class="p">)</span><span class="mi">0</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="c1">// 捕获除0错误
+</span>        <span class="c1">// __tb_volatile__ tb_size_t a = 0; a /= a;
+</span>    <span class="p">}</span>
+    <span class="n">__tb_except</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// __tb_except(1): 处理异常
+</span>        <span class="c1">// __tb_except(0): 路由异常到外层， 支持嵌套处理
+</span>    <span class="p">}</span>
+    <span class="n">__tb_end</span>
 </code></pre>
 </div>
+
+<h3 id="section-1">注意事项</h3>
+
+<p>有些平台异常捕获是被禁用的，所以如果确实想要使用这种异常捕获机制，首先得确保对应平台下的配置文件plat/xxx/config.h</p>
+
+<p>定义了<code class="highlighter-rouge">TB_CONFIG_EXCEPTION_ENABLE</code>这个宏，然后重新编译才行。</p>
+
+<p>虽然tbox对异常支持的挺完善了，但是个人还是不建议太过频繁的使用异常捕获。</p>
 
 
                 </div>
@@ -1259,7 +1266,7 @@ __tb_end
                 </div>
                 <ul class="content-ul">
                   <li><a href="http://xmake.io/cn">XMake</a></li>
-                  <li><a href="https://github.com/waruqi">Github</a></li>
+                  <li><a href="https://www.github.com/waruqi">Github</a></li>
                 </ul>
             </div> 
 
