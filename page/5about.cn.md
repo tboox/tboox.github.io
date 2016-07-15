@@ -2,7 +2,7 @@
 layout: page.cn
 title: 关于
 permalink: /about/
-icon: heart
+icon: user
 ---
 
 * content
