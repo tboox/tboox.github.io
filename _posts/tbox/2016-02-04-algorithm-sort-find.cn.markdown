@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "排序和查找算法的使用"
-comments: true
+tags: tbox c 算法 排序 查找
 categories: tbox
 ---
 

@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "自定义流的实现和使用"
-comments: true
+tags: tbox c stream 流
 categories: tbox
 ---
 

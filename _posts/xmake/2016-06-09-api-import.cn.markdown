@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "插件开发之import类库"
-comments: true
+tags: xmake 插件 import 类库 自定义脚本
 categories: xmake
 ---
 

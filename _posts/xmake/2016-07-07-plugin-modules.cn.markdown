@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "xmake插件开发之类库使用"
-comments: true
+tags: xmake lua 插件 类库
 categories: xmake
 ---
 

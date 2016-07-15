@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Package target"
-comments: true
+tags: xmake lua package 
 categories: xmake
 ---
 

@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "利用bloom filter算法处理大规模数据过滤"
-comments: true
+tags: tbox c bloom filter 算法 大数据 过滤
 categories: tbox
 ---
 

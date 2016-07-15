@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "插件开发之参数配置"
-comments: true
+tags: xmake lua 插件 菜单选项
 categories: xmake
 ---
 我们继续以之前讲解的hello插件为基础，现在为其增加参数配置选项，并且指定一个独立的脚本文件中进行开发，这样我们就可以写一些更复杂的插件

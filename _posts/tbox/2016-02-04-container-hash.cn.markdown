@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "哈希容器的使用"
-comments: true
+tags: tbox c 哈希 容器
 categories: tbox
 ---
 

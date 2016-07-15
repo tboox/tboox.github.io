@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Create project"
-comments: true
+tags: xmake lua create project template
 categories: xmake
 ---
 

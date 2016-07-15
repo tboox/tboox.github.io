@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "内存池架构"
-comments: true
+tags: tbox c 内存池 算法
 categories: tbox
 ---
 

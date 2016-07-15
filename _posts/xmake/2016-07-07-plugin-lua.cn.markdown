@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "插件使用之加载自定义lua脚本"
-comments: true
+tags: xmake lua plugin scripts
 categories: xmake
 ---
 

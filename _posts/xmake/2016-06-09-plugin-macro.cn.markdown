@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "插件使用之宏脚本记录"
-comments: true
+tags: xmake lua 插件 宏脚本 
 categories: xmake
 ---
 

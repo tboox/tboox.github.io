@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "高级特性之自定义脚本使用"
-comments: true
+tags: xmake lua 自定义脚本 安装 打包 android apk jni
 categories: xmake
 ---
 

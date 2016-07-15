@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "插件使用之批量打包"
-comments: true
+tags: xmake lua 插件 宏脚本 打包
 categories: xmake
 ---
 

@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "xmake工程描述入门"
-comments: true
+tags: xmake lua premake
 categories: xmake
 ---
 

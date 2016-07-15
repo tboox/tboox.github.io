@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Plugin development of hello xmake"
-comments: true
+tags: xmake lua plugin example hello
 categories: xmake
 ---
 

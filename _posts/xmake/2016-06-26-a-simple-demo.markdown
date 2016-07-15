@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "A simple xmake.lua"
-comments: true
+tags: xmake example xmake.lua
 categories: xmake
 ---
 

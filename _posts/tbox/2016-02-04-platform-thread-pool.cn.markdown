@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "线程池的使用"
-comments: true
+tags: tbox c 线程池
 categories: tbox
 ---
 

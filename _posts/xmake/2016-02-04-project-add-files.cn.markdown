@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "xmake中add_files的使用"
-comments: true
+tags: xmake lua 模式匹配
 categories: xmake
 ---
 
@@ -27,9 +27,10 @@ categories: xmake
     -- 添加src下的所有cpp文件，但是不包括src/test.cpp、src/hello.cpp以及src下所有带xx_前缀的cpp文件
     add_files("src/*.cpp|test.cpp|hello.cpp|xx_*.cpp")
 
-其中分隔符|之后的都是需要排除的文件，这些文件也同样支持匹配模式，并且可以同时添加多个过滤模式，只要中间用|分割就行了。。
 
-注： 为了使得描述上更加的精简，|之后的过滤描述都是基于起一个模式：src/*.cpp 中 *之前的目录为基础的。
+其中分隔符之后的都是需要排除的文件，这些文件也同样支持匹配模式，并且可以同时添加多个过滤模式，只要中间用竖线分割就行了。。
+
+注： 为了使得描述上更加的精简, 分隔符之后的过滤描述都是基于起一个模式：src/*.cpp 中 *之前的目录为基础的。
 
 
 
