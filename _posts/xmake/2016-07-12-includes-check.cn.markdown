@@ -24,20 +24,26 @@ categories: xmake
 
 然后编译（注：不是执行重建哦，那个是 `xmake -r`）
 
-    xmake
+```bash
+    $xmake
+```
 
 编译结果：
 
+```
     [00%]: ccache compiling.release src/tbox/tbox.c
     [15%]: ccache compiling.release src/tbox/memory/impl/prefix.c
     [36%]: ccache compiling.release src/tbox/regex/regex.c
     [50%]: archiving.release libtbox.a
     ...
+```
 
 仅仅只编译了其中三个include了用到regex.h的源文件。
 
 当然如果你修改了依赖的第三方库的头文件，最好还是手动重建下：
 
-       xmake -r
-    or xmake --rebuild
+```bash
+       $xmake -r
+    or $xmake --rebuild
+```
 

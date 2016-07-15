@@ -14,6 +14,7 @@ xmake提供了自定义打包、安装、运行脚本，可以更加灵活的针
 
 
 
+```
     app
     └── android
         ├── AndroidManifest.xml
@@ -47,6 +48,7 @@ xmake提供了自定义打包、安装、运行脚本，可以更加灵活的针
         │       └── demo
         │           └── DemoTest.java
         └── xmake.lua
+```
 
 新版本中对自定义脚本进行了重大升级，支持了task机制，以及类库import机制，写法上也更加的精简可读
 
@@ -54,6 +56,7 @@ xmake提供了自定义打包、安装、运行脚本，可以更加灵活的针
 
 我们重点讲解下新版的写法：
 
+```lua
     -- 定义一个android app的测试demo
     target("demo")
 
@@ -100,9 +103,11 @@ xmake提供了自定义打包、安装、运行脚本，可以更加灵活的针
                     os.run("adb shell am start -n com.demo/com.demo.DemoTest")
                     os.run("adb logcat")
                 end)
+```
 
 修改完xmake.lua后，就可以很方便的使用了：
 
+```bash
     # 重新编译工程，生成libdemo.so到app/libs/armeabi
     xmake -r
 
@@ -114,15 +119,20 @@ xmake提供了自定义打包、安装、运行脚本，可以更加灵活的针
 
     # 运行app，并获取日志信息
     xmake r demo
+```
 
 如果觉得上面的步骤有点繁琐，可以简化成：
 
+```bash
     # 安装的时候，会先去自动打包，所以可以省略xmake p
     xmake -r; xmake i; xmake r demo
+```
 
 如果是增量编译，不需要重建，可以继续简化：
 
+```bash
     xmake i; xmake r demo
+```
 
 当然，由于是根据自己的实际需求自定义的脚本，可能跨平台性有点弱，像这里只能支持android的编译平台，
 
@@ -157,11 +167,14 @@ xmake提供了自定义打包、安装、运行脚本，可以更加灵活的针
 
 这些api的原型都是：
 
+```lua
     function (target) 
     end
+```
 
 其中的参数就是当前的target，你可以从中获取一些基本信息，例如：
 
+```lua
     on_run(function (target)
 
          -- 显示目标名
@@ -178,11 +191,13 @@ xmake提供了自定义打包、安装、运行脚本，可以更加灵活的针
 
          -- 其他通过 set_/add_接口设置的target信息，都可以通过 target:get("xxx") 来获取
     end)
+```
 
 自定义脚本中，其作用域和xmake.lua上层的描述域是不同的，xmake里面有严格的沙盒管理，不会导致互相冲突
 
 而且自定义脚本内部提供了大量内建类库和扩展类库，以供使用，扩展类库可以通过 [import](/cn/2016/06/09/api-import/) 进行导入， 例如
 
+```lua
     on_run(function (target)
        
         -- 导入工程类
@@ -191,6 +206,7 @@ xmake提供了自定义打包、安装、运行脚本，可以更加灵活的针
         -- 获取当前工程目录
         print(project.directory())
     end)
+```
 
 详细的扩展类库使用，见 [import](/cn/2016/06/09/api-import/)
 

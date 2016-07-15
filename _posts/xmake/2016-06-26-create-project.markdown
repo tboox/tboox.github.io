@@ -9,18 +9,24 @@ xmake provides some project templates, you can easily create an empty project.
 
 Create a c++ console project：
 
+```bash
         xmake create -l c++ -t 1 demo
      or xmake create --language=c++ --template=1 demo
+```
 
 Create a c static library project：
 
+```bash
         xmake create -l c -t 5 demo
      or xmake create --language=c --template=5 demo
+```
 
 Create a c shared library project：
 
+```bash
         xmake create -t 3 demo
      or xmake create --template=3 demo
+```
 
 The default language is C language and `-t/--template` argument is used to get specific types of templates.
 
@@ -34,6 +40,7 @@ We need note that the template's ID is variable.
 
 You can run `xmake create --help` to get more arguments info for template.
 
+```bash
     Usage: xmake create [options] [target]
 
     Create a new project.
@@ -80,3 +87,5 @@ You can run `xmake create --help` to get more arguments info for template.
                                                
         target                                 Create the given target.
                                                Uses the project name as target if not exists.
+```
+

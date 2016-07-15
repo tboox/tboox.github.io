@@ -7,6 +7,7 @@ categories: xmake
 
 A simplest xmake.lua
 
+```lua
     -- define a target with named 'demo'
     target("demo")
 
@@ -17,15 +18,18 @@ A simplest xmake.lua
 
         -- add all c source files in the directory: src
         add_files("src/*.c") 
+```
 
 And we run the following command for building it.
 
+```bash
     xmake
-
+```
 
 
 Next, we write another xmake.lua for switching 'debug' or 'release' mode.
 
+```lua
     -- is debug now?
     if is_mode("debug") then
         
@@ -57,12 +61,17 @@ Next, we write another xmake.lua for switching 'debug' or 'release' mode.
 
         -- add all c++ files recursively
         add_files("src/**.cpp") 
+```
 
 We configure this project with the debug mode now.
 
+```bash
     xmake f -m debug
     #xmake config --mode=debug
+```
 
 And we build it.
 
+```bash
     xmake
+```

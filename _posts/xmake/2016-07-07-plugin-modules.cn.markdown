@@ -11,6 +11,7 @@ xmake通过import接口，可以在自定义脚本中导入各种内置类库和
 
 
 
+```
     .
     ├── _g.lua
     ├── assert.lua
@@ -62,12 +63,15 @@ xmake通过import接口，可以在自定义脚本中导入各种内置类库和
     ├── try.lua
     ├── utils.lua
     └── vformat.lua
+```
 
 在根目录下的模块和api都是属于内建的，不需要import也可以直接使用，属于常用api，提供了xmake最基础的特性。。
 
 在子目录下的是扩展模块，需要import后才能使用，导入规则见[import](/cn/2016/06/09/api-import/)，例如：
 
+```lua
     import("core.project.task")
+```
 
 需要注意的是：xmake对自定义的脚本采用了异常处理机制，大部分情况下，调用的api是不需要判断返回值状态是否成功，如果出错了，会立即中断，并且显示错误信息
 
@@ -79,6 +83,7 @@ xmake通过import接口，可以在自定义脚本中导入各种内置类库和
 
 #### os模块
 
+```lua
     -- 运行shell命令，如果运行失败直接中断，并显示出错信息，我们不需要判断返回值
     os.run("echo hello xmake!")
 
@@ -108,10 +113,12 @@ xmake通过import接口，可以在自定义脚本中导入各种内置类库和
     for _, file in ipairs(os.match("src/*", true)) do
         print(file)
     end
+```
 
 #### 常用api
 
 
+```lua
     -- 抛出异常，立即中断
     raise()
 
@@ -129,9 +136,11 @@ xmake通过import接口，可以在自定义脚本中导入各种内置类库和
 
     -- 格式化字符串
     s = format("hello %s", "xmake")
+```
 
 #### 异常捕获api
 
+```lua
     try
     {
         -- try块，里面抛出异常
@@ -180,9 +189,11 @@ xmake通过import接口，可以在自定义脚本中导入各种内置类库和
             end
         }
     }
+```
 
 #### path模块
 
+```lua
     -- 获取相对路径
     path.relative("/tmp/a")
 
@@ -203,9 +214,11 @@ xmake通过import接口，可以在自定义脚本中导入各种内置类库和
 
     -- 拼接路径 /tmp/test.c
     path.join("/tmp", "test.c")
+```
 
 #### io 模块
 
+```lua
     -- 打开一个写文件
     file = io.open("/tmp/a", "w")
 
@@ -232,6 +245,7 @@ xmake通过import接口，可以在自定义脚本中导入各种内置类库和
 
     -- 模式替换文件内容, 替换空格字符为 "space"
     io.gsub("/tmp/a", "%s", "space")
+```
 
 还有一些是lua的常用模块，这里就不多说了，例如：`string, table, debug, coroutine, pairs, ipairs, tostring, tonumber` 等等
 

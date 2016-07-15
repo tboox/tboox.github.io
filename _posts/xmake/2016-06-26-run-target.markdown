@@ -12,14 +12,18 @@ e.g.
 
 We define a simple target with named 'test'.
 
+```lua
     target("test")
         set_kind("console")
         add_files("*.c")
+```
 
 So, we can run it directly.
 
-    xmake r test
-    or xmake run test
+```bash
+    $xmake r test
+    or $xmake run test
+```
 
 xmake will compile it automaticly if the target has not been built.
 

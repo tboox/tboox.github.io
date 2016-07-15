@@ -7,7 +7,9 @@ categories: xmake
 
 Typically, you only need to execute the following command for compiling project.
 
+```bash
     xmake
+```
 
 xmake will probe your host environment and target platform automaticly. 
 
@@ -15,17 +17,23 @@ The default mode is release and xmake will compile all targets.
 
 You can compile only one given target which name is 'test' for executing the following command.
 
+```bash
     xmake test
+```
 
 If you want to complie the debug program, you need configure it for switching to the debug mode and compile it.
 
+```bash
     xmake config --mode=debug
     xmake
+```
 
 We provide shorthand for each command, for example:
 
+```bash
     xmake f -m debug
     xmake
+```
 
 Please run `xmake --help` to get more info about it.
 
@@ -33,6 +41,7 @@ Please run `xmake --help` to get more info about it.
 
 We need to describe them for the debug and release compile mode in xmake.lua file, for example:
 
+```bash
     -- the debug mode
     if is_mode("debug") then
         
@@ -85,67 +94,85 @@ We need to describe them for the debug and release compile mode in xmake.lua fil
         -- attempt to add vector extensions 
         add_vectorexts("sse2", "sse3", "ssse3", "mmx")
     end
+```
 
 We can rebuild all targets：
 
+```bash
        xmake -r
     or xmake --rebuild
+```
 
 And we can compile target with a gived architecture:
 
+```bash
        xmake f -a armv7
     or xmake config --arch=armv7
 
        xmake
+```
 
 If you want to compile target for the iphoneos platform in macosx host, you can do it:
 
+```bash
        xmake f -p iphoneos
     or xmake f --plat=iphoneos
 
        xmake
+```
 
 We need configure the NDK directory path for android platform.
 
+```bash
        xmake f -p android --ndk=xxxx
        xmake
+```
 
 Or we can configure the NDK path as global.
 
+```bash
        xmake g --ndk=xxxx
     or xmake global --ndk=xxx
 
        xmake f -p android
        xmake
+```
 
 Please run `xmake f --help` to get more info about architecture and platform.
 
 We also can compile target using other cross-toolchains for the linux and android platfrom.
 
+```bash
        xmake f -p android -a armv7-a --cross=arm-linux-androideabi- --toolchains=/xxxx/bin
     or xmake f -p linux --cross=arm-linux-androideabi- --toolchains=/toolsdk/bin --ldflags="-arch armv7 -L/use/lib -lm -lc -lz" --cxflags="-I/usr/include"
     or xmake f -p mingw --sdk=/mingwsdk
     or xmake f -p linux --sdk=/toolsdk
 
        xmake 
+```
 
 Uses `--clean` argument for cleaning up all cached configuration
 
+```bash
        xmake f -c
     or xmake f --clean
        xmake
+```
 
 Or cleans target files
 
+```bash
     # clean targets only
     xmake -c
     or xmake --clean
 
     # clean all targets and temporary files 
     or xmake --clean --all
+```
 
 Please run `xmake f --help` for getting more configuration info
 
+```bash
     Usage: xmake config|f [options] [target]
 
     Configure the project.
@@ -241,3 +268,4 @@ Please run `xmake f --help` for getting more configuration info
         -h, --help                             Print this help message and exit.
                                                
         target                                 Configure for the given target. (default: all)
+```

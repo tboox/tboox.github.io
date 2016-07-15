@@ -9,12 +9,14 @@ xmake v2.0 has supported the plugin module and we can develop ourself plugin mod
 
 We can run command `xmake -h` to look over some builtin plugins of xmake
 
+```
     Plugins: 
         l, lua                                 Run the lua script.
         m, macro                               Run the given macro.
            doxygen                             Generate the doxygen document.
            hello                               Hello xmake!
            project                             Create the project file.
+```
 
 * lua: Run a given lua script.
 * macro: Record and playback some xmake commands repeatly.
@@ -26,6 +28,7 @@ We can run command `xmake -h` to look over some builtin plugins of xmake
 
 Next we write a simple plugin demo for printing 'hello xmake!'
 
+```lua
     -- define a plugin task 
     task("hello")
 
@@ -50,12 +53,14 @@ Next we write a simple plugin demo for printing 'hello xmake!'
                         -- options
                     ,   options = {}
                     }) 
+```
 
 The file tree of this plugin:
 
+```
     hello
      - xmake.lua
-
+```
 
 Now one of the most simple plugin finished, how was it to be xmake detected it, there are three ways:
 
@@ -65,14 +70,19 @@ Now one of the most simple plugin finished, how was it to be xmake detected it, 
 
 Next we run this plugin
 
-    xmake hello
+```bash
+    $xmake hello
+```
 
 The results is 
 
+```
     hello xmake!
+```
 
 Finally, we can also run this plugin in the custom scripts of `xmake.lua`
 
+```lua
     target("demo")
         
         -- run this plugin after building target
@@ -84,3 +94,4 @@ Finally, we can also run this plugin in the custom scripts of `xmake.lua`
             -- run the plugin task
             task.run("hello")
         end)
+```
