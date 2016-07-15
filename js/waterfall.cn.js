@@ -39,6 +39,13 @@
         code_link: 'https://github.com/waruqi/itrace',
         title: 'itrace',
         description: 'ios objc方法调用记录工具'
+    },
+    {
+        page_link: 'https://github.com/waruqi/hnr',
+        img_link: '/static/img/hnr/before.png',
+        code_link: 'https://github.com/waruqi/hnr',
+        title: 'hnr',
+        description: '一个早期学生时期写的脱机手写识别系统，仅供学习参考'
     }];
 
     contentInit(demoContent) //内容初始化

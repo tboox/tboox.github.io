@@ -39,6 +39,13 @@
         code_link: 'https://github.com/waruqi/itrace',
         title: 'itrace',
         description: 'Trace objc method call for ios and mac.'
+    },
+    {
+        page_link: 'https://github.com/waruqi/hnr',
+        img_link: '/static/img/hnr/before.png',
+        code_link: 'https://github.com/waruqi/hnr',
+        title: 'hnr',
+        description: 'An off-line handwritten numeral recognition system.'
     }];
 
     contentInit(demoContent) //内容初始化

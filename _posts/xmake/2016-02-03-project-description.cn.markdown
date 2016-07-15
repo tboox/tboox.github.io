@@ -9,11 +9,14 @@ xmake的工程描述文件，摈弃了makefile的繁琐复杂，借鉴了premake
 
 工程默认描述文件名为xmake.lua，支持多级目录嵌套，也可以通过以下命令，指定其他文件作为工程描述文件：
 
+```bash
     xmake -f /tmp/xxx.lua
     xmake --file=xxx.lua
-     
+```
+
 下面先来看一个最简单的例子：
 
+```lua
     -- 添加一个名为demo的目标到工程
     target("demo")
 
@@ -22,6 +25,7 @@ xmake的工程描述文件，摈弃了makefile的繁琐复杂，借鉴了premake
 
         -- 添加src目录下的所有c文件
         add_files("src/*.c") 
+```
 
 怎么样简单吧，这样就已经完成了一个最简单的工程描述。。
 
@@ -29,6 +33,7 @@ xmake的工程描述文件，摈弃了makefile的繁琐复杂，借鉴了premake
 
 下面我们看一个稍微复杂一点的例子，这个例子中对release、debug模式进行了不同的设置：
 
+```lua
     -- 如果当前编译的是debug模式
     if is_mode("debug") then
         
@@ -60,6 +65,7 @@ xmake的工程描述文件，摈弃了makefile的繁琐复杂，借鉴了premake
 
         -- 添加所有c++文件，包括子目录（注：**表明多级递归匹配模式）
         add_files("src/**.cpp") 
+```
 
 其实也不是很复杂吧，由于采用lua语法，所以逻辑上更加的灵活，你完全可以用lua的分支、循环、函数等语法，进行更加灵活的配置。。
 

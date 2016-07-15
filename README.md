@@ -1,13 +1,33 @@
 # TBOOX Open Source Project Website
 
-# Jekyll Multiple Languages
-
-You need install [jekyll-langs plugins](http://jekyll-langs.liaohuqiu.net/)
-
-### Build
+# Installing Kramdown and Rouge
 
 ```bash
-    git checkout sitesrc
-    ./build master
+    $gem install kramdown rouge
 ```
+
+# Installing Jekyll Paginate
+
+```bash
+    $gem install jekyll-paginate
+```
+# Installing Jekyll Multiple Languages
+
+```bash
+    $gem install jekyll-multiple-languages
+```
+
+### Building tboox.org
+
+```bash
+    $git checkout sitesrc
+    $./build master
+```
+
+### Publishing tboox.org
+
+```bash
+    $git push origin master
+```
+
 

@@ -11,9 +11,11 @@ categories: xmake
 
 例如：
 
+```lua
     add_files("src/test_*.c")
     add_files("src/xxx/**.cpp")
     add_files("src/asm/*.S", "src/objc/**/hello.m")
+```
 
 `add_files`的使用其实是相当灵活方便的，其匹配模式我借鉴了premake的风格，但是又对其进行了改善和增强。
 
@@ -21,12 +23,13 @@ categories: xmake
 
 例如：
 
+```lua
     -- 递归添加src下的所有c文件，但是不包括src/impl/下的所有c文件
     add_files("src/**.c|impl/*.c")
 
     -- 添加src下的所有cpp文件，但是不包括src/test.cpp、src/hello.cpp以及src下所有带xx_前缀的cpp文件
     add_files("src/*.cpp|test.cpp|hello.cpp|xx_*.cpp")
-
+```
 
 其中分隔符之后的都是需要排除的文件，这些文件也同样支持匹配模式，并且可以同时添加多个过滤模式，只要中间用竖线分割就行了。。
 
@@ -38,6 +41,7 @@ categories: xmake
 
 下面来看个[TBOX](https://github.com/waruqi/tbox)的xmake.lua中`add_files`的例子：
 
+```lua
     add_files("*.c") 
     add_files("asio/aioo.c") 
     add_files("asio/aiop.c") 
@@ -78,6 +82,7 @@ categories: xmake
         add_files("charset/**.c")
         add_files("stream/impl/filter/charset.c")
     end
+```
 
 添加文件的时候支持过滤一些文件的一个好处就是，可以为后续根据不同开关逻辑添加文件提供基础。
 

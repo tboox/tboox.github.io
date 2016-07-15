@@ -9,12 +9,14 @@ xmake在开发插件脚本的时候，除了可以使用lua内置的print进行�
 
 例如：
 
+```lua
     cprint('${bright}hello xmake')
     cprint('${red}hello xmake')
     cprint('${bright green}hello ${clear}xmake')
     cprint('${blue onyellow underline}hello xmake${clear}')
     cprint('${red}hello ${magenta}xmake')
     cprint('${cyan}hello ${dim yellow}xmake')
+```
 
 显示结果如下：
 
@@ -24,7 +26,9 @@ xmake在开发插件脚本的时候，除了可以使用lua内置的print进行�
 
 跟颜色相关的描述，都放置在 `${  }` 里面，可以同时设置多个不同的属性，例如：
 
+```lua
     ${bright red underline onyellow}
+```
 
 表示：高亮红色，背景黄色，并且带下滑线
 
@@ -32,12 +36,15 @@ xmake在开发插件脚本的时候，除了可以使用lua内置的print进行�
 
 例如：
 
-    `${red}hello ${clear}xmake`
+```lua
+    ${red}hello ${clear}xmake
+```
 
 这样的话，仅仅hello是显示红色，其他还是正常默认黑色显示。
 
 其他颜色属于，我这里就不一一介绍，直接贴上xmake代码里面的属性列表吧：
 
+```lua
     colors.keys = 
     {
         -- 属性
@@ -70,12 +77,15 @@ xmake在开发插件脚本的时候，除了可以使用lua内置的print进行�
     ,   onmagenta   = 45
     ,   oncyan      = 46
     ,   onwhite     = 47
+```
 
 除了可以色彩高亮显示外，如果你的终端是在macosx下，lion以上的系统，xmake还可以支持emoji表情的显示哦，对于不支持系统，会
 忽略显示，例如：
 
+```lua
     cprint("hello xmake${beer}")
     cprint("hello${ok_hand} xmake")
+```
 
 上面两行代码，我打印了一个homebrew里面经典的啤酒符号，下面那行打印了一个ok的手势符号，是不是很炫哈。。
 
