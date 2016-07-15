@@ -9,12 +9,14 @@ xmake从v2.0开始，全面支持插件模式，我们可以很方便的扩展�
 
 我们可以执行下 `xmake -h` 看下当前支持的插件：
 
+```
     Plugins: 
         l, lua                                 Run the lua script.
         m, macro                               Run the given macro.
            doxygen                             Generate the doxygen document.
            hello                               Hello xmake!
            project                             Create the project file.
+```
 
 * lua: 运行lua脚本的插件
 * macro: 这个很实用，宏脚本插件，可以手动录制多条xmake命令并且回放，也可以通过脚本实现一些复杂的宏脚本，这个我们后续会更加详细的介绍
@@ -26,6 +28,7 @@ xmake从v2.0开始，全面支持插件模式，我们可以很方便的扩展�
 
 接下来我们介绍下本文的重点，一个简单的hello xmake插件的开发，代码如下：
 
+```lua
     -- 定义一个名叫hello的插件任务
     task("hello")
 
@@ -51,12 +54,14 @@ xmake从v2.0开始，全面支持插件模式，我们可以很方便的扩展�
                         -- options
                     ,   options = {}
                     }) 
+```
 
 这个插件的文件结构如下：
 
+```
     hello
      - xmake.lua
-
+```
 
 现在一个最简单的插件写完了，那怎么让它被xmake检测到呢，有三种方式：
 
@@ -66,16 +71,21 @@ xmake从v2.0开始，全面支持插件模式，我们可以很方便的扩展�
 
 接下来，我们尝试运行下这个插件：
 
+```bash
     xmake hello
+```
 
 显示结果：
 
+```
     hello xmake!
+```
 
 当然你可以通过`set_menu`中添加一些自定义的参数，这个等后续再详细介绍
 
 最后我们还可以在target自定义的脚本中运行这个插件：
 
+```lua
     target("demo")
         
         -- 构建之后运行插件
@@ -87,3 +97,4 @@ xmake从v2.0开始，全面支持插件模式，我们可以很方便的扩展�
             -- 运行插件任务
             task.run("hello")
         end)
+```

@@ -11,6 +11,7 @@ tbox中提供了常用的一些stream模块，例如：data、file、http、sock
 例如：
 
 
+```c
     // init stream
     tb_stream_ref_t stream = tb_stream_init_from_url("http://www.xxx.com/file.txt");
     if (stream)
@@ -31,7 +32,7 @@ tbox中提供了常用的一些stream模块，例如：data、file、http、sock
         // exit stream
         tb_stream_exit(stream);
     }
-
+```
 
 
 这样的好处是，操作io的模块不需要关心实际的数据流协议，只管从stream中读写数据就行了，实现数据和业务逻辑的解耦。。
@@ -46,15 +47,17 @@ tbox中提供了常用的一些stream模块，例如：data、file、http、sock
 
 我们先定义个一个stream类型，例如：
 
-
+```c
     // 用户自定义流类型：实时流
     #define TB_STREAM_TYPE_REAL         (TB_STREAM_TYPE_USER + 1)
 
     // 定义一个控制流代码，之后tb_stream_ctrl需要
     #define TM_STREAM_CTRL_REAL_PUSH    TB_STREAM_CTRL(TM_STREAM_TYPE_REAL, 1)
+```
 
 定义个自定义流的数据结构，用于维护咱们的私有数据
 
+```c
     // 实时流类型
     typedef struct __tb_stream_real_t
     {
@@ -79,10 +82,11 @@ tbox中提供了常用的一些stream模块，例如：data、file、http、sock
         tb_size_t           read;
 
     }tm_real_buffer_t, *tm_real_buffer_ref_t;
-
+```
 
 创建一个stream实例，注册一些需要的回调接口
 
+```c
     // 初始化创建个一个实时流
     tb_stream_ref_t tb_stream_init_real()
     {
@@ -100,9 +104,11 @@ tbox中提供了常用的一些stream模块，例如：data、file、http、sock
                             ,   tb_null     // 刷新写数据，不需要
                             ,   tb_null);   // kill当前的stream，很少用，一般用于中断内部读写
     }
+```
 
 下面就是具体的回调接口实现了
 
+```c
     // 实现open回调接口，用于打开stream，tb_stream_open会用到
     static tb_bool_t tb_stream_real_open(tb_stream_ref_t stream)
     {
@@ -258,10 +264,12 @@ tbox中提供了常用的一些stream模块，例如：data、file、http、sock
         // failed
         return tb_false;
     }
+```
 
 通过上面四步， 基本上一个自定义流就实现好了，上面说的`tb_real_buffer_exit`主要用于queue维护的buffer的自动释放
 详细说明和使用见容器章节，下面附属相关实现：
 
+```c
     static tb_void_t tb_real_buffer_exit(tb_element_ref_t element, tb_pointer_t buff)
     {
         // check
@@ -274,11 +282,13 @@ tbox中提供了常用的一些stream模块，例如：data、file、http、sock
         buffer->size = 0;
         buffer->read = 0;
     }
+```
 
 最后，贴下咱们这个自定义stream使用：
 
 接收端
 
+```c
     // init stream
     tb_stream_ref_t stream = tb_stream_init_real();
     if (stream)
@@ -299,12 +309,13 @@ tbox中提供了常用的一些stream模块，例如：data、file、http、sock
         // exit stream
         tb_stream_exit(stream);
     }
+```
 
 基本上没什么变化，就是换了下stream的初始化创建接口
 
 输入端
 
-       
+```c
     // 将数据不停的送入stream中
     while (1)
     {
@@ -315,6 +326,7 @@ tbox中提供了常用的一些stream模块，例如：data、file、http、sock
         // push data
         tb_stream_ctrl(stream, TB_STREAM_CTRL_REAL_PUSH, data, sizeof(data));
     }
+```
 
 上面介绍的实现和使用方式，只是个例子，方便理解tbox中stream的机制，具体实现和使用还是需要根据自己的实际需求做调整。
 

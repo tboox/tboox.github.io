@@ -9,6 +9,7 @@ xmake提供了一些比较实用的内置宏脚本，比如 批量打包宏脚�
 
 这个宏脚本可以批量打包指定平台的所有架构，例如：
 
+```bash
     # 批量打包当前平台的所有架构
     xmake macro package 
 
@@ -17,6 +18,7 @@ xmake提供了一些比较实用的内置宏脚本，比如 批量打包宏脚�
 
     # 批量打包iphoneos平台的所有架构，并且传入"-m debug"给 `xmake config` 进行打包debug版本，包输出到/tmp/output目录
     xmake macro package -p iphoneos -f "-m debug" -o /tmp/output
+```
 
 这个打包宏针对iphoneos平台，还会自动将所有arch的包打成一个universal包。
 

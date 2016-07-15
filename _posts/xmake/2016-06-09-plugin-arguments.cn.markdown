@@ -4,8 +4,10 @@ title:  "插件开发之参数配置"
 tags: xmake lua 插件 菜单选项
 categories: xmake
 ---
+
 我们继续以之前讲解的hello插件为基础，现在为其增加参数配置选项，并且指定一个独立的脚本文件中进行开发，这样我们就可以写一些更复杂的插件
 
+```lua
     -- 定义一个名叫hello的插件任务
     task("hello")
 
@@ -36,18 +38,20 @@ categories: xmake
                         ,   {'v', "version",    "k",  "1.0",    "Show the version."        }
                         }
                     }) 
-
+```
 
 
 这个插件的文件结构如下：
 
+```
     hello
      - xmake.lua
      - main.lua
+```
 
 xmake.lua为插件的描述文件，指定一些描述信息，main.lua为插件运行入口，代码如下：
 
-
+```lua
     -- 导入选项模块
     import("core.base.option")
 
@@ -62,21 +66,28 @@ xmake.lua为插件的描述文件，指定一些描述信息，main.lua为插件
             print("hello %s!", option.get("output") or "xmake")
         end
     end
+```
 
 到此一个稍微高级些插件就完成了，我们只需要执行：
 
+```bash
     xmake hello --version
     xmake hello -v
+```
 
 来显示版本，执行：
 
+```bash
     xmake hello -o xxx
     xmake hello --output=xxx
+```
 
 来显示内容，或者执行：
 
+```bash
     xmake hello -h
     xmake hello --help
+```
 
 来显示菜单，这个选项是内置的，不需要自定义
 
@@ -84,20 +95,25 @@ xmake.lua为插件的描述文件，指定一些描述信息，main.lua为插件
 
 并且还可以导入一些自定义的模块，例如我想在当前这个插件目录下新增一个模块 echo 用于回显信息，可以在hello目录下增加一个脚本文件：
 
+```
     hello
      - xmake.lua
      - main.lua
      - echo.lua
+```
 
 echo.lua的内容如下：
 
+```lua
     -- 增加一个显示信息的接口show
     function show(info)
         print(info)
     end
+```
 
 然后在main.lua里面导入这个模块就可以使用了：
 
+```lua
     -- 导入选项模块
     import("core.project.option")
 
@@ -115,12 +131,13 @@ echo.lua的内容如下：
             echo.show("hello %s!", option.get("output") or "xmake")
         end
     end
+```
 
 怎么样，简单吧import后，就可以直接使用这个模块的所有公有接口，像show就是被导出的公有接口
 
 如果一些接口是私有的不想被导出怎么办呢，只需要加上 _ 前缀就行了，例如：
 
-
+```lua
     -- 私有接口
     function _print(info)
         print(info)
@@ -132,5 +149,6 @@ echo.lua的内容如下：
         _print(info)
         _g.info = info
     end
+```
 
 注：其中_g是全局私有变量，用于模块内部全局私有数据的维护和传递

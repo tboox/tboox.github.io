@@ -12,7 +12,7 @@ stl的容器库非常强大，但是为了要兼容各种元素类型，采用�
 可以先看个简单使用哈希的例子：
 
 
-
+```c
     /* 初始化hash, 哈希桶大小8
      * 键：大小写敏感字符串
      * 值：long整型
@@ -69,11 +69,13 @@ stl的容器库非常强大，但是为了要兼容各种元素类型，采用�
         // 退出hash
         tb_hash_exit(hash);
     }
+```
 
-怎么样，简单吧。各种类型项都是可以在键值上互用的，而且会去适配tb_hash_get和tb_hash_set等容器接口参数。
+怎么样，简单吧。各种类型项都是可以在键值上互用的，而且会去适配`tb_hash_get`和`tb_hash_set`等容器接口参数。
 
 你也可以很方便的在初始化容器的时候，自定义成员释放函数、成员比较函数、哈希计算函数等，例如：
 
+```c
     // 指针成员释放函数
     static tb_void_t tb_hash_item_ptr_free(tb_item_func_t* func, tb_pointer_t buff)
     {
@@ -120,4 +122,4 @@ stl的容器库非常强大，但是为了要兼容各种元素类型，采用�
 
     // 初始化hash
     tb_hash_ref_t hash = tb_hash_init(0, func, tb_item_func_ptr(tb_hash_item_ptr_free, "private data"));
-
+```

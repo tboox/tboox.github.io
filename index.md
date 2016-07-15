@@ -150,7 +150,7 @@ layout: default
                     Links
                 </div>
                 <ul  class="content-ul">
-                  <li><a href="http://xmake.io">XMake</a></li>
+                  <li><a href="http://www.xmake.io">XMake</a></li>
                   <li><a href="https://github.com/waruqi">Github</a></li>
                 </ul>
             </div> 

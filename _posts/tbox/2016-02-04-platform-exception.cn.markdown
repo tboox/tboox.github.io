@@ -23,6 +23,7 @@ TBOX封装了一套跨平台的异常捕获实现，来模拟windows的seh异常
 所以try内部的修改，可能会在异常捕获后，被会恢复掉。
 最好加上volatile来禁止优化。
 
+```c
     __tb_volatile__ tb_size_t i = 0;
     __tb_try
     {
@@ -38,14 +39,14 @@ TBOX封装了一套跨平台的异常捕获实现，来模拟windows的seh异常
         // __tb_except(0): 路由异常到外层， 支持嵌套处理
     }
     __tb_end
-
+```
 
 
 ### 注意事项
 
 有些平台异常捕获是被禁用的，所以如果确实想要使用这种异常捕获机制，首先得确保对应平台下的配置文件plat/xxx/config.h
 
-定义了TB_CONFIG_EXCEPTION_ENABLE这个宏，然后重新编译才行。
+定义了`TB_CONFIG_EXCEPTION_ENABLE`这个宏，然后重新编译才行。
 
 虽然tbox对异常支持的挺完善了，但是个人还是不建议太过频繁的使用异常捕获。
 

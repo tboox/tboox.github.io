@@ -11,6 +11,7 @@ xmake 提供了一些内置的比较实用的插件，其中宏脚本插件是�
 
 我们先来看下：`xmake macro --help`
 
+```
     Usage: xmake macro|m [options] [name] [arguments]
 
     Run the given macro.
@@ -58,6 +59,7 @@ xmake 提供了一些内置的比较实用的插件，其中宏脚本插件是�
                                                   Run the given macro:     xmake macro test
                                                   Run the anonymous macro: xmake macro .
         arguments ...                          Set the macro arguments.
+```
 
 看帮助菜单描述，它提供了一些功能：
 
@@ -72,6 +74,7 @@ xmake 提供了一些内置的比较实用的插件，其中宏脚本插件是�
 
 我们需要编译打包各个平台的所有架构的库，如果按照每次：
 
+```bash
     xmake f -p android --ndk=/xxx/ndk -a armv7-a
     xmake p
     xmake f -p mingw --sdk=/mingwsdk
@@ -88,6 +91,7 @@ xmake 提供了一些内置的比较实用的插件，其中宏脚本插件是�
     xmake p
     xmake f -p iphoneos -a x86_64
     xmake p
+```
 
 那还是相当累人的，而且这些命令有可能需要重复执行，每次都这么敲一遍多累啊，如果像交叉编译这种，配置参数更多更复杂的情况，那么会更累
 
@@ -96,6 +100,7 @@ xmake 提供了一些内置的比较实用的插件，其中宏脚本插件是�
 闲话少说，我们先来看下如何记录一个简单宏脚本。。
 
 
+```bash
     # 开始记录宏
     xmake macro --begin
 
@@ -119,24 +124,30 @@ xmake 提供了一些内置的比较实用的插件，其中宏脚本插件是�
 
     # 结束宏记录，这里不设置宏名字，所以记录的是一个匿名宏
     xmake macro --end 
+```
 
 好了，接下来我们就开始回放执行这个宏了。。
 
+```bash
     # 之前最近记录的一次匿名宏
     xmake macro .
+```
 
 匿名宏的好处就是快速记录，快速回放，如果需要长久保存，就需要给宏去个名字，也很简单：
 
+```bash
     # 结束记录，并且命名为test宏
     xmake macro --end test
 
     # 回放这个test宏
     xmake macro test
+```
 
 宏的管理：删除、导入、导出这些比较简单，可以敲：`xmake macro --help` 自行看下
 
 我们来看下宏脚本记录下来的内容：`xmake macro --show test`
 
+```lua
     function main()
         
         os.exec("xmake f -p android --ndk=/xxx/ndk -a armv7-a")
@@ -156,6 +167,7 @@ xmake 提供了一些内置的比较实用的插件，其中宏脚本插件是�
         os.exec("xmake f -p iphoneos -a x86_64")
         os.exec("xmake p")  
     end
+```
 
 其实就是个lua的脚本，里面你可以使用一切插件开发中使用的类库和内建api，你可以通过import导入他们来使用，并编写一些高级的宏脚本。。
 

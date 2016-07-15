@@ -7,6 +7,7 @@ categories: tbox
 
 这里为了使代码更加简洁，直接用了transfer来挂接两路流的传输操作。
 
+```c
     // 初始化文件输入流
     tb_stream_ref_t istream = tb_stream_init_from_url("/home/file.txt");
 
@@ -37,4 +38,4 @@ categories: tbox
     if (fstream) tb_stream_exit(fstream);
     if (istream) tb_stream_exit(istream);
     if (ostream) tb_stream_exit(ostream);
-
+```

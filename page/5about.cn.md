@@ -17,7 +17,7 @@ icon: user
 
 ## 友情链接
 
-[xmake.io](http://xmake.io/cn) \| [tboox.net](http://tboox.net/cn)
+[xmake.io](http://www.xmake.io/cn) \| [tboox.net](http://www.tboox.net/cn)
 
 ## 评论
 

@@ -19,6 +19,7 @@ TBOX的线程池通过在每个worker中批量一次拉取多个task，对锁的
 
 
 
+```c
     static tb_void_t tb_demo_task_time_done(tb_cpointer_t priv)
     {
         tb_msleep((tb_size_t)(priv));
@@ -69,9 +70,11 @@ TBOX的线程池通过在每个worker中批量一次拉取多个task，对锁的
         // 释放这个任务
         tb_thread_pool_task_exit(tb_thread_pool(), task);
     }
+```
 
 如果不想用全局线程池，可以自己初始化一个：
 
+```c
     /* 初始化线程池
      *
      * 8：最大worker的数量，上限值，如果传0就是使用默认值
@@ -94,5 +97,5 @@ TBOX的线程池通过在每个worker中批量一次拉取多个task，对锁的
         // 退出线程池
         tb_thread_pool_exit(thread_pool);
     }
-
+```
 

@@ -16,7 +16,7 @@ icon: user
 
 ## Links
 
-[xmake.io](http://xmake.io) \| [tboox.net](http://tboox.net)
+[xmake.io](http://www.xmake.io) \| [tboox.net](http://www.tboox.net)
 
 ## Comments
 

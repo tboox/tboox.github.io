@@ -25,6 +25,7 @@ TBOX提供了各种常用算法，对容器中的元素进行各种操作，这�
 
 所以一般情况下，只需要调用tb_sort就行了
 
+```c
     // 初始化一个vector，元素类型为tb_long_t， 满256个元素自动增长
     tb_vector_ref_t vector = tb_vector_init(256, tb_item_func_long());
     if (vector)
@@ -42,6 +43,7 @@ TBOX提供了各种常用算法，对容器中的元素进行各种操作，这�
         // 释放vector
         tb_vector_exit(vector);
     }
+```
 
 对于查找算法，目前提供：
 
@@ -51,6 +53,7 @@ TBOX提供了各种常用算法，对容器中的元素进行各种操作，这�
 
 如果容器具有随机迭代特性，你就可以使用二分查找来优化，例如：vector、原生数组等等。。
 
+```c
     // 初始化一个vector，元素类型为tb_long_t， 满256个元素自动增长
     tb_vector_ref_t vector = tb_vector_init(256, tb_item_func_long());
     if (vector)
@@ -73,9 +76,11 @@ TBOX提供了各种常用算法，对容器中的元素进行各种操作，这�
         // 释放vector
         tb_vector_exit(vector);
     }
+```
 
 你也可以指定比较器函数，来更灵活的进行查找。
 
+```c
     // 按降序比较函数
     static tb_long_t your_comp_func(tb_iterator_ref_t iterator, tb_cpointer_t ltem, tb_cpointer_t rtem)
     {
@@ -104,9 +109,11 @@ TBOX提供了各种常用算法，对容器中的元素进行各种操作，这�
         // 释放vector
         tb_vector_exit(vector);
     }
+```
 
 原生的数组也是可以使用算法进行比较的，下面给个比较常用的查找例子：
 
+```c
     // 定义一个字符集操作的数据结构
     typedef struct __tb_charset_t
     {
@@ -149,6 +156,7 @@ TBOX提供了各种常用算法，对容器中的元素进行各种操作，这�
         // 获取元素对象
         tb_charset_t* charset = (tb_charset_t*)tb_iterator_item(&iterator, itor);
     }
+```
 
 注：上面的例子摘录自TBOX库内部的代码，仅供参考，不能直接copy使用。
 
