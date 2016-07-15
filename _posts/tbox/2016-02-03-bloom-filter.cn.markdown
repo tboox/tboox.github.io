@@ -22,7 +22,7 @@ Bloom Filter是由Bloom在1970年提出的一种快速查找算法，通过多�
 bloom filter主要的难点其实在于估算：
 保证指定误判率的情况下，到底需要多少个hash函数，多少的存储空间。
 
-<!-- more -->
+
 
 首先来看下bloom filter的误判率计算公式：
 

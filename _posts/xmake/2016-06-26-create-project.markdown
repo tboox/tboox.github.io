@@ -30,7 +30,7 @@ We will add some application templates in the future.
 
 We need note that the template's ID is variable. 
 
-<!-- more -->
+
 
 You can run `xmake create --help` to get more arguments info for template.
 

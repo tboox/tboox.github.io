@@ -22,7 +22,7 @@ xmake从v2.0开始，全面支持插件模式，我们可以很方便的扩展�
 * hello: 插件demo，仅仅显示一句话：'hello xmake!'
 * project： 生成工程文件的插件，目前仅支持(makefile)，后续还会支持(vs,xcode等工程)的生成
 
-<!-- more -->
+
 
 接下来我们介绍下本文的重点，一个简单的hello xmake插件的开发，代码如下：
 

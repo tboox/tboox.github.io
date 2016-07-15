@@ -23,7 +23,7 @@ categories: tbox
 
 tbox中使用float相关的代码，也是可以裁剪掉的，并且tbox还提供了一整套fixed16、fixed30、fixed6的定点运算库，来应付一些需要float运算的地方
 
-<!-- more -->
+
 
 这个在图形算法上用的比较多，具体使用可以参考我的另外一个图形库项目：[gbox](https://github.com/waruqi/gbox)，具体的裁剪如下：
 

@@ -21,7 +21,6 @@ xmake在开发插件脚本的时候，除了可以使用lua内置的print进行�
 
 ![cprint_colors](/static/img/xmake/cprint_colors.png)
 
-<!-- more -->
 
 跟颜色相关的描述，都放置在 `${  }` 里面，可以同时设置多个不同的属性，例如：
 

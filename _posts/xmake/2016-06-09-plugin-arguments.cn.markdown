@@ -37,7 +37,7 @@ categories: xmake
                         }
                     }) 
 
-<!-- more -->
+
 
 这个插件的文件结构如下：
 
