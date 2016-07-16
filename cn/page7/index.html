@@ -185,6 +185,187 @@
             
               <li>
                 <h2>
+                  <a class="post-link" href="/cn/2016/02/04/container-hash/">哈希容器的使用</a>
+                </h2>
+                <div class="label">
+                    <div class="label-card">
+                        <i class="fa fa-calendar"></i>2016-02-04
+                    </div>
+                    <div class="label-card">
+                        
+                    </div>
+                    <div class="label-card">
+                        
+                    </div>
+
+                    <div class="label-card">
+                    
+
+
+<!-- <span class="point">•</span> -->
+<span class="categories">
+  <i class="fa fa-th-list"></i>
+  
+    
+        <a href="/category/#tbox" title="Category: tbox" rel="category">tbox</a>
+    
+  
+
+  <!-- <span class="point">•</span> -->
+</span>
+
+
+                    </div>
+
+                    <div class="label-card">
+                    
+<!-- <span class="point">•</span> -->
+<span class="pageTag">
+  <i class="fa fa-tags"></i>
+  
+    
+        <a href="/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a>&nbsp;
+    
+        <a href="/tag/#c" title="Tag: c" rel="tag">c</a>&nbsp;
+    
+        <a href="/tag/#哈希" title="Tag: 哈希" rel="tag">哈希</a>&nbsp;
+    
+        <a href="/tag/#容器" title="Tag: 容器" rel="tag">容器</a>
+    
+  
+
+</span>
+
+                    </div>
+                </div>
+                <div class="excerpt">
+                    <p>stl的容器库非常强大，但是为了要兼容各种元素类型，采用了模板进行泛化，这样的好处就是使用非常的方便，但是编译器会对使用到的每种类型都进行一遍实例化，用的类型太多的话不仅影响编译速度而且生成的可执行文件也很冗余。</p>
+
+<p>因此，TBOX在设计容器架构的时候，引入tb_item_func_t类型，来设置容器使用的成员类型，这样在实现容器通用性的同时，也不会产生过的冗余，而且容器接口操作上，同样相当的便利。</p>
+
+<p>可以先看个简单使用哈希的例子：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="cm">/* 初始化hash, 哈希桶大小8
+     * 键：大小写敏感字符串
+     * 值：long整型
+     */</span>
+    <span class="n">tb_hash_ref_t</span> <span class="n">hash</span> <span class="o">=</span> <span class="n">tb_hash_init</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="n">tb_item_func_str</span><span class="p">(</span><span class="n">tb_true</span><span class="p">),</span> <span class="n">tb_item_func_long</span><span class="p">());</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">hash</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// 设置键值对："key" =&gt; 123
+</span>        <span class="n">tb_hash_set</span><span class="p">(</span><span class="n">hash</span><span class="p">,</span> <span class="s">"key"</span><span class="p">,</span> <span class="p">(</span><span class="n">tb_pointer_t</span><span class="p">)</span><span class="mi">123</span><span class="p">);</span>
+
+        <span class="c1">// 获取值
+</span>        <span class="n">tb_long_t</span> <span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_long_t</span><span class="p">)</span><span class="n">tb_hash_get</span><span class="p">(</span><span class="n">hash</span><span class="p">,</span> <span class="s">"key"</span><span class="p">);</span>
+
+        <span class="c1">// 退出hash
+</span>        <span class="n">tb_hash_exit</span><span class="p">(</span><span class="n">hash</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="cm">/* 初始化hash, 哈希桶大小: TB_HASH_BULK_SIZE_MICRO
+     * 键：tb_struct_xxxx_t 结构体类型，内存数据由hash内部自己维护, 后面两个参数设置成员的释放回调函数
+     * 值：true类型，永远是tb_true, 这种hash相当于stl的set&lt;tb_struct_xxxx_t&gt;，内部会去优化掉value占用的内存
+     */</span>
+    <span class="n">tb_hash_ref_t</span> <span class="n">hash</span> <span class="o">=</span> <span class="n">tb_hash_init</span><span class="p">(</span><span class="n">TB_HASH_BULK_SIZE_MICRO</span><span class="p">,</span> <span class="n">tb_item_func_mem</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">tb_struct_xxxx_t</span><span class="p">),</span> <span class="n">tb_null</span><span class="p">,</span> <span class="n">tb_null</span><span class="p">),</span> <span class="n">tb_item_func_true</span><span class="p">());</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">hash</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// 初始化tb_struct_xxxx_t
+</span>        <span class="n">tb_struct_xxxx_t</span> <span class="n">xxxx</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+
+        <span class="c1">// 设置键值对：xxxx =&gt; tb_true
+</span>        <span class="n">tb_hash_set</span><span class="p">(</span><span class="n">hash</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">xxxx</span><span class="p">,</span> <span class="p">(</span><span class="n">tb_pointer_t</span><span class="p">)</span><span class="n">tb_true</span><span class="p">);</span>
+
+        <span class="c1">// 判断键是否存在
+</span>        <span class="k">if</span> <span class="p">(</span><span class="n">tb_hash_get</span><span class="p">(</span><span class="n">hash</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">xxxx</span><span class="p">))</span> 
+        <span class="p">{</span>
+            <span class="c1">// ...
+</span>        <span class="p">}</span>
+
+        <span class="c1">// 退出hash
+</span>        <span class="n">tb_hash_exit</span><span class="p">(</span><span class="n">hash</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="cm">/* 初始化hash, 哈希桶大小使用默认大小: 0
+     * 键：大小写不敏感字符串
+     * 值：uint8整型
+     */</span>
+    <span class="n">tb_hash_ref_t</span> <span class="n">hash</span> <span class="o">=</span> <span class="n">tb_hash_init</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">tb_item_func_str</span><span class="p">(</span><span class="n">tb_false</span><span class="p">),</span> <span class="n">tb_item_func_uint8</span><span class="p">());</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">hash</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// 设置键值对："key" =&gt; 123
+</span>        <span class="n">tb_hash_set</span><span class="p">(</span><span class="n">hash</span><span class="p">,</span> <span class="s">"key"</span><span class="p">,</span> <span class="p">(</span><span class="n">tb_pointer_t</span><span class="p">)</span><span class="mi">123</span><span class="p">);</span>
+
+        <span class="c1">// 获取u位整型键值
+</span>        <span class="n">tb_uint8_t</span> <span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_uint8_t</span><span class="p">)</span><span class="n">tb_hash_get</span><span class="p">(</span><span class="n">hash</span><span class="p">,</span> <span class="s">"key"</span><span class="p">);</span>
+
+        <span class="c1">// 退出hash
+</span>        <span class="n">tb_hash_exit</span><span class="p">(</span><span class="n">hash</span><span class="p">);</span>
+    <span class="p">}</span>
+</code></pre>
+</div>
+
+<p>怎么样，简单吧。各种类型项都是可以在键值上互用的，而且会去适配<code class="highlighter-rouge">tb_hash_get</code>和<code class="highlighter-rouge">tb_hash_set</code>等容器接口参数。</p>
+
+<p>你也可以很方便的在初始化容器的时候，自定义成员释放函数、成员比较函数、哈希计算函数等，例如：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="c1">// 指针成员释放函数
+</span>    <span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">tb_hash_item_ptr_free</span><span class="p">(</span><span class="n">tb_item_func_t</span><span class="o">*</span> <span class="n">func</span><span class="p">,</span> <span class="n">tb_pointer_t</span> <span class="n">buff</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// 断言检测
+</span>        <span class="n">tb_assert_and_check_return</span><span class="p">(</span><span class="n">func</span> <span class="o">&amp;&amp;</span> <span class="n">buff</span><span class="p">);</span>
+
+        <span class="c1">// 获取用户私有数据
+</span>        <span class="n">tb_pointer_t</span> <span class="n">priv</span> <span class="o">=</span> <span class="n">func</span><span class="o">-&gt;</span><span class="n">priv</span><span class="p">;</span>
+
+        <span class="cm">/* 获取成员数据，这里为tb_pointer_t类型，buff是指向成员数据的指针
+         *
+         * 如果是tb_item_func_str()项类型，数据就是：
+         * tb_char_t* data = *((tb_char_t**)buff);
+         *    
+         * 如果是tb_item_func_mem()项类型，数据就是：
+         * tb_byte_t* data = (tb_byte_t*)buff;
+         *
+         * 因为tb_item_func_mem是吧成员数据的内存都放到了容器里面维护，所以
+         * buff指向的就是成员数据本身的地址
+         *
+         * 而str、ptr只是把指针存到了容器中，所以item指向的是指针的地址，这个需要
+         * 注意的，不然很容易出问题
+         */</span>
+        <span class="n">tb_pointer_t</span> <span class="n">data</span> <span class="o">=</span> <span class="o">*</span><span class="p">((</span><span class="n">tb_pointer_t</span><span class="o">*</span><span class="p">)</span><span class="n">buff</span><span class="p">);</span>
+        
+        <span class="c1">// 释放它
+</span>        <span class="k">if</span> <span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="n">tb_free</span><span class="p">(</span><span class="n">data</span><span class="p">);</span>
+
+        <span class="c1">// 清空成员数据
+</span>        <span class="o">*</span><span class="p">((</span><span class="n">tb_pointer_t</span><span class="o">*</span><span class="p">)</span><span class="n">buff</span><span class="p">)</span> <span class="o">=</span> <span class="n">tb_null</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c1">// long 比较函数，改成反序比较
+</span>    <span class="k">static</span> <span class="n">tb_long_t</span> <span class="nf">tb_hash_item_long_comp</span><span class="p">(</span><span class="n">tb_item_func_t</span><span class="o">*</span> <span class="n">func</span><span class="p">,</span> <span class="n">tb_cpointer_t</span> <span class="n">ldata</span><span class="p">,</span> <span class="n">tb_cpointer_t</span> <span class="n">rdata</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="p">((</span><span class="n">tb_long_t</span><span class="p">)</span><span class="n">ldata</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">tb_long_t</span><span class="p">)</span><span class="n">rdata</span><span class="o">?</span> <span class="mi">1</span> <span class="o">:</span> <span class="p">((</span><span class="n">tb_long_t</span><span class="p">)</span><span class="n">ldata</span> <span class="o">&gt;</span> <span class="p">(</span><span class="n">tb_long_t</span><span class="p">)</span><span class="n">rdata</span><span class="o">?</span> <span class="o">-</span><span class="mi">1</span> <span class="o">:</span> <span class="mi">0</span><span class="p">));</span>
+    <span class="p">}</span>
+
+    <span class="c1">// 初始化long整型比较函数
+</span>    <span class="n">tb_item_func_t</span> <span class="n">func</span> <span class="o">=</span> <span class="n">tb_item_func_long</span><span class="p">();</span>
+
+    <span class="c1">// 替换比较函数, ptr有快捷的传入方式，当然也可以这样传
+</span>    <span class="n">func</span><span class="p">.</span><span class="n">comp</span> <span class="o">=</span> <span class="n">tb_hash_item_long_comp</span><span class="p">;</span>
+
+    <span class="c1">// 初始化hash
+</span>    <span class="n">tb_hash_ref_t</span> <span class="n">hash</span> <span class="o">=</span> <span class="n">tb_hash_init</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">tb_item_func_ptr</span><span class="p">(</span><span class="n">tb_hash_item_ptr_free</span><span class="p">,</span> <span class="s">"private data"</span><span class="p">));</span>
+</code></pre>
+</div>
+
+                </div>
+                <div class="read-all">
+                    <a href="/cn/2016/02/04/container-hash/"><i class="fa fa-newspaper-o"></i>阅读全文</a>
+                </div>
+                <hr />
+              </li>
+            
+              <li>
+                <h2>
                   <a class="post-link" href="/cn/2016/02/04/algorithm-sort-find/">排序和查找算法的使用</a>
                 </h2>
                 <div class="label">
@@ -537,6 +718,10 @@
                     
                     
                     
+                        <li><a href="/cn/2016/07/16/how-to-build-a-simple-project/">如何快速构建一个简单的程序</a></li>
+                    
+                    
+                    
                     
                     
                         <li><a href="/cn/2016/07/14/plugin-print-colors/">插件开发之色彩高亮显示</a></li>
@@ -556,10 +741,6 @@
                         <li><a href="/cn/2016/07/07/plugin-lua/">插件使用之加载自定义lua脚本</a></li>
                     
                     
-                    
-                    
-                    
-                        <li><a href="/cn/2016/07/06/update-v2.0.2/">xmake v2.0.2 更新!</a></li>
                     
                     
                 </ul>
@@ -596,7 +777,7 @@
                             <span class="name">
                                 xmake
                             </span>
-                            <span class="badge">31</span>
+                            <span class="badge">32</span>
                         </a>
                     </li>
                     
@@ -804,7 +985,7 @@
                       
                       
                       
-                      <a href="/tag/#编译" style="font-size: 9.5pt; color: #888;">编译</a>
+                      <a href="/tag/#编译" style="font-size: 10pt; color: #888;">编译</a>
                     
                       
                       
@@ -1134,6 +1315,13 @@
                       
                       
                       <a href="/tag/#function" style="font-size: 9pt; color: #999;">function</a>
+                    
+                      
+                      
+                      
+                      
+                      
+                      <a href="/tag/#交叉编译" style="font-size: 9pt; color: #999;">交叉编译</a>
                     
                       
                       
