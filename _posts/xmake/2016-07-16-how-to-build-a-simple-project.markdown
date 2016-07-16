@@ -39,6 +39,17 @@ int main(int argc, char** argv)
 }
 ```
 
+The content of `xmake.lua` is very simple:
+
+```lua
+$ cat xmake.lua 
+
+target("hello")
+    set_kind("binary")
+    add_files("src/*.c") 
+
+```
+
 
 
 We build it now.
