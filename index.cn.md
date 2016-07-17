@@ -151,9 +151,9 @@ layout: default.cn
                     <i class="fa fa-external-link"></i>
                     链接
                 </div>
-                <ul  class="content-ul">
-                  <li><a href="http://xmake.io/cn">XMake</a></li>
-                  <li><a href="https://www.github.com/waruqi">Github</a></li>
+                <ul class="content-ul">
+                  <li><a href="http://www.xmake.io">xmake</a></li>
+                  <li><a href="https://github.com/waruqi">github</a></li>
                 </ul>
             </div> 
 

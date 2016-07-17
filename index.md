@@ -149,9 +149,9 @@ layout: default
                     <i class="fa fa-external-link"></i>
                     Links
                 </div>
-                <ul  class="content-ul">
-                  <li><a href="http://www.xmake.io">XMake</a></li>
-                  <li><a href="https://github.com/waruqi">Github</a></li>
+                <ul class="content-ul">
+                  <li><a href="http://www.xmake.io">xmake</a></li>
+                  <li><a href="https://github.com/waruqi">github</a></li>
                 </ul>
             </div> 
 
