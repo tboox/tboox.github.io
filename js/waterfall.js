@@ -42,7 +42,7 @@
     },
     {
         page_link: 'https://github.com/waruqi/hnr',
-        img_link: '/static/img/hnr/before.png',
+        img_link: '/static/img/hnr/demo.png',
         code_repo: 'hnr',
         title: 'hnr',
         description: 'An off-line handwritten numeral recognition system.'
