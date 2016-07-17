@@ -42,7 +42,7 @@
     },
     {
         page_link: 'https://github.com/waruqi/hnr',
-        img_link: '/static/img/hnr/before.png',
+        img_link: '/static/img/hnr/demo.png',
         code_repo: 'hnr',
         title: 'hnr',
         description: '一个早期学生时期写的脱机手写识别系统，仅供学习参考'
