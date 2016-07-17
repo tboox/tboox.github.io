@@ -333,3 +333,4 @@ build ok!
 ```
 
 顺便说一下，在windows下编译，xmake是完全支持多任务的哦，默认就是自动多任务构建的，比起以前在msys, cygwin里面用 gmake来编译快多了，因为windows下的gmake就算你启用了`-j 4` 也没啥效果，非常非常得慢。。。
+
