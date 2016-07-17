@@ -15,35 +15,35 @@
     var demoContent = [{
         page_link: 'http://xmake.io',
         img_link: '/static/img/xmake/xmake_site.png',
-        code_link: 'https://github.com/waruqi/xmake',
+        code_repo: 'xmake',
         title: 'xmake',
         description: 'XMake是一个基于Lua的轻量级跨平台自动构建工具，支持在各种主流平台上构建项目'
     },
     {
         page_link: 'https://github.com/waruqi/tbox',
         img_link: '/static/img/logo2.jpg',
-        code_link: 'https://github.com/waruqi/tbox',
+        code_repo: 'tbox',
         title: 'tbox',
         description: 'TBox是一个用c语言实现的跨平台开发库'
     },
     {
         page_link: 'https://github.com/waruqi/gbox',
         img_link: '/static/img/gbox/tiger.svg',
-        code_link: 'https://github.com/waruqi/gbox',
+        code_repo: 'gbox',
         title: 'gbox',
         description: 'GBox是一个用c语言实现的跨平台的2d图形库渲染库'
     },
     {
         page_link: 'https://github.com/waruqi/itrace',
         img_link: '/static/img/itrace/itrace.png',
-        code_link: 'https://github.com/waruqi/itrace',
+        code_repo: 'itrace',
         title: 'itrace',
         description: 'ios objc方法调用记录工具'
     },
     {
         page_link: 'https://github.com/waruqi/hnr',
         img_link: '/static/img/hnr/before.png',
-        code_link: 'https://github.com/waruqi/hnr',
+        code_repo: 'hnr',
         title: 'hnr',
         description: '一个早期学生时期写的脱机手写识别系统，仅供学习参考'
     }];
@@ -84,8 +84,8 @@ function contentInit(content) {
             '   <h3 class="demo-title">' +
             '       <a href="' + content[i].page_link + '">' + content[i].title + '</a>' +
             '   </h3>' +
+            '   <span class="demo-repostar"> <iframe src="https://ghbtns.com/github-btn.html?user=waruqi&repo=' + content[i].code_repo + '&type=star&count=true" frameborder="0" scrolling="0" width="170px" height="20px"></iframe></span>' +
             '   <p>' + content[i].description +
-            '       <br><a href="' + content[i].code_link + '">源代码 <i class="fa fa-code" aria-hidden="true"></i></a>' +
             '   </p>' +
             '</div>'
     }

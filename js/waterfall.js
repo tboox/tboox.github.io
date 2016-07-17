@@ -15,35 +15,35 @@
     var demoContent = [{
         page_link: 'http://xmake.io',
         img_link: '/static/img/xmake/xmake_site.png',
-        code_link: 'https://github.com/waruqi/xmake',
+        code_repo: 'xmake',
         title: 'xmake',
         description: 'XMake is a make-like build utility based on lua.'
     },
     {
         page_link: 'https://github.com/waruqi/tbox',
         img_link: '/static/img/logo2.jpg',
-        code_link: 'https://github.com/waruqi/tbox',
+        code_repo: 'tbox',
         title: 'tbox',
         description: 'TBox is a glib-like cross-platform C library that is simple to use yet powerful in nature.'
     },
     {
         page_link: 'https://github.com/waruqi/gbox',
         img_link: '/static/img/gbox/tiger.svg',
-        code_link: 'https://github.com/waruqi/gbox',
+        code_repo: 'gbox',
         title: 'gbox',
         description: 'GBox is a cross-platform 2d graphic library in c language.'
     },
     {
         page_link: 'https://github.com/waruqi/itrace',
         img_link: '/static/img/itrace/itrace.png',
-        code_link: 'https://github.com/waruqi/itrace',
+        code_repo: 'itrace',
         title: 'itrace',
         description: 'Trace objc method call for ios and mac.'
     },
     {
         page_link: 'https://github.com/waruqi/hnr',
         img_link: '/static/img/hnr/before.png',
-        code_link: 'https://github.com/waruqi/hnr',
+        code_repo: 'hnr',
         title: 'hnr',
         description: 'An off-line handwritten numeral recognition system.'
     }];
@@ -84,8 +84,8 @@ function contentInit(content) {
             '   <h3 class="demo-title">' +
             '       <a href="' + content[i].page_link + '">' + content[i].title + '</a>' +
             '   </h3>' +
+            '   <span class="demo-repostar"> <iframe src="https://ghbtns.com/github-btn.html?user=waruqi&repo=' + content[i].code_repo + '&type=star&count=true" frameborder="0" scrolling="0" width="170px" height="20px"></iframe></span>' +
             '   <p>' + content[i].description +
-            '       <br><a href="' + content[i].code_link + '">Source Code <i class="fa fa-code" aria-hidden="true"></i></a>' +
             '   </p>' +
             '</div>'
     }
