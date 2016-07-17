@@ -172,6 +172,8 @@
                 
                     
                 
+                    
+                
             </ul>
         </nav>
     </div>
@@ -184,6 +186,232 @@
         <small>专注于跨平台c开发解决方案</small>
         <hr />
         <ul>
+            
+              <li>
+                <h2>
+                  <a class="post-link" href="/cn/2016/02/04/memory-check/">内存检测</a>
+                </h2>
+                <div class="label">
+                    <div class="label-card">
+                        <i class="fa fa-calendar"></i>2016-02-04
+                    </div>
+                    <div class="label-card">
+                        
+                    </div>
+                    <div class="label-card">
+                        
+                    </div>
+
+                    <div class="label-card">
+                    
+
+
+<!-- <span class="point">•</span> -->
+<span class="categories">
+  <i class="fa fa-th-list"></i>
+  
+    
+        <a href="/category/#tbox" title="Category: tbox" rel="category">tbox</a>
+    
+  
+
+  <!-- <span class="point">•</span> -->
+</span>
+
+
+                    </div>
+
+                    <div class="label-card">
+                    
+<!-- <span class="point">•</span> -->
+<span class="pageTag">
+  <i class="fa fa-tags"></i>
+  
+    
+        <a href="/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a>&nbsp;
+    
+        <a href="/tag/#c" title="Tag: c" rel="tag">c</a>&nbsp;
+    
+        <a href="/tag/#内存检测" title="Tag: 内存检测" rel="tag">内存检测</a>
+    
+  
+
+</span>
+
+                    </div>
+                </div>
+                <div class="excerpt">
+                    <p>TBOX的内存分配在调试模式下，可以检测支持内存泄露和越界，而且还能精确定位到出问题的那块内存具体分配位置，和函数调用堆栈。</p>
+
+<ol>
+  <li>内存泄露检测</li>
+</ol>
+
+<p>内存泄露的检测必须在程序退出的前一刻，调用tb_exit()的时候，才会执行，如果有泄露，会有详细输出到终端上。</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="n">tb_void_t</span> <span class="nf">tb_demo_leak</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="n">tb_pointer_t</span> <span class="n">data</span> <span class="o">=</span> <span class="n">tb_malloc0</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
+    <span class="p">}</span>
+</code></pre>
+</div>
+
+<p>输出：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>    [tbox]: [error]: leak: 0x7f9d5b058908 at tb_static_fixed_pool_dump(): 735, memory/impl/static_fixed_pool.c
+    [tbox]: [error]: data: from: tb_demo_leak(): 43, memory/check.c
+    [tbox]: [error]:     [0x000001050e742a]: 0   demo.b                              0x00000001050e742a tb_fixed_pool_malloc0_ + 186
+    [tbox]: [error]:     [0x000001050f972b]: 1   demo.b                              0x00000001050f972b tb_small_pool_malloc0_ + 507
+    [tbox]: [error]:     [0x000001050f593c]: 2   demo.b                              0x00000001050f593c tb_pool_malloc0_ + 540
+    [tbox]: [error]:     [0x00000105063cd7]: 3   demo.b                              0x0000000105063cd7 tb_demo_leak + 55
+    [tbox]: [error]:     [0x00000105063e44]: 4   demo.b                              0x0000000105063e44 tb_demo_memory_check_main + 20
+    [tbox]: [error]:     [0x0000010505b08e]: 5   demo.b                              0x000000010505b08e main + 878
+    [tbox]: [error]:     [0x007fff8c95a5fd]: 6   libdyld.dylib                       0x00007fff8c95a5fd start + 1
+    [tbox]: [error]:     [0x00000000000002]: 7   ???                                 0x0000000000000002 0x0 + 2
+    [tbox]: [error]: data: 0x7f9d5b058908, size: 10, patch: cc
+</code></pre>
+</div>
+
+<ol>
+  <li>内存越界检测</li>
+</ol>
+
+<p>越界溢出的检测，是实时完成的，而且对libc也做了插桩，所以对常用strcpy，memset等的使用，都回去检测</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="n">tb_void_t</span> <span class="nf">tb_demo_overflow</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="n">tb_pointer_t</span> <span class="n">data</span> <span class="o">=</span> <span class="n">tb_malloc0</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">tb_memset</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">11</span><span class="p">);</span>
+            <span class="n">tb_free</span><span class="p">(</span><span class="n">data</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+</code></pre>
+</div>
+
+<p>输出：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>    [tbox]: [memset]: [overflow]: [0x0 x 11] =&gt; [0x7f950b044508, 10]
+    [tbox]: [memset]: [overflow]: [0x0000010991a1c7]: 0   demo.b                              0x000000010991a1c7 tb_memset + 151
+    [tbox]: [memset]: [overflow]: [0x000001098a2d01]: 1   demo.b                              0x00000001098a2d01 tb_demo_overflow + 97
+    [tbox]: [memset]: [overflow]: [0x000001098a3044]: 2   demo.b                              0x00000001098a3044 tb_demo_memory_check_main + 20
+    [tbox]: [memset]: [overflow]: [0x0000010989a28e]: 3   demo.b                              0x000000010989a28e main + 878
+    [tbox]: [memset]: [overflow]: [0x007fff8c95a5fd]: 4   libdyld.dylib                       0x00007fff8c95a5fd start + 1
+    [tbox]: [memset]: [overflow]: [0x00000000000002]: 5   ???                                 0x0000000000000002 0x0 + 2
+    [tbox]: 	[malloc]: [from]: data: from: tb_demo_overflow(): 12, memory/check.c
+    [tbox]: 	[malloc]: [from]:     [0x0000010992662a]: 0   demo.b                              0x000000010992662a tb_fixed_pool_malloc0_ + 186
+    [tbox]: 	[malloc]: [from]:     [0x0000010993892b]: 1   demo.b                              0x000000010993892b tb_small_pool_malloc0_ + 507
+    [tbox]: 	[malloc]: [from]:     [0x00000109934b3c]: 2   demo.b                              0x0000000109934b3c tb_pool_malloc0_ + 540
+    [tbox]: 	[malloc]: [from]:     [0x000001098a2cd7]: 3   demo.b                              0x00000001098a2cd7 tb_demo_overflow + 55
+    [tbox]: 	[malloc]: [from]:     [0x000001098a3044]: 4   demo.b                              0x00000001098a3044 tb_demo_memory_check_main + 20
+    [tbox]: 	[malloc]: [from]:     [0x0000010989a28e]: 5   demo.b                              0x000000010989a28e main + 878
+    [tbox]: 	[malloc]: [from]:     [0x007fff8c95a5fd]: 6   libdyld.dylib                       0x00007fff8c95a5fd start + 1
+    [tbox]: 	[malloc]: [from]:     [0x00000000000002]: 7   ???                                 0x0000000000000002 0x0 + 2
+    [tbox]: 	[malloc]: [from]: data: 0x7f950b044508, size: 10, patch: cc
+    [tbox]: 	[malloc]: [from]: data: first 10-bytes:
+    [tbox]: ===================================================================================================================================================
+    [tbox]: 00000000   00 00 00 00  00 00 00 00  00 00                                                                         ..........
+    [tbox]: [error]: abort at tb_memset(): 255, libc/string/memset.c
+</code></pre>
+</div>
+
+<ol>
+  <li>内存重叠覆盖检测</li>
+</ol>
+
+<p>如果两块内存的copy发生了重叠，有可能会覆盖掉部分数据，导致bug，因此TBOX对此也做了些检测。</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="n">tb_void_t</span> <span class="nf">tb_demo_overlap</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="n">tb_pointer_t</span> <span class="n">data</span> <span class="o">=</span> <span class="n">tb_malloc</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">tb_memcpy</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="p">(</span><span class="n">tb_byte_t</span> <span class="k">const</span><span class="o">*</span><span class="p">)</span><span class="n">data</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">);</span>
+            <span class="n">tb_free</span><span class="p">(</span><span class="n">data</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+</code></pre>
+</div>
+
+<p>输出</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>    [tbox]: [memcpy]: [overlap]: [0x7fe9b5042509, 5] =&gt; [0x7fe9b5042508, 5]
+    [tbox]: [memcpy]: [overlap]: [0x000001094403b8]: 0   demo.b                              0x00000001094403b8 tb_memcpy + 632
+    [tbox]: [memcpy]: [overlap]: [0x000001093c99f9]: 1   demo.b                              0x00000001093c99f9 tb_demo_overlap + 105
+    [tbox]: [memcpy]: [overlap]: [0x000001093c9a44]: 2   demo.b                              0x00000001093c9a44 tb_demo_memory_check_main + 20
+    [tbox]: [memcpy]: [overlap]: [0x000001093c0c8e]: 3   demo.b                              0x00000001093c0c8e main + 878
+    [tbox]: [memcpy]: [overlap]: [0x007fff8c95a5fd]: 4   libdyld.dylib                       0x00007fff8c95a5fd start + 1
+    [tbox]: [memcpy]: [overlap]: [0x00000000000002]: 5   ???                                 0x0000000000000002 0x0 + 2
+    [tbox]: 	[malloc]: [from]: data: from: tb_demo_overlap(): 58, memory/check.c
+    [tbox]: 	[malloc]: [from]:     [0x0000010945eadb]: 0   demo.b                              0x000000010945eadb tb_small_pool_malloc_ + 507
+    [tbox]: 	[malloc]: [from]:     [0x0000010945b23c]: 1   demo.b                              0x000000010945b23c tb_pool_malloc_ + 540
+    [tbox]: 	[malloc]: [from]:     [0x000001093c99c7]: 2   demo.b                              0x00000001093c99c7 tb_demo_overlap + 55
+    [tbox]: 	[malloc]: [from]:     [0x000001093c9a44]: 3   demo.b                              0x00000001093c9a44 tb_demo_memory_check_main + 20
+    [tbox]: 	[malloc]: [from]:     [0x000001093c0c8e]: 4   demo.b                              0x00000001093c0c8e main + 878
+    [tbox]: 	[malloc]: [from]:     [0x007fff8c95a5fd]: 5   libdyld.dylib                       0x00007fff8c95a5fd start + 1
+    [tbox]: 	[malloc]: [from]:     [0x00000000000002]: 6   ???                                 0x0000000000000002 0x0 + 2
+    [tbox]: 	[malloc]: [from]: data: 0x7fe9b5042508, size: 10, patch: cc
+    [tbox]: 	[malloc]: [from]: data: first 10-bytes:
+    [tbox]: ===================================================================================================================================================
+    [tbox]: 00000000   CC CC CC CC  CC CC CC CC  CC CC                                                                         ..........
+    [tbox]: [error]: abort at tb_memcpy(): 125, libc/string/memcpy.c
+</code></pre>
+</div>
+
+<ol>
+  <li>内存双重释放检测</li>
+</ol>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="n">tb_void_t</span> <span class="nf">tb_demo_free2</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="n">tb_pointer_t</span> <span class="n">data</span> <span class="o">=</span> <span class="n">tb_malloc0</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">tb_free</span><span class="p">(</span><span class="n">data</span><span class="p">);</span>
+            <span class="n">tb_free</span><span class="p">(</span><span class="n">data</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+</code></pre>
+</div>
+
+<p>输出</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>    [tbox]: [assert]: expr[((impl-&gt;used_info)[(index) &gt;&gt; 3] &amp; (0x1 &lt;&lt; ((index) &amp; 7)))]: double free data: 0x7fd93386c708 at tb_static_fixed_pool_free(): 612, memory/impl/static_fixed_pool.c
+    [tbox]:     [0x0000010c9f553c]: 0   demo.b                              0x000000010c9f553c tb_static_fixed_pool_free + 972
+    [tbox]:     [0x0000010c9ee7a9]: 1   demo.b                              0x000000010c9ee7a9 tb_fixed_pool_free_ + 713
+    [tbox]:     [0x0000010ca01ff5]: 2   demo.b                              0x000000010ca01ff5 tb_small_pool_free_ + 885
+    [tbox]:     [0x0000010c9fdb4f]: 3   demo.b                              0x000000010c9fdb4f tb_pool_free_ + 751
+    [tbox]:     [0x0000010c96ac8e]: 4   demo.b                              0x000000010c96ac8e tb_demo_free2 + 158
+    [tbox]:     [0x0000010c96ae44]: 5   demo.b                              0x000000010c96ae44 tb_demo_memory_check_main + 20
+    [tbox]:     [0x0000010c96208e]: 6   demo.b                              0x000000010c96208e main + 878
+    [tbox]:     [0x007fff8c95a5fd]: 7   libdyld.dylib                       0x00007fff8c95a5fd start + 1
+    [tbox]:     [0x00000000000002]: 8   ???                                 0x0000000000000002 0x0 + 2
+    [tbox]: [error]: free(0x7fd93386c708) failed! at tb_demo_free2(): 37, memory/check.c at tb_static_fixed_pool_free(): 649, memory/impl/static_fixed_pool.c
+    [tbox]: [error]: data: from: tb_demo_free2(): 33, memory/check.c
+    [tbox]: [error]:     [0x0000010c9ee42a]: 0   demo.b                              0x000000010c9ee42a tb_fixed_pool_malloc0_ + 186
+    [tbox]: [error]:     [0x0000010ca0072b]: 1   demo.b                              0x000000010ca0072b tb_small_pool_malloc0_ + 507
+    [tbox]: [error]:     [0x0000010c9fc93c]: 2   demo.b                              0x000000010c9fc93c tb_pool_malloc0_ + 540
+    [tbox]: [error]:     [0x0000010c96ac27]: 3   demo.b                              0x000000010c96ac27 tb_demo_free2 + 55
+    [tbox]: [error]:     [0x0000010c96ae44]: 4   demo.b                              0x000000010c96ae44 tb_demo_memory_check_main + 20
+    [tbox]: [error]:     [0x0000010c96208e]: 5   demo.b                              0x000000010c96208e main + 878
+    [tbox]: [error]:     [0x007fff8c95a5fd]: 6   libdyld.dylib                       0x00007fff8c95a5fd start + 1
+    [tbox]: [error]:     [0x00000000000002]: 7   ???                                 0x0000000000000002 0x0 + 2
+    [tbox]: [error]: data: 0x7fd93386c708, size: 10, patch: cc
+    [tbox]: [error]: data: first 10-bytes:
+    [tbox]: ===================================================================================================================================================
+    [tbox]: 00000000   00 00 00 00  00 00 00 00  00 00                                                                         ..........
+    [tbox]: [error]: abort at tb_static_fixed_pool_free(): 655, memory/impl/static_fixed_pool.c
+</code></pre>
+</div>
+
+
+                </div>
+                <div class="read-all">
+                    <a href="/cn/2016/02/04/memory-check/"><i class="fa fa-newspaper-o"></i>阅读全文</a>
+                </div>
+                <hr />
+              </li>
             
               <li>
                 <h2>
@@ -606,93 +834,6 @@
                 <hr />
               </li>
             
-              <li>
-                <h2>
-                  <a class="post-link" href="/cn/2016/02/03/bloom-filter/">利用bloom filter算法处理大规模数据过滤</a>
-                </h2>
-                <div class="label">
-                    <div class="label-card">
-                        <i class="fa fa-calendar"></i>2016-02-03
-                    </div>
-                    <div class="label-card">
-                        
-                    </div>
-                    <div class="label-card">
-                        
-                    </div>
-
-                    <div class="label-card">
-                    
-
-
-<!-- <span class="point">•</span> -->
-<span class="categories">
-  <i class="fa fa-th-list"></i>
-  
-    
-        <a href="/category/#tbox" title="Category: tbox" rel="category">tbox</a>
-    
-  
-
-  <!-- <span class="point">•</span> -->
-</span>
-
-
-                    </div>
-
-                    <div class="label-card">
-                    
-<!-- <span class="point">•</span> -->
-<span class="pageTag">
-  <i class="fa fa-tags"></i>
-  
-    
-        <a href="/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a>&nbsp;
-    
-        <a href="/tag/#c" title="Tag: c" rel="tag">c</a>&nbsp;
-    
-        <a href="/tag/#bloom" title="Tag: bloom" rel="tag">bloom</a>&nbsp;
-    
-        <a href="/tag/#filter" title="Tag: filter" rel="tag">filter</a>&nbsp;
-    
-        <a href="/tag/#算法" title="Tag: 算法" rel="tag">算法</a>&nbsp;
-    
-        <a href="/tag/#大数据" title="Tag: 大数据" rel="tag">大数据</a>&nbsp;
-    
-        <a href="/tag/#过滤" title="Tag: 过滤" rel="tag">过滤</a>
-    
-  
-
-</span>
-
-                    </div>
-                </div>
-                <div class="excerpt">
-                    <p>Bloom Filter是由Bloom在1970年提出的一种快速查找算法，通过多个hash算法来共同判断某个元素是否在某个集合内。可以用于网络爬虫的url重复过滤、垃圾邮件的过滤等等。</p>
-
-<p>它相比hash容器的一个优势就是，不需要存储元素的实际数据到容器中去来一个个的比较是否存在。
-只需要对应的位段来标记是否存在就行了，所以想当节省内存，特别适合海量的数据处理。并且由于省去了存储元素和比较操作，所以性能也比基于hash容器的高了很多。</p>
-
-<p>但是由于bloom filter没有去比较元素，只通过多个hash来判断唯一性，所以存在一定的hash冲突导致误判。误判率的大小由hash函数的个数、hash函数优劣、以及存储的位空间大小共同决定。</p>
-
-<p>并且删除也比较困难，解决办法是使用其变种，带计数的bloom filter，这个这里就不多说了。</p>
-
-<p>对于bloom filter算法的实现，相当简单：
-首先分配一块固定的连续空间，大小是m个比特位（m/8+1个字节），然后再提供k个不同hash函数，同时对每个元素进行计算位索引。如果每个位索引对应的位都为1，则存在该元素，否则就是不存在。</p>
-
-<p>可以看出，如果判断为不存在，那么肯定是不存在的，只有在判断为存在的时候，才会存在误判。</p>
-
-<p>bloom filter主要的难点其实在于估算：
-保证指定误判率的情况下，到底需要多少个hash函数，多少的存储空间。</p>
-
-
-                </div>
-                <div class="read-all">
-                    <a href="/cn/2016/02/03/bloom-filter/"><i class="fa fa-newspaper-o"></i>阅读全文</a>
-                </div>
-                <hr />
-              </li>
-            
         </ul>
 
 
@@ -723,6 +864,12 @@
                     
                     
                     
+                        <li><a href="/cn/2016/07/17/update-v2.0.3/">xmake v2.0.3 更新!</a></li>
+                    
+                    
+                    
+                    
+                    
                         <li><a href="/cn/2016/07/17/demo-build-a-simple-project/">演示：构建一个简单的程序</a></li>
                     
                     
@@ -744,12 +891,6 @@
                     
                     
                         <li><a href="/cn/2016/07/12/includes-check/">头文件自动依赖检测和构建</a></li>
-                    
-                    
-                    
-                    
-                    
-                        <li><a href="/cn/2016/07/07/plugin-modules/">xmake插件开发之类库使用</a></li>
                     
                     
                 </ul>
@@ -786,7 +927,7 @@
                             <span class="name">
                                 xmake
                             </span>
-                            <span class="badge">34</span>
+                            <span class="badge">36</span>
                         </a>
                     </li>
                     
@@ -833,14 +974,14 @@
                       
                       
                       
-                      <a href="/tag/#tbox" style="font-size: 13pt; color: #555;">tbox</a>
+                      <a href="/tag/#tbox" style="font-size: 12.5pt; color: #555;">tbox</a>
                     
                       
                       
                       
                       
                       
-                      <a href="/tag/#c" style="font-size: 13pt; color: #555;">c</a>
+                      <a href="/tag/#c" style="font-size: 12.5pt; color: #555;">c</a>
                     
                       
                       
@@ -966,7 +1107,7 @@
                       
                       
                       
-                      <a href="/tag/#windows" style="font-size: 9.5pt; color: #888;">windows</a>
+                      <a href="/tag/#windows" style="font-size: 10pt; color: #888;">windows</a>
                     
                       
                       
@@ -1274,7 +1415,7 @@
                       
                       
                       
-                      <a href="/tag/#xmake.io" style="font-size: 10pt; color: #888;">xmake.io</a>
+                      <a href="/tag/#xmake.io" style="font-size: 10.5pt; color: #888;">xmake.io</a>
                     
                       
                       
