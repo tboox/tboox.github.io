@@ -155,6 +155,7 @@ layout: default.cn
                   <li><a href="http://github.com/waruqi/tbox">tbox</a></li>
                   <li><a href="http://www.xmake.io">xmake</a></li>
                   <li><a href="https://github.com/waruqi">github</a></li>
+                  <li><a href="http://www.amals.org/">amals</a></li>
                   <li><a href="http://www.suppore.cn">懒人的小窝</a></li>
                 </ul>
             </div> 

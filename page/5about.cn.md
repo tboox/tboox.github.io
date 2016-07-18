@@ -20,6 +20,7 @@ icon: user
 * [tbox](http://github.com/waruqi/tbox)
 * [xmake.io](http://www.xmake.io/cn)
 * [tboox.net](http://www.tboox.net/cn)
+* [amals](http://www.amals.org)
 * [懒人的小窝](http://www.suppore.cn)
 
 ## 评论
