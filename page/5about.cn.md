@@ -13,9 +13,13 @@ icon: user
 * 邮箱: [waruqi@gmail.com](waruqi@gmail.com)
 * Github: [https://github.com/waruqi](https://github.com/waruqi)
 * Twitter: [https://twitter.com/waruqi](https://twitter.com/waruqi)
-* qq群: 343118190
+* QQ群: 343118190
 
 ## 友情链接
+
+有需要跟本站换链的可以留言，或者发邮件给我。。
+
+不过英文站点页面只接受英文站点链接哦，中文站点我会放到中文首页上。
 
 * [tbox](http://github.com/waruqi/tbox)
 * [xmake.io](http://www.xmake.io/cn)
