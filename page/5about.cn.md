@@ -17,6 +17,7 @@ icon: user
 
 ## 友情链接
 
+* [tbox](http://github.com/waruqi/tbox)
 * [xmake.io](http://www.xmake.io/cn)
 * [tboox.net](http://www.tboox.net/cn)
 * [懒人的小窝](http://www.suppore.cn)

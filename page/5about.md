@@ -16,7 +16,9 @@ icon: user
 
 ## Links
 
-[xmake.io](http://www.xmake.io) \| [tboox.net](http://www.tboox.net)
+* [tbox](http://github.com/waruqi/tbox)
+* [xmake.io](http://www.xmake.io)
+* [tboox.net](http://www.tboox.net)
 
 ## Comments
 
