@@ -22,6 +22,8 @@ icon: user
 * [tboox.net](http://www.tboox.net/cn)
 * [amals](http://www.amals.org)
 * [懒人的小窝](http://www.suppore.cn)
+* [愛尚丨輕博客](http://crackerme.github.io/)
+
 
 ## 评论
 
