@@ -149,7 +149,7 @@ layout: default
                     <i class="fa fa-external-link"></i>
                     Links
                 </div>
-                <ul class="content-ul">
+                <ul class="content-ul" links>
                   <li><a href="http://github.com/waruqi/tbox">tbox</a></li>
                   <li><a href="http://www.xmake.io">xmake</a></li>
                   <li><a href="https://github.com/waruqi">github</a></li>
