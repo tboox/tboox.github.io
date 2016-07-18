@@ -16,6 +16,8 @@ icon: user
 
 ## Links
 
+Please send email to me if you want to exchange links.
+
 * [tbox](http://github.com/waruqi/tbox)
 * [xmake.io](http://www.xmake.io)
 * [tboox.net](http://www.tboox.net)
