@@ -46,6 +46,13 @@
         code_repo: 'hnr',
         title: 'hnr',
         description: 'An off-line handwritten numeral recognition system.'
+    },
+    {
+        page_link: 'https://asciinema.org/a/79998',
+        img_link: '/static/img/xmake/videodemo.png',
+        code_repo: 'xmake',
+        title: 'xmake: demo',
+        description: 'Demo: Build a simple project using xmake.'
     }];
 
     contentInit(demoContent) //内容初始化

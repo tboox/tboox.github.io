@@ -46,6 +46,13 @@
         code_repo: 'hnr',
         title: 'hnr',
         description: '一个早期学生时期写的脱机手写识别系统，仅供学习参考'
+    },
+    {
+        page_link: 'https://asciinema.org/a/79998',
+        img_link: '/static/img/xmake/videodemo.png',
+        code_repo: 'xmake',
+        title: 'xmake: 演示',
+        description: '演示: 使用xmake快速构建项目'
     }];
 
     contentInit(demoContent) //内容初始化
