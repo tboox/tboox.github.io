@@ -35,6 +35,8 @@ And the output result is
 build ok for macosx!
 ```
 
+
+
 xmake will get values of these valriables from the cached configure after running `xmake config --plat=macosx ...` 
 
 Also we have some variables which are not in the configure file.
