@@ -189,6 +189,156 @@
             
               <li>
                 <h2>
+                  <a class="post-link" href="/2016/07/18/builtinvar-and-shell/">Builtin variables and shell</a>
+                </h2>
+                <div class="label">
+                    <div class="label-card">
+                        <i class="fa fa-calendar"></i>2016-07-18
+                    </div>
+                    <div class="label-card">
+                        
+                    </div>
+                    <div class="label-card">
+                        
+                    </div>
+
+                    <div class="label-card">
+                    
+
+
+<!-- <span class="point">•</span> -->
+<span class="categories">
+  <i class="fa fa-th-list"></i>
+  
+    
+        <a href="/category/#xmake" title="Category: xmake" rel="category">xmake</a>
+    
+  
+
+  <!-- <span class="point">•</span> -->
+</span>
+
+
+                    </div>
+
+                    <div class="label-card">
+                    
+<!-- <span class="point">•</span> -->
+<span class="pageTag">
+  <i class="fa fa-tags"></i>
+  
+    
+        <a href="/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a>&nbsp;
+    
+        <a href="/tag/#lua" title="Tag: lua" rel="tag">lua</a>&nbsp;
+    
+        <a href="/tag/#shell" title="Tag: shell" rel="tag">shell</a>&nbsp;
+    
+        <a href="/tag/#builtin-variables" title="Tag: builtin-variables" rel="tag">builtin-variables</a>&nbsp;
+    
+        <a href="/tag/#pkg-config" title="Tag: pkg-config" rel="tag">pkg-config</a>
+    
+  
+
+</span>
+
+                    </div>
+                </div>
+                <div class="excerpt">
+                    <p>xmake provides the grammar: <code class="highlighter-rouge">$(varname)</code> for supporting builtin variable.</p>
+
+<p>.e.g</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">add_cxflags</span><span class="p">(</span><span class="s2">"-I$(buildir)"</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>It will translate this variable to the real value when building.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>-I$(buildir) =&gt; -I./build
+</code></pre>
+</div>
+
+<p>We can also use these variables in the custom scripts.</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">target</span><span class="p">(</span><span class="s2">"test"</span><span class="p">)</span>
+    <span class="n">after_build</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"build ok for $(plat)!"</span><span class="p">)</span>
+    <span class="k">end</span>
+</code></pre>
+</div>
+
+<p>And the output result is</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">build</span> <span class="n">ok</span> <span class="k">for</span> <span class="n">macosx</span><span class="err">!</span>
+</code></pre>
+</div>
+
+<p>xmake will get values of these valriables from the cached configure after running <code class="highlighter-rouge">xmake config --plat=macosx ...</code></p>
+
+<p>Also we have some variables which are not in the configure file.</p>
+
+<p>.e.g</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="nb">print</span><span class="p">(</span><span class="s2">"$(os)"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"$(host)"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"$(tmpdir)"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"$(curdir)"</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>we can uses these variable for writing <code class="highlighter-rouge">xmake.lua</code> more easily.</p>
+
+<p>.e.g</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">os</span><span class="p">.</span><span class="n">cp</span><span class="p">(</span><span class="s2">"$(projectdir)/file"</span><span class="p">,</span> <span class="s2">"$(tmpdir)"</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>vs</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="c1">-- import project module</span>
+<span class="n">import</span><span class="p">(</span><span class="s2">"core.project.project"</span><span class="p">)</span>
+
+<span class="c1">-- copy file</span>
+<span class="n">os</span><span class="p">.</span><span class="n">cp</span><span class="p">(</span><span class="n">path</span><span class="p">.</span><span class="n">join</span><span class="p">(</span><span class="n">project</span><span class="p">.</span><span class="n">directory</span><span class="p">(),</span> <span class="s2">"file"</span><span class="p">),</span> <span class="n">os</span><span class="p">.</span><span class="n">tmpdir</span><span class="p">())</span>
+</code></pre>
+</div>
+
+<p>xmake can also run native shell for calling some third-party tools.</p>
+
+<p>.e.g</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">target</span><span class="p">(</span><span class="s2">"test"</span><span class="p">)</span>
+    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"binary"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">is_plat</span><span class="p">(</span><span class="s2">"linux"</span><span class="p">)</span> <span class="k">then</span>
+        <span class="n">add_ldflags</span><span class="p">(</span><span class="s2">"$(shell pkg-config --libs sqlite3)"</span><span class="p">)</span>
+    <span class="k">end</span>
+</code></pre>
+</div>
+
+<p>Or</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">target</span><span class="p">(</span><span class="s2">"test"</span><span class="p">)</span>
+    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"binary"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">is_plat</span><span class="p">(</span><span class="s2">"linux"</span><span class="p">)</span> <span class="k">then</span>
+        <span class="n">add_linkdir</span><span class="p">(</span><span class="s2">"$(shell find ./ -name lib)"</span><span class="p">)</span>
+    <span class="k">end</span>
+</code></pre>
+</div>
+
+<p>But often, we do not need to do this. The Lua srcipt has been very powerful : )</p>
+
+
+                </div>
+                <div class="read-all">
+                    <a href="/2016/07/18/builtinvar-and-shell/"><i class="fa fa-newspaper-o"></i>Read All</a>
+                </div>
+                <hr />
+              </li>
+            
+              <li>
+                <h2>
                   <a class="post-link" href="/2016/07/17/update-v2.0.3/">xmake v2.0.3 update!</a>
                 </h2>
                 <div class="label">
@@ -562,93 +712,6 @@ int main<span class="o">(</span>int argc, char<span class="k">**</span> argv<spa
                 <hr />
               </li>
             
-              <li>
-                <h2>
-                  <a class="post-link" href="/2016/07/08/plugin-hello/">Plugin development of hello xmake</a>
-                </h2>
-                <div class="label">
-                    <div class="label-card">
-                        <i class="fa fa-calendar"></i>2016-07-08
-                    </div>
-                    <div class="label-card">
-                        
-                    </div>
-                    <div class="label-card">
-                        
-                    </div>
-
-                    <div class="label-card">
-                    
-
-
-<!-- <span class="point">•</span> -->
-<span class="categories">
-  <i class="fa fa-th-list"></i>
-  
-    
-        <a href="/category/#xmake" title="Category: xmake" rel="category">xmake</a>
-    
-  
-
-  <!-- <span class="point">•</span> -->
-</span>
-
-
-                    </div>
-
-                    <div class="label-card">
-                    
-<!-- <span class="point">•</span> -->
-<span class="pageTag">
-  <i class="fa fa-tags"></i>
-  
-    
-        <a href="/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a>&nbsp;
-    
-        <a href="/tag/#lua" title="Tag: lua" rel="tag">lua</a>&nbsp;
-    
-        <a href="/tag/#plugin" title="Tag: plugin" rel="tag">plugin</a>&nbsp;
-    
-        <a href="/tag/#example" title="Tag: example" rel="tag">example</a>&nbsp;
-    
-        <a href="/tag/#hello" title="Tag: hello" rel="tag">hello</a>
-    
-  
-
-</span>
-
-                    </div>
-                </div>
-                <div class="excerpt">
-                    <p>xmake v2.0 has supported the plugin module and we can develop ourself plugin module conveniently.</p>
-
-<p>We can run command <code class="highlighter-rouge">xmake -h</code> to look over some builtin plugins of xmake</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>    Plugins: 
-        l, lua                                 Run the lua script.
-        m, macro                               Run the given macro.
-           doxygen                             Generate the doxygen document.
-           hello                               Hello xmake!
-           project                             Create the project file.
-</code></pre>
-</div>
-
-<ul>
-  <li>lua: Run a given lua script.</li>
-  <li>macro: Record and playback some xmake commands repeatly.</li>
-  <li>doxygen：Generate doxygen document automatically.</li>
-  <li>hello:  The demo plugin and only print: ‘hello xmake!’</li>
-  <li>project：Generate project file for IDE, only generate makefile now and will generate vs, xcode project in the future</li>
-</ul>
-
-
-                </div>
-                <div class="read-all">
-                    <a href="/2016/07/08/plugin-hello/"><i class="fa fa-newspaper-o"></i>Read All</a>
-                </div>
-                <hr />
-              </li>
-            
         </ul>
 
         <!-- Pagination links -->
@@ -677,6 +740,14 @@ int main<span class="o">(</span>int argc, char<span class="k">**</span> argv<spa
                     
                     
                     
+                        <li><a href="/2016/07/18/builtinvar-and-shell/">Builtin variables and shell</a></li>
+                    
+                    
+                    
+                    
+                    
+                    
+                    
                         <li><a href="/2016/07/17/update-v2.0.3/">xmake v2.0.3 update!</a></li>
                     
                     
@@ -692,14 +763,6 @@ int main<span class="o">(</span>int argc, char<span class="k">**</span> argv<spa
                     
                     
                         <li><a href="/2016/07/16/how-to-build-a-simple-project/">How to build a simple project quickly</a></li>
-                    
-                    
-                    
-                    
-                    
-                        <li><a href="/2016/07/16/batch-check-functions/">Batch checking library functions</a></li>
-                    
-                    
                     
                     
                 </ul>
@@ -736,7 +799,7 @@ int main<span class="o">(</span>int argc, char<span class="k">**</span> argv<spa
                             <span class="name">
                                 xmake
                             </span>
-                            <span class="badge">37</span>
+                            <span class="badge">40</span>
                         </a>
                     </li>
                     
@@ -762,35 +825,35 @@ int main<span class="o">(</span>int argc, char<span class="k">**</span> argv<spa
                       
                       
                       
-                      <a href="/tag/#tboox" style="font-size: 9.5pt; color: #999;">tboox</a>
+                      <a href="/tag/#tboox" style="font-size: 9pt; color: #999;">tboox</a>
                     
                       
                       
                       
                       
                       
-                      <a href="/tag/#站点" style="font-size: 9.5pt; color: #999;">站点</a>
+                      <a href="/tag/#站点" style="font-size: 9pt; color: #999;">站点</a>
                     
                       
                       
                       
                       
                       
-                      <a href="/tag/#website" style="font-size: 9.5pt; color: #999;">website</a>
+                      <a href="/tag/#website" style="font-size: 9pt; color: #999;">website</a>
                     
                       
                       
                       
                       
                       
-                      <a href="/tag/#tbox" style="font-size: 13pt; color: #555;">tbox</a>
+                      <a href="/tag/#tbox" style="font-size: 12.5pt; color: #666;">tbox</a>
                     
                       
                       
                       
                       
                       
-                      <a href="/tag/#c" style="font-size: 12.5pt; color: #555;">c</a>
+                      <a href="/tag/#c" style="font-size: 12pt; color: #666;">c</a>
                     
                       
                       
@@ -811,7 +874,7 @@ int main<span class="o">(</span>int argc, char<span class="k">**</span> argv<spa
                       
                       
                       
-                      <a href="/tag/#算法" style="font-size: 9.5pt; color: #888;">算法</a>
+                      <a href="/tag/#算法" style="font-size: 9.5pt; color: #999;">算法</a>
                     
                       
                       
@@ -902,7 +965,7 @@ int main<span class="o">(</span>int argc, char<span class="k">**</span> argv<spa
                       
                       
                       
-                      <a href="/tag/#跨平台" style="font-size: 9.5pt; color: #888;">跨平台</a>
+                      <a href="/tag/#跨平台" style="font-size: 9.5pt; color: #999;">跨平台</a>
                     
                       
                       
@@ -958,14 +1021,14 @@ int main<span class="o">(</span>int argc, char<span class="k">**</span> argv<spa
                       
                       
                       
-                      <a href="/tag/#stream" style="font-size: 9.5pt; color: #999;">stream</a>
+                      <a href="/tag/#stream" style="font-size: 9pt; color: #999;">stream</a>
                     
                       
                       
                       
                       
                       
-                      <a href="/tag/#流" style="font-size: 9.5pt; color: #999;">流</a>
+                      <a href="/tag/#流" style="font-size: 9pt; color: #999;">流</a>
                     
                       
                       
@@ -1000,7 +1063,7 @@ int main<span class="o">(</span>int argc, char<span class="k">**</span> argv<spa
                       
                       
                       
-                      <a href="/tag/#version" style="font-size: 9.5pt; color: #999;">version</a>
+                      <a href="/tag/#version" style="font-size: 9pt; color: #999;">version</a>
                     
                       
                       
@@ -1028,7 +1091,7 @@ int main<span class="o">(</span>int argc, char<span class="k">**</span> argv<spa
                       
                       
                       
-                      <a href="/tag/#插件" style="font-size: 11.5pt; color: #777;">插件</a>
+                      <a href="/tag/#插件" style="font-size: 11pt; color: #777;">插件</a>
                     
                       
                       
@@ -1042,14 +1105,14 @@ int main<span class="o">(</span>int argc, char<span class="k">**</span> argv<spa
                       
                       
                       
-                      <a href="/tag/#类库" style="font-size: 9.5pt; color: #999;">类库</a>
+                      <a href="/tag/#类库" style="font-size: 9pt; color: #999;">类库</a>
                     
                       
                       
                       
                       
                       
-                      <a href="/tag/#自定义脚本" style="font-size: 9.5pt; color: #888;">自定义脚本</a>
+                      <a href="/tag/#自定义脚本" style="font-size: 9.5pt; color: #999;">自定义脚本</a>
                     
                       
                       
@@ -1063,7 +1126,7 @@ int main<span class="o">(</span>int argc, char<span class="k">**</span> argv<spa
                       
                       
                       
-                      <a href="/tag/#打包" style="font-size: 9.5pt; color: #999;">打包</a>
+                      <a href="/tag/#打包" style="font-size: 9pt; color: #999;">打包</a>
                     
                       
                       
@@ -1091,7 +1154,7 @@ int main<span class="o">(</span>int argc, char<span class="k">**</span> argv<spa
                       
                       
                       
-                      <a href="/tag/#task" style="font-size: 9.5pt; color: #999;">task</a>
+                      <a href="/tag/#task" style="font-size: 9pt; color: #999;">task</a>
                     
                       
                       
@@ -1105,7 +1168,7 @@ int main<span class="o">(</span>int argc, char<span class="k">**</span> argv<spa
                       
                       
                       
-                      <a href="/tag/#hello" style="font-size: 10pt; color: #888;">hello</a>
+                      <a href="/tag/#hello" style="font-size: 9.5pt; color: #888;">hello</a>
                     
                       
                       
@@ -1119,21 +1182,21 @@ int main<span class="o">(</span>int argc, char<span class="k">**</span> argv<spa
                       
                       
                       
-                      <a href="/tag/#doxygen" style="font-size: 9.5pt; color: #999;">doxygen</a>
+                      <a href="/tag/#doxygen" style="font-size: 9pt; color: #999;">doxygen</a>
                     
                       
                       
                       
                       
                       
-                      <a href="/tag/#宏脚本" style="font-size: 9.5pt; color: #888;">宏脚本</a>
+                      <a href="/tag/#宏脚本" style="font-size: 9.5pt; color: #999;">宏脚本</a>
                     
                       
                       
                       
                       
                       
-                      <a href="/tag/#plugin" style="font-size: 9.5pt; color: #888;">plugin</a>
+                      <a href="/tag/#plugin" style="font-size: 9.5pt; color: #999;">plugin</a>
                     
                       
                       
@@ -1161,7 +1224,7 @@ int main<span class="o">(</span>int argc, char<span class="k">**</span> argv<spa
                       
                       
                       
-                      <a href="/tag/#example" style="font-size: 9.5pt; color: #999;">example</a>
+                      <a href="/tag/#example" style="font-size: 9pt; color: #999;">example</a>
                     
                       
                       
@@ -1196,7 +1259,7 @@ int main<span class="o">(</span>int argc, char<span class="k">**</span> argv<spa
                       
                       
                       
-                      <a href="/tag/#project" style="font-size: 9.5pt; color: #888;">project</a>
+                      <a href="/tag/#project" style="font-size: 9.5pt; color: #999;">project</a>
                     
                       
                       
@@ -1224,7 +1287,7 @@ int main<span class="o">(</span>int argc, char<span class="k">**</span> argv<spa
                       
                       
                       
-                      <a href="/tag/#xmake.io" style="font-size: 10.5pt; color: #888;">xmake.io</a>
+                      <a href="/tag/#xmake.io" style="font-size: 10pt; color: #888;">xmake.io</a>
                     
                       
                       
@@ -1280,14 +1343,14 @@ int main<span class="o">(</span>int argc, char<span class="k">**</span> argv<spa
                       
                       
                       
-                      <a href="/tag/#交叉编译" style="font-size: 9.5pt; color: #999;">交叉编译</a>
+                      <a href="/tag/#交叉编译" style="font-size: 9pt; color: #999;">交叉编译</a>
                     
                       
                       
                       
                       
                       
-                      <a href="/tag/#build" style="font-size: 9.5pt; color: #999;">build</a>
+                      <a href="/tag/#build" style="font-size: 9pt; color: #999;">build</a>
                     
                       
                       
@@ -1330,6 +1393,48 @@ int main<span class="o">(</span>int argc, char<span class="k">**</span> argv<spa
                       
                       
                       <a href="/tag/#进程等待" style="font-size: 9pt; color: #999;">进程等待</a>
+                    
+                      
+                      
+                      
+                      
+                      
+                      <a href="/tag/#shell" style="font-size: 9pt; color: #999;">shell</a>
+                    
+                      
+                      
+                      
+                      
+                      
+                      <a href="/tag/#内置变量" style="font-size: 9pt; color: #999;">内置变量</a>
+                    
+                      
+                      
+                      
+                      
+                      
+                      <a href="/tag/#pkg-config" style="font-size: 9pt; color: #999;">pkg-config</a>
+                    
+                      
+                      
+                      
+                      
+                      
+                      <a href="/tag/#builtin-variables" style="font-size: 9pt; color: #999;">builtin-variables</a>
+                    
+                      
+                      
+                      
+                      
+                      
+                      <a href="/tag/#pdb" style="font-size: 9pt; color: #999;">pdb</a>
+                    
+                      
+                      
+                      
+                      
+                      
+                      <a href="/tag/#调试符号" style="font-size: 9pt; color: #999;">调试符号</a>
                     
                 </div>
             </div>
