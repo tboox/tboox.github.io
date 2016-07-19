@@ -27,6 +27,7 @@ icon: user
 * [懒人的小窝](http://www.suppore.cn)
 * [愛尚丨輕博客](http://crackerme.github.io/)
 * [Ghosty Core](http://blog.a0z.me)
+* [EyreFree](http://www.eyrefree.org)
 
 
 ## 评论
