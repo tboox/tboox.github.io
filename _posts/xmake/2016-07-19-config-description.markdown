@@ -25,6 +25,9 @@ We want to build android program on macosx:
 $ xmake f -p android --ndk=~/file/android-ndk
 ```
 
+
+
+
 Or 
 
 ```bash
