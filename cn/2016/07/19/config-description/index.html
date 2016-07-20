@@ -6,14 +6,14 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>xmake高级特性之合并静态库</title>
-    <meta name="description" content="xmake的add_files接口不仅可以添加源代码文件进行编译，还可以直接添加.o/obj对象文件、以及.a/lib的库文件到编译目标中，这个跟add_links是有区别的  add_links：只能添加链接，例如： -lxxxx 这种，链接的目标也只能是可执行程序、动态库，而且只会链接需要的代码进去  add...">
+    <title>xmake编译配置过程详解</title>
+    <meta name="description" content="xmake 在构建程序的时候，会去自动检测系统环境，工程描述等来创建最合适的编译配置来进行编译。。一般情况下，我们只需要执行：$ xmake就行了，并且如果工程描述没有改变，就不会去重新检测和生成配置。。但是有时候，我们的编译需求千奇百怪，不可能一行xmake就能完全满足我们的需求，例如：我要在macosx上编译...">
 
     <link rel="shortcut icon" href="/favicon.ico?" type="image/x-icon">
     <link rel="icon" href="/favicon.ico?" type="image/x-icon">
     <link rel="stylesheet" href=" /css/fontawesome/css/font-awesome.min.css ">
     <link rel="stylesheet" href=" /css/main.css ">
-    <link rel="canonical" href="http://tboox.net/cn/2016/02/04/merge-static-library/">
+    <link rel="canonical" href="http://tboox.net/cn/2016/07/19/config-description/">
     <link rel="alternate" type="application/rss+xml" title="TBOOX" href="http://tboox.net /feed.xml ">
 
 
@@ -184,11 +184,11 @@
 
         <div class="page clearfix" post>
     <div class="left">
-        <h1>xmake高级特性之合并静态库</h1>
+        <h1>xmake编译配置过程详解</h1>
         <div class="label">
 
             <div class="label-card">
-                <i class="fa fa-calendar"></i>2016-02-04
+                <i class="fa fa-calendar"></i>2016-07-19
             </div>
 
             <div class="label-card">
@@ -231,8 +231,17 @@
         <!--a href="/tag/#lua" title="Tag: lua" rel="tag">lua</a-->
         <a href="/tag/#lua" title="Tag: lua" rel="tag">lua</a>&nbsp;
     
-        <!--a href="/tag/#%E9%9D%99%E6%80%81%E5%BA%93" title="Tag: 静态库" rel="tag">静态库</a-->
-        <a href="/tag/#静态库" title="Tag: 静态库" rel="tag">静态库</a>
+        <!--a href="/tag/#%E9%85%8D%E7%BD%AE" title="Tag: 配置" rel="tag">配置</a-->
+        <a href="/tag/#配置" title="Tag: 配置" rel="tag">配置</a>&nbsp;
+    
+        <!--a href="/tag/#android" title="Tag: android" rel="tag">android</a-->
+        <a href="/tag/#android" title="Tag: android" rel="tag">android</a>&nbsp;
+    
+        <!--a href="/tag/#vs" title="Tag: vs" rel="tag">vs</a-->
+        <a href="/tag/#vs" title="Tag: vs" rel="tag">vs</a>&nbsp;
+    
+        <!--a href="/tag/#%E8%87%AA%E5%8A%A8%E6%A3%80%E6%B5%8B" title="Tag: 自动检测" rel="tag">自动检测</a-->
+        <a href="/tag/#自动检测" title="Tag: 自动检测" rel="tag">自动检测</a>
     
   
 
@@ -243,47 +252,91 @@
         </div>
         <hr>
         <article itemscope itemtype="http://schema.org/BlogPosting">
-        <p>xmake的add_files接口不仅可以添加源代码文件进行编译，还可以直接添加<em>.o/obj对象文件、以及</em>.a/lib的库文件到编译目标中，这个跟add_links是有区别的</p>
+        <p>xmake 在构建程序的时候，会去自动检测系统环境，工程描述等来创建最合适的编译配置来进行编译。。</p>
 
-<ul>
-  <li>add_links：只能添加链接，例如： -lxxxx 这种，链接的目标也只能是可执行程序、动态库，而且只会链接需要的代码进去</li>
-  <li>add_files：是直接将静态库中的所有对象文件，解包、重新打包到新的target中，这个target可以是新的静态库，也可以是可执行程序、或者动态库</li>
-</ul>
+<p>一般情况下，我们只需要执行：</p>
 
-<p>例如：</p>
-
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code>    <span class="n">target</span><span class="p">(</span><span class="s2">"test"</span><span class="p">)</span>
-        
-         <span class="c1">-- 生成静态库：libtest.a</span>
-         <span class="n">set_kind</span><span class="p">(</span><span class="s2">"static"</span><span class="p">)</span>
-
-         <span class="c1">-- 添加对象文件</span>
-         <span class="n">add_files</span><span class="p">(</span><span class="s2">"obj/*.o"</span><span class="p">)</span>
-
-         <span class="c1">-- 添加静态库，将里面的对象文件重新打包到libtest.a中，生成新的静态库</span>
-         <span class="n">add_files</span><span class="p">(</span><span class="s2">"lib/*.a"</span><span class="p">)</span>
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake
 </code></pre>
 </div>
 
-<p>这个target模块，可以没有任何源码，单纯的将所有静态库、对象文件重新打包到一个新的静态库中，当然再加一些源文件也是可以的</p>
+<p>就行了，并且如果工程描述没有改变，就不会去重新检测和生成配置。。</p>
 
-<p>target的类型也没有限定，你也可以指定输出为动态库：shared，可执行程序：binary</p>
+<p>但是有时候，我们的编译需求千奇百怪，不可能一行<code class="highlighter-rouge">xmake</code>就能完全满足我们的需求，例如：我要在macosx上编译android程序了，怎么办</p>
 
-<p>例如：</p>
+<p>这个时候就需要手动修改配置：</p>
 
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code>    <span class="n">target</span><span class="p">(</span><span class="s2">"test2"</span><span class="p">)</span>
-        
-         <span class="c1">-- 生成动态库：libtest2.so</span>
-         <span class="n">set_kind</span><span class="p">(</span><span class="s2">"shared"</span><span class="p">)</span>
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake f -p android --ndk<span class="o">=</span>~/file/android-ndk
+</code></pre>
+</div>
 
-         <span class="c1">-- 添加对象文件</span>
-         <span class="n">add_files</span><span class="p">(</span><span class="s2">"obj/*.o"</span><span class="p">)</span>
+<p>上面是简写，这样会少敲些字符，如果要可读性更好些，可以写全：</p>
 
-         <span class="c1">-- 添加静态库libtest.a中的所有对象文件</span>
-         <span class="n">add_files</span><span class="p">(</span><span class="s2">"lib/libtest.a"</span><span class="p">)</span>
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake config --plat<span class="o">=</span>android --ndk<span class="o">=</span>~/file/android-ndk
+</code></pre>
+</div>
 
-         <span class="c1">-- 添加一些源文件</span>
-         <span class="n">add_files</span><span class="p">(</span><span class="s2">"src/*.c"</span><span class="p">)</span>
+<p>然后我们继续执行编译即可：</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake
+</code></pre>
+</div>
+
+<p>如果每次编译都是相同配置的话，就不需要重新配置了</p>
+
+<p>当然有时候系统环境发生改变，例如之前用的是 gcc， 现在gcc被卸载了，装了clang，那么缓存配置就无效了，这种情况下，xmake还没有那么智能，能够检测到进行重配，只能手动加上 <code class="highlighter-rouge">-c</code> 参数，强制清楚配置缓存，进行重新检测：</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake f -c
+</code></pre>
+</div>
+
+<p>如果有时候遇到些配置上的问题，都可以尝试加上这个参数，重试下，一般都能解决。。</p>
+
+<p>上述讲的都是相对于工程的局部配置，只对当前工程有效，配置的缓存数据都被放置在了当前工程目录下：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>projectdir/.xmake
+</code></pre>
+</div>
+
+<p>如果有些配置参数，每次都不变，那就不需要每次都手动输入一遍了，只需要放置到全局配置中区就行了，例如参数：<code class="highlighter-rouge">--ndk=~/file/android-ndk</code></p>
+
+<p>我们可以通过全局配置命令：</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake global --ndk<span class="o">=</span>~/file/android-ndk
+</code></pre>
+</div>
+
+<p>或者简写方式：</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake g --ndk<span class="o">=</span>~/file/android-ndk
+</code></pre>
+</div>
+
+<p>之后每次编译android的版本，就可以简化为：</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake f -p android
+<span class="gp">$ </span>xmake
+</code></pre>
+</div>
+
+<p>是不是更方便了哈。。嘿嘿。。</p>
+
+<p>在比如，我要每次强行都使用vs2008这个特定版本，而不使用自动检测出来的v2015，（如果你装了两个vs的话），就可以通过全局配置，设置到vs2008上去：</p>
+
+<pre><code class="language-hash">$ xmake g --vs=2008
+</code></pre>
+
+<p>然后编译的时候执行(注：这里加上<code class="highlighter-rouge">-c</code>，是因为全局配置改了，最好强行重新检测下)：</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake f -c
+<span class="gp">$ </span>xmake
+</code></pre>
+</div>
+
+<p>最后，如果需要了解配置的详细参数，可以执行<code class="highlighter-rouge">--help</code>来了解：</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake f -h
+<span class="gp">$ </span>xmake g -h
 </code></pre>
 </div>
 
@@ -302,68 +355,6 @@
                         <ul>
                         
                         <li class="relatedPost">
-                            <a href="http://tboox.net/cn/2016/07/19/config-description/">xmake编译配置过程详解
-                            
-                            </a>
-                        </li>
-                        
-                        
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-            
-        
-            
-            
-            
-                
-                    
-                        
-                        <li class="relatedPost">
                             <a href="http://tboox.net/cn/2016/07/18/enable-pdb-for-windows/">如何为windows编译启用pdb支持
                             
                             </a>
@@ -376,8 +367,6 @@
                 
                     
                 
-            
-                
                     
                 
                     
@@ -392,6 +381,26 @@
                 
                     
                 
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
             
                 
                     
@@ -400,7 +409,19 @@
                 
                     
                 
+                    
+                
+                    
+                
+                    
+                
             
+                
+                    
+                
+                    
+                
+                    
                 
                     
                 
@@ -432,8 +453,6 @@
                 
                     
                 
-            
-                
                     
                 
                     
@@ -448,6 +467,26 @@
                 
                     
                 
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
             
                 
                     
@@ -456,7 +495,19 @@
                 
                     
                 
+                    
+                
+                    
+                
+                    
+                
             
+                
+                    
+                
+                    
+                
+                    
                 
                     
                 
@@ -486,8 +537,6 @@
                 
                     
                 
-            
-                
                     
                 
                     
@@ -501,16 +550,6 @@
                     
                 
                     
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
                 
                     
                 
@@ -526,7 +565,61 @@
                 
                     
                 
+                    
+                
+                    
+                
+                    
+                
             
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
                 
                     
                 
@@ -558,8 +651,6 @@
                 
                     
                 
-            
-                
                     
                 
                     
@@ -574,6 +665,26 @@
                 
                     
                 
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
             
                 
                     
@@ -582,7 +693,19 @@
                 
                     
                 
+                    
+                
+                    
+                
+                    
+                
             
+                
+                    
+                
+                    
+                
+                    
                 
                     
                 
@@ -614,8 +737,6 @@
                 
                     
                 
-            
-                
                     
                 
                     
@@ -630,6 +751,26 @@
                 
                     
                 
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
             
                 
                     
@@ -638,7 +779,19 @@
                 
                     
                 
+                    
+                
+                    
+                
+                    
+                
             
+                
+                    
+                
+                    
+                
+                    
                 
                     
                 
@@ -654,6 +807,35 @@
             
                 
                     
+                        
+                        <li class="relatedPost">
+                            <a href="http://tboox.net/cn/2016/07/16/run-debug/">利用xmake运行和调试程序
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
                 
                     
                 
@@ -667,8 +849,6 @@
                 
                     
                 
-            
-                
                     
                 
                     
@@ -683,7 +863,15 @@
                 
                     
                 
+                    
+                
+                    
+                
+                    
+                
             
+            
+        
             
         
         
@@ -702,8 +890,8 @@
      */
 
     var disqus_config = function() {
-        this.page.url = 'http://tboox.net/cn/2016/02/04/merge-static-library/'; // Replace PAGE_URL with your page's canonical URL variable
-        this.page.identifier = 'http://tboox.net/cn/2016/02/04/merge-static-library/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+        this.page.url = 'http://tboox.net/cn/2016/07/19/config-description/'; // Replace PAGE_URL with your page's canonical URL variable
+        this.page.identifier = 'http://tboox.net/cn/2016/07/19/config-description/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
     };
 
     (function() { // DON'T EDIT BELOW THIS LINE
