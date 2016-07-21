@@ -29,6 +29,7 @@ icon: user
 * [EyreFree](http://www.eyrefree.org)
 * [六阿哥博客](https://blog.6ag.cn)
 * [七空幻音](http://www.acgxt.com)
+* [Ghosty Core](http://blog.a0z.me)
 
 
 ## 评论
