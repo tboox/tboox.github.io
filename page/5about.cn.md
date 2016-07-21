@@ -30,6 +30,7 @@ icon: user
 * [六阿哥博客](https://blog.6ag.cn)
 * [七空幻音](http://www.acgxt.com)
 * [Ghosty Core](http://blog.a0z.me)
+* [闲鱼](http://www.macrr.com/)
 
 
 ## 评论
