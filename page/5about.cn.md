@@ -21,17 +21,9 @@ icon: user
 
 不过英文站点页面只接受英文站点链接哦，中文站点我会放到中文首页上。
 
-* [tbox](http://github.com/waruqi/tbox)
-* [xmake.io](http://www.xmake.io/cn)
-* [tboox.net](http://www.tboox.net/cn)
-* [懒人的小窝](http://www.suppore.cn)
-* [愛尚丨輕博客](http://crackerme.github.io/)
-* [EyreFree](http://www.eyrefree.org)
-* [六阿哥博客](https://blog.6ag.cn)
-* [七空幻音](http://www.acgxt.com)
-* [Ghosty Core](http://blog.a0z.me)
-* [闲鱼](http://www.macrr.com/)
-
+|| [tbox](http://github.com/waruqi/tbox)    || [xmake.io](http://www.xmake.io/cn)   || [EyreFree](http://www.eyrefree.org)          || [闲鱼](http://www.macrr.com/)                ||
+|| [tboox.net](http://www.tboox.net/cn)     || [懒人的小窝](http://www.suppore.cn)  || [六阿哥博客](https://blog.6ag.cn)            || [愛尚丨輕博客](http://crackerme.github.io/)  ||
+|| [七空幻音](http://www.acgxt.com)         || [Ghosty Core](http://blog.a0z.me)    || 
 
 ## 评论
 
