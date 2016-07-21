@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>复杂多边形光栅化算法</title>
+    <meta name="description" content="虽然已经一年多没有维护gbox这个图形库项目了，最近确实时间不够用。。。今年的重点是把xmake彻底正好，至少在架构和大功能（包依赖管理）上，要完全落实下来，后期就是零散的维护和插件功能扩展了。。tbox我会陆陆续续一直进行一些小规模更新，明年上半年稍微重构一些模块后，就开始重点重新搞gbox了，这才是我一直最想...">
+
+    <link rel="shortcut icon" href="/favicon.ico?" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico?" type="image/x-icon">
+    <link rel="stylesheet" href=" /css/fontawesome/css/font-awesome.min.css ">
+    <link rel="stylesheet" href=" /css/main.css ">
+    <link rel="canonical" href="http://tboox.net/cn/2016/07/21/tessellate-polygon-algorithm/">
+    <link rel="alternate" type="application/rss+xml" title="TBOOX" href="http://tboox.net /feed.xml ">
+
+
+    <script>
+    // 百度统计代码
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?1f2e7c366588e460fe2b6f4da3a5746d";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+
+
+</head>
+
+
+  <body>
+
+    <header id="top">
+    <div class="wrapper">
+        <a href="/cn" class="brand">TBOOX</a>
+        <small>欢迎来到TBOOX开源工程!</small>
+        <button id="headerMenu" class="menu"><i class="fa fa-bars"></i></button>
+        <nav id="headerNav">
+            <ul>
+                <li>
+                    
+                    <a href="/">
+                    
+                        <i class="fa fa-home"></i>English
+                    </a>
+                </li>
+
+                
+                    
+                    
+                    <li>
+                        
+                        <a href="/cn/project/">
+                        
+                            <i class="fa fa-bookmark"></i>项目
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                        <a href="/cn/archive/">
+                        
+                            <i class="fa fa-archive"></i>归档
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                        <a href="/cn/category/">
+                        
+                            <i class="fa fa-th-list"></i>分类
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                        <a href="/cn/tag/">
+                        
+                            <i class="fa fa-tags"></i>标记
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                        <a href="/cn/donation/">
+                        
+                            <i class="fa fa-heart"></i>捐助
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                        <a href="/cn/about/">
+                        
+                            <i class="fa fa-user"></i>关于
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            </ul>
+        </nav>
+    </div>
+</header>
+
+
+        <div class="page clearfix" post>
+    <div class="left">
+        <h1>复杂多边形光栅化算法</h1>
+        <div class="label">
+
+            <div class="label-card">
+                <i class="fa fa-calendar"></i>2016-07-21
+            </div>
+
+            <div class="label-card">
+                
+            </div>
+
+            <div class="label-card">
+                
+            </div>
+
+            <div class="label-card">
+            
+
+
+<!-- <span class="point">•</span> -->
+<span class="categories">
+  <i class="fa fa-th-list"></i>
+  
+    
+        <a href="/category/#gbox" title="Category: gbox" rel="category">gbox</a>
+    
+  
+
+  <!-- <span class="point">•</span> -->
+</span>
+
+
+            </div>
+
+            <div class="label-card">
+            
+<!-- <span class="point">•</span> -->
+<span class="pageTag">
+  <i class="fa fa-tags"></i>
+  
+    
+        <!--a href="/tag/#gbox" title="Tag: gbox" rel="tag">gbox</a-->
+        <a href="/tag/#gbox" title="Tag: gbox" rel="tag">gbox</a>&nbsp;
+    
+        <!--a href="/tag/#c" title="Tag: c" rel="tag">c</a-->
+        <a href="/tag/#c" title="Tag: c" rel="tag">c</a>&nbsp;
+    
+        <!--a href="/tag/#%E5%A4%8D%E6%9D%82%E5%A4%9A%E8%BE%B9%E5%BD%A2" title="Tag: 复杂多边形" rel="tag">复杂多边形</a-->
+        <a href="/tag/#复杂多边形" title="Tag: 复杂多边形" rel="tag">复杂多边形</a>&nbsp;
+    
+        <!--a href="/tag/#%E5%85%89%E6%A0%85%E5%8C%96" title="Tag: 光栅化" rel="tag">光栅化</a-->
+        <a href="/tag/#光栅化" title="Tag: 光栅化" rel="tag">光栅化</a>&nbsp;
+    
+        <!--a href="/tag/#%E7%AE%97%E6%B3%95" title="Tag: 算法" rel="tag">算法</a-->
+        <a href="/tag/#算法" title="Tag: 算法" rel="tag">算法</a>&nbsp;
+    
+        <!--a href="/tag/#%E5%8D%95%E8%B0%83%E5%A4%9A%E8%BE%B9%E5%BD%A2" title="Tag: 单调多边形" rel="tag">单调多边形</a-->
+        <a href="/tag/#单调多边形" title="Tag: 单调多边形" rel="tag">单调多边形</a>&nbsp;
+    
+        <!--a href="/tag/#%E4%B8%89%E8%A7%92%E5%8C%96" title="Tag: 三角化" rel="tag">三角化</a-->
+        <a href="/tag/#三角化" title="Tag: 三角化" rel="tag">三角化</a>&nbsp;
+    
+        <!--a href="/tag/#%E5%87%B8%E5%A4%9A%E8%BE%B9%E5%BD%A2" title="Tag: 凸多边形" rel="tag">凸多边形</a-->
+        <a href="/tag/#凸多边形" title="Tag: 凸多边形" rel="tag">凸多边形</a>
+    
+  
+
+</span>
+
+            </div>
+
+        </div>
+        <hr>
+        <article itemscope itemtype="http://schema.org/BlogPosting">
+        <p>虽然已经一年多没有维护<a href="https://github.com/waruqi/gbox">gbox</a>这个图形库项目了，最近确实时间不够用。。。</p>
+
+<p>今年的重点是把<a href="http://www.xmake.io">xmake</a>彻底正好，至少在架构和大功能（包依赖管理）上，要完全落实下来，后期就是零散的维护和插件功能扩展了。。</p>
+
+<p>tbox我会陆陆续续一直进行一些小规模更新，明年上半年稍微重构一些模块后，就开始重点重新搞gbox了，这才是我一直最想做，也是最喜欢做的项目了</p>
+
+<p>所以我宁愿开发的慢点，也要把它做精，做到最好。。</p>
+
+<p>好了，回归正题，虽然现在gbox还处于早期开发中，并不能用到实际的项目中去，但是里面的一些算法，还是很有参考学习价值的。。</p>
+
+<p>我这两天没事就拿出来分享下，如果有感兴趣的同学，可以直接阅读源码：<a href="https://github.com/waruqi/gbox/blob/master/src/gbox/utils/impl/tessellator/monotone.c">monotone.c</a> if you want to know more verbose monotone algorithm implementation.</p>
+
+<p>毕竟这个算法我陆陆续续花了整整一年的时间，才把它彻底搞透，并且实现出来。。</p>
+
+<p>为什么会花这么久呢，也许是我太笨了哈。。嘿嘿。。当然也有工作原因哈。。</p>
+
+<p>我先简单讲讲研究和实现这个复杂多边形光栅化算法的背景：</p>
+
+<p>我的gbox目前有两套渲染设备，一套是直接纯算法渲染，其核心算法就是扫描多边形填充算法，这个算法已经算是很普遍了，也很成熟，效率也很高
+但是在我的另外一套基于opengl es渲染设备中（为了能够利用gpu进行加速渲染），在渲染复杂多边形时，就遇到了问题：<code class="highlighter-rouge">opengl不支持复杂多边形的填充</code></p>
+
+<p>后来我想了很多办法，也去google了下，发现可以通过opengl的模板来实现，然后我就开写了。。</p>
+
+<p>写到一半，整体效果也出来了，自以为搞定了，却又遇到一个很难跨过的瓶颈，效率太低了，用这种方式渲染一个老虎头，帧率只有：15 fps</p>
+
+<p>比我用纯算法的实现还慢，后来就思考为什么这么慢呢，一个原因就是模板确实很慢。。。</p>
+
+<p>第二个原因就是：我要实现通用的渲染接口，要支持各种填充规则，裁剪规则，这些复杂性，也使得基于模板的方式整体不太好优化。。</p>
+
+<p>就这样折腾了半年，最后决定，还是整体重构gbox吧，彻底不用模板实现了，采用另外一种方式：</p>
+
+<p>先在上层对复杂多边形根据各种填充规则和裁剪，进行预处理，核心算法呢就是：<code class="highlighter-rouge">对复杂多边形进行三角化分割，并且合并成凸多边形</code>
+再送到opengl中进行快速渲染。。。</p>
+
+<p>那问题来了，如果才能高效分割多边形呢，而且还要支持各种填充规则？</p>
+
+<p>继续google，最后发现libtess2的光栅化代码里面的算法是可以完全做到的，但是我不可能直接用它的代码，一个原因是维护不方便
+另外一个原因是，它里面的实现，很多地方效率不是很高，而我要实现的比他更高效，更稳定。。。</p>
+
+<p>那就必须要先看透它的实现逻辑，然后再去改进和优化里面的算法实现。。。</p>
+
+<p>虽然里面代码不多，但是我光看透，就又花了半年时间，最后陆陆续续写了半年，终于才完全搞定。。</p>
+
+<p>最后效果吗，还是不错的，至少在我的mac pro上用opengl渲染老虎头，帧率可以达到：60 fps</p>
+
+<p>当然，里面肯定还是有很多问题在里面的，不做最近确实没时间整了，只能先搁置下来了，等以后在优化优化。。。</p>
+
+<p>先晒晒，三角化后的效果：</p>
+
+<p><img src="/static/img/gbox/test_triangulation1.png" alt="test_triangulation1" />
+<img src="/static/img/gbox/test_triangulation2.png" alt="test_triangulation2" /></p>
+
+<p>然后再晒张老虎头效果：</p>
+
+<p><img src="/static/img/gbox/draw_tiger.png" alt="draw_tiger" /></p>
+
+<p>接着我再对分割算法做些简要描述：</p>
+
+<p>gbox中实现算法跟libtess2算法中的一些不同和改进的地方:</p>
+
+<ul>
+  <li>整体扫描线方向从纵向扫描，改成了横向扫描，这样更符合图像扫描的席位逻辑，代码处理上也会更方便</li>
+  <li>我们移除了3d顶点坐标投影的过程，因为我们只处理2d多边形，所以会比libtess2更快</li>
+  <li>处理了更多交点情况，优化了更多存在交点误差计算的地方，因此我们的算法会更稳定，精度也更高</li>
+  <li>整体支持浮点和定点切换，在效率和精度上可以自己权衡调整</li>
+  <li>采用自己独有的算法实现了活动边缘比较，精度更高，稳定性更好</li>
+  <li>优化了从三角化的mesh合并成凸多边形的算法，效率更高</li>
+  <li>对每个区域遍历，移除了没必要的定点计数过程，因此效率会快很多</li>
+</ul>
+
+<p>整个算法总共有四个阶段：</p>
+
+<ol>
+  <li>从原始复杂多边形构建DCEL mesh网(DCEL双连通边缘链表, 跟quad-edge类似，相当于是个简化版).</li>
+  <li>如果多边形是凹多边形或者复杂多边形，那么先把它分割成单调多边形区域（mesh结构维护）</li>
+  <li>对基于mesh的单调多边形进行快速三角化处理</li>
+  <li>合并三角化后的区域到凸多边形</li>
+</ol>
+
+<p>其中光栅化算法实现上分有七个阶段：</p>
+
+<ol>
+  <li>简化mesh网，并且预先处理一些退化的情况（例如：子区域退化成点、线等）</li>
+  <li>构建顶点事件列表并且排序它 (基于最小堆的优先级排序).</li>
+  <li>构建活动边缘区域列表并且排序它(使用局部区域的插入排序，大部分情况下都是O(n)，而且量不多).</li>
+  <li>使用<code class="highlighter-rouge">Bentley-Ottman</code>扫描算法，从事件队列中扫描所有顶点事件，并且计算交点和winding值（用于填充规则计算）</li>
+  <li>如果产生交点改变了mesh网的拓扑结构或者活动边缘列表发生改变，需要对mesh的一致性进行修复</li>
+  <li>当我们处理过程中，发生了一些<code class="highlighter-rouge">mesh face</code>的退化情况，那么也需要进行处理</li>
+  <li>将单调区域的<code class="highlighter-rouge">left face</code>标记为”inside”，也就是最后需要获取的输出区域</li>
+</ol>
+
+<p>如果你想要了解更多算法细节，可以参考： <a href="https://github.com/memononen/libtess2/blob/master/alg_outline.md">libtess2/alg_outline.md</a></p>
+
+<p>光栅化接口的使用例子，来自源码：<a href="https://github.com/waruqi/gbox/blob/master/src/gbox/core/device/gl/render.c">gbox/gl/render.c</a>:</p>
+
+<p>更详细的算法实现细节，请参考我的实现: <a href="https://github.com/waruqi/gbox/blob/master/src/gbox/utils/impl/tessellator/monotone.c">monotone.c</a> if you want to know more verbose monotone algorithm implementation.</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">gb_gl_render_fill_convex</span><span class="p">(</span><span class="n">gb_point_ref_t</span> <span class="n">points</span><span class="p">,</span> <span class="n">tb_uint16_t</span> <span class="n">count</span><span class="p">,</span> <span class="n">tb_cpointer_t</span> <span class="n">priv</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// check
+</span>        <span class="n">tb_assert</span><span class="p">(</span><span class="n">priv</span> <span class="o">&amp;&amp;</span> <span class="n">points</span> <span class="o">&amp;&amp;</span> <span class="n">count</span><span class="p">);</span>
+
+        <span class="c1">// apply it
+</span>        <span class="n">gb_gl_render_apply_vertices</span><span class="p">((</span><span class="n">gb_gl_device_ref_t</span><span class="p">)</span><span class="n">priv</span><span class="p">,</span> <span class="n">points</span><span class="p">);</span>
+
+<span class="cp">#ifndef GB_GL_TESSELLATOR_TEST_ENABLE
+</span>        <span class="c1">// draw it
+</span>        <span class="n">gb_glDrawArrays</span><span class="p">(</span><span class="n">GB_GL_TRIANGLE_FAN</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="n">gb_GLint_t</span><span class="p">)</span><span class="n">count</span><span class="p">);</span>
+<span class="cp">#else
+</span>        <span class="c1">// the device 
+</span>        <span class="n">gb_gl_device_ref_t</span> <span class="n">device</span> <span class="o">=</span> <span class="p">(</span><span class="n">gb_gl_device_ref_t</span><span class="p">)</span><span class="n">priv</span><span class="p">;</span>
+
+        <span class="c1">// make crc32
+</span>        <span class="n">tb_uint32_t</span> <span class="n">crc32</span> <span class="o">=</span> <span class="mh">0xffffffff</span> <span class="o">^</span> <span class="n">tb_crc_encode</span><span class="p">(</span><span class="n">TB_CRC_MODE_32_IEEE_LE</span><span class="p">,</span> <span class="mh">0xffffffff</span><span class="p">,</span> <span class="p">(</span><span class="n">tb_byte_t</span> <span class="k">const</span><span class="o">*</span><span class="p">)</span><span class="n">points</span><span class="p">,</span> <span class="n">count</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">gb_point_t</span><span class="p">));</span>
+
+        <span class="c1">// make color
+</span>        <span class="n">gb_color_t</span> <span class="n">color</span><span class="p">;</span>
+        <span class="n">color</span><span class="p">.</span><span class="n">r</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_byte_t</span><span class="p">)</span><span class="n">crc32</span><span class="p">;</span>
+        <span class="n">color</span><span class="p">.</span><span class="n">g</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_byte_t</span><span class="p">)(</span><span class="n">crc32</span> <span class="o">&gt;&gt;</span> <span class="mi">8</span><span class="p">);</span>
+        <span class="n">color</span><span class="p">.</span><span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_byte_t</span><span class="p">)(</span><span class="n">crc32</span> <span class="o">&gt;&gt;</span> <span class="mi">16</span><span class="p">);</span>
+        <span class="n">color</span><span class="p">.</span><span class="n">a</span> <span class="o">=</span> <span class="mi">128</span><span class="p">;</span>
+
+        <span class="c1">// enable blend
+</span>        <span class="n">gb_glEnable</span><span class="p">(</span><span class="n">GB_GL_BLEND</span><span class="p">);</span>
+        <span class="n">gb_glBlendFunc</span><span class="p">(</span><span class="n">GB_GL_SRC_ALPHA</span><span class="p">,</span> <span class="n">GB_GL_ONE_MINUS_SRC_ALPHA</span><span class="p">);</span>
+
+        <span class="c1">// apply color
+</span>        <span class="k">if</span> <span class="p">(</span><span class="n">device</span><span class="o">-&gt;</span><span class="n">version</span> <span class="o">&gt;=</span> <span class="mh">0x20</span><span class="p">)</span> <span class="n">gb_glVertexAttrib4f</span><span class="p">(</span><span class="n">gb_gl_program_location</span><span class="p">(</span><span class="n">device</span><span class="o">-&gt;</span><span class="n">program</span><span class="p">,</span> <span class="n">GB_GL_PROGRAM_LOCATION_COLORS</span><span class="p">),</span> <span class="p">(</span><span class="n">gb_GLfloat_t</span><span class="p">)</span><span class="n">color</span><span class="p">.</span><span class="n">r</span> <span class="o">/</span> <span class="mh">0xff</span><span class="p">,</span> <span class="p">(</span><span class="n">gb_GLfloat_t</span><span class="p">)</span><span class="n">color</span><span class="p">.</span><span class="n">g</span> <span class="o">/</span> <span class="mh">0xff</span><span class="p">,</span> <span class="p">(</span><span class="n">gb_GLfloat_t</span><span class="p">)</span><span class="n">color</span><span class="p">.</span><span class="n">b</span> <span class="o">/</span> <span class="mh">0xff</span><span class="p">,</span> <span class="p">(</span><span class="n">gb_GLfloat_t</span><span class="p">)</span><span class="n">color</span><span class="p">.</span><span class="n">a</span> <span class="o">/</span> <span class="mh">0xff</span><span class="p">);</span>
+        <span class="k">else</span> <span class="n">gb_glColor4f</span><span class="p">((</span><span class="n">gb_GLfloat_t</span><span class="p">)</span><span class="n">color</span><span class="p">.</span><span class="n">r</span> <span class="o">/</span> <span class="mh">0xff</span><span class="p">,</span> <span class="p">(</span><span class="n">gb_GLfloat_t</span><span class="p">)</span><span class="n">color</span><span class="p">.</span><span class="n">g</span> <span class="o">/</span> <span class="mh">0xff</span><span class="p">,</span> <span class="p">(</span><span class="n">gb_GLfloat_t</span><span class="p">)</span><span class="n">color</span><span class="p">.</span><span class="n">b</span> <span class="o">/</span> <span class="mh">0xff</span><span class="p">,</span> <span class="p">(</span><span class="n">gb_GLfloat_t</span><span class="p">)</span><span class="n">color</span><span class="p">.</span><span class="n">a</span> <span class="o">/</span> <span class="mh">0xff</span><span class="p">);</span>
+
+        <span class="c1">// draw the edges of the filled contour
+</span>        <span class="n">gb_glDrawArrays</span><span class="p">(</span><span class="n">GB_GL_TRIANGLE_FAN</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="n">gb_GLint_t</span><span class="p">)</span><span class="n">count</span><span class="p">);</span>
+
+        <span class="c1">// disable blend
+</span>        <span class="n">gb_glEnable</span><span class="p">(</span><span class="n">GB_GL_BLEND</span><span class="p">);</span>
+<span class="cp">#endif
+</span>    <span class="p">}</span>
+    <span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">gb_gl_render_fill_polygon</span><span class="p">(</span><span class="n">gb_gl_device_ref_t</span> <span class="n">device</span><span class="p">,</span> <span class="n">gb_polygon_ref_t</span> <span class="n">polygon</span><span class="p">,</span> <span class="n">gb_rect_ref_t</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">tb_size_t</span> <span class="n">rule</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// check
+</span>        <span class="n">tb_assert</span><span class="p">(</span><span class="n">device</span> <span class="o">&amp;&amp;</span> <span class="n">device</span><span class="o">-&gt;</span><span class="n">tessellator</span><span class="p">);</span>
+
+<span class="cp">#ifdef GB_GL_TESSELLATOR_TEST_ENABLE
+</span>        <span class="c1">// set mode
+</span>        <span class="n">gb_tessellator_mode_set</span><span class="p">(</span><span class="n">device</span><span class="o">-&gt;</span><span class="n">tessellator</span><span class="p">,</span> <span class="n">GB_TESSELLATOR_MODE_TRIANGULATION</span><span class="p">);</span>
+<span class="c1">//      gb_tessellator_mode_set(device-&gt;tessellator, GB_TESSELLATOR_MODE_MONOTONE);
+</span><span class="cp">#endif
+</span>
+        <span class="c1">// set rule
+</span>        <span class="n">gb_tessellator_rule_set</span><span class="p">(</span><span class="n">device</span><span class="o">-&gt;</span><span class="n">tessellator</span><span class="p">,</span> <span class="n">rule</span><span class="p">);</span>
+
+        <span class="c1">// set func
+</span>        <span class="n">gb_tessellator_func_set</span><span class="p">(</span><span class="n">device</span><span class="o">-&gt;</span><span class="n">tessellator</span><span class="p">,</span> <span class="n">gb_gl_render_fill_convex</span><span class="p">,</span> <span class="n">device</span><span class="p">);</span>
+
+        <span class="c1">// done tessellator
+</span>        <span class="n">gb_tessellator_done</span><span class="p">(</span><span class="n">device</span><span class="o">-&gt;</span><span class="n">tessellator</span><span class="p">,</span> <span class="n">polygon</span><span class="p">,</span> <span class="n">bounds</span><span class="p">);</span>
+    <span class="p">}</span>
+</code></pre>
+</div>
+
+
+        </article>
+        <hr>
+
+        
+        
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+        
+
+        <h2 id="comments">评论</h2>
+        
+
+<!-- 多说评论框 start -->
+<div class="ds-thread" data-thread-key="http://tboox.net/cn/2016/07/21/tessellate-polygon-algorithm/" data-title="复杂多边形光栅化算法" data-url="http://tboox.net/cn/2016/07/21/tessellate-polygon-algorithm/"></div>
+<!-- 多说评论框 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"tboox"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- 多说公共JS代码 end -->
+<!-- 多说公共JS代码 end -->
+
+
+
+
+
+
+
+
+
+    </div>
+    <button class="anchor"><i class="fa fa-anchor"></i></button>
+    <div class="right">
+        <div class="wrap">
+
+            <!-- Content -->
+            <div class="side content">
+                <div>
+                    内容
+                </div>
+                <ul id="content-side" class="content-ul">
+                    <li><a href="#similar_posts">相关文章</a></li>
+                    <li><a href="#comments">评论</a></li>
+                </ul>
+            </div>
+            
+            <br>
+            <div class="side">
+                <div>
+                    <i class="fa fa-external-link"></i>
+                    链接
+                </div>
+                <ul class="content-ul">
+                  <li><a href="http://github.com/waruqi/tbox">tbox</a></li>
+                  <li><a href="http://www.xmake.io">xmake</a></li>
+                  <li><a href="https://github.com/waruqi">github</a></li>
+                </ul>
+            </div> 
+
+            <!-- 其他div框放到这里 -->
+            
+        </div>
+    </div>
+</div>
+<script>
+/**
+ * target _blank
+ */
+(function() {
+    var aTags = document.querySelectorAll('article a:not([id])')
+    for (var i = 0; i < aTags.length; i++) {
+        aTags[i].setAttribute('target', '_blank')
+    }
+}());
+</script>
+<script src="/js/pageContent.js " charset="utf-8"></script>
+
+
+    <footer class="site-footer">
+    <div class="wrapper">
+        <p class="description">
+             Copyright (c) 2016 tboox.net 
+        </p>
+        <p class="contact">
+            
+            <a href="https://github.com/waruqi" title="GitHub"><i class="fa fa-github" aria-hidden="true"></i></a> 
+             
+            
+            <a href="mailto:waruqi@gmail.com" title="email"><i class="fa fa-envelope-o" aria-hidden="true"></i></a> 
+            
+            
+            <a href="https://twitter.com/waruqi" title="Twitter"><i class="fa fa-twitter" aria-hidden="true"></i></a> 
+            
+        </p>
+        <p class="power">
+            <span>
+                Site powered by <a href="https://jekyllrb.com/">Jekyll</a> & <a href="https://pages.github.com/">Github Pages</a>.
+            </span>
+            <span>
+                Theme designed by <a href="https://github.com/Gaohaoyang">HyG</a>.
+            </span>
+        </p>
+    </div>
+</footer>
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+    <div class="back-to-top">
+    <a href="#top" class="scroll">
+        <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    </a>
+</div>
+
+    <script src=" /js/main.js " charset="utf-8"></script>
+    <script src=" /js/scroll.min.js " charset="utf-8"></script>
+  </body>
+
+</html>
