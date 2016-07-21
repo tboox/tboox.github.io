@@ -24,6 +24,7 @@ icon: user
 || [tbox](http://github.com/waruqi/tbox)    || [xmake.io](http://www.xmake.io/cn)   || [EyreFree](http://www.eyrefree.org)          || [闲鱼](http://www.macrr.com/)                ||
 || [tboox.net](http://www.tboox.net/cn)     || [懒人的小窝](http://www.suppore.cn)  || [六阿哥博客](https://blog.6ag.cn)            || [愛尚丨輕博客](http://crackerme.github.io/)  ||
 || [七空幻音](http://www.acgxt.com)         || [Ghosty Core](http://blog.a0z.me)    || [中国博客联盟](http://zgboke.com/)           || [飞翔的技术宅](http://techair.cc/)           ||
+|| [Klaus's Blog](http://www.k82.me)
 
 ## 评论
 
