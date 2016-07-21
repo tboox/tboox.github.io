@@ -15,7 +15,7 @@ tbox我会陆陆续续一直进行一些小规模更新，明年上半年稍微�
 
 好了，回归正题，虽然现在gbox还处于早期开发中，并不能用到实际的项目中去，但是里面的一些算法，还是很有参考学习价值的。。
 
-我这两天没事就拿出来分享下，如果有感兴趣的同学，可以直接阅读源码：[monotone.c](https://github.com/waruqi/gbox/blob/master/src/gbox/utils/impl/tessellator/monotone.c) if you want to know more verbose monotone algorithm implementation.
+我这两天没事就拿出来分享下，如果有感兴趣的同学，可以直接阅读源码：[monotone.c](https://github.com/waruqi/gbox/blob/master/src/gbox/utils/impl/tessellator/monotone.c) 
 
 毕竟这个算法我陆陆续续花了整整一年的时间，才把它彻底搞透，并且实现出来。。
 
@@ -98,7 +98,7 @@ gbox中实现算法跟libtess2算法中的一些不同和改进的地方:
 
 光栅化接口的使用例子，来自源码：[gbox/gl/render.c](https://github.com/waruqi/gbox/blob/master/src/gbox/core/device/gl/render.c):
 
-更详细的算法实现细节，请参考我的实现: [monotone.c](https://github.com/waruqi/gbox/blob/master/src/gbox/utils/impl/tessellator/monotone.c) if you want to know more verbose monotone algorithm implementation.
+更详细的算法实现细节，请参考我的实现: [monotone.c](https://github.com/waruqi/gbox/blob/master/src/gbox/utils/impl/tessellator/monotone.c) 
 
 ```c
     static tb_void_t gb_gl_render_fill_convex(gb_point_ref_t points, tb_uint16_t count, tb_cpointer_t priv)
