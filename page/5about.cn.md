@@ -28,6 +28,7 @@ icon: user
 * [愛尚丨輕博客](http://crackerme.github.io/)
 * [EyreFree](http://www.eyrefree.org)
 * [六阿哥博客](https://blog.6ag.cn)
+* [七空幻音](http://www.acgxt.com)
 
 
 ## 评论
