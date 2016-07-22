@@ -79,10 +79,12 @@ icon: archive
             {% endif %}
 
             <!-- amazon ads -->
+            {% if site.amazon_ads_en %}
             <br>
             <div class="side" ads>
-            <iframe src="//rcm-na.amazon-adsystem.com/e/cm?o=1&p=12&l=ur1&category=books&banner=1ZGD5Y3KGS9C1XTEH902&f=ifr&linkID=200c7b401c4ea9cf3794c8a72980721c&t=tboox-20&tracking_id=tboox-20" width="265" height="243" scrolling="no" border="0" marginwidth="0" style="border:none;" frameborder="0"></iframe>
+            <iframe src="//rcm-na.amazon-adsystem.com/e/cm?o=1&p=12&l=ur1&category=books&banner=1ZGD5Y3KGS9C1XTEH902&f=ifr&linkID=200c7b401c4ea9cf3794c8a72980721c&t={{site.amazon_ads_en}}&tracking_id={{site.amazon_ads_en}}" width="265" height="243" scrolling="no" border="0" marginwidth="0" style="border:none;" frameborder="0"></iframe>
             </div>
+            {% endif %}
         </div>
     </div>
 </div>

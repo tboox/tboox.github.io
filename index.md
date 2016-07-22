@@ -170,9 +170,11 @@ layout: default
             {% endif %}
 
             <!-- amazon ads -->
+            {% if site.amazon_ads_en %}
             <div class="side" ads>
-            <iframe src="//rcm-na.amazon-adsystem.com/e/cm?o=1&p=12&l=ur1&category=books&banner=0Y6NKQA0Z279VVYY1382&f=ifr&linkID=e872b59911f21bc2cb49f64e7db3fa73&t=tboox-20&tracking_id=tboox-20" width="265" height="243" scrolling="no" border="0" marginwidth="0" style="border:none;" frameborder="0"></iframe>
+            <iframe src="//rcm-na.amazon-adsystem.com/e/cm?o=1&p=12&l=ur1&category=books&banner=0Y6NKQA0Z279VVYY1382&f=ifr&linkID=e872b59911f21bc2cb49f64e7db3fa73&t={{site.amazon_ads_en}}&tracking_id={{site.amazon_ads_en}}" width="265" height="243" scrolling="no" border="0" marginwidth="0" style="border:none;" frameborder="0"></iframe>
             </div>
+            {% endif %}
 
 </div>
 <!-- <script src="{{ "/js/scroll.min.js " | prepend: site.baseurl }}" charset="utf-8"></script> -->
