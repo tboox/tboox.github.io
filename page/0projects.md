@@ -11,7 +11,7 @@ icon: bookmark
 </div>
 
 <script src="{{ " /js/masonry.pkgd.min.js " | prepend: site.baseurl }}" charset="utf-8"></script>
-<script src="{{ " /js/waterfall.js " | prepend: site.baseurl }}" charset="utf-8"></script>
+<script src="{{ " /js/projects.js " | prepend: site.baseurl }}" charset="utf-8"></script>
 
 
 <!-- <h2 id="comments">Comments</h2> -->
