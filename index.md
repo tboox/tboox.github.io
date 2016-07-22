@@ -169,8 +169,6 @@ layout: default
             </div> 
             {% endif %}
 
-        </div>
-    </div>
 </div>
 <!-- <script src="{{ "/js/scroll.min.js " | prepend: site.baseurl }}" charset="utf-8"></script> -->
 <!-- <script src="{{ "/js/pageContent.js " | prepend: site.baseurl }}" charset="utf-8"></script> -->

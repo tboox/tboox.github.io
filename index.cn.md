@@ -176,6 +176,12 @@ layout: default.cn
                 </script>
             </div> 
             {% endif %}
+
+            <!-- amazon ads -->
+            <div class="side" ads>
+            <iframe src="http://rcm-cn.amazon-adsystem.com/e/cm?t=tboox-23&o=28&p=12&l=ur1&category=books&banner=178RNKETN7QTJC5BPR82&f=ifr" width="265" height="243" scrolling="no" border="0" marginwidth="0" style="border:none;max-width:800px;max-height:600px;" frameborder="0"></iframe>
+            </div>
+
         </div>
     </div>
 </div>
