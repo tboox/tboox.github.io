@@ -67,6 +67,12 @@ icon: th-list
                 </script>
             </div> 
             {% endif %}
+
+            <!-- amazon ads -->
+            <br>
+            <div class="side" ads>
+            <iframe src="//rcm-na.amazon-adsystem.com/e/cm?o=1&p=12&l=ur1&category=books&banner=01MEDV80D9378NXA6202&f=ifr&linkID=ef80848a534a13814aca2786129afa65&t=tboox-20&tracking_id=tboox-20" width="265" height="243" scrolling="no" border="0" marginwidth="0" style="border:none;" frameborder="0"></iframe>
+            </div>
         </div>
     </div>
 </div>
