@@ -12,7 +12,7 @@
     /**
      * 内容JSON
      */
-    var demoContent = [{
+    var content = [{
         page_link: 'http://www.amazon.cn/gp/product/B01FE26HAU?ie=UTF8&camp=536&creativeASIN=B01FE26HAU&linkCode=xm2&tag=tboox01-23',
         img_link: '/static/img/books/cn/c-primer-plus.jpg',
         title: 'C Primer Plus(第6版)(中文版)',
@@ -52,7 +52,7 @@
         page_link: 'http://www.amazon.cn/gp/product/B011S72JB6?ie=UTF8&camp=536&creativeASIN=B011S72JB6&linkCode=xm2&tag=tboox01-23',
         img_link: '/static/img/books/cn/unix-network.jpg',
         title: 'UNIX网络编程(卷1):套接字联网API(第3版)',
-        description: '这是一部传世之作！网络编程专家Bill Fenner和Andrew M. Rudoff应邀执笔，对W. Richard Stevens的经典作品进行修订。书中吸纳了近几年网络技术的发展，增添了IPv6、SCTP协议和密钥管理套接字等内容，深入讨论了最新的关键标准、实现和技术'
+        description: '这是一部传世之作！书中吸纳了近几年网络技术的发展，增添了IPv6、SCTP协议和密钥管理套接字等内容，深入讨论了最新的关键标准、实现和技术'
     },
     {
         page_link: 'http://www.amazon.cn/gp/product/B0061XKRXA?ie=UTF8&camp=536&creativeASIN=B0061XKRXA&linkCode=xm2&tag=tboox01-23',
@@ -67,7 +67,7 @@
         description: '书中细致地介绍了Android系统中的漏洞挖掘、分析，并给出了大量利用工具，结合实例从白帽子角度分析了诸多系统问题，是一本难得的安全指南'
     }];
 
-    contentInit(demoContent) //内容初始化
+    contentInit(content) //内容初始化
     waitImgsLoad() //等待图片加载，并执行布局初始化
 }());
 
@@ -85,7 +85,7 @@ function contentInit(content) {
             '   <a class="a-img" href="' + content[i].page_link + '">' +
             '       <img src="' + content[i].img_link + '">' +
             '   </a>' +
-            '   <h3 class="demo-title">' +
+            '   <h3 class="book-title">' +
             '       <a href="' + content[i].page_link + '">' + content[i].title + '</a>' +
             '   </h3>' +
             '   <p>' + content[i].description +
@@ -135,7 +135,7 @@ function initGrid() {
     var msnry = new Masonry('.grid', {
         // options
         itemSelector: '.grid-item',
-        columnWidth: 250,
+        columnWidth: 200,
         isFitWidth: true,
         gutter: 20,
     })
