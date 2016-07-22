@@ -17,42 +17,42 @@
         img_link: '/static/img/xmake/xmake_site.png',
         code_repo: 'xmake',
         title: 'xmake',
-        description: 'XMake is a make-like build utility based on lua.'
+        description: 'XMake是一个基于Lua的轻量级跨平台自动构建工具，支持在各种主流平台上构建项目'
     },
     {
         page_link: 'https://github.com/waruqi/tbox',
         img_link: '/static/img/logo2.jpg',
         code_repo: 'tbox',
         title: 'tbox',
-        description: 'TBox is a glib-like cross-platform C library that is simple to use yet powerful in nature.'
+        description: 'TBox是一个用c语言实现的跨平台开发库'
     },
     {
         page_link: 'https://github.com/waruqi/gbox',
         img_link: '/static/img/gbox/tiger.svg',
         code_repo: 'gbox',
         title: 'gbox',
-        description: 'GBox is a cross-platform 2d graphic library in c language.'
+        description: 'GBox是一个用c语言实现的跨平台的2d图形库渲染库'
     },
     {
         page_link: 'https://github.com/waruqi/itrace',
         img_link: '/static/img/itrace/itrace.png',
         code_repo: 'itrace',
         title: 'itrace',
-        description: 'Trace objc method call for ios and mac.'
+        description: 'ios objc方法调用记录工具'
     },
     {
         page_link: 'https://github.com/waruqi/hnr',
         img_link: '/static/img/hnr/demo.png',
         code_repo: 'hnr',
         title: 'hnr',
-        description: 'An off-line handwritten numeral recognition system.'
+        description: '一个早期学生时期写的脱机手写识别系统，仅供学习参考'
     },
     {
         page_link: 'https://asciinema.org/a/79998',
         img_link: '/static/img/xmake/videodemo.png',
         code_repo: 'xmake',
-        title: 'xmake: demo',
-        description: 'Demo: Build a simple project using xmake.'
+        title: 'xmake: 演示',
+        description: '演示: 使用xmake快速构建项目'
     }];
 
     contentInit(demoContent) //内容初始化
@@ -66,21 +66,6 @@
  * @return {[type]} [description]
  */
 function contentInit(content) {
-    // var htmlArr = [];
-    // for (var i = 0; i < content.length; i++) {
-    //     htmlArr.push('<div class="grid-item">')
-    //     htmlArr.push('<a class="a-img" href="'+content[i].page_link+'">')
-    //     htmlArr.push('<img src="'+content[i].img_link+'">')
-    //     htmlArr.push('</a>')
-    //     htmlArr.push('<h3 class="demo-title">')
-    //     htmlArr.push('<a href="'+content[i].page_link+'">'+content[i].title+'</a>')
-    //     htmlArr.push('</h3>')
-    //     htmlArr.push('<p>'+content[i].description)
-    //     htmlArr.push('<a href="'+content[i].code_link+'">源代码 <i class="fa fa-code" aria-hidden="true"></i></a>')
-    //     htmlArr.push('</p>')
-    //     htmlArr.push('</div>')
-    // }
-    // var htmlStr = htmlArr.join('')
     var htmlStr = ''
     for (var i = 0; i < content.length; i++) {
         htmlStr +=
