@@ -5,8 +5,8 @@
     <description></description>
     <link>http://tboox.net/</link>
     <atom:link href="http://tboox.net/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Fri, 22 Jul 2016 14:21:36 +0800</pubDate>
-    <lastBuildDate>Fri, 22 Jul 2016 14:21:36 +0800</lastBuildDate>
+    <pubDate>Fri, 22 Jul 2016 17:04:43 +0800</pubDate>
+    <lastBuildDate>Fri, 22 Jul 2016 17:04:43 +0800</lastBuildDate>
     <generator>Jekyll v3.1.1</generator>
     
       <item>
@@ -338,6 +338,131 @@ so our algorithm will be more stable.&lt;/li&gt;
       </item>
     
       <item>
+        <title>如何通过xmake进行交叉编译</title>
+        <description>&lt;p&gt;xmake 提供了方便灵活的交叉编译支持，大部分情况下，都不需要配置很复杂的toolchains前缀，例如：&lt;code class=&quot;highlighter-rouge&quot;&gt;arm-linux-&lt;/code&gt; 什么的&lt;/p&gt;
+
+&lt;p&gt;只要这个toolchains目录满足如下结构（大部分的交叉工具链都是这个结构）：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;/home/toolchains_sdkdir
+   - bin
+       - arm-linux-gcc
+       - arm-linux-ld
+       - ...
+   - lib
+       - libxxx.a
+   - include
+       - xxx.h
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;那么，使用xmake进行交叉编译的时候，只需要进行如下配置和编译：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p linux --sdk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/home/toolchains_sdkdir
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;xmake会去自动探测，gcc等编译器的前缀名：&lt;code class=&quot;highlighter-rouge&quot;&gt;arm-linux-&lt;/code&gt;，并且编译的时候，也会自动加上 链接库 和 头文件 的搜索选项：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;-I/home/toolchains_sdkdir/include -L/home/toolchains_sdkdir/lib
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这些都是xmake自动处理的，不需要手动配置他们。。&lt;/p&gt;
+
+&lt;p&gt;但是，也有些例外的情况，比如一些特殊的交叉工具链的，编译器bin目录，并不在 &lt;code class=&quot;highlighter-rouge&quot;&gt;/home/toolchains_sdkdir/bin&lt;/code&gt; 这个位置，而是独立到了 &lt;code class=&quot;highlighter-rouge&quot;&gt;/usr/opt/bin&lt;/code&gt; ， 那怎么办呢，其实也不麻烦，配置的时候，再指定下bin目录的位置就好：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p linux --sdk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/home/toolchains_sdkdir --toolchains&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/usr/opt/bin
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;如果这个工具链非常奇葩，就是不按规则出牌，路径规则很乱的话，那么xmake也没办法那么智能，只能手动配置全所有参数了：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p linux --sdk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/home/toolchains_sdkdir --toolchains&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/usr/opt/bin --cxflags&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;-I/usr/xxx/include&quot;&lt;/span&gt; --ldflags&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;-L/usr/zzz/lib&quot;&lt;/span&gt;
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;另外，如果交叉工具链的前缀，例如：&lt;code class=&quot;highlighter-rouge&quot;&gt;arm-linux-&lt;/code&gt;  xmake 没有检测成功，你也可以通过&lt;code class=&quot;highlighter-rouge&quot;&gt;--cross=&lt;/code&gt;参数手动配置上它：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p linux --cross&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;arm-linux- --sdk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/home/toolchains_sdkdir ...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+</description>
+        <pubDate>Wed, 20 Jul 2016 00:00:00 +0800</pubDate>
+        <link>http://tboox.net/cn/2016/07/20/how-to-compile-on-cross-toolchains/</link>
+        <guid isPermaLink="true">http://tboox.net/cn/2016/07/20/how-to-compile-on-cross-toolchains/</guid>
+        
+        <category>xmake</category>
+        
+        <category>lua</category>
+        
+        <category>交叉编译</category>
+        
+        
+        <category>xmake</category>
+        
+      </item>
+    
+      <item>
+        <title>How to install xmake</title>
+        <description>&lt;h3 id=&quot;install-on-windows&quot;&gt;Install on windows&lt;/h3&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Download xmake source codes&lt;/li&gt;
+  &lt;li&gt;Enter the source code directory&lt;/li&gt;
+  &lt;li&gt;Run &lt;code class=&quot;highlighter-rouge&quot;&gt;install.bat&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;Select the installed directory and enter into this directory&lt;/li&gt;
+  &lt;li&gt;Please wait some mintues&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;install-from-source-codes-on-linux-and-macosx&quot;&gt;Install from source codes on linux and macosx&lt;/h3&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;git clone git@github.com:waruqi/xmake.git
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;cd&lt;/span&gt; ./xmake
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;sudo ./install
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;install-using-homebrew-on-macosx&quot;&gt;Install using homebrew on macosx&lt;/h3&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;ruby -e &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt;curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install&lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;sudo brew install xmake
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;install-using-homebrew-on-linux&quot;&gt;Install using homebrew on linux&lt;/h3&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;ruby -e &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt;curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install&lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;sudo brew install xmake
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+</description>
+        <pubDate>Tue, 19 Jul 2016 00:00:00 +0800</pubDate>
+        <link>http://tboox.net/2016/07/19/how-to-install-xmake/</link>
+        <guid isPermaLink="true">http://tboox.net/2016/07/19/how-to-install-xmake/</guid>
+        
+        <category>xmake</category>
+        
+        <category>lua</category>
+        
+        <category>install</category>
+        
+        <category>linux</category>
+        
+        <category>windows</category>
+        
+        <category>macosx</category>
+        
+        <category>homebrew</category>
+        
+        
+        <category>xmake</category>
+        
+      </item>
+    
+      <item>
         <title>How to configure for compiling</title>
         <description>&lt;p&gt;xmake will automatically detect the system environment and create the most appropriate configuration to compile project when building a program&lt;/p&gt;
 
@@ -535,63 +660,6 @@ so our algorithm will be more stable.&lt;/li&gt;
         <category>vs</category>
         
         <category>自动检测</category>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>How to install xmake</title>
-        <description>&lt;h3 id=&quot;install-on-windows&quot;&gt;Install on windows&lt;/h3&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;Download xmake source codes&lt;/li&gt;
-  &lt;li&gt;Enter the source code directory&lt;/li&gt;
-  &lt;li&gt;Run &lt;code class=&quot;highlighter-rouge&quot;&gt;install.bat&lt;/code&gt;&lt;/li&gt;
-  &lt;li&gt;Select the installed directory and enter into this directory&lt;/li&gt;
-  &lt;li&gt;Please wait some mintues&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h3 id=&quot;install-from-source-codes-on-linux-and-macosx&quot;&gt;Install from source codes on linux and macosx&lt;/h3&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;git clone git@github.com:waruqi/xmake.git
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;cd&lt;/span&gt; ./xmake
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;sudo ./install
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;install-using-homebrew-on-macosx&quot;&gt;Install using homebrew on macosx&lt;/h3&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;ruby -e &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt;curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install&lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;sudo brew install xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;install-using-homebrew-on-linux&quot;&gt;Install using homebrew on linux&lt;/h3&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;ruby -e &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt;curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install&lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;sudo brew install xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-</description>
-        <pubDate>Tue, 19 Jul 2016 00:00:00 +0800</pubDate>
-        <link>http://tboox.net/2016/07/19/How-to-install-xmake/</link>
-        <guid isPermaLink="true">http://tboox.net/2016/07/19/How-to-install-xmake/</guid>
-        
-        <category>xmake</category>
-        
-        <category>lua</category>
-        
-        <category>install</category>
-        
-        <category>linux</category>
-        
-        <category>windows</category>
-        
-        <category>macosx</category>
-        
-        <category>homebrew</category>
         
         
         <category>xmake</category>
@@ -1215,58 +1283,6 @@ so our algorithm will be more stable.&lt;/li&gt;
         <category>进程等待</category>
         
         <category>跨平台</category>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>xmake v2.0.3 update!</title>
-        <description>&lt;p&gt;&lt;a href=&quot;http://www.xmake.io&quot;&gt;Website&lt;/a&gt;
-&lt;a href=&quot;https://github.com/waruqi/xmake&quot;&gt;Sources&lt;/a&gt;&lt;/p&gt;
-
-&lt;h1 id=&quot;changelog&quot;&gt;Changelog&lt;/h1&gt;
-
-&lt;h3 id=&quot;new-features&quot;&gt;New features&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Add check includes dependence automatically&lt;/li&gt;
-  &lt;li&gt;Add print colors&lt;/li&gt;
-  &lt;li&gt;Add debugger support, .e.g &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake run -d program ...&lt;/code&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;changes&quot;&gt;Changes&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Improve the interfaces of run shell&lt;/li&gt;
-  &lt;li&gt;Upgrade luajit to v2.0.4&lt;/li&gt;
-  &lt;li&gt;Improve to generate makefile plugin&lt;/li&gt;
-  &lt;li&gt;Optimizate the multitasking compiling speed&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;bugs-fixed&quot;&gt;Bugs fixed&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Fix install directory bug&lt;/li&gt;
-  &lt;li&gt;Fix the root directory error for &lt;code class=&quot;highlighter-rouge&quot;&gt;import&lt;/code&gt; interface&lt;/li&gt;
-  &lt;li&gt;Fix check visual stdio error on windows&lt;/li&gt;
-&lt;/ul&gt;
-
-</description>
-        <pubDate>Sun, 17 Jul 2016 00:00:00 +0800</pubDate>
-        <link>http://tboox.net/2016/07/17/update-v2.0.3/</link>
-        <guid isPermaLink="true">http://tboox.net/2016/07/17/update-v2.0.3/</guid>
-        
-        <category>xmake</category>
-        
-        <category>lua</category>
-        
-        <category>update</category>
-        
-        <category>xmake.io</category>
-        
-        <category>windows</category>
         
         
         <category>xmake</category>
