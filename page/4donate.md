@@ -36,6 +36,13 @@ If you would like to support the development of these projects, welcome to donat
 <img alt="" border="0" src="https://www.paypalobjects.com/zh_XC/i/scr/pixel.gif" width="1" height="1">
 </form>
 
+{% if site.amazon_ads_en %}
+
+## Bookstore
+
+Buy some books to support us: <a target="_blank" href="https://www.amazon.com/b?_encoding=UTF8&tag={{site.amazon_ads_en}}&linkCode=ur2&linkId=2cca8cae968e2a6f434c7e7053f07802&camp=1789&creative=9325&node=5">Go shopping</a><img src="//ir-na.amazon-adsystem.com/e/ir?t={{site.amazon_ads_en}}&l=ur2&o=1" width="1" height="1" border="0" alt="" style="border:none !important; margin:0px !important;" />
+
+{% endif %}
 
 ## Alipay 
 
@@ -44,9 +51,6 @@ If you would like to support the development of these projects, welcome to donat
 ## Weixin 
 
 <img src="/static/img/weixin.png" alt="weixin" width="256" height="256">
-
-## Patreon
-[Support TBOOX on Patreon (recurring pledge)](https://www.patreon.com/tboox)
 
 ## Supporters
 

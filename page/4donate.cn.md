@@ -10,6 +10,23 @@ icon: heart
 
 TBOOX的所有项目都是属于个人开源项目，它的发展需要您的帮助，如果您愿意支持TBOOX项目的开发，欢迎为其捐赠，支持它的发展。
 
+{% if site.amazon_ads_cn %}
+## 书店
+
+买几本书支持下我们：<a target="_blank"  href="http://www.amazon.cn/b?_encoding=UTF8&camp=536&creative=3200&linkCode=ur2&node=658414051&tag={{site.amazon_ads_cn}}">去逛逛</a><img src="http://ir-cn.amazon-adsystem.com/e/ir?t={{site.amazon_ads_cn}}&l=ur2&o=28" width="1" height="1" border="0" alt="" style="border:none !important; margin:0px !important;" />
+
+{% endif %}
+
+## 支付宝
+
+<img src="/static/img/alipay.png" alt="alipay" width="256" height="256">
+
+账号：waruqi@gmail.com
+
+## 微信 
+
+<img src="/static/img/weixin.png" alt="weixin" width="256" height="256">
+
 ## Paypal
 
 <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
@@ -33,22 +50,7 @@ TBOOX的所有项目都是属于个人开源项目，它的发展需要您的帮
 <img alt="" border="0" src="https://www.paypalobjects.com/zh_XC/i/scr/pixel.gif" width="1" height="1">
 </form>
 
-
-## 支付宝
-
-<img src="/static/img/alipay.png" alt="alipay" width="256" height="256">
-
-账号：waruqi@gmail.com
-
-## 微信 
-
-<img src="/static/img/weixin.png" alt="weixin" width="256" height="256">
-
-## Patreon
-
-[在Patreon上支持TBOOX](https://www.patreon.com/tboox)
-
-## 捐助者名单
+## 支持者
 
 ### TBOX
 
