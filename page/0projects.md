@@ -2,6 +2,7 @@
 layout: project
 title: Projects
 permalink: /project/
+tags: tbox,xmake,gbox,itrace,hnr,projects
 icon: bookmark
 ---
 
@@ -14,5 +15,4 @@ icon: bookmark
 <script src="{{ " /js/projects.js " | prepend: site.baseurl }}" charset="utf-8"></script>
 
 
-<!-- <h2 id="comments">Comments</h2> -->
 {% include comments.html %}

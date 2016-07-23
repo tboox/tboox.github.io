@@ -1,6 +1,7 @@
 ---
 layout: project.cn
 title: 项目
+tags: tbox,xmake,gbox,ios trace,数字识别,开源项目,工程,图形渲染,opengl
 permalink: /project/
 icon: bookmark
 ---
