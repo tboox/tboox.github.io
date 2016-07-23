@@ -35,6 +35,24 @@
         img_link: '/static/img/books/en/macosx-ios-internals.jpg',
         title: 'Mac OS X and iOS Internals: To the Apple\'s Core (1st Edition)',
         description: 'From architecture to implementation, this book is essential reading if you want to get serious about the internal workings of Mac OS X and iOS'
+    },
+    {
+        page_link: 'https://www.amazon.com/gp/product/0132017997?ie=UTF8&tag=tboox-20&camp=1789&linkCode=xm2&creativeASIN=0132017997',
+        img_link: '/static/img/books/en/unix-os.jpg',
+        title: 'The Design of the UNIX Operating System (1st Edition)',
+        description: 'This book describes the internal algorithms and the structures that form the basis of the UNIX operating system and their relationship to the programmer interface'
+    },
+    {
+        page_link: 'https://www.amazon.com/gp/product/0735619670?ie=UTF8&tag=tboox-20&camp=1789&linkCode=xm2&creativeASIN=0735619670',
+        img_link: '/static/img/books/en/code-complete.jpg',
+        title: 'Code Complete: A Practical Handbook of Software Construction (2nd Edition)',
+        description: 'Widely considered one of the best practical guides to programming'
+    },
+    {
+        page_link: 'https://www.amazon.com/gp/product/1118787315?ie=UTF8&tag=tboox-20&camp=1789&linkCode=xm2&creativeASIN=1118787315',
+        img_link: '/static/img/books/en/reverse-engineering.jpg',
+        title: 'Practical Reverse Engineering: x86, x64, ARM, Windows Kernel, Reversing Tools, and Obfuscation (1st Edition)',
+        description: 'The book covers x86, x64, and ARM (the first book to cover all three); Windows kernel-mode code rootkits and drivers; virtual machine protection techniques; and much more'
     }];
 
     contentInit(content) //内容初始化
