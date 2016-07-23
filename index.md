@@ -4,8 +4,8 @@ layout: default
 
 <div class="page clearfix" index>
     <div class="left">
-        <h1>The TBOOX Open Source Project!</h1>
-        <small>Focus on cross-platform development using c language</small>
+        <h1>{{site.title}}</h1>
+        <small>{{site.description}}</small>
         <hr>
         <ul>
             {% for post in paginator.posts %}

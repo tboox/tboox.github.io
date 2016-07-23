@@ -4,8 +4,8 @@ layout: default.cn
 
 <div class="page clearfix" index>
     <div class="left">
-        <h1>TBOOX开源工程</h1>
-        <small>专注于跨平台c开发解决方案</small>
+        <h1>{{site.title}}</h1>
+        <small>{{ site.description-cn }}</small>
         <hr>
         <ul>
             {% for post in paginator.posts %}
@@ -160,7 +160,6 @@ layout: default.cn
                   <li><a href="https://blog.6ag.cn">六阿哥博客</a></li>
                   <li><a href="http://www.acgxt.com">七空幻音</a></li>
                   <li><a href="http://blog.a0z.me">Ghosty Core</a></li>
-                  <li><a href="http://zgboke.com/">中国博客联盟</a></li>
                 </ul>
             </div> 
 
