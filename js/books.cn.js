@@ -88,11 +88,11 @@ function contentInit(content) {
     for (var i = 0; i < content.length; i++) {
         htmlStr +=
             '<div class="grid-item">' +
-            '   <a class="a-img" href="' + content[i].page_link + '">' +
+            '   <a class="a-img" href="' + content[i].page_link + '" target="_blank" >' +
             '       <img src="' + content[i].img_link + '">' +
             '   </a>' +
             '   <h3 class="book-title">' +
-            '       <a href="' + content[i].page_link + '">' + content[i].title + '</a>' +
+            '       <a href="' + content[i].page_link + '" target="_blank" >' + content[i].title + '</a>' +
             '   </h3>' +
             '   <p>' + content[i].description +
             '   </p>' +

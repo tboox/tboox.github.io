@@ -37,6 +37,12 @@
         description: 'From architecture to implementation, this book is essential reading if you want to get serious about the internal workings of Mac OS X and iOS'
     },
     {
+        page_link: 'https://www.amazon.com/gp/product/1118787315/ref=as_li_tl?ie=UTF8&tag=tboox-20&camp=1789&creative=9325&linkCode=as2&creativeASIN=1118787315&linkId=b26e34cd334d36328b2a80c9a5d4adc1',
+        img_link: '/static/img/books/en/reverse-engineering.jpg',
+        title: 'Practical Reverse Engineering: x86, x64, ARM, Windows Kernel, Reversing Tools, and Obfuscation (1st Edition)',
+        description: 'The book covers x86, x64, and ARM (the first book to cover all three); Windows kernel-mode code rootkits and drivers; virtual machine protection techniques; and much more'
+    },
+    {
         page_link: 'https://www.amazon.com/gp/product/0132017997/ref=as_li_tl?ie=UTF8&tag=tboox-20&camp=1789&creative=9325&linkCode=as2&creativeASIN=0132017997&linkId=aacd921f26657abe01e34423875bf0a8',
         img_link: '/static/img/books/en/unix-os.jpg',
         title: 'The Design of the UNIX Operating System (1st Edition)',
@@ -47,12 +53,6 @@
         img_link: '/static/img/books/en/code-complete.jpg',
         title: 'Code Complete: A Practical Handbook of Software Construction (2nd Edition)',
         description: 'Widely considered one of the best practical guides to programming'
-    },
-    {
-        page_link: 'https://www.amazon.com/gp/product/1118787315/ref=as_li_tl?ie=UTF8&tag=tboox-20&camp=1789&creative=9325&linkCode=as2&creativeASIN=1118787315&linkId=b26e34cd334d36328b2a80c9a5d4adc1',
-        img_link: '/static/img/books/en/reverse-engineering.jpg',
-        title: 'Practical Reverse Engineering: x86, x64, ARM, Windows Kernel, Reversing Tools, and Obfuscation (1st Edition)',
-        description: 'The book covers x86, x64, and ARM (the first book to cover all three); Windows kernel-mode code rootkits and drivers; virtual machine protection techniques; and much more'
     }];
 
     contentInit(content) //内容初始化
@@ -70,11 +70,11 @@ function contentInit(content) {
     for (var i = 0; i < content.length; i++) {
         htmlStr +=
             '<div class="grid-item">' +
-            '   <a class="a-img" href="' + content[i].page_link + '">' +
+            '   <a class="a-img" href="' + content[i].page_link + '" target="_blank" >' +
             '       <img src="' + content[i].img_link + '">' +
             '   </a>' +
             '   <h3 class="book-title">' +
-            '       <a href="' + content[i].page_link + '">' + content[i].title + '</a>' +
+            '       <a href="' + content[i].page_link + '" target="_blank" >' + content[i].title + '</a>' +
             '   </h3>' +
             '   <p>' + content[i].description +
             '   </p>' +
