@@ -65,6 +65,12 @@
         img_link: '/static/img/books/cn/android-safe.jpg',
         title: 'Android安全攻防权威指南',
         description: '书中细致地介绍了Android系统中的漏洞挖掘、分析，并给出了大量利用工具，结合实例从白帽子角度分析了诸多系统问题，是一本难得的安全指南'
+    },
+    {
+        page_link: 'http://www.amazon.cn/gp/product/B008Z1IEQ8?ie=UTF8&camp=536&creativeASIN=B008Z1IEQ8&linkCode=xm2&tag=tboox01-23',
+        img_link: '/static/img/books/cn/unix-programing-art.jpg',
+        title: '传世经典书丛:UNIX编程艺术',
+        description: '主要介绍了Unix系统领域中的设计和开发哲学、思想文化体系、原则与经验，由公认的Unix编程大师、开源运动领袖人物之一Eric S.Raymond倾力多年写作而成'
     }];
 
     contentInit(content) //内容初始化
