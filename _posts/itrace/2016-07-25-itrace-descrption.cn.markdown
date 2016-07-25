@@ -163,7 +163,17 @@ $ ./itracer springboard (spingboard 为需要挂接的进程名， 支持简单�
    armv7的版本是完全不依赖substrate的。
 * arm64的版本对参数的信息打印稍微做了些增强。
 
+
 至于其自动化trace参数的原理，简单说下，就是通过`method_getTypeEncoding`这个runtime接口，获取每个调用method的方法中
 参数原型，然后对其进行解析，获取到实际的参数个数，以及每个参数的类型信息，进行针对性打印输出。。
 
 具体是如何处理的，这里就不多说了，有兴趣的同学可以看看[源码](https://github.com/waruqi/itrace)。。
+
+如果大家想要编译这个项目，还是简单的，它也是基于[xmake](http://www.xmake.io/cn)的，并且xmake也已经被homebrew收录了，只需要执行：
+
+```bash
+$ sudo brew install xmake
+$ xmake
+```
+
+就能编译通过。: )
