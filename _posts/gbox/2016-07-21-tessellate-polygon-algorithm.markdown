@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "The tessellate polygon algorithm"
-tags: gbox c tessellate polygon algorithm monotone triangulation
+title: "The tessellate polygon drawing algorithm"
+tags: gbox c tessellate polygon algorithm drawing monotone triangulation
 categories: gbox
 ---
 
