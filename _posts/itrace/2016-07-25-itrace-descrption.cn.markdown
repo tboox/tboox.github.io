@@ -73,41 +73,44 @@ $ to 100
     </itrace>
 ```
 
-    注： 尽量不要去hook， 频繁调用的class， 比如 UIView NSString， 否则会很卡，操作就不方便了。
-    注： 如果挂接某个class， 中途打印参数信息挂了， 可以在对应的类名后面 加上 args="0" 属性， 来禁止打印参数信息， 这样会稳定点。 
-         如果要让所有类都不打印参数信息， 可以直接设置： <class args="0">
+注： 尽量不要去hook， 频繁调用的class， 比如 UIView NSString， 否则会很卡，操作就不方便了。
+注： 如果挂接某个class， 中途打印参数信息挂了， 可以在对应的类名后面 加上 args="0" 属性， 来禁止打印参数信息， 这样会稳定点。 
+     如果要让所有类都不打印参数信息， 可以直接设置： <class args="0">
 
 
 2. 安装文件
 
-    将整个itracer目录下的所有文件用手机助手工具，上传到ios系统上的 /tmp 下面：
-    ```
+将整个itracer目录下的所有文件用手机助手工具，上传到ios系统上的 /tmp 下面：
+
+```
     /tmp/itracer
     /tmp/itrace.dylib
     /tmp/itrace.xml
-    ```
+```
 
 3. 进行trace
 
-    进入itracer所在目录：
-    ```
-      cd /tmp
-      ```
+进入itracer所在目录：
 
-    修改执行权限：
-    ```
-      chmod 777 ./itracer
-    ```
+```bash
+$ cd /tmp
+```
 
-    运行程序: 
+修改执行权限：
 
-    ```
-      ./itracer springboard (spingboard 为需要挂接的进程名， 支持简单的模糊匹配)
-    ```
+```bash
+$ chmod 777 ./itracer
+```
+
+运行程序: 
+
+```bash
+$ ./itracer springboard (spingboard 为需要挂接的进程名， 支持简单的模糊匹配)
+```
 
 4. 查看 trace log， 注： log 的实际输出在： Xcode-Windows菜单-Organizer-Console 中：
 
-    ```
+```
     Jan 21 11:12:58 unknown SpringBoard[5706] <Warning>: [itrace]: [3edc9d98]: [SSDownloadQueue downloads]
     Jan 21 11:12:58 unknown SpringBoard[5706] <Warning>: [itrace]: [3edc9d98]: [SSDownloadManager downloads]
     Jan 21 11:12:58 unknown SpringBoard[5706] <Warning>: [itrace]: [3edc9d98]: [SSDownloadManager _copyDownloads]
@@ -142,7 +145,7 @@ $ to 100
     Jan 21 11:12:59 unknown SpringBoard[5706] <Warning>: [itrace]: [105d7000]: [SSDownloadQueue downloadManager:downloadStatesDidChange:]: <SSDownloadManager: 0x41ea60>: (
           "<SSDownload: 0xe6bd970>: -4085275246093726486"
       )
-    ```
+```
 
 通过上面的log，可以看到很多调用的参数传递数据信息，当然目前还是有很多缺陷和限制在里面
 
