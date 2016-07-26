@@ -41,6 +41,7 @@ The triangulation test result:
 
 ![test_triangulation1](/static/img/gbox/test_triangulation1.png)
 ![test_triangulation2](/static/img/gbox/test_triangulation2.png)
+![test_triangulation3](/static/img/gbox/test_triangulation3.png)
 
 
 

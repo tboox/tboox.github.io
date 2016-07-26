@@ -25,6 +25,7 @@ tbox我会陆陆续续一直进行一些小规模更新，明年上半年稍微�
 
 ![test_triangulation1](/static/img/gbox/test_triangulation1.png)
 ![test_triangulation2](/static/img/gbox/test_triangulation2.png)
+![test_triangulation3](/static/img/gbox/test_triangulation3.png)
 
 
 
