@@ -22,7 +22,7 @@ This is a very simple and lightweight x86 virtual machine which can load and run
 
 We get one assemble code from ida pro first and this code will call the libc api: `printf`
 
-```asm
+```
 sub_hello	proc near 
 arg_0		= dword	ptr  8 
 .data 

@@ -64,7 +64,7 @@ categories: vm86
 
 我们先从ida中提取一段汇编代码，这段汇编主要是`printf`库函数打印外部传入的数值
 
-```asm
+```
 sub_hello	proc near 
 arg_0		= dword	ptr  8 
 .data 
