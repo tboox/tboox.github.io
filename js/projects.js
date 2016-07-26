@@ -53,6 +53,13 @@
         code_repo: 'xmake',
         title: 'xmake: demo',
         description: 'Demo: Build a simple project using xmake.'
+    },
+    {
+        page_link: 'https://github.com/waruqi/vm86',
+        img_link: '/static/img/vm86/idapro.png',
+        code_repo: 'vm86',
+        title: 'The x86 Script Instruction Virtual Machine',
+        description: 'This is a very simple and lightweight x86 virtual machine which can load and run the assembly code from ida pro directly.'
     }];
 
     contentInit(demoContent) //内容初始化
