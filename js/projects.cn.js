@@ -53,6 +53,13 @@
         code_repo: 'xmake',
         title: 'xmake: 演示',
         description: '演示: 使用xmake快速构建项目'
+    },
+    {
+        page_link: 'https://github.com/waruqi/vm86',
+        img_link: '/static/img/vm86/idapro.png',
+        code_repo: 'vm86',
+        title: 'x86汇编指令脚本虚拟机',
+        description: '这是一个可以直接解释执行从ida pro里面提取出来的x86汇编代码的虚拟机'
     }];
 
     contentInit(demoContent) //内容初始化
