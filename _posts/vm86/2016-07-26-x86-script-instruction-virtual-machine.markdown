@@ -186,6 +186,11 @@ hello: 31415926
 hello: 31415926
 ```
 
+## Source code
+
+* [Github](https://github.com/waruqi/vm86)
+* [More projects](/project/)
+
 ## Compilation
 
 Please install [xmake](http://www.xmake.io) first!

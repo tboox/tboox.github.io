@@ -221,6 +221,11 @@ hello: 31415926
 hello: 31415926
 ```
 
+## 源码
+
+* [Github](https://github.com/waruqi/vm86)
+* [更多项目](/cn/project/)
+
 ## 编译
 
 需要先安装[xmake](http://www.xmake.io/cn)
