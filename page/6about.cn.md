@@ -13,6 +13,7 @@ icon: user
 * 邮箱: [waruqi@gmail.com](waruqi@gmail.com)
 * Github: [https://github.com/waruqi](https://github.com/waruqi)
 * Twitter: [https://twitter.com/waruqi](https://twitter.com/waruqi)
+* 聊天室：[chat on gitter](https://gitter.im/waruqi/tboox?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 * QQ群: 343118190
 
 ## 友情链接

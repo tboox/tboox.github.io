@@ -13,6 +13,7 @@ icon: user
 * Email: [waruqi@gmail.com](waruqi@gmail.com)
 * Github: [https://github.com/waruqi](https://github.com/waruqi)
 * Twitter: [https://twitter.com/waruqi](https://twitter.com/waruqi)
+* Chat：[chat on gitter](https://gitter.im/waruqi/tboox?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## Links
 
