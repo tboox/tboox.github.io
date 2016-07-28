@@ -11,7 +11,12 @@ icon: tags
         <hr>
         {% capture tags %}
           {% for tag in site.tags %}
+           {% if tag[1].size > 0 %}
+           {% assign post_first = tag[1][0] %}
+           {% if post_first.url contains '/cn/' %}
             {{ tag[0] }}
+           {% endif %}
+           {% endif %}
           {% endfor %}
         {% endcapture %}
         {% assign sortedtags = tags | split:' ' | sort %}

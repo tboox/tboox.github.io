@@ -126,6 +126,9 @@ layout: default.cn
                     {% endif %}
 
                     {% for tag in site.tags %}
+                     {% if tag[1].size > 0 %}
+                     {% assign post_first = tag[1][0] %}
+                     {% if post_first.url contains '/cn/' %}
                       {% assign temp = tag[1].size | minus: min | times: 36 | divided_by: diff %}
                       {% assign base = temp | divided_by: 4 %}
                       {% assign remain = temp | modulo: 4 %}
@@ -142,6 +145,8 @@ layout: default.cn
                         {% assign color = 8 | minus: base %}
                       {% endif %}
                       <a href="{{ root_url }}/cn/{{ site.tag_dir }}#{{ tag[0] }}" style="font-size: {{ size }}pt; color: #{{ color }}{{ color }}{{ color }};">{{ tag[0] }}</a>
+                    {% endif %}
+                    {% endif %}
                     {% endfor %}
                 </div>
             </div>
