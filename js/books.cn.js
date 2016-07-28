@@ -19,10 +19,10 @@
         description: '经久不衰的C语言畅销经典教程，针对C11标准进行全面更新'
     },
     {
-        page_link: 'http://www.amazon.cn/gp/product/B01DF1WXS2/ref=as_li_tf_tl?ie=UTF8&camp=536&creative=3200&creativeASIN=B01DF1WXS2&linkCode=as2&tag=tboox01-23',
-        img_link: '/static/img/books/cn/compiling-system.jpg',
-        title: '编译系统透视:图解编译原理',
-        description: '中国版“龙书”！编译原理领域的鸿篇巨著和里程碑作品！它不仅能指导你设计出自己的编译器，更能帮助你写出更高质量的代码'
+        page_link: 'http://www.amazon.cn/gp/product/B01HI4WMEC?ie=UTF8&camp=536&creativeASIN=B01HI4WMEC&linkCode=xm2&tag=tboox01-23',
+        img_link: '/static/img/books/cn/password-tech.jpg',
+        title: '图解密码技术(第3版)',
+        description: '以图配文的形式，详细讲解了6种最重要的密码技术：对称密码、公钥密码、单向散列函数、消息认证码、数字签名和伪随机数生成器'
     },
     {
         page_link: 'http://www.amazon.cn/gp/product/B01H1RZTIM/ref=as_li_tf_tl?ie=UTF8&camp=536&creative=3200&creativeASIN=B01H1RZTIM&linkCode=as2&tag=tboox01-23',
