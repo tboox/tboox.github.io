@@ -5,9 +5,253 @@
     <description>Focus on cross-platform development using c language</description>
     <link>http://www.tboox.net/</link>
     <atom:link href="http://www.tboox.net/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Thu, 28 Jul 2016 09:55:23 +0800</pubDate>
-    <lastBuildDate>Thu, 28 Jul 2016 09:55:23 +0800</lastBuildDate>
+    <pubDate>Thu, 28 Jul 2016 16:08:16 +0800</pubDate>
+    <lastBuildDate>Thu, 28 Jul 2016 16:08:16 +0800</lastBuildDate>
     <generator>Jekyll v3.1.1</generator>
+    
+      <item>
+        <title>手写数字识别系统之图像分割</title>
+        <description>&lt;p&gt;最近闲来无事，打算把之前在其他博客站点写的一些跟tboox项目相关的老文，放到我的个人站点上来&lt;/p&gt;
+
+&lt;p&gt;并且整理归纳了下，以前学生时期研究的一些的玩意用到的一些技术，例如（手写识别、分形图像等等什么的。。）&lt;/p&gt;
+
+&lt;p&gt;以后就重点吧这个站点，作为我的个人博客主站了。。嘿嘿。&lt;/p&gt;
+
+&lt;h2 id=&quot;section&quot;&gt;背景&lt;/h2&gt;
+
+&lt;p&gt;本文，主要介绍我之前在学校时候，研究的一些跟手写数字识别相关的技术心得，主要涉及：数字图像处理、特征提取、神经网络等等相关的一些技术。。&lt;/p&gt;
+
+&lt;p&gt;虽然很多用到的还是网上现有的比较成熟的算法，但是在这些基础上，我还是有做了不少算法上的改进的。。&lt;/p&gt;
+
+&lt;p&gt;并且为了写这个项目，我当时还特地写了一整套神经网络库，从图像处理开始到最后的识别过程，没有使用任何第三方库，都是从0还是写起
+也没有用到opencv啊什么的。&lt;/p&gt;
+
+&lt;p&gt;上层ui当时用的qt，虽然当时也算是为了跨平台，但那个时候毕竟还是学生，代码经验欠缺，因此我的基础库对跨平台处理的并不是很好。。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;那个基础库，我稍微简单说下，那是我的第一个开发库，是一个类似boost的c++模板库，里面用到了很多c++的模板元编程的特性，但是现在已经对c++无爱了，所以早已废弃不用了。
+
+不过也就是这个库的开发，很大程度上影响了我之后的编码风格，也是至此之后，我重点转向了对c的开发上。。
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这套识别系统，仅仅是我当时为了学习神经网络，拿来练手用的，没法跟那些成熟的相比，识别率不是很高哈，只能给大家用来参考学习了。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-1&quot;&gt;简介&lt;/h2&gt;
+
+&lt;p&gt;本文在基本BP算法和数字图像与处理的基础上，通过改进网络、图像处理算法，并结合实践来探索如何实现具有高鲁棒的、高精度的、高效率的脱机数字识别。&lt;/p&gt;
+
+&lt;p&gt;在这我主要研究脱机单体数字识别，其主要步骤为：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/static/img/hnr/overview_1.jpg&quot; alt=&quot;overview_1&quot; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;section-2&quot;&gt;数字样本的采集&lt;/h4&gt;
+
+&lt;p&gt;主要采用5行10列的数字样本规格。采集方式是通过扫描样本卡片来获取图像，也尽量避免样本了的失真，如图：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/static/img/hnr/overview_2.jpg&quot; alt=&quot;overview_2&quot; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;section-3&quot;&gt;图像二值化&lt;/h4&gt;
+
+&lt;p&gt;主要采用全局阈值分割法和自适应的局部阈值分割法，来实现在不同亮度背景下的自适应分割，并对结果进行比对。&lt;/p&gt;
+
+&lt;h4 id=&quot;section-4&quot;&gt;数字提取&lt;/h4&gt;
+
+&lt;p&gt;目前主要考虑聚类法、矩阵式分割法、连通区域标记法，并比较其优劣，选取效果最好的一种算法。&lt;/p&gt;
+
+&lt;h4 id=&quot;section-5&quot;&gt;图像归一化&lt;/h4&gt;
+
+&lt;p&gt;主要采用双线性内插和最邻近内插来实现放大，为了减少图像在收缩时带来的失真，目前打算采用求平均法来实现。&lt;/p&gt;
+
+&lt;h4 id=&quot;section-6&quot;&gt;特征提取&lt;/h4&gt;
+
+&lt;p&gt;主要采用逐像素提取法，PCA主成分提取两种方法来实现。&lt;/p&gt;
+
+&lt;h4 id=&quot;section-7&quot;&gt;样本学习&lt;/h4&gt;
+
+&lt;p&gt;主要采用基于BP算法（反向传播学习算法）的神经网络进行识别，并对BP进行一定的改进和优化，来改进训练效果并且适当的提高训练速率。&lt;/p&gt;
+
+&lt;p&gt;目前，针对BP的改进算法，主要采添加动量项和自适应步长法。&lt;/p&gt;
+
+&lt;p&gt;而对于BP算法，其主要步骤为：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;    前向计算=〉反向计算=〉权值修正=〉循环迭代
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;为了进一步改进网络，实现高精度、高效率的识别，打算考虑采用多网络集成法，来进行优化。
+主要针对不同权值、隐层数的基本BP网络进行集成。通过每个网络分类的结果进行加权输出，来达到有效的分类。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-8&quot;&gt;阈值分割&lt;/h2&gt;
+
+&lt;p&gt;阈值分割法是一种基于区域的图像分割技术，其基本原理是：通过设定不同的特征阈值，把图像像素点分为若干类。&lt;/p&gt;
+
+&lt;p&gt;在本文中，我们主要处理针对两类的分割，令阈值为T，图像像素对应的灰度级为&lt;code class=&quot;highlighter-rouge&quot;&gt;f(x, y)&lt;/code&gt;，那么经阈值分割后的图像&lt;code class=&quot;highlighter-rouge&quot;&gt;g(x, y)&lt;/code&gt;定义为：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/static/img/hnr/split_1.jpg&quot; alt=&quot;split_1&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;因此，标记为1的像素对应于对象，也就是前景，而标记为0的对象对应于背景，也就是我们通常所说的图像二值化。&lt;/p&gt;
+
+&lt;p&gt;利用阈值分割进行图像二值化的主要难题就是阈值的选取，事实证明，阈值的选择的恰当与否对分割的效果起着决定性的作用。&lt;/p&gt;
+
+&lt;p&gt;常用的阈值分割方法有以下三种：&lt;/p&gt;
+
+&lt;h4 id=&quot;section-9&quot;&gt;整体阈值法&lt;/h4&gt;
+
+&lt;p&gt;利用整幅图像的信息对图像求出最优阈值, 在二值化分割过程中只使用这一个固定阈值，因此计算量小，但对于亮度条件不好的图像的分割效果较差。&lt;/p&gt;
+
+&lt;h4 id=&quot;section-10&quot;&gt;局部阈值法&lt;/h4&gt;
+
+&lt;p&gt;它是把原始图像分为几个小的子图像，再对每个子图像求出最佳阈值。因此效果较好，但开销较大，且局部大小不太好确定，太小容易失真，太大效果不显著。&lt;/p&gt;
+
+&lt;h4 id=&quot;section-11&quot;&gt;动态阈值法&lt;/h4&gt;
+
+&lt;p&gt;它的阈值求取方法不仅取决于该像素的灰度值及其领域内像素灰度值, 而且还与像素的坐标位置有关, 这种方法灵活性大, 但是复杂度高, 计算量和时间开销都比较大。&lt;/p&gt;
+
+&lt;p&gt;而冈萨雷斯写的那本书&lt;a href=&quot;/cn/book/&quot;&gt;数字图像处理&lt;/a&gt;里面，给出了一种最小误差阈值，通过利用共轭梯度法对灰度直方图进行双峰的高斯密度曲线进行拟合，求取最佳阈值，效果相当好，但是计算太大，而且对于双峰不显著的图像比较难处理，还需进行附加的单峰检测，并进行插值处理，由于过于复杂且实现也相当困难。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/static/img/hnr/split_2.jpg&quot; alt=&quot;split_2&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;而本文采用具有自适应性的OTSU局部阈值法来分割图像，并对OTSU和局部阈值法进行了改进，不仅提高了性能而且改善了分割效果，对于亮度不均匀的图像也能实现较好的分割。&lt;/p&gt;
+
+&lt;h4 id=&quot;otsu&quot;&gt;最大类间方差法（OTSU）&lt;/h4&gt;
+
+&lt;p&gt;由Otsu于1978年提出的最大类间方差法以其计算简单、稳定有效，一直广为使用。其主要思想就是选取阈值使其类内方差最小化或类间方差最大化。Otsu算法不仅计算简单，而且能够应用于多阈值确定，因此可以说是一种相当好的阈值选取方法。
+我们通常采用最大化类间方差，来实现阈值分割，其类间方差定义为：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/static/img/hnr/otsu_1.jpg&quot; alt=&quot;otsu_1&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;其中&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt; &lt;/td&gt;
+      &lt;td&gt;u&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+      &lt;td&gt;图像中总的灰度均值&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt; &lt;/td&gt;
+      &lt;td&gt;u1&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+      &lt;td&gt;图像中小于阈值T的像素灰度均值&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt; &lt;/td&gt;
+      &lt;td&gt;u2&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+      &lt;td&gt;图像中大于阈值T的像素灰度均值&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt; &lt;/td&gt;
+      &lt;td&gt;n1&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+      &lt;td&gt;图像中小于阈值T的像素数&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt; &lt;/td&gt;
+      &lt;td&gt;n2&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+      &lt;td&gt;图像中大于阈值T的像素数&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;因此，只需通过遍历256个灰度级，寻找使其类间方差最大的那个灰度值就是最佳阈值T。&lt;/p&gt;
+
+&lt;h4 id=&quot;otsu-1&quot;&gt;OTSU的实现与改进&lt;/h4&gt;
+
+&lt;p&gt;然而如果每次遍历都需要重新计算阈值两边的均值与像素数的话计算量是相当大的，如果能够在下次遍历时利用上次计算的结果，那么计算量可以大大减少。
+假设灰度直方图为，图像总均值为，图像总像素数为，那么其递推方式如下：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/static/img/hnr/otsu_2.png&quot; alt=&quot;otsu_2&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;为了进一步简化计算，我们可以通过用&lt;img src=&quot;/static/img/hnr/otsu_3.jpg&quot; alt=&quot;otsu_3&quot; /&gt;来替换，得到&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/static/img/hnr/otsu_4.png&quot; alt=&quot;otsu_4&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;由于n在递归中不变可以省略，因此可以改为&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/static/img/hnr/otsu_5.png&quot; alt=&quot;otsu_5&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;由于本文是针对字符图像的分割，由于字符的笔画通常较细，通常只占图像的1/4都不到，因此可以适当的调整阈值，以实现较好的分割效果，改进后的阈值为&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/static/img/hnr/otsu_6.png&quot; alt=&quot;otsu_6&quot; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;section-12&quot;&gt;局部阈值的实现与改进&lt;/h4&gt;
+
+&lt;p&gt;然而在实际图像中, 由于噪声或其他干扰等因素的影响，OTSU阈值分割并不能使图像分割得到满意的结果, 往往会产生严重的分割错误。这是因为图像的灰度直方图分布不一定
+出现明显的峰和谷, 像素灰度值仅仅反映了像素灰度级的幅值大小, 并没有反映出像素与邻域的空间相关信息。&lt;/p&gt;
+
+&lt;p&gt;通过具体的实验发现：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;当图像亮度分布不均匀时，往往无法得到好的分割效果，通常会出现大块的黑块，或者过渡分割而丢失信息的情况。
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;因此，可以通过对图像进行分块，针对每一小块进行OTSU分割，可以减少这些情况的发生，但是这又会出现不希望的“棋盘”效果，为了避免这种情况的发生，可以采用如下改进的局部阈值算法：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;遍历图像中每一像素，在该像素的邻域内进行灰度统计，计算OTSU阈值，并仅对该点进行阈值分割。
+
+这样就能在较好的分割效果下实现像素平滑过渡，避免了“棋盘”效应，由于在当像素移动时，只有一行或一列改变，所以可以在每步移动中，以新数据更新前一个位置得到的直方图，从而避免了每次重新计算整个直方图，大大减少了计算量，使其在一个可接受的范围内。
+
+为了防止部分区域受到噪声干扰而产生的黑块现象，可以在进行局部阈值处理前，进行三阶的平滑处理，效果相当显著。
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;section-13&quot;&gt;结果&lt;/h2&gt;
+
+&lt;h4 id=&quot;section-14&quot;&gt;原图&lt;/h4&gt;
+
+&lt;p&gt;&lt;img src=&quot;/static/img/hnr/split_3.jpg&quot; alt=&quot;split_3&quot; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;section-15&quot;&gt;经全局阈值处理后的图象&lt;/h4&gt;
+
+&lt;p&gt;&lt;img src=&quot;/static/img/hnr/split_4.jpg&quot; alt=&quot;split_4&quot; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;section-16&quot;&gt;经改进的局部阈值处理后的图像&lt;/h4&gt;
+
+&lt;p&gt;&lt;img src=&quot;/static/img/hnr/split_5.jpg&quot; alt=&quot;split_5&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;section-17&quot;&gt;总结&lt;/h2&gt;
+
+&lt;p&gt;由上图可见，经改进的局部阈值处理后的图像的效果还是相当明显的，可是还是有些不足之处。。&lt;/p&gt;
+
+&lt;p&gt;就是处理后的图像笔画较粗，容易填掉数字中的空洞，尤其是4，6，8，9这些含有小孔的数字，这些都有待进一步改进。&lt;/p&gt;
+
+&lt;p&gt;后续，我还会总结下：倾斜矫正、数字提取、特征提取、神经网络相关的一些心得和改进算法。。&lt;/p&gt;
+
+&lt;p&gt;最后，再贴两张hnr项目，界面截图哈。。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/static/img/hnr/before.png&quot; alt=&quot;before&quot; /&gt;
+&lt;img src=&quot;/static/img/hnr/after.png&quot; alt=&quot;after&quot; /&gt;&lt;/p&gt;
+
+</description>
+        <pubDate>Thu, 28 Jul 2016 00:00:00 +0800</pubDate>
+        <link>http://www.tboox.net/cn/2016/07/28/hnr-split-image/</link>
+        <guid isPermaLink="true">http://www.tboox.net/cn/2016/07/28/hnr-split-image/</guid>
+        
+        <category>手写数字识别</category>
+        
+        <category>神经网络</category>
+        
+        <category>人工智能</category>
+        
+        <category>图像分割</category>
+        
+        <category>区域二值化</category>
+        
+        <category>adaboost</category>
+        
+        
+        <category>hnr</category>
+        
+      </item>
     
       <item>
         <title>The x86 Script Instruction Virtual Machine</title>
@@ -1345,149 +1589,6 @@ build\demo.pdb
         
         
         <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>The tessellate polygon drawing algorithm</title>
-        <description>&lt;p&gt;The algorithm is based on libtess2 here and we optimizated some implementation and fixed some bugs.&lt;/p&gt;
-
-&lt;p&gt;The differents between our algorithm and libtess2’s algorithm:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;We change the coordinate system and the sweep direction (sweep line by horizontal here).&lt;/li&gt;
-  &lt;li&gt;We need not project the vertices because our graphic engine is 2d,
-so our algorithm will be faster.&lt;/li&gt;
-  &lt;li&gt;We processed more cases of the intersection with some numerical errors, 
-so our algorithm will be more stable.&lt;/li&gt;
-  &lt;li&gt;We change the algorithm of comparing the active edge and make it more stable for numerical errors.&lt;/li&gt;
-  &lt;li&gt;We optimizate the algorithm of merging into the convex polygon from the triangulated mesh.&lt;/li&gt;
-  &lt;li&gt;We have not counted the vertices for each region, so it will be faster than libtess2.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;(you can see &lt;a href=&quot;https://github.com/memononen/libtess2/blob/master/alg_outline.md&quot;&gt;libtess2/alg_outline.md&lt;/a&gt; if want to known more details of algorithm.)&lt;/p&gt;
-
-&lt;p&gt;There are four stages to the algorithm:&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;Build a mesh (DCEL, be similar to quad-edge) from polygon.&lt;/li&gt;
-  &lt;li&gt;Tessellate the mesh into the monotone regions if the polygon is concave.&lt;/li&gt;
-  &lt;li&gt;Triangulate the monotone regions.&lt;/li&gt;
-  &lt;li&gt;Merge the triangulated regions into the convex regions.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;There are seven stages to the tessellation algorithm:&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;Simplify the mesh and process some degenerate cases.&lt;/li&gt;
-  &lt;li&gt;Build a vertex event queue and sort it (uses the priority queue with min-heap).&lt;/li&gt;
-  &lt;li&gt;Build an active edge region list and sort it (uses the partial insertion sort).&lt;/li&gt;
-  &lt;li&gt;Sweep all events from the event queue using the Bentley-Ottman line-sweep algorithm and calculate the intersection and winding number.&lt;/li&gt;
-  &lt;li&gt;We need fix it if the intersection with numerical errors violate the mesh topology or active edge list ordering.&lt;/li&gt;
-  &lt;li&gt;Process some degenerate cases for the mesh faces which were generated when we fixed some cases.&lt;/li&gt;
-  &lt;li&gt;Get the monotone regions with the left face marked “inside”&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;The triangulation test result:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/gbox/test_triangulation1.png&quot; alt=&quot;test_triangulation1&quot; /&gt;
-&lt;img src=&quot;/static/img/gbox/test_triangulation2.png&quot; alt=&quot;test_triangulation2&quot; /&gt;
-&lt;img src=&quot;/static/img/gbox/test_triangulation3.png&quot; alt=&quot;test_triangulation3&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;The drawing result with opengl(60 fps on my mac pro):&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/gbox/draw_tiger.png&quot; alt=&quot;draw_tiger&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Please refer to the source code &lt;a href=&quot;https://github.com/waruqi/gbox/blob/master/src/gbox/utils/impl/tessellator/monotone.c&quot;&gt;monotone.c&lt;/a&gt; if you want to know more verbose monotone algorithm implementation.&lt;/p&gt;
-
-&lt;p&gt;And the tessellator interfaces usage from &lt;a href=&quot;https://github.com/waruqi/gbox/blob/master/src/gbox/core/device/gl/render.c&quot;&gt;gbox/gl/render.c&lt;/a&gt;:&lt;/p&gt;
-
-&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;    &lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_void_t&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;gb_gl_render_fill_convex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gb_point_ref_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;points&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_uint16_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_cpointer_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;c1&quot;&gt;// check
-&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;tb_assert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;points&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;// apply it
-&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;gb_gl_render_apply_vertices&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gb_gl_device_ref_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;points&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-&lt;span class=&quot;cp&quot;&gt;#ifndef GB_GL_TESSELLATOR_TEST_ENABLE
-&lt;/span&gt;        &lt;span class=&quot;c1&quot;&gt;// draw it
-&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;gb_glDrawArrays&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GB_GL_TRIANGLE_FAN&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gb_GLint_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;cp&quot;&gt;#else
-&lt;/span&gt;        &lt;span class=&quot;c1&quot;&gt;// the device 
-&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;gb_gl_device_ref_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;device&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gb_gl_device_ref_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;// make crc32
-&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;tb_uint32_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;crc32&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0xffffffff&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;^&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_crc_encode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TB_CRC_MODE_32_IEEE_LE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0xffffffff&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_byte_t&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;points&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;sizeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gb_point_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;// make color
-&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;gb_color_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;color&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;color&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_byte_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;crc32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;color&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_byte_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;crc32&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;color&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_byte_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;crc32&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;16&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;color&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;128&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;// enable blend
-&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;gb_glEnable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GB_GL_BLEND&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;gb_glBlendFunc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GB_GL_SRC_ALPHA&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;GB_GL_ONE_MINUS_SRC_ALPHA&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;// apply color
-&lt;/span&gt;        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;device&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;version&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;=&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x20&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gb_glVertexAttrib4f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gb_gl_program_location&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;device&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;program&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;GB_GL_PROGRAM_LOCATION_COLORS&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gb_GLfloat_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;color&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0xff&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gb_GLfloat_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;color&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0xff&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gb_GLfloat_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;color&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0xff&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gb_GLfloat_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;color&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0xff&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gb_glColor4f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gb_GLfloat_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;color&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0xff&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gb_GLfloat_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;color&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0xff&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gb_GLfloat_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;color&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0xff&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gb_GLfloat_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;color&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0xff&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;// draw the edges of the filled contour
-&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;gb_glDrawArrays&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GB_GL_TRIANGLE_FAN&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gb_GLint_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;// disable blend
-&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;gb_glEnable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GB_GL_BLEND&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;cp&quot;&gt;#endif
-&lt;/span&gt;    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_void_t&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;gb_gl_render_fill_polygon&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gb_gl_device_ref_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;device&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gb_polygon_ref_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;polygon&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gb_rect_ref_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bounds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_size_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;c1&quot;&gt;// check
-&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;tb_assert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;device&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;device&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tessellator&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-&lt;span class=&quot;cp&quot;&gt;#ifdef GB_GL_TESSELLATOR_TEST_ENABLE
-&lt;/span&gt;        &lt;span class=&quot;c1&quot;&gt;// set mode
-&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;gb_tessellator_mode_set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;device&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tessellator&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;GB_TESSELLATOR_MODE_TRIANGULATION&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;//      gb_tessellator_mode_set(device-&amp;gt;tessellator, GB_TESSELLATOR_MODE_MONOTONE);
-&lt;/span&gt;&lt;span class=&quot;cp&quot;&gt;#endif
-&lt;/span&gt;
-        &lt;span class=&quot;c1&quot;&gt;// set rule
-&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;gb_tessellator_rule_set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;device&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tessellator&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;// set func
-&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;gb_tessellator_func_set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;device&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tessellator&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gb_gl_render_fill_convex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;device&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;// done tessellator
-&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;gb_tessellator_done&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;device&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tessellator&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;polygon&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bounds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-</description>
-        <pubDate>Thu, 21 Jul 2016 00:00:00 +0800</pubDate>
-        <link>http://www.tboox.net/2016/07/21/tessellate-polygon-algorithm/</link>
-        <guid isPermaLink="true">http://www.tboox.net/2016/07/21/tessellate-polygon-algorithm/</guid>
-        
-        <category>gbox</category>
-        
-        <category>c</category>
-        
-        <category>tessellate</category>
-        
-        <category>polygon</category>
-        
-        <category>algorithm</category>
-        
-        <category>drawing</category>
-        
-        <category>monotone</category>
-        
-        <category>triangulation</category>
-        
-        
-        <category>gbox</category>
         
       </item>
     
