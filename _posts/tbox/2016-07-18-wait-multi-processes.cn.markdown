@@ -2,7 +2,7 @@
 layout: post.cn
 title:  "多进程等待的跨平台实现"
 tags: xmake lua tbox windows 协程 进程等待 跨平台
-categories: xmake
+categories: tbox xmake
 ---
 
 最近在[xmake](http://www.xmake.io)中，用lua的协程实现了多任务编译，效果还是不错的，不过后来发现一个问题：
