@@ -1,0 +1,1554 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>多进程等待的跨平台实现</title>
+    <meta name="description" content="最近在xmake中，用lua的协程实现了多任务编译，效果还是不错的，不过后来发现一个问题：如果所有编译进程都在处理编译，没有退出的时候，xmake的lua主进程会不断地在这些任务间，不停的切换轮询进程的状态，但是有没有机会执行其他任务，导致cpu过高，抢占了编译进程的cpu时间。。那如果在等不到完成的进程时候，加...">
+
+    
+    <meta name="keywords" content="xmake,lua,tbox,windows,协程,进程等待,跨平台,tboox" /> 
+
+    <link rel="shortcut icon" href="/favicon.ico?" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico?" type="image/x-icon">
+    <link rel="stylesheet" href=" /css/fontawesome/css/font-awesome.min.css ">
+    <link rel="stylesheet" href=" /css/main.css ">
+    <link rel="canonical" href="http://www.tboox.net/2016/07/18/wait-multi-processes.cn%E5%89%AF%E6%9C%AC/">
+    <link rel="alternate" type="application/rss+xml" title="TBOOX Open Source Project" href="http://www.tboox.net/feed.xml ">
+    <link rel="alternate" hreflang="en" href="http://www.tboox.net/" />
+    <link rel="alternate" hreflang="cn" href="http://www.tboox.net/cn/" />
+
+
+    <script>
+    // 百度统计代码
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?1f2e7c366588e460fe2b6f4da3a5746d";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+
+
+</head>
+
+
+  <body>
+
+    <header id="top">
+    <div class="wrapper">
+        <a href="/cn" class="brand">TBOOX</a>
+        <button id="headerMenu" class="menu"><i class="fa fa-bars"></i></button>
+        <nav id="headerNav">
+            <ul>
+                <li>
+                    
+                    <a href="/">
+                    
+                        <i class="fa fa-home"></i>English
+                    </a>
+                </li>
+
+                
+                    
+                    
+                    <li>
+                        
+                        <a href="/cn/project/">
+                        
+                            <i class="fa fa-bookmark"></i>项目
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                        <a href="/cn/archive/">
+                        
+                            <i class="fa fa-archive"></i>归档
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                        <a href="/cn/category/">
+                        
+                            <i class="fa fa-th-list"></i>分类
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                        <a href="/cn/tag/">
+                        
+                            <i class="fa fa-tags"></i>标记
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                    
+                    <li>
+                        
+                        <a href="/cn/book/">
+                        
+                            <i class="fa fa-book"></i>书柜
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                        <a href="/cn/donation/">
+                        
+                            <i class="fa fa-heart"></i>捐助
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                        <a href="/cn/about/">
+                        
+                            <i class="fa fa-user"></i>关于
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            </ul>
+        </nav>
+    </div>
+</header>
+
+
+        <div class="page clearfix" post>
+    <div class="left">
+        <h1>多进程等待的跨平台实现</h1>
+        <div class="label">
+
+            <div class="label-card">
+                <i class="fa fa-calendar"></i>2016-07-18
+            </div>
+
+            <div class="label-card">
+                
+            </div>
+
+            <div class="label-card">
+                
+            </div>
+
+            <div class="label-card">
+            
+
+
+<!-- <span class="point">•</span> -->
+<span class="categories">
+  <i class="fa fa-th-list"></i>
+  
+    
+        <a href="/category/#xmake" title="Category: xmake" rel="category">xmake</a>
+    
+  
+
+  <!-- <span class="point">•</span> -->
+</span>
+
+
+            </div>
+
+            <div class="label-card">
+            
+<!-- <span class="point">•</span> -->
+<span class="pageTag">
+  <i class="fa fa-tags"></i>
+  
+    
+        <!--a href="/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a-->
+        <a href="/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a>&nbsp;
+    
+        <!--a href="/tag/#lua" title="Tag: lua" rel="tag">lua</a-->
+        <a href="/tag/#lua" title="Tag: lua" rel="tag">lua</a>&nbsp;
+    
+        <!--a href="/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a-->
+        <a href="/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a>&nbsp;
+    
+        <!--a href="/tag/#windows" title="Tag: windows" rel="tag">windows</a-->
+        <a href="/tag/#windows" title="Tag: windows" rel="tag">windows</a>&nbsp;
+    
+        <!--a href="/tag/#%E5%8D%8F%E7%A8%8B" title="Tag: 协程" rel="tag">协程</a-->
+        <a href="/tag/#协程" title="Tag: 协程" rel="tag">协程</a>&nbsp;
+    
+        <!--a href="/tag/#%E8%BF%9B%E7%A8%8B%E7%AD%89%E5%BE%85" title="Tag: 进程等待" rel="tag">进程等待</a-->
+        <a href="/tag/#进程等待" title="Tag: 进程等待" rel="tag">进程等待</a>&nbsp;
+    
+        <!--a href="/tag/#%E8%B7%A8%E5%B9%B3%E5%8F%B0" title="Tag: 跨平台" rel="tag">跨平台</a-->
+        <a href="/tag/#跨平台" title="Tag: 跨平台" rel="tag">跨平台</a>
+    
+  
+
+</span>
+
+            </div>
+
+        </div>
+        <hr>
+        <article itemscope itemtype="http://schema.org/BlogPosting">
+        <p>最近在<a href="http://www.xmake.io">xmake</a>中，用lua的协程实现了多任务编译，效果还是不错的，不过后来发现一个问题：</p>
+
+<p>如果所有编译进程都在处理编译，没有退出的时候，xmake的lua主进程会不断地在这些任务间，不停的切换轮询进程的状态，但是有没有机会执行其他任务，导致cpu过高，抢占了编译进程的cpu时间。。</p>
+
+<p>那如果在等不到完成的进程时候，加入sleep等待呢，又会导致编译速度变慢，没法合理利用cpu。。</p>
+
+<p>因此，为了解决这个问题，我打算扩展下lua的接口，实现了一个跨平台的多进程等待接口: <code class="highlighter-rouge">process.waitlist</code> 实现多个未完成进程的同时等待，让出xmake主进程的cpu时间，给其他编译进程充分利用</p>
+
+<p>xmake中的lua代码如下：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code>        <span class="c1">-- wait processes</span>
+        <span class="kd">local</span> <span class="n">tasks_finished</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="kd">local</span> <span class="n">procs_count</span> <span class="o">=</span> <span class="o">#</span><span class="n">procs</span>
+        <span class="k">if</span> <span class="n">procs_count</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">then</span>
+
+            <span class="c1">-- wait them</span>
+            <span class="kd">local</span> <span class="n">procinfos</span> <span class="o">=</span> <span class="n">process</span><span class="p">.</span><span class="n">waitlist</span><span class="p">(</span><span class="n">procs</span><span class="p">,</span> <span class="n">ifelse</span><span class="p">(</span><span class="n">procs_count</span> <span class="o">&lt;</span> <span class="n">jobs</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">procinfo</span> <span class="k">in</span> <span class="nb">ipairs</span><span class="p">(</span><span class="n">procinfos</span><span class="p">)</span> <span class="k">do</span>
+                
+                <span class="c1">-- the process info</span>
+                <span class="kd">local</span> <span class="n">proc</span>      <span class="o">=</span> <span class="n">procinfo</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="kd">local</span> <span class="n">procid</span>    <span class="o">=</span> <span class="n">procinfo</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                <span class="kd">local</span> <span class="n">status</span>    <span class="o">=</span> <span class="n">procinfo</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+
+                <span class="c1">-- check</span>
+                <span class="nb">assert</span><span class="p">(</span><span class="n">procs</span><span class="p">[</span><span class="n">procid</span><span class="p">]</span> <span class="o">==</span> <span class="n">proc</span><span class="p">)</span>
+
+                <span class="c1">-- resume this task</span>
+                <span class="kd">local</span> <span class="n">job_task</span> <span class="o">=</span> <span class="n">tasks</span><span class="p">[</span><span class="n">procid</span><span class="p">]</span>
+                <span class="kd">local</span> <span class="n">job_proc</span> <span class="o">=</span> <span class="nb">coroutine.resume</span><span class="p">(</span><span class="n">job_task</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">status</span><span class="p">)</span>
+
+                <span class="c1">-- the other process is pending for this task?</span>
+                <span class="k">if</span> <span class="nb">coroutine.status</span><span class="p">(</span><span class="n">job_task</span><span class="p">)</span> <span class="o">~=</span> <span class="s2">"dead"</span> <span class="k">then</span>
+
+                    <span class="c1">-- check</span>
+                    <span class="nb">assert</span><span class="p">(</span><span class="n">job_proc</span><span class="p">)</span>
+
+                    <span class="c1">-- update the pending process</span>
+                    <span class="n">procs</span><span class="p">[</span><span class="n">procid</span><span class="p">]</span> <span class="o">=</span> <span class="n">job_proc</span>
+
+                <span class="c1">-- this task has been finised?</span>
+                <span class="k">else</span>
+
+                    <span class="c1">-- mark this task as finised</span>
+                    <span class="n">tasks_finished</span><span class="p">[</span><span class="n">procid</span><span class="p">]</span> <span class="o">=</span> <span class="kc">true</span>
+                <span class="k">end</span>
+            <span class="k">end</span>
+        <span class="k">end</span>
+</code></pre>
+</div>
+
+<p>在<code class="highlighter-rouge">os.exec</code>运行进程的接口实现中，如果当前进程没有立即退出，就通过协程切换出去，知道上面的多进程等待，获取到实际的退出进程后，直接定向切换到退出进程的<code class="highlighter-rouge">os.exec</code>中，继续完成后续操作，这样就不会有冗余切换问题：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="c1">-- execute shell </span>
+<span class="k">function</span> <span class="nc">os</span><span class="p">.</span><span class="nf">exec</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">outfile</span><span class="p">,</span> <span class="n">errfile</span><span class="p">)</span>
+
+    <span class="c1">-- open command</span>
+    <span class="kd">local</span> <span class="n">ok</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="kd">local</span> <span class="n">proc</span> <span class="o">=</span> <span class="n">process</span><span class="p">.</span><span class="n">open</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">outfile</span><span class="p">,</span> <span class="n">errfile</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">proc</span> <span class="o">~=</span> <span class="kc">nil</span> <span class="k">then</span>
+
+        <span class="c1">-- wait process</span>
+        <span class="kd">local</span> <span class="n">waitok</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="kd">local</span> <span class="n">status</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> 
+        <span class="k">if</span> <span class="nb">coroutine.running</span><span class="p">()</span> <span class="k">then</span>
+
+            <span class="c1">-- save the current directory</span>
+            <span class="kd">local</span> <span class="n">curdir</span> <span class="o">=</span> <span class="n">os</span><span class="p">.</span><span class="n">curdir</span><span class="p">()</span>
+
+            <span class="c1">-- wait it</span>
+            <span class="k">repeat</span>
+                <span class="c1">-- poll it</span>
+                <span class="n">waitok</span><span class="p">,</span> <span class="n">status</span> <span class="o">=</span> <span class="n">process</span><span class="p">.</span><span class="n">wait</span><span class="p">(</span><span class="n">proc</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">waitok</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">then</span>
+                    <span class="c1">-- 外面的多进程等待到实际的状态值后，直接进行处理</span>
+                    <span class="n">waitok</span><span class="p">,</span> <span class="n">status</span> <span class="o">=</span> <span class="nb">coroutine.yield</span><span class="p">(</span><span class="n">proc</span><span class="p">)</span>
+                <span class="k">end</span>
+            <span class="k">until</span> <span class="n">waitok</span> <span class="o">~=</span> <span class="mi">0</span>
+
+            <span class="c1">-- resume the current directory</span>
+            <span class="n">os</span><span class="p">.</span><span class="n">cd</span><span class="p">(</span><span class="n">curdir</span><span class="p">)</span>
+        <span class="k">else</span>
+            <span class="n">waitok</span><span class="p">,</span> <span class="n">status</span> <span class="o">=</span> <span class="n">process</span><span class="p">.</span><span class="n">wait</span><span class="p">(</span><span class="n">proc</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">end</span>
+
+        <span class="c1">-- get status</span>
+        <span class="k">if</span> <span class="n">waitok</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">then</span>
+            <span class="n">ok</span> <span class="o">=</span> <span class="n">status</span>
+        <span class="k">end</span>
+
+        <span class="c1">-- close process</span>
+        <span class="n">process</span><span class="p">.</span><span class="n">close</span><span class="p">(</span><span class="n">proc</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="c1">-- ok?</span>
+    <span class="k">return</span> <span class="n">ok</span>
+<span class="k">end</span>
+</code></pre>
+</div>
+
+<p>lua的上层调用有了，那怎么去实现这个跨平台的多进程等待呢？</p>
+
+<p>在windows上我们能想到就是<code class="highlighter-rouge">WaitForMultipleObjects</code>这个接口了，我把它封装到了<a href="https://github.com/waruqi/tbox">tbox</a>里面具体实现如下：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="n">tb_long_t</span> <span class="nf">tb_process_waitlist</span><span class="p">(</span><span class="n">tb_process_ref_t</span> <span class="k">const</span><span class="o">*</span> <span class="n">processes</span><span class="p">,</span> <span class="n">tb_process_waitinfo_ref_t</span> <span class="n">infolist</span><span class="p">,</span> <span class="n">tb_size_t</span> <span class="n">infomaxn</span><span class="p">,</span> <span class="n">tb_long_t</span> <span class="n">timeout</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// check
+</span>    <span class="n">tb_assert_and_check_return_val</span><span class="p">(</span><span class="n">processes</span> <span class="o">&amp;&amp;</span> <span class="n">infolist</span> <span class="o">&amp;&amp;</span> <span class="n">infomaxn</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+
+    <span class="c1">// make the process list
+</span>    <span class="n">tb_size_t</span>               <span class="n">procsize</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="n">HANDLE</span>                  <span class="n">proclist</span><span class="p">[</span><span class="mi">256</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+    <span class="n">tb_process_t</span> <span class="k">const</span><span class="o">**</span>    <span class="n">pprocess</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_process_t</span> <span class="k">const</span><span class="o">**</span><span class="p">)</span><span class="n">processes</span><span class="p">;</span>
+    <span class="k">for</span> <span class="p">(;</span> <span class="o">*</span><span class="n">pprocess</span> <span class="o">&amp;&amp;</span> <span class="n">procsize</span> <span class="o">&lt;</span> <span class="n">tb_arrayn</span><span class="p">(</span><span class="n">proclist</span><span class="p">);</span> <span class="n">pprocess</span><span class="o">++</span><span class="p">,</span> <span class="n">procsize</span><span class="o">++</span><span class="p">)</span>
+        <span class="n">proclist</span><span class="p">[</span><span class="n">procsize</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="n">pprocess</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">pi</span><span class="p">.</span><span class="n">hProcess</span><span class="p">;</span>
+    <span class="n">tb_assertf</span><span class="p">(</span><span class="n">procsize</span> <span class="o">&lt;</span> <span class="n">tb_arrayn</span><span class="p">(</span><span class="n">proclist</span><span class="p">),</span> <span class="s">"too much waited processes!"</span><span class="p">);</span>
+
+
+    <span class="c1">// wait processes
+</span>    <span class="n">DWORD</span>       <span class="n">exitcode</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="n">tb_long_t</span>   <span class="n">infosize</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="n">DWORD</span> <span class="n">result</span> <span class="o">=</span> <span class="n">tb_kernel32</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">WaitForMultipleObjects</span><span class="p">(</span><span class="n">procsize</span><span class="p">,</span> <span class="n">proclist</span><span class="p">,</span> <span class="n">FALSE</span><span class="p">,</span> <span class="n">timeout</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="o">?</span> <span class="n">INFINITE</span> <span class="o">:</span> <span class="p">(</span><span class="n">DWORD</span><span class="p">)</span><span class="n">timeout</span><span class="p">);</span>
+    <span class="k">switch</span> <span class="p">(</span><span class="n">result</span><span class="p">)</span>
+    <span class="p">{</span>
+    <span class="k">case</span> <span class="n">WAIT_TIMEOUT</span><span class="p">:</span>
+        <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="n">WAIT_FAILED</span><span class="p">:</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+    <span class="nl">default:</span>
+        <span class="p">{</span>
+            <span class="c1">// the process index
+</span>            <span class="n">DWORD</span> <span class="n">index</span> <span class="o">=</span> <span class="n">result</span> <span class="o">-</span> <span class="n">WAIT_OBJECT_0</span><span class="p">;</span>
+
+            <span class="c1">// the process
+</span>            <span class="n">tb_process_t</span><span class="o">*</span> <span class="n">process</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_process_t</span><span class="o">*</span><span class="p">)</span><span class="n">processes</span><span class="p">[</span><span class="n">index</span><span class="p">];</span>
+            <span class="n">tb_assert_and_check_return_val</span><span class="p">(</span><span class="n">process</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+
+            <span class="c1">// save process info
+</span>            <span class="n">infolist</span><span class="p">[</span><span class="n">infosize</span><span class="p">].</span><span class="n">index</span>    <span class="o">=</span> <span class="n">index</span><span class="p">;</span>
+            <span class="n">infolist</span><span class="p">[</span><span class="n">infosize</span><span class="p">].</span><span class="n">process</span>  <span class="o">=</span> <span class="p">(</span><span class="n">tb_process_ref_t</span><span class="p">)</span><span class="n">process</span><span class="p">;</span>
+            <span class="n">infolist</span><span class="p">[</span><span class="n">infosize</span><span class="p">].</span><span class="n">status</span>   <span class="o">=</span> <span class="n">tb_kernel32</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">GetExitCodeProcess</span><span class="p">(</span><span class="n">process</span><span class="o">-&gt;</span><span class="n">pi</span><span class="p">.</span><span class="n">hProcess</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">exitcode</span><span class="p">)</span><span class="o">?</span> <span class="p">(</span><span class="n">tb_long_t</span><span class="p">)</span><span class="n">exitcode</span> <span class="o">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>  
+            <span class="n">infosize</span><span class="o">++</span><span class="p">;</span>
+
+            <span class="c1">// close thread handle
+</span>            <span class="n">tb_kernel32</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">CloseHandle</span><span class="p">(</span><span class="n">process</span><span class="o">-&gt;</span><span class="n">pi</span><span class="p">.</span><span class="n">hThread</span><span class="p">);</span>
+            <span class="n">process</span><span class="o">-&gt;</span><span class="n">pi</span><span class="p">.</span><span class="n">hThread</span> <span class="o">=</span> <span class="n">INVALID_HANDLE_VALUE</span><span class="p">;</span>
+
+            <span class="c1">// close process
+</span>            <span class="n">tb_kernel32</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">CloseHandle</span><span class="p">(</span><span class="n">process</span><span class="o">-&gt;</span><span class="n">pi</span><span class="p">.</span><span class="n">hProcess</span><span class="p">);</span>
+            <span class="n">process</span><span class="o">-&gt;</span><span class="n">pi</span><span class="p">.</span><span class="n">hProcess</span> <span class="o">=</span> <span class="n">INVALID_HANDLE_VALUE</span><span class="p">;</span>
+
+            <span class="c1">// next index
+</span>            <span class="n">index</span><span class="o">++</span><span class="p">;</span>
+            <span class="k">while</span> <span class="p">(</span><span class="n">index</span> <span class="o">&lt;</span> <span class="n">procsize</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="c1">// attempt to wait next process
+</span>                <span class="n">result</span> <span class="o">=</span> <span class="n">tb_kernel32</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">WaitForMultipleObjects</span><span class="p">(</span><span class="n">procsize</span> <span class="o">-</span> <span class="n">index</span><span class="p">,</span> <span class="n">proclist</span> <span class="o">+</span> <span class="n">index</span><span class="p">,</span> <span class="n">FALSE</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+                <span class="k">switch</span> <span class="p">(</span><span class="n">result</span><span class="p">)</span>
+                <span class="p">{</span>
+                <span class="k">case</span> <span class="n">WAIT_TIMEOUT</span><span class="p">:</span>
+                    <span class="c1">// no more, exit loop
+</span>                    <span class="n">index</span> <span class="o">=</span> <span class="n">procsize</span><span class="p">;</span>
+                    <span class="k">break</span><span class="p">;</span>
+                <span class="k">case</span> <span class="n">WAIT_FAILED</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+                <span class="nl">default:</span>
+                    <span class="p">{</span>
+                        <span class="c1">// the process index
+</span>                        <span class="n">index</span> <span class="o">+=</span> <span class="n">result</span> <span class="o">-</span> <span class="n">WAIT_OBJECT_0</span><span class="p">;</span>
+
+                        <span class="c1">// the process
+</span>                        <span class="n">process</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_process_t</span><span class="o">*</span><span class="p">)</span><span class="n">processes</span><span class="p">[</span><span class="n">index</span><span class="p">];</span>
+                        <span class="n">tb_assert_and_check_return_val</span><span class="p">(</span><span class="n">process</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+
+                        <span class="c1">// save process info
+</span>                        <span class="n">infolist</span><span class="p">[</span><span class="n">infosize</span><span class="p">].</span><span class="n">index</span>    <span class="o">=</span> <span class="n">index</span><span class="p">;</span>
+                        <span class="n">infolist</span><span class="p">[</span><span class="n">infosize</span><span class="p">].</span><span class="n">process</span>  <span class="o">=</span> <span class="p">(</span><span class="n">tb_process_ref_t</span><span class="p">)</span><span class="n">process</span><span class="p">;</span>
+                        <span class="n">infolist</span><span class="p">[</span><span class="n">infosize</span><span class="p">].</span><span class="n">status</span>   <span class="o">=</span> <span class="n">tb_kernel32</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">GetExitCodeProcess</span><span class="p">(</span><span class="n">process</span><span class="o">-&gt;</span><span class="n">pi</span><span class="p">.</span><span class="n">hProcess</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">exitcode</span><span class="p">)</span><span class="o">?</span> <span class="p">(</span><span class="n">tb_long_t</span><span class="p">)</span><span class="n">exitcode</span> <span class="o">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>  
+                        <span class="n">infosize</span><span class="o">++</span><span class="p">;</span>
+
+                        <span class="c1">// close thread handle
+</span>                        <span class="n">tb_kernel32</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">CloseHandle</span><span class="p">(</span><span class="n">process</span><span class="o">-&gt;</span><span class="n">pi</span><span class="p">.</span><span class="n">hThread</span><span class="p">);</span>
+                        <span class="n">process</span><span class="o">-&gt;</span><span class="n">pi</span><span class="p">.</span><span class="n">hThread</span> <span class="o">=</span> <span class="n">INVALID_HANDLE_VALUE</span><span class="p">;</span>
+
+                        <span class="c1">// close process
+</span>                        <span class="n">tb_kernel32</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">CloseHandle</span><span class="p">(</span><span class="n">process</span><span class="o">-&gt;</span><span class="n">pi</span><span class="p">.</span><span class="n">hProcess</span><span class="p">);</span>
+                        <span class="n">process</span><span class="o">-&gt;</span><span class="n">pi</span><span class="p">.</span><span class="n">hProcess</span> <span class="o">=</span> <span class="n">INVALID_HANDLE_VALUE</span><span class="p">;</span>
+
+                        <span class="c1">// next index
+</span>                        <span class="n">index</span><span class="o">++</span><span class="p">;</span>
+                    <span class="p">}</span>
+                    <span class="k">break</span><span class="p">;</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c1">// ok?
+</span>    <span class="k">return</span> <span class="n">infosize</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>如果在linux以及其他posix系统上，可以使用<code class="highlighter-rouge">wait</code>或者<code class="highlighter-rouge">waitpid</code> 接口，其实<code class="highlighter-rouge">wait</code>也就是相当于调用了 <code class="highlighter-rouge">waitpid(-1, &amp;status, ..)</code>，所以我这里就直接使用<code class="highlighter-rouge">waitpid</code>来实现了。。</p>
+
+<p>它跟windows的<code class="highlighter-rouge">WaitForMultipleObjects</code>有些不同，不能传递指定需要等待哪些进程句柄，想要等待多个进程，只能传递-1，表示等待所有子进程</p>
+
+<p>不过我们在封装接口的时候，可以还是传入多个要等待的子进程列表，如果获取到的子进程不在这个列表里面，就直接忽略掉，有的话就返回出来，这样的话，行为上就跟windows的差不多了。。</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="n">tb_long_t</span> <span class="nf">tb_process_waitlist</span><span class="p">(</span><span class="n">tb_process_ref_t</span> <span class="k">const</span><span class="o">*</span> <span class="n">processes</span><span class="p">,</span> <span class="n">tb_process_waitinfo_ref_t</span> <span class="n">infolist</span><span class="p">,</span> <span class="n">tb_size_t</span> <span class="n">infomaxn</span><span class="p">,</span> <span class="n">tb_long_t</span> <span class="n">timeout</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// check
+</span>    <span class="n">tb_assert_and_check_return_val</span><span class="p">(</span><span class="n">processes</span> <span class="o">&amp;&amp;</span> <span class="n">infolist</span> <span class="o">&amp;&amp;</span> <span class="n">infomaxn</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+
+    <span class="c1">// done
+</span>    <span class="n">tb_long_t</span> <span class="n">infosize</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="n">tb_hong_t</span> <span class="n">time</span> <span class="o">=</span> <span class="n">tb_mclock</span><span class="p">();</span>
+    <span class="k">do</span>
+    <span class="p">{</span>
+        <span class="c1">// wait it
+</span>        <span class="n">tb_int_t</span>    <span class="n">status</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+        <span class="n">tb_long_t</span>   <span class="n">result</span> <span class="o">=</span> <span class="n">waitpid</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">status</span><span class="p">,</span> <span class="n">timeout</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="o">?</span> <span class="mi">0</span> <span class="o">:</span> <span class="n">WNOHANG</span> <span class="o">|</span> <span class="n">WUNTRACED</span><span class="p">);</span>
+        <span class="n">tb_check_return_val</span><span class="p">(</span><span class="n">result</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+
+        <span class="c1">// exited?
+</span>        <span class="k">if</span> <span class="p">(</span><span class="n">result</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="c1">// find this process 
+</span>            <span class="n">tb_process_t</span> <span class="k">const</span><span class="o">**</span> <span class="n">pprocess</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_process_t</span> <span class="k">const</span><span class="o">**</span><span class="p">)</span><span class="n">processes</span><span class="p">;</span>
+            <span class="k">for</span> <span class="p">(;</span> <span class="o">*</span><span class="n">pprocess</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="o">*</span><span class="n">pprocess</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">pid</span> <span class="o">!=</span> <span class="n">result</span><span class="p">;</span> <span class="n">pprocess</span><span class="o">++</span><span class="p">)</span> <span class="p">;</span>
+
+            <span class="c1">// found?
+</span>            <span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">pprocess</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="c1">// save process info
+</span>                <span class="n">infolist</span><span class="p">[</span><span class="n">infosize</span><span class="p">].</span><span class="n">index</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_process_ref_t</span> <span class="k">const</span><span class="o">*</span><span class="p">)</span><span class="n">pprocess</span> <span class="o">-</span> <span class="n">processes</span><span class="p">;</span>
+                <span class="n">infolist</span><span class="p">[</span><span class="n">infosize</span><span class="p">].</span><span class="n">process</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_process_ref_t</span><span class="p">)</span><span class="o">*</span><span class="n">pprocess</span><span class="p">;</span>
+                <span class="n">infolist</span><span class="p">[</span><span class="n">infosize</span><span class="p">].</span><span class="n">status</span> <span class="o">=</span> <span class="n">WIFEXITED</span><span class="p">(</span><span class="n">status</span><span class="p">)</span><span class="o">?</span> <span class="n">WEXITSTATUS</span><span class="p">(</span><span class="n">status</span><span class="p">)</span> <span class="o">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+                <span class="n">infosize</span><span class="o">++</span><span class="p">;</span>
+
+                <span class="c1">// attempt to wait other processes
+</span>                <span class="k">while</span> <span class="p">(</span><span class="n">infosize</span> <span class="o">&lt;</span> <span class="n">infomaxn</span><span class="p">)</span>
+                <span class="p">{</span>
+                    <span class="c1">// attempt to wait it
+</span>                    <span class="n">status</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="n">waitpid</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">status</span><span class="p">,</span> <span class="n">WNOHANG</span> <span class="o">|</span> <span class="n">WUNTRACED</span><span class="p">);</span>
+
+                    <span class="c1">// error or timeout? end
+</span>                    <span class="n">tb_check_break</span><span class="p">(</span><span class="n">result</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">);</span>
+
+                    <span class="c1">// find this process 
+</span>                    <span class="n">tb_process_t</span> <span class="k">const</span><span class="o">**</span> <span class="n">pprocess</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_process_t</span> <span class="k">const</span><span class="o">**</span><span class="p">)</span><span class="n">processes</span><span class="p">;</span>
+                    <span class="k">for</span> <span class="p">(;</span> <span class="o">*</span><span class="n">pprocess</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="o">*</span><span class="n">pprocess</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">pid</span> <span class="o">!=</span> <span class="n">result</span><span class="p">;</span> <span class="n">pprocess</span><span class="o">++</span><span class="p">)</span> <span class="p">;</span>
+
+                    <span class="c1">// found?
+</span>                    <span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">pprocess</span><span class="p">)</span>
+                    <span class="p">{</span>
+                        <span class="c1">// save process info
+</span>                        <span class="n">infolist</span><span class="p">[</span><span class="n">infosize</span><span class="p">].</span><span class="n">index</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_process_ref_t</span> <span class="k">const</span><span class="o">*</span><span class="p">)</span><span class="n">pprocess</span> <span class="o">-</span> <span class="n">processes</span><span class="p">;</span>
+                        <span class="n">infolist</span><span class="p">[</span><span class="n">infosize</span><span class="p">].</span><span class="n">process</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_process_ref_t</span><span class="p">)</span><span class="o">*</span><span class="n">pprocess</span><span class="p">;</span>
+                        <span class="n">infolist</span><span class="p">[</span><span class="n">infosize</span><span class="p">].</span><span class="n">status</span> <span class="o">=</span> <span class="n">WIFEXITED</span><span class="p">(</span><span class="n">status</span><span class="p">)</span><span class="o">?</span> <span class="n">WEXITSTATUS</span><span class="p">(</span><span class="n">status</span><span class="p">)</span> <span class="o">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+                        <span class="n">infosize</span><span class="o">++</span><span class="p">;</span>
+                    <span class="p">}</span>
+                    <span class="k">else</span> <span class="k">break</span><span class="p">;</span>
+                <span class="p">}</span>
+
+                <span class="c1">// end
+</span>                <span class="k">break</span><span class="p">;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="c1">// wait some time
+</span>        <span class="k">if</span> <span class="p">(</span><span class="n">timeout</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="n">tb_msleep</span><span class="p">(</span><span class="n">tb_min</span><span class="p">(</span><span class="n">timeout</span><span class="p">,</span> <span class="mi">60</span><span class="p">));</span>
+
+    <span class="p">}</span> <span class="k">while</span> <span class="p">(</span><span class="n">timeout</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">tb_mclock</span><span class="p">()</span> <span class="o">-</span> <span class="n">time</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">tb_hong_t</span><span class="p">)</span><span class="n">timeout</span><span class="p">);</span>
+
+    <span class="c1">// ok?
+</span>    <span class="k">return</span> <span class="n">infosize</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>最后贴下这个跨平台接口的是如何使用的，这里给了一个比较完整的demo</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="c1">// init processes
+</span>    <span class="n">tb_size_t</span>        <span class="n">count1</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="n">tb_process_ref_t</span> <span class="n">processes1</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+    <span class="n">tb_process_ref_t</span> <span class="n">processes2</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+    <span class="k">for</span> <span class="p">(;</span> <span class="n">count1</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">;</span> <span class="n">count1</span><span class="o">++</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">processes1</span><span class="p">[</span><span class="n">count1</span><span class="p">]</span> <span class="o">=</span> <span class="n">tb_process_init</span><span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span><span class="n">tb_char_t</span> <span class="k">const</span><span class="o">**</span><span class="p">)(</span><span class="n">argv</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">tb_null</span><span class="p">);</span>
+        <span class="n">tb_assert_and_check_break</span><span class="p">(</span><span class="n">processes1</span><span class="p">[</span><span class="n">count1</span><span class="p">]);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// ok?
+</span>    <span class="k">while</span> <span class="p">(</span><span class="n">count1</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// trace
+</span>        <span class="n">tb_trace_i</span><span class="p">(</span><span class="s">"waiting: %ld"</span><span class="p">,</span> <span class="n">count1</span><span class="p">);</span>
+
+        <span class="c1">// wait processes
+</span>        <span class="n">tb_long_t</span>               <span class="n">infosize</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+        <span class="n">tb_process_waitinfo_t</span>   <span class="n">infolist</span><span class="p">[</span><span class="mi">4</span><span class="p">];</span>
+        <span class="k">if</span> <span class="p">((</span><span class="n">infosize</span> <span class="o">=</span> <span class="n">tb_process_waitlist</span><span class="p">(</span><span class="n">processes1</span><span class="p">,</span> <span class="n">infolist</span><span class="p">,</span> <span class="n">tb_arrayn</span><span class="p">(</span><span class="n">infolist</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">tb_size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">infosize</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="c1">// trace
+</span>                <span class="n">tb_trace_i</span><span class="p">(</span><span class="s">"process(%ld:%p) exited: %ld"</span><span class="p">,</span> <span class="n">infolist</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">index</span><span class="p">,</span> <span class="n">infolist</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">process</span><span class="p">,</span> <span class="n">infolist</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">status</span><span class="p">);</span>
+
+                <span class="c1">// exit process
+</span>                <span class="k">if</span> <span class="p">(</span><span class="n">infolist</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">process</span><span class="p">)</span> <span class="n">tb_process_exit</span><span class="p">(</span><span class="n">infolist</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">process</span><span class="p">);</span>
+
+                <span class="c1">// remove this process
+</span>                <span class="n">processes1</span><span class="p">[</span><span class="n">infolist</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">tb_null</span><span class="p">;</span>
+            <span class="p">}</span>
+
+            <span class="c1">// update processes
+</span>            <span class="n">tb_size_t</span> <span class="n">count2</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">count1</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> 
+            <span class="p">{</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">processes1</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="n">processes2</span><span class="p">[</span><span class="n">count2</span><span class="o">++</span><span class="p">]</span> <span class="o">=</span> <span class="n">processes1</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+            <span class="p">}</span>
+            <span class="n">tb_memcpy</span><span class="p">(</span><span class="n">processes1</span><span class="p">,</span> <span class="n">processes2</span><span class="p">,</span> <span class="n">count2</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">tb_process_ref_t</span><span class="p">));</span>
+            <span class="n">processes1</span><span class="p">[</span><span class="n">count2</span><span class="p">]</span> <span class="o">=</span> <span class="n">tb_null</span><span class="p">;</span>
+            <span class="n">count1</span> <span class="o">=</span> <span class="n">count2</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+</code></pre>
+</div>
+
+
+        </article>
+        <hr>
+
+        
+        
+            
+            
+            
+                
+                    
+                        
+                        <h2 id="similar_posts">相关文章</h2>
+                        <ul>
+                        
+                        <li class="relatedPost">
+                            <a href="http://www.tboox.net/cn/2016/07/29/next-plan/">关于xmake下一步的开发计划
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="http://www.tboox.net/cn/2016/07/26/x86-script-instruction-virtual-machine/">x86汇编指令脚本虚拟机
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="http://www.tboox.net/cn/2016/07/25/itrace-descrption/">ios方法调用自动追踪工具：itrace
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="http://www.tboox.net/cn/2016/07/24/support-debugger-on-windows/">在windows下支持调试运行
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="http://www.tboox.net/cn/2016/07/24/enable-pdb-on-windows/">xmake默认启用pdb符号文件
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="http://www.tboox.net/cn/2016/07/23/condition-and-select-compile/">xmake工程描述编写之选择性编译
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+        
+            </ul>
+        
+
+        <div class="post-recent">
+    <div class="pre">
+
+        
+
+        
+
+        
+        
+        <p><strong>上一篇</strong> <a href="/cn/2016/07/18/wait-multi-processes/">多进程等待的跨平台实现</a></p>
+        
+    </div>
+
+    <div class="nex">
+
+        
+
+        
+
+        
+        
+        <p><strong>下一篇</strong> <a href="/cn/2016/07/18/builtinvar-and-shell/">内置变量与原生shell脚本运行</a></p>
+        
+    </div>
+</div>
+
+
+        <h2 id="comments">评论</h2>
+        
+
+
+
+
+
+<div id="disqus_thread"></div>
+<script>
+    /**
+     * RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+     * LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables
+     */
+
+    var disqus_config = function() {
+        this.page.url = 'http://www.tboox.net/2016/07/18/wait-multi-processes.cn%E5%89%AF%E6%9C%AC/'; // Replace PAGE_URL with your page's canonical URL variable
+        this.page.identifier = 'http://www.tboox.net/2016/07/18/wait-multi-processes.cn%E5%89%AF%E6%9C%AC/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+    };
+
+    (function() { // DON'T EDIT BELOW THIS LINE
+        var d = document,
+            s = d.createElement('script');
+
+        s.src = '//zh-tboox.disqus.com/embed.js';
+
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+
+
+
+
+    </div>
+    <button class="anchor"><i class="fa fa-anchor"></i></button>
+    <div class="right">
+        <div class="wrap">
+
+            <!-- Content -->
+            <div class="side content">
+                <div>
+                    内容
+                </div>
+                <ul id="content-side" class="content-ul">
+                    <li><a href="#similar_posts">相关文章</a></li>
+                    <li><a href="#comments">评论</a></li>
+                </ul>
+            </div>
+            
+            <br>
+            <div class="side">
+                <div>
+                    <i class="fa fa-external-link"></i>
+                    链接
+                </div>
+                <ul class="content-ul">
+                  <li><a href="http://github.com/waruqi/tbox">tbox</a></li>
+                  <li><a href="http://www.xmake.io">xmake</a></li>
+                  <li><a href="https://github.com/waruqi">github</a></li>
+                </ul>
+            </div> 
+
+            <!-- 其他div框放到这里 -->
+            
+
+
+            <!-- amazon ads -->
+            
+            <br>
+            <div class="side" ads>
+            <iframe src="http://rcm-cn.amazon-adsystem.com/e/cm?t=tboox01-23&o=28&p=12&l=ur1&category=books&banner=1WBTNK2HJQF8QHK2R682&f=ifr" width="265" height="243" scrolling="no" border="0" marginwidth="0" style="border:none;max-width:800px;max-height:600px;" frameborder="0"></iframe>
+            </div>
+            
+
+        </div>
+    </div>
+</div>
+<script>
+/**
+ * target _blank
+ */
+(function() {
+    var aTags = document.querySelectorAll('article a:not([id])')
+    for (var i = 0; i < aTags.length; i++) {
+        aTags[i].setAttribute('target', '_blank')
+    }
+}());
+</script>
+<script src="/js/pageContent.js " charset="utf-8"></script>
+
+
+    <footer class="site-footer">
+    <div class="wrapper">
+        <p class="description">
+             Copyright (c) 2016 tboox.net 
+        </p>
+        <p class="contact">
+            
+            <a href="https://github.com/waruqi" title="GitHub"><i class="fa fa-github" aria-hidden="true"></i></a> 
+             
+            
+            <a href="mailto:waruqi@gmail.com" title="email"><i class="fa fa-envelope-o" aria-hidden="true"></i></a> 
+            
+            
+            <a href="https://twitter.com/waruqi" title="Twitter"><i class="fa fa-twitter" aria-hidden="true"></i></a> 
+            
+        </p>
+        <p class="power">
+            <span>
+                Site powered by <a href="https://jekyllrb.com/">Jekyll</a> & <a href="https://pages.github.com/">Github Pages</a>.
+            </span>
+            <span>
+                Theme designed by <a href="https://github.com/Gaohaoyang">HyG</a>.
+            </span>
+        </p>
+    </div>
+</footer>
+
+    <div class="back-to-top">
+    <a href="#top" class="scroll">
+        <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    </a>
+</div>
+
+    <script src=" /js/main.js " charset="utf-8"></script>
+    <script src=" /js/scroll.min.js " charset="utf-8"></script>
+  </body>
+
+</html>
