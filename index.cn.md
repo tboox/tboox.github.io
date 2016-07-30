@@ -4,7 +4,7 @@ layout: default.cn
 
 <div class="page clearfix" index>
     <div class="left">
-        <h1>{{site.title}}</h1>
+        <h1>{{site.title-cn}}</h1>
         <small>{{ site.description-cn }}</small>
         <hr>
         <ul>
