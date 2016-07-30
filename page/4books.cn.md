@@ -6,7 +6,7 @@ permalink: /book/
 icon: book
 ---
 
-
+推荐一些个人觉得还不错的图书，有兴趣的同学可以看看。。
 
 <div class="grid">
 </div>
