@@ -70,7 +70,7 @@ arg_0		= dword	ptr  8
 .data 
         format db \"hello: %x\", 0ah, 0dh, 0 
  
-off_5A74B0	dd offset loc_6B2B50	; DATA XREF: sub_589100+1832r 
+off_5A74B0	dd offset loc_6B2B50	; DATA XREF: sub_589100+1832
 		dd offset loc_58A945	; jump table for switch	statement 
  
 .code 
@@ -78,7 +78,7 @@ off_5A74B0	dd offset loc_6B2B50	; DATA XREF: sub_589100+1832r
         push	ebp ;hello 
 		mov	ebp, esp 
  
-    loc_6B2B50:				; CODE XREF: sub_6B2B40+8j
+    loc_6B2B50:				; CODE XREF: sub_6B2B40+8
         push    eax 
 		mov	eax, [ebp+arg_0] 
         push eax 
@@ -134,7 +134,7 @@ arg_0		= dword	ptr  8 \n\
 .data \n\
         format db \"hello: %x\", 0ah, 0dh, 0 \n\
  \n\
-off_5A74B0	dd offset loc_6B2B50	; DATA XREF: sub_589100+1832r \n\
+off_5A74B0	dd offset loc_6B2B50	; DATA XREF: sub_589100+1832 \n\
 		dd offset loc_58A945	; jump table for switch	statement \n\
  \n\
 .code \n\
@@ -142,7 +142,7 @@ off_5A74B0	dd offset loc_6B2B50	; DATA XREF: sub_589100+1832r \n\
         push	ebp ;hello \n\
 		mov	ebp, esp \n\
  \n\
-    loc_6B2B50:				; CODE XREF: sub_6B2B40+8j\n\
+    loc_6B2B50:				; CODE XREF: sub_6B2B40+8\n\
         push    eax \n\
 		mov	eax, [ebp+arg_0] \n\
         push eax \n\
