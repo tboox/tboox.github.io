@@ -54,7 +54,7 @@ Buy some books to support us: [Go to see it](/book)
 
 2016.01.29
 
-* [Evgeny Kulikov](xak@list.ru): $2
+* [Evgeny Kulikov](mailto:xak@list.ru): $2
 * 建忠：¥20.16
 
 ### vm86

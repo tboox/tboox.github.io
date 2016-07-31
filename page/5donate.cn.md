@@ -53,7 +53,7 @@ TBOOX的所有项目都是属于个人开源项目，它的发展需要您的帮
 
 2016.01.29
 
-* [Evgeny Kulikov](xak@list.ru): $2
+* [Evgeny Kulikov](mailto:xak@list.ru): $2
 * 建忠：¥20.16
 
 ### vm86
