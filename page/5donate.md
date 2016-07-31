@@ -57,6 +57,12 @@ Buy some books to support us: [Go to see it](/book)
 * [Evgeny Kulikov](xak@list.ru): $2
 * 建忠：¥20.16
 
+### vm86
+
+2016.07.31
+
+* 清风闻仙醉：¥8.88
+
 ## Comments
 
 {% include comments.html %}

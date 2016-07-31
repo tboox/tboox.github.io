@@ -56,6 +56,12 @@ TBOOX的所有项目都是属于个人开源项目，它的发展需要您的帮
 * [Evgeny Kulikov](xak@list.ru): $2
 * 建忠：¥20.16
 
+### vm86
+
+2016.07.31
+
+* 清风闻仙醉：¥8.88
+
 ## 评论
 
 {% include comments.html %}
