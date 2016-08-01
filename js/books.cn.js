@@ -19,7 +19,7 @@
         description: '经久不衰的C语言畅销经典教程，针对C11标准进行全面更新'
     },
     {
-        page_link: 'http://www.amazon.cn/gp/product/B01HI4WMEC?ie=UTF8&camp=536&creativeASIN=B01HI4WMEC&linkCode=xm2&tag=tboox01-23',
+        page_link: 'https://www.amazon.cn/gp/product/B01HI4WMEC/ref=as_li_tf_tl?ie=UTF8&camp=536&creative=3200&creativeASIN=B01HI4WMEC&linkCode=as2&tag=tboox01-23',
         img_link: '/static/img/books/cn/password-tech.jpg',
         title: '图解密码技术(第3版)',
         description: '以图配文的形式，详细讲解了6种最重要的密码技术：对称密码、公钥密码、单向散列函数、消息认证码、数字签名和伪随机数生成器'
@@ -37,10 +37,10 @@
         description: '数字图像处理领域的经典之作'
     },
     {
-        page_link: 'http://www.amazon.cn/gp/product/B01GQTY6WQ/ref=as_li_tf_tl?ie=UTF8&camp=536&creative=3200&creativeASIN=B01GQTY6WQ&linkCode=as2&tag=tboox01-23',
-        img_link: '/static/img/books/cn/write-compiler.jpg',
-        title: '自制编译器',
-        description: '通过实际动手制作一个精简版C语言编译器，让读者深入了解C语言程序编译、运行背后的细节'
+        page_link: 'https://www.amazon.cn/gp/product/B0039K94IC/ref=as_li_tf_tl?ie=UTF8&camp=536&creative=3200&creativeASIN=B0039K94IC&linkCode=as2&tag=tboox01-23',
+        img_link: '/static/img/books/cn/pattern-recognition.jpg',
+        title: '模式识别(第4版)',
+        description: '全面阐述了模式识别的基础理论、最新方法以及各种应用。模式识别是信息科学和人工智能的重要组成部分，主要应用领域有图像分析、光学字符识别、信道均衡、语言识别和音频分类等'
     },
     {
         page_link: 'http://www.amazon.cn/gp/product/B00DMS9990/ref=as_li_tf_tl?ie=UTF8&camp=536&creative=3200&creativeASIN=B00DMS9990&linkCode=as2&tag=tboox01-23',
