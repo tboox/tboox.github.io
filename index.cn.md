@@ -37,7 +37,22 @@ layout: default.cn
                     {{post.excerpt}}
                 </div>
                 <div class="read-all">
-                    <a  href="{{ post.url | prepend: site.baseurl }}"><i class="fa fa-newspaper-o"></i>阅读全文</a>
+ 
+                    {% assign hasEnglish = '' %}
+                    {% for post2 in site.posts %}
+                        {% unless post2.url contains '/cn/' %}
+                        {% assign postHasEnglish = false %}
+                            {% if postHasEnglish == false and hasEnglish.size < 6 and post2 != post and post.url contains post2.url %}
+                                {% if hasEnglish.size == 0 %}
+                                <a href="{{ post2.url | prepend: site.baseurl }}"><i class="fa fa-language"></i>Read English</a>
+                                {% endif %}
+                                {% capture hasEnglish %}{{ hasEnglish }}*{% endcapture %}
+                                {% assign postHasEnglish = true %}
+                            {% endif %}
+                        {% endunless %}
+                    {% endfor %}
+
+                    <a href="{{ post.url | prepend: site.baseurl }}"><i class="fa fa-newspaper-o"></i>阅读全文</a>
                 </div>
                 <hr>
               </li>
