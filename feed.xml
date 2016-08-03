@@ -5,9 +5,286 @@
     <description>Focus on cross-platform development using c language</description>
     <link>http://www.tboox.net/</link>
     <atom:link href="http://www.tboox.net/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Tue, 02 Aug 2016 18:26:55 +0800</pubDate>
-    <lastBuildDate>Tue, 02 Aug 2016 18:26:55 +0800</lastBuildDate>
+    <pubDate>Wed, 03 Aug 2016 21:43:21 +0800</pubDate>
+    <lastBuildDate>Wed, 03 Aug 2016 21:43:21 +0800</lastBuildDate>
     <generator>Jekyll v3.1.1</generator>
+    
+      <item>
+        <title>静态库和动态库的编译切换</title>
+        <description>&lt;p&gt;如果你想在同一个target上既编译静态库，又能编译动态库，那么稍微修改下 xmale.lua就行了：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+ 
+    &lt;span class=&quot;c1&quot;&gt;-- 设置编译target的类型，之前是：static/shared，现在改成动态的&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;$(kind)&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 添加文件&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;好了，现在默认编译的时候，会生成静态库：libtest.a&lt;/p&gt;
+
+&lt;p&gt;如果你想生成动态库，只需要执行：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+&lt;span class=&quot;c&quot;&gt;# 简写&lt;/span&gt;
+xmake f -k shared
+
+&lt;span class=&quot;c&quot;&gt;# 或者&lt;/span&gt;
+xmake config --kind&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;shared
+
+&lt;span class=&quot;c&quot;&gt;# 编译&lt;/span&gt;
+xmake
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;配置成动态库模式，重建下就行了。。参数：&lt;code class=&quot;highlighter-rouge&quot;&gt;-k/--kind&lt;/code&gt; 可以手动在配置的时候指定，需要编译的target类型，实际会去影响：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;$(kind)&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;中的$(kind)的配置变量。。&lt;/p&gt;
+
+&lt;p&gt;如果你想在target针对static/shared类型，分别处理不同的宏开关，也可以使用 &lt;code class=&quot;highlighter-rouge&quot;&gt;if kinds(&quot;static&quot;) then &lt;/code&gt; 来判断&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+ 
+    &lt;span class=&quot;c1&quot;&gt;-- 设置编译target的类型，之前是：static/shared，现在改成动态的&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;$(kind)&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 添加文件&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 如果是动态库，则定义宏：SHARED&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kinds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;shared&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;add_defines&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;SHARED&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;上面说的 &lt;code class=&quot;highlighter-rouge&quot;&gt;-k/--kind&lt;/code&gt;配置参数，是xmake内置参数，影响当前工程的所有指定了 &lt;code class=&quot;highlighter-rouge&quot;&gt;$(kind)&lt;/code&gt; 的target，如果觉得这样影响面太广，我想让不同的target，在不同的时机切换编译静态库和动态库，可以使用option的接口，自定义一个配置参数：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;-- 自定义一个配置参数&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_option&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mykind&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_option_showmenu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_option_description&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Set my target kind: static or shared&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;add_target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+ 
+    &lt;span class=&quot;c1&quot;&gt;-- 设置编译target的类型，使用 xmake --mykind=static参数&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;$(mykind)&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 添加文件&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这样，只需要执行&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f --mykind=shared&lt;/code&gt; 就可以使用自己的配置参数，进行切换编译类型了。。&lt;/p&gt;
+
+</description>
+        <pubDate>Wed, 03 Aug 2016 00:00:00 +0800</pubDate>
+        <link>http://www.tboox.net/cn/2016/08/03/switch-library-kind/</link>
+        <guid isPermaLink="true">http://www.tboox.net/cn/2016/08/03/switch-library-kind/</guid>
+        
+        <category>xmake</category>
+        
+        <category>lua</category>
+        
+        <category>静态库</category>
+        
+        <category>动态库</category>
+        
+        
+        <category>xmake</category>
+        
+      </item>
+    
+      <item>
+        <title>低精度定时器的使用</title>
+        <description>&lt;p&gt;tbox提供了两种定时器：&lt;/p&gt;
+
+&lt;p&gt;一种是基于最小堆的高精度定时器，精确到ms级别，但是时间复杂度在O(logn)&lt;/p&gt;
+
+&lt;p&gt;还有一种就是基于timing-wheel时间轮算法的低精度定时器，时间复杂度仅为O(1)，实常数级别的，相当的快。&lt;/p&gt;
+
+&lt;p&gt;这个定时器是参考了linux内核的timer算法实现，不过linux那个比较通用，实现复杂，tbox中为了考虑精简性和低资源，对其算法做了精简&lt;/p&gt;
+
+&lt;p&gt;使得其资源占用更小，效率更高，但是使用场景上会有些限制，可以根据自己的实际情况，来判断使用需要用这个定时器来优化性能，还是使用高精度版本。&lt;/p&gt;
+
+&lt;p&gt;ltimer低精度定时器，提供了几种精度模式：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;TB_LTIMER_TICK_100MS：100毫秒级别&lt;/li&gt;
+  &lt;li&gt;TB_LTIMER_TICK_S：秒级别&lt;/li&gt;
+  &lt;li&gt;TB_LTIMER_TICK_M：分钟级别&lt;/li&gt;
+  &lt;li&gt;TB_LTIMER_TICK_H：小时级别&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;ltimer考虑到资源问题，同时只能使用一种精度级别，不能够像linux的timer那么通用，但实现更加简单了。。&lt;/p&gt;
+
+&lt;p&gt;一般情况下，使用秒级别就够了，使用场景可以是：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;针对服务器中socket超时定时器的管理和优化，这种精度不会太高，使用秒级别超时就ok了，但是在高并发下性能提升却很明显&lt;/li&gt;
+  &lt;li&gt;针对一些精度要求不高的定时器场合，尤其是每秒钟一次的地方&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;具体使用其实跟timer差不多，只要接口换成ltimer就行了，具体可参考：&lt;a href=&quot;/cn/2016/08/03/high-precision-timer/&quot;&gt;高精度定时器的使用&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;两者的api是类似的，这里就不细说了。&lt;/p&gt;
+
+</description>
+        <pubDate>Wed, 03 Aug 2016 00:00:00 +0800</pubDate>
+        <link>http://www.tboox.net/cn/2016/08/03/low-precision-timer/</link>
+        <guid isPermaLink="true">http://www.tboox.net/cn/2016/08/03/low-precision-timer/</guid>
+        
+        <category>tbox</category>
+        
+        <category>定时器</category>
+        
+        <category>时间轮算法</category>
+        
+        
+        <category>tbox</category>
+        
+      </item>
+    
+      <item>
+        <title>高精度定时器的使用</title>
+        <description>&lt;p&gt;tbox内部提供了两种定时器实现：timer和ltimer&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;timer: 高精度版本，采用最小堆实现，复杂度是：O(log(n))&lt;/li&gt;
+  &lt;li&gt;ltimer: 低精度版本，采用linux内核中的timing-wheel算法，复杂度是：O(1)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;这里主要讲解下，如何使用timer实现高精度的定时器任务，精确到ms级别，对于低精度的ltimer，可以参考：&lt;a href=&quot;/cn/2016/08/03/low-precision-timer/&quot;&gt;低精度定时器的使用&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;下面先给个简单的例子来说明：&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;cm&quot;&gt;/* 定义一个定时器任务处理函数
+ *
+ * @param killed 表示当前任务是否被tb_timer_task_kill强行kill掉的
+ * @param priv   投递任务时传入的用户自定义数据指针
+ */&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_void_t&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;tb_demo_timer_task_func&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_bool_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;killed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_cpointer_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;cm&quot;&gt;/* 投递一个定时器任务到全局timer中，间隔1000ms，会重复执行
+ *
+ * 其中tb_true表示是否会重复执行，如果设为tb_false，那么只会执行一次
+ * tb_null参数，就是传入给任务函数的用户自定义数据指针
+ */&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;tb_timer_task_post&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_timer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_demo_timer_task_func&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;上面的投递，会在post调用完，立刻开始任务的计时和运行，如果想要在10s后，才开始启动定时器，可以这么投递：&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// 在10s后才开始投递一个定时器任务到全局timer中，间隔1000ms，会重复执行
+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_timer_task_post_after&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_timer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_demo_timer_task_func&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;如果要确定绝对投递时间，可以这么投递：&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// 在指定时间戳tb_time() + 150000才开始投递一个定时器任务到全局timer中，间隔1000ms，会重复执行
+// 这里相当于15s后才开始投递
+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_timer_task_post_at&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_timer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;150000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_demo_timer_task_func&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;前面使用的post投递接口，都是无法维护和控制任务的，如果想要在某个特定的时刻取消还在执行队列中的定时器任务&lt;/p&gt;
+
+&lt;p&gt;可以使用下面的方式来维护：&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// 创建一个间隔10s的定时器任务，不会重复执行
+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_timer_task_ref_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;task&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_timer_task_init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_timer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_demo_timer_task_func&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// 过段时间后
+// ...
+&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// 如果觉得不想执行这个任务了，可以手动取消掉，这个是线程安全的
+&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;task&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_timer_task_kill&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_timer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;task&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+
+&lt;span class=&quot;c1&quot;&gt;// 最后在程序退出时，销毁这个任务资源
+&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;task&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_timer_task_exit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_timer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;task&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;前面的例子都是在全局的默认&lt;code class=&quot;highlighter-rouge&quot;&gt;tb_timer()&lt;/code&gt;中投递的定时器任务，tbox会在后台创建一个单独的线程去维护它的所有任务，如果觉得这个太占资源，
+自己有特定线程在不断loop的话可以创建个独立的timer，挂接到自己的loop线程中，重用线程资源：&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// 假设这个是你自己的线程
+&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_pointer_t&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;tb_demo_timer_loop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_cpointer_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// the timer
+&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_timer_ref_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;timer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_ltimer_ref_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;cp&quot;&gt;#if 1
+&lt;/span&gt;    &lt;span class=&quot;c1&quot;&gt;// 自己的线程loop
+&lt;/span&gt;    &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;// 等待特定的定时器延时
+&lt;/span&gt;        &lt;span class=&quot;c1&quot;&gt;// 不一定非得用sleep， 如果你的线程正在处理select/epoll等，可以直接利用这些接口的timeout参数来等待
+&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;tb_sleep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_timer_delay&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;timer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
+
+        &lt;span class=&quot;c1&quot;&gt;// 自己的一些其他逻辑代码
+&lt;/span&gt;        &lt;span class=&quot;c1&quot;&gt;// ...
+&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;// 固定调用，脉动一下定时器，很快的，不会长时间阻塞，除非有耗时的任务
+&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;tb_timer_spak&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;timer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;cp&quot;&gt;#else
+&lt;/span&gt;    &lt;span class=&quot;c1&quot;&gt;// 如果没有其他逻辑代码，那么可以直接用timer自带的loop来代替
+&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_timer_loop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;timer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;cp&quot;&gt;#endif
+&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// exit it
+&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_thread_return&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;cm&quot;&gt;/* 创建一个定时器
+ *
+ * 第一个参数：指定定时器最大并发任务规模，默认可以传0，也可以自己指定规模数
+ * 第二个参数：是否启用时间戳缓存优化，传tb_false就行了，这个一般用于服务器端高并发处理时的优化
+ */&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;tb_timer_ref_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;timer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_timer_init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;timer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// 投递一些任务
+&lt;/span&gt;    &lt;span class=&quot;c1&quot;&gt;// ...
+&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// 退出定时器
+&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_timer_exit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;timer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+</description>
+        <pubDate>Wed, 03 Aug 2016 00:00:00 +0800</pubDate>
+        <link>http://www.tboox.net/cn/2016/08/03/high-precision-timer/</link>
+        <guid isPermaLink="true">http://www.tboox.net/cn/2016/08/03/high-precision-timer/</guid>
+        
+        <category>tbox</category>
+        
+        <category>定时器</category>
+        
+        <category>最小堆</category>
+        
+        <category>时间轮算法</category>
+        
+        
+        <category>tbox</category>
+        
+      </item>
     
       <item>
         <title>xmake插件使用之doxygen文档生成</title>
@@ -648,761 +925,6 @@ p6 * p4 * p8 = 0 or NZ(p6) != 1 // 向上删除，避免打断
         
         
         <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>聊聊tbox的代码风格</title>
-        <description>&lt;p&gt;每个开发者在写了一段时间代码后，都会有自己一套适合自己的代码规范。&lt;/p&gt;
-
-&lt;p&gt;最近，也看到很多人聊起这些风格上的事，什么命名规则那个好啊，什么的。。&lt;/p&gt;
-
-&lt;p&gt;这些我个人不做评价，每个人观点和审美观都不一样，永远都争不出一个结果来，其实只要代码看着简洁明了，整个项目的规范统一就行了。。&lt;/p&gt;
-
-&lt;p&gt;这里，我只说说我在写tbox时候，对于一些代码规范上的一些个人经验，以及其演进过程。。&lt;/p&gt;
-
-&lt;h3 id=&quot;section&quot;&gt;命名规则&lt;/h3&gt;
-
-&lt;p&gt;tbox的命名规则偏unix化些，主要以&lt;code class=&quot;highlighter-rouge&quot;&gt;小写+下划线&lt;/code&gt;为主，很多人也许还是比较喜欢匈牙利、驼峰法什么的。这个主要还是看个人喜好，以及具体的项目。。&lt;/p&gt;
-
-&lt;p&gt;如果项目已经成型，里面已经自成规范，那么往里加代码的时候，还是配合项目风格，来命名比较好，这样整体看上去比较统一规范。。&lt;/p&gt;
-
-&lt;p&gt;不过我的大部分个人项目，都是一个人从零写起的，也就没这个约束，个人偏爱unix风格而已，看着挺舒服的。。&lt;/p&gt;
-
-&lt;p&gt;其实早期我也是从写mfc开始的，那个时候我命名规则，也习惯加个大写的&lt;code class=&quot;highlighter-rouge&quot;&gt;C&lt;/code&gt;的什么的&lt;/p&gt;
-
-&lt;p&gt;后来为了写库，纠结了一阵子命名的问题，每次都为什么时候该大写，什么时候该小写纠结半天，然后敲代码经常要切换大小写，好麻烦，本人又很懒，怎么办呢。。&lt;/p&gt;
-
-&lt;p&gt;后来索性不纠结了，算了，还是全小写吧，不纠结大小写问题，由于不需要每次切换大小写，敲代码也更加行云流水了。再配合vim的supertab，哈哈，爽嗨了。。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-1&quot;&gt;缩进问题&lt;/h3&gt;
-
-&lt;p&gt;早期tbox用的是基于tab的缩进规则，一直持续了几年，后来代码移交github维护后，发现了个大问题，哎呀，排版好乱。。&lt;/p&gt;
-
-&lt;p&gt;然后开始各种纠结，各种折腾，无果，最后妥协了，全部改用4个空格的缩进，并且把vim的默认缩进规则也改成了space4&lt;/p&gt;
-
-&lt;h3 id=&quot;section-2&quot;&gt;类型问题&lt;/h3&gt;
-
-&lt;p&gt;为了做到跨平台，tbox中用到的所有类型，都是全部重定义过的，例如：&lt;/p&gt;
-
-&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;signed&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt;                  &lt;span class=&quot;n&quot;&gt;tb_int_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt;                &lt;span class=&quot;n&quot;&gt;tb_uint_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;signed&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;short&lt;/span&gt;                &lt;span class=&quot;n&quot;&gt;tb_short_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;short&lt;/span&gt;              &lt;span class=&quot;n&quot;&gt;tb_ushort_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_int_t&lt;/span&gt;                    &lt;span class=&quot;n&quot;&gt;tb_bool_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;signed&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt;                 &lt;span class=&quot;n&quot;&gt;tb_int8_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_int8_t&lt;/span&gt;                   &lt;span class=&quot;n&quot;&gt;tb_sint8_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt;               &lt;span class=&quot;n&quot;&gt;tb_uint8_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_short_t&lt;/span&gt;                  &lt;span class=&quot;n&quot;&gt;tb_int16_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_int16_t&lt;/span&gt;                  &lt;span class=&quot;n&quot;&gt;tb_sint16_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_ushort_t&lt;/span&gt;                 &lt;span class=&quot;n&quot;&gt;tb_uint16_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_int_t&lt;/span&gt;                    &lt;span class=&quot;n&quot;&gt;tb_int32_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_int32_t&lt;/span&gt;                  &lt;span class=&quot;n&quot;&gt;tb_sint32_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_uint_t&lt;/span&gt;                   &lt;span class=&quot;n&quot;&gt;tb_uint32_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt;                        &lt;span class=&quot;n&quot;&gt;tb_char_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_int32_t&lt;/span&gt;                  &lt;span class=&quot;n&quot;&gt;tb_uchar_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_uint8_t&lt;/span&gt;                  &lt;span class=&quot;n&quot;&gt;tb_byte_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;                        &lt;span class=&quot;n&quot;&gt;tb_void_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_void_t&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;                  &lt;span class=&quot;n&quot;&gt;tb_pointer_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_void_t&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;            &lt;span class=&quot;n&quot;&gt;tb_cpointer_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_pointer_t&lt;/span&gt;                &lt;span class=&quot;n&quot;&gt;tb_handle_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;对于这种方式，褒贬不一，也有人反馈过，这样太过于侵入式了，但是我在tbox中这么使用的原因：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;主要还是为了解决平台统一问题，以及代码一致性。。
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;因为，很多平台的libc支持不是很完整，像&lt;code class=&quot;highlighter-rouge&quot;&gt;uint32_t&lt;/code&gt;这种，每个平台typedef的方式都不相同，如果你的库用到了&lt;code class=&quot;highlighter-rouge&quot;&gt;uint32_t&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;并且在其他平台的工程上使用，有时候会发现，&lt;code class=&quot;highlighter-rouge&quot;&gt;uint32_t&lt;/code&gt;居然没有定义，或者typedef的不一样，导致编译报错，就很郁闷了。。这种问题我碰到的太多了。。&lt;/p&gt;
-
-&lt;p&gt;其中windows平台上最为典型，long在64bits上居然也是4bytes，而且定义方式有好几种，&lt;code class=&quot;highlighter-rouge&quot;&gt;long&lt;/code&gt; 或者 &lt;code class=&quot;highlighter-rouge&quot;&gt;LONG&lt;/code&gt; 等等。。&lt;/p&gt;
-
-&lt;p&gt;我在很多其他项目的代码里面，发现有些代码还混着使用，调用处用的是LONG，函数定义用的是long。。&lt;/p&gt;
-
-&lt;p&gt;又或者，返回值是&lt;code class=&quot;highlighter-rouge&quot;&gt;TRUE&lt;/code&gt;，判断的时候用的确是&lt;code class=&quot;highlighter-rouge&quot;&gt;true&lt;/code&gt;，汗~~&lt;/p&gt;
-
-&lt;p&gt;因此，tbox里面为了不想过多的纠结这些问题，就全部统一处理了，布尔返回值，也一并使用：&lt;/p&gt;
-
-&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;cp&quot;&gt;#define tb_true     ((tb_bool_t)1)
-#define tb_false    ((tb_bool_t)0)
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;section-3&quot;&gt;接口设计&lt;/h3&gt;
-
-&lt;p&gt;tbox里面的接口，也是基于对象式，但是跟c++的那种对象还有些区别的，这里一个对象类型，对应两个文件，这里拿对象&lt;code class=&quot;highlighter-rouge&quot;&gt;vector&lt;/code&gt;为例：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;vector.h
-vector.c
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;一个是接口文件，一个是实现文件。。&lt;/p&gt;
-
-&lt;h4 id=&quot;section-4&quot;&gt;接口文件&lt;/h4&gt;
-
-&lt;p&gt;也看下接口文件中的接口定义方式：&lt;/p&gt;
-
-&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
-&lt;span class=&quot;c1&quot;&gt;// the vector ref type
-&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{}&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;   &lt;span class=&quot;n&quot;&gt;tb_vector_ref_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-
-&lt;span class=&quot;cm&quot;&gt;/*! init vector
- * 
- * @code
- *
-    // init vector
-    tb_vector_ref_t vector = tb_vector_init(0, tb_element_str(tb_true));
-    if (vector)
-    {
-        // insert elements into head
-        tb_vector_insert_head(vector, &quot;hi!&quot;);
-
-        // insert elements into tail
-        tb_vector_insert_tail(vector, &quot;how&quot;);
-        tb_vector_insert_tail(vector, &quot;are&quot;);
-        tb_vector_insert_tail(vector, &quot;you&quot;);
-
-        // dump elements
-        tb_for_all (tb_char_t const*, cstr, vector)
-        {
-            // trace
-            tb_trace_d(&quot;%s&quot;, cstr);
-        }
-
-        // exit vector
-        tb_vector_exit(vector);
-    }
- * @endcode
- *
- * @param grow      the item grow
- * @param element   the element
- *
- * @return          the vector
- */&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;tb_vector_ref_t&lt;/span&gt;     &lt;span class=&quot;n&quot;&gt;tb_vector_init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_size_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;grow&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_element_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;element&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-&lt;span class=&quot;cm&quot;&gt;/*! exist vector
- *
- * @param vector    the vector
- */&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;tb_void_t&lt;/span&gt;           &lt;span class=&quot;n&quot;&gt;tb_vector_exit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_vector_ref_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;vector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-&lt;span class=&quot;cm&quot;&gt;/*! insert the vector tail item
- *
- * @param vector    the vector
- * @param data      the item data
- */&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;tb_void_t&lt;/span&gt;           &lt;span class=&quot;n&quot;&gt;tb_vector_insert_tail&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_vector_ref_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;vector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_cpointer_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;在tbox里面，每个接口，都是有注释的，注释规范用的是doxygen的格式，并且对于一些接口的是有，我会加上如何调用的demo例子在注释中&lt;/p&gt;
-
-&lt;p&gt;这样，一般情况下，只需要看注释，就知道怎么用接口了，并且为了不想中英文切换，我注释也都是英文的，虽然我英文很菜，有很多语法问题。。：）&lt;/p&gt;
-
-&lt;p&gt;尤其需要说一下的是，这里的类型定义：&lt;/p&gt;
-
-&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{}&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;   &lt;span class=&quot;n&quot;&gt;tb_vector_ref_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;很多人也奇怪，我为什么要这么写，其实早期我不是这么写的，以前的写法是：&lt;/p&gt;
-
-&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;__tb_vector_t&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;// the data size
-&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_size_t&lt;/span&gt;   &lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-
-    &lt;span class=&quot;c1&quot;&gt;// the data buffer
-&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_byte_t&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-
-    &lt;span class=&quot;c1&quot;&gt;// ...
-&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_vector_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_vector_ref_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;但是这样，会有个问题，因为把struct的成员暴露在了头文件中，很容易导致版本更新的时候，struct定义跟库接口不一致，产生一些莫名的问题。。&lt;/p&gt;
-
-&lt;p&gt;而且，这样容易使得别人去乱改里面的数据成员，但是这个成员应该是私有的，不能直接让别人访问的，要想方位，需要暴露接口的方式来访问&lt;/p&gt;
-
-&lt;p&gt;因为，我需要吧struct的实际定义隐藏起来，只暴露引用，这样还能解决头文件的&lt;code class=&quot;highlighter-rouge&quot;&gt;include&lt;/code&gt;依赖过于复杂，导致循环&lt;code class=&quot;highlighter-rouge&quot;&gt;include&lt;/code&gt;的问题。&lt;/p&gt;
-
-&lt;p&gt;那为什么，是直接定义成：&lt;/p&gt;
-
-&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_vector_ref_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;这种呢，这种方式，相当于去类型化了，把强类型削弱了，会导致一个vector对象，不小心传给&lt;code class=&quot;highlighter-rouge&quot;&gt;tb_list_remove&lt;/code&gt;的接口，编译也不会报错。&lt;/p&gt;
-
-&lt;p&gt;使得容易产生一些隐藏bug，到时候很难查，为了让编译器能及时报错，必须要保证强类型检测生效，因此我才采用了这种方式定义：&lt;/p&gt;
-
-&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{}&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_vector_ref_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;section-5&quot;&gt;实现文件&lt;/h4&gt;
-
-&lt;p&gt;接口实现中，我们才会去真正的定义这个vector对象的具体成员结构，例如：&lt;/p&gt;
-
-&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;__tb_vector_t&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;// the data size
-&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_size_t&lt;/span&gt;   &lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-
-    &lt;span class=&quot;c1&quot;&gt;// the data buffer
-&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_byte_t&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-
-    &lt;span class=&quot;c1&quot;&gt;// ...
-&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_vector_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-
-&lt;span class=&quot;c1&quot;&gt;// 这里第一个参数名为self，相当于c++的this，表示当前对象实例的引用
-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_void_t&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;tb_vector_exit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_vector_ref_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;// tbox的每个接口开头，都会加上assert进行断言检测
-&lt;/span&gt;    &lt;span class=&quot;c1&quot;&gt;// 在debug下第一时间报告出现的问题，release下会禁用，不影响性能
-&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_vector_t&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;vector&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_vector_t&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;tb_assert_and_check_return&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-    &lt;span class=&quot;c1&quot;&gt;// exit data
-&lt;/span&gt;    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_free&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;vector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;vector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;另外，如果看到tbox里面有些地方，并不是按照上面的规范来的，也不用奇怪，毕竟这项目我陆陆续续写了很多年，有些历史遗留代码，可能没有及时更新，有时间的话，我会改掉。&lt;/p&gt;
-</description>
-        <pubDate>Fri, 29 Jul 2016 00:00:00 +0800</pubDate>
-        <link>http://www.tboox.net/cn/2016/07/29/code-style/</link>
-        <guid isPermaLink="true">http://www.tboox.net/cn/2016/07/29/code-style/</guid>
-        
-        <category>tbox</category>
-        
-        <category>代码风格</category>
-        
-        
-        <category>tbox</category>
-        
-      </item>
-    
-      <item>
-        <title>手写数字识别系统之图像分割</title>
-        <description>&lt;p&gt;最近闲来无事，打算把之前在其他博客站点写的一些跟tboox项目相关的老文，放到我的个人站点上来&lt;/p&gt;
-
-&lt;p&gt;并且整理归纳了下，以前学生时期研究的一些的玩意用到的一些技术，例如（手写识别、分形图像等等什么的。。）&lt;/p&gt;
-
-&lt;p&gt;以后就重点吧这个站点，作为我的个人博客主站了。。嘿嘿。&lt;/p&gt;
-
-&lt;h2 id=&quot;section&quot;&gt;背景&lt;/h2&gt;
-
-&lt;p&gt;本文，主要介绍我之前在学校时候，研究的一些跟手写数字识别相关的技术心得，主要涉及：数字图像处理、特征提取、神经网络等等相关的一些技术。。&lt;/p&gt;
-
-&lt;p&gt;虽然很多用到的还是网上现有的比较成熟的算法，但是在这些基础上，我还是有做了不少算法上的改进的。。&lt;/p&gt;
-
-&lt;p&gt;并且为了写这个项目，我当时还特地写了一整套神经网络库，从图像处理开始到最后的识别过程，没有使用任何第三方库，都是从0还是写起
-也没有用到opencv啊什么的。&lt;/p&gt;
-
-&lt;p&gt;上层ui当时用的qt，虽然当时也算是为了跨平台，但那个时候毕竟还是学生，代码经验欠缺，因此我的基础库对跨平台处理的并不是很好。。&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;那个基础库，我稍微简单说下，那是我的第一个开发库，是一个类似boost的c++模板库，里面用到了很多c++的模板元编程的特性，但是现在已经对c++无爱了，所以早已废弃不用了。
-
-不过也就是这个库的开发，很大程度上影响了我之后的编码风格，也是至此之后，我重点转向了对c的开发上。。
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;这套识别系统，仅仅是我当时为了学习神经网络，拿来练手用的，没法跟那些成熟的相比，识别率不是很高哈，只能给大家用来参考学习了。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-1&quot;&gt;简介&lt;/h2&gt;
-
-&lt;p&gt;本文在基本BP算法和数字图像与处理的基础上，通过改进网络、图像处理算法，并结合实践来探索如何实现具有高鲁棒的、高精度的、高效率的脱机数字识别。&lt;/p&gt;
-
-&lt;p&gt;在这我主要研究脱机单体数字识别，其主要步骤为：&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/hnr/overview_1.jpg&quot; alt=&quot;overview_1&quot; /&gt;&lt;/p&gt;
-
-&lt;h4 id=&quot;section-2&quot;&gt;数字样本的采集&lt;/h4&gt;
-
-&lt;p&gt;主要采用5行10列的数字样本规格。采集方式是通过扫描样本卡片来获取图像，也尽量避免样本了的失真，如图：&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/hnr/overview_2.jpg&quot; alt=&quot;overview_2&quot; /&gt;&lt;/p&gt;
-
-&lt;h4 id=&quot;section-3&quot;&gt;图像二值化&lt;/h4&gt;
-
-&lt;p&gt;主要采用全局阈值分割法和自适应的局部阈值分割法，来实现在不同亮度背景下的自适应分割，并对结果进行比对。&lt;/p&gt;
-
-&lt;h4 id=&quot;section-4&quot;&gt;数字提取&lt;/h4&gt;
-
-&lt;p&gt;目前主要考虑聚类法、矩阵式分割法、连通区域标记法，并比较其优劣，选取效果最好的一种算法。&lt;/p&gt;
-
-&lt;h4 id=&quot;section-5&quot;&gt;图像归一化&lt;/h4&gt;
-
-&lt;p&gt;主要采用双线性内插和最邻近内插来实现放大，为了减少图像在收缩时带来的失真，目前打算采用求平均法来实现。&lt;/p&gt;
-
-&lt;h4 id=&quot;section-6&quot;&gt;特征提取&lt;/h4&gt;
-
-&lt;p&gt;主要采用逐像素提取法，PCA主成分提取两种方法来实现。&lt;/p&gt;
-
-&lt;h4 id=&quot;section-7&quot;&gt;样本学习&lt;/h4&gt;
-
-&lt;p&gt;主要采用基于BP算法（反向传播学习算法）的神经网络进行识别，并对BP进行一定的改进和优化，来改进训练效果并且适当的提高训练速率。&lt;/p&gt;
-
-&lt;p&gt;目前，针对BP的改进算法，主要采添加动量项和自适应步长法。&lt;/p&gt;
-
-&lt;p&gt;而对于BP算法，其主要步骤为：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;    前向计算=〉反向计算=〉权值修正=〉循环迭代
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;为了进一步改进网络，实现高精度、高效率的识别，打算考虑采用多网络集成法，来进行优化。
-主要针对不同权值、隐层数的基本BP网络进行集成。通过每个网络分类的结果进行加权输出，来达到有效的分类。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-8&quot;&gt;阈值分割&lt;/h2&gt;
-
-&lt;p&gt;阈值分割法是一种基于区域的图像分割技术，其基本原理是：通过设定不同的特征阈值，把图像像素点分为若干类。&lt;/p&gt;
-
-&lt;p&gt;在本文中，我们主要处理针对两类的分割，令阈值为T，图像像素对应的灰度级为&lt;code class=&quot;highlighter-rouge&quot;&gt;f(x, y)&lt;/code&gt;，那么经阈值分割后的图像&lt;code class=&quot;highlighter-rouge&quot;&gt;g(x, y)&lt;/code&gt;定义为：&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/hnr/split_1.jpg&quot; alt=&quot;split_1&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;因此，标记为1的像素对应于对象，也就是前景，而标记为0的对象对应于背景，也就是我们通常所说的图像二值化。&lt;/p&gt;
-
-&lt;p&gt;利用阈值分割进行图像二值化的主要难题就是阈值的选取，事实证明，阈值的选择的恰当与否对分割的效果起着决定性的作用。&lt;/p&gt;
-
-&lt;p&gt;常用的阈值分割方法有以下三种：&lt;/p&gt;
-
-&lt;h4 id=&quot;section-9&quot;&gt;整体阈值法&lt;/h4&gt;
-
-&lt;p&gt;利用整幅图像的信息对图像求出最优阈值, 在二值化分割过程中只使用这一个固定阈值，因此计算量小，但对于亮度条件不好的图像的分割效果较差。&lt;/p&gt;
-
-&lt;h4 id=&quot;section-10&quot;&gt;局部阈值法&lt;/h4&gt;
-
-&lt;p&gt;它是把原始图像分为几个小的子图像，再对每个子图像求出最佳阈值。因此效果较好，但开销较大，且局部大小不太好确定，太小容易失真，太大效果不显著。&lt;/p&gt;
-
-&lt;h4 id=&quot;section-11&quot;&gt;动态阈值法&lt;/h4&gt;
-
-&lt;p&gt;它的阈值求取方法不仅取决于该像素的灰度值及其领域内像素灰度值, 而且还与像素的坐标位置有关, 这种方法灵活性大, 但是复杂度高, 计算量和时间开销都比较大。&lt;/p&gt;
-
-&lt;p&gt;而冈萨雷斯写的那本书&lt;a href=&quot;/cn/book/&quot;&gt;数字图像处理&lt;/a&gt;里面，给出了一种最小误差阈值，通过利用共轭梯度法对灰度直方图进行双峰的高斯密度曲线进行拟合，求取最佳阈值，效果相当好，但是计算太大，而且对于双峰不显著的图像比较难处理，还需进行附加的单峰检测，并进行插值处理，由于过于复杂且实现也相当困难。&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/hnr/split_2.jpg&quot; alt=&quot;split_2&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;而本文采用具有自适应性的OTSU局部阈值法来分割图像，并对OTSU和局部阈值法进行了改进，不仅提高了性能而且改善了分割效果，对于亮度不均匀的图像也能实现较好的分割。&lt;/p&gt;
-
-&lt;h4 id=&quot;otsu&quot;&gt;最大类间方差法（OTSU）&lt;/h4&gt;
-
-&lt;p&gt;由Otsu于1978年提出的最大类间方差法以其计算简单、稳定有效，一直广为使用。其主要思想就是选取阈值使其类内方差最小化或类间方差最大化。Otsu算法不仅计算简单，而且能够应用于多阈值确定，因此可以说是一种相当好的阈值选取方法。
-我们通常采用最大化类间方差，来实现阈值分割，其类间方差定义为：&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/hnr/otsu_1.jpg&quot; alt=&quot;otsu_1&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;其中&lt;/p&gt;
-
-&lt;table&gt;
-  &lt;tbody&gt;
-    &lt;tr&gt;
-      &lt;td&gt; &lt;/td&gt;
-      &lt;td&gt;u&lt;/td&gt;
-      &lt;td&gt; &lt;/td&gt;
-      &lt;td&gt;图像中总的灰度均值&lt;/td&gt;
-      &lt;td&gt; &lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt; &lt;/td&gt;
-      &lt;td&gt;u1&lt;/td&gt;
-      &lt;td&gt; &lt;/td&gt;
-      &lt;td&gt;图像中小于阈值T的像素灰度均值&lt;/td&gt;
-      &lt;td&gt; &lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt; &lt;/td&gt;
-      &lt;td&gt;u2&lt;/td&gt;
-      &lt;td&gt; &lt;/td&gt;
-      &lt;td&gt;图像中大于阈值T的像素灰度均值&lt;/td&gt;
-      &lt;td&gt; &lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt; &lt;/td&gt;
-      &lt;td&gt;n1&lt;/td&gt;
-      &lt;td&gt; &lt;/td&gt;
-      &lt;td&gt;图像中小于阈值T的像素数&lt;/td&gt;
-      &lt;td&gt; &lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt; &lt;/td&gt;
-      &lt;td&gt;n2&lt;/td&gt;
-      &lt;td&gt; &lt;/td&gt;
-      &lt;td&gt;图像中大于阈值T的像素数&lt;/td&gt;
-      &lt;td&gt; &lt;/td&gt;
-    &lt;/tr&gt;
-  &lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;p&gt;因此，只需通过遍历256个灰度级，寻找使其类间方差最大的那个灰度值就是最佳阈值T。&lt;/p&gt;
-
-&lt;h4 id=&quot;otsu-1&quot;&gt;OTSU的实现与改进&lt;/h4&gt;
-
-&lt;p&gt;然而如果每次遍历都需要重新计算阈值两边的均值与像素数的话计算量是相当大的，如果能够在下次遍历时利用上次计算的结果，那么计算量可以大大减少。
-假设灰度直方图为，图像总均值为，图像总像素数为，那么其递推方式如下：&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/hnr/otsu_2.png&quot; alt=&quot;otsu_2&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;为了进一步简化计算，我们可以通过用&lt;img src=&quot;/static/img/hnr/otsu_3.jpg&quot; alt=&quot;otsu_3&quot; /&gt;来替换，得到&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/hnr/otsu_4.png&quot; alt=&quot;otsu_4&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;由于n在递归中不变可以省略，因此可以改为&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/hnr/otsu_5.png&quot; alt=&quot;otsu_5&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;由于本文是针对字符图像的分割，由于字符的笔画通常较细，通常只占图像的1/4都不到，因此可以适当的调整阈值，以实现较好的分割效果，改进后的阈值为&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/hnr/otsu_6.png&quot; alt=&quot;otsu_6&quot; /&gt;&lt;/p&gt;
-
-&lt;h4 id=&quot;section-12&quot;&gt;局部阈值的实现与改进&lt;/h4&gt;
-
-&lt;p&gt;然而在实际图像中, 由于噪声或其他干扰等因素的影响，OTSU阈值分割并不能使图像分割得到满意的结果, 往往会产生严重的分割错误。这是因为图像的灰度直方图分布不一定
-出现明显的峰和谷, 像素灰度值仅仅反映了像素灰度级的幅值大小, 并没有反映出像素与邻域的空间相关信息。&lt;/p&gt;
-
-&lt;p&gt;通过具体的实验发现：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;当图像亮度分布不均匀时，往往无法得到好的分割效果，通常会出现大块的黑块，或者过渡分割而丢失信息的情况。
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;因此，可以通过对图像进行分块，针对每一小块进行OTSU分割，可以减少这些情况的发生，但是这又会出现不希望的“棋盘”效果，为了避免这种情况的发生，可以采用如下改进的局部阈值算法：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;遍历图像中每一像素，在该像素的邻域内进行灰度统计，计算OTSU阈值，并仅对该点进行阈值分割。
-
-这样就能在较好的分割效果下实现像素平滑过渡，避免了“棋盘”效应，由于在当像素移动时，只有一行或一列改变，所以可以在每步移动中，以新数据更新前一个位置得到的直方图，从而避免了每次重新计算整个直方图，大大减少了计算量，使其在一个可接受的范围内。
-
-为了防止部分区域受到噪声干扰而产生的黑块现象，可以在进行局部阈值处理前，进行三阶的平滑处理，效果相当显著。
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h2 id=&quot;section-13&quot;&gt;结果&lt;/h2&gt;
-
-&lt;h4 id=&quot;section-14&quot;&gt;原图&lt;/h4&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/hnr/split_3.jpg&quot; alt=&quot;split_3&quot; /&gt;&lt;/p&gt;
-
-&lt;h4 id=&quot;section-15&quot;&gt;经全局阈值处理后的图象&lt;/h4&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/hnr/split_4.jpg&quot; alt=&quot;split_4&quot; /&gt;&lt;/p&gt;
-
-&lt;h4 id=&quot;section-16&quot;&gt;经改进的局部阈值处理后的图像&lt;/h4&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/hnr/split_5.jpg&quot; alt=&quot;split_5&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;section-17&quot;&gt;总结&lt;/h2&gt;
-
-&lt;p&gt;由上图可见，经改进的局部阈值处理后的图像的效果还是相当明显的，可是还是有些不足之处。。&lt;/p&gt;
-
-&lt;p&gt;就是处理后的图像笔画较粗，容易填掉数字中的空洞，尤其是4，6，8，9这些含有小孔的数字，这些都有待进一步改进。&lt;/p&gt;
-
-&lt;p&gt;后续，我还会总结下：倾斜矫正、数字提取、特征提取、神经网络相关的一些心得和改进算法。。&lt;/p&gt;
-
-&lt;p&gt;最后，再贴两张hnr项目，界面截图哈。。&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/hnr/before.png&quot; alt=&quot;before&quot; /&gt;
-&lt;img src=&quot;/static/img/hnr/after.png&quot; alt=&quot;after&quot; /&gt;&lt;/p&gt;
-
-</description>
-        <pubDate>Thu, 28 Jul 2016 00:00:00 +0800</pubDate>
-        <link>http://www.tboox.net/cn/2016/07/28/hnr-split-image/</link>
-        <guid isPermaLink="true">http://www.tboox.net/cn/2016/07/28/hnr-split-image/</guid>
-        
-        <category>手写数字识别</category>
-        
-        <category>神经网络</category>
-        
-        <category>人工智能</category>
-        
-        <category>图像分割</category>
-        
-        <category>区域二值化</category>
-        
-        <category>adaboost</category>
-        
-        
-        <category>hnr</category>
-        
-      </item>
-    
-      <item>
-        <title>The x86 Script Instruction Virtual Machine</title>
-        <description>&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;/h2&gt;
-
-&lt;p&gt;This is a very simple and lightweight x86 virtual machine which can load and run the assembly code from ida pro directly.&lt;/p&gt;
-
-&lt;h2 id=&quot;features&quot;&gt;Features&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Supports cross-platform and it’s able to run the x86 assembly code on linux, windows, maxosx, android and ios …&lt;/li&gt;
-  &lt;li&gt;Supports the frequently-used x86 assembly instruction (.e.g logical operations, goto, loop, call, stack operations …)&lt;/li&gt;
-  &lt;li&gt;Supports call the third-party library interfaces. (.e.g libc ..)&lt;/li&gt;
-  &lt;li&gt;We can pass arguments and get the return results after running.&lt;/li&gt;
-  &lt;li&gt;Supports thread-safe.&lt;/li&gt;
-  &lt;li&gt;Does not support arm64 and only for 32-bits architecture&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;example&quot;&gt;Example&lt;/h2&gt;
-
-&lt;p&gt;We get one assemble code from ida pro first and this code will call the libc api: &lt;code class=&quot;highlighter-rouge&quot;&gt;printf&lt;/code&gt;&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;sub_hello	proc near 
-arg_0		= dword	ptr  8 
-.data 
-        format db \&quot;hello: %x\&quot;, 0ah, 0dh, 0 
- 
-off_5A74B0	dd offset loc_6B2B50	; DATA XREF: sub_589100+1832 
-		dd offset loc_58A945	; jump table for switch	statement 
- 
-.code 
-        ; hi
-        push	ebp ;hello 
-		mov	ebp, esp 
- 
-    loc_6B2B50:				; CODE XREF: sub_6B2B40+8
-        push    eax 
-		mov	eax, [ebp+arg_0] 
-        push eax 
-        mov eax, offset format 
-        push eax 
-        call printf 
-        add esp, 4 
-        pop eax 
-        
-        mov ecx, 1
-        jmp ds:off_5A74B0[ecx*4]
- 
-loc_58A945:
-        push    eax 
-		mov	eax, [ebp+arg_0] 
-        push eax 
-        mov eax, offset format 
-        push eax 
-        call printf 
-        add esp, 4 
-        pop eax 
-        
-  end:
-        mov	esp, ebp 
-		pop	ebp 
-        retn 
-sub_hello    endp 
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;And we call it in c language first.&lt;/p&gt;
-
-&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;sub_hello&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;31415926&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;The output results:&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;hello: 31415926
-hello: 31415926
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;Nextly, we attempt to load this asm code using our x86 virtual machine.&lt;/p&gt;
-
-&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_void_t&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;vm86_demo_proc_exec_hello&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_uint32_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;// the code
-&lt;/span&gt;    &lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_char_t&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s_code_sub_hello&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 
-    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-&lt;span class=&quot;s&quot;&gt;&quot;sub_hello	proc near &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-arg_0		= dword	ptr  8 &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-.data &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-        format db &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;hello: %x&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;, 0ah, 0dh, 0 &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
- &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-off_5A74B0	dd offset loc_6B2B50	; DATA XREF: sub_589100+1832 &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-		dd offset loc_58A945	; jump table for switch	statement &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
- &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-.code &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-        ; hi&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-        push	ebp ;hello &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-		mov	ebp, esp &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
- &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-    loc_6B2B50:				; CODE XREF: sub_6B2B40+8&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-        push    eax &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-		mov	eax, [ebp+arg_0] &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-        push eax &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-        mov eax, offset format &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-        push eax &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-        call printf &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-        add esp, 4 &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-        pop eax &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-        &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-        mov ecx, 1&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-        jmp ds:off_5A74B0[ecx*4]&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
- &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-loc_58A945:&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-        push    eax &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-		mov	eax, [ebp+arg_0] &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-        push eax &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-        mov eax, offset format &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-        push eax &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-        call printf &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-        add esp, 4 &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-        pop eax &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-        &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-  end:&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-        mov	esp, ebp &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-		pop	ebp &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-        retn &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-sub_hello    endp &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;\
-    &quot;&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
-
-    &lt;span class=&quot;c1&quot;&gt;// the machine
-&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;vm86_machine_ref_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;machine&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;vm86_machine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;machine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;c1&quot;&gt;// the lock
-&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;tb_spinlock_ref_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lock&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;vm86_machine_lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;machine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;// enter
-&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;tb_spinlock_enter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;// the stack
-&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;vm86_stack_ref_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stack&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;vm86_machine_stack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;machine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;// compile proc
-&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;vm86_proc_ref_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;vm86_text_compile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vm86_machine_text&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;machine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s_code_sub_hello&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;sizeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s_code_sub_hello&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-            &lt;span class=&quot;c1&quot;&gt;// add function
-&lt;/span&gt;            &lt;span class=&quot;n&quot;&gt;vm86_machine_function_set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;machine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;printf&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;vm86_demo_proc_func_printf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-            &lt;span class=&quot;c1&quot;&gt;// init arguments
-&lt;/span&gt;            &lt;span class=&quot;n&quot;&gt;vm86_stack_push&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;stack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-            &lt;span class=&quot;c1&quot;&gt;// done proc
-&lt;/span&gt;            &lt;span class=&quot;n&quot;&gt;vm86_proc_done&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-            &lt;span class=&quot;c1&quot;&gt;// restore stack
-&lt;/span&gt;            &lt;span class=&quot;n&quot;&gt;vm86_stack_pop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;stack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-            &lt;span class=&quot;c1&quot;&gt;// trace
-&lt;/span&gt;            &lt;span class=&quot;n&quot;&gt;tb_trace_i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;sub_hello(%x)&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;// leave
-&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;tb_spinlock_leave&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; 
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;argc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;**&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;argv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;// call this function: sub_hello(0x31415926)
-&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;vm86_demo_proc_exec_hello&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x31415926&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;    
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;The output results:&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;hello: 31415926
-hello: 31415926
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h2 id=&quot;source-code&quot;&gt;Source code&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/waruqi/vm86&quot;&gt;Github&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/project/&quot;&gt;More projects&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;compilation&quot;&gt;Compilation&lt;/h2&gt;
-
-&lt;p&gt;Please install &lt;a href=&quot;http://www.xmake.io&quot;&gt;xmake&lt;/a&gt; first!&lt;/p&gt;
-
-&lt;h3 id=&quot;compile-project-on-macosx&quot;&gt;Compile project on macosx&lt;/h3&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;sudo brew install xmake
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -a i386
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;compile-project-on-linux&quot;&gt;Compile project on linux&lt;/h3&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;git clone https://github.com/waruqi/xmake.git
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;xmake
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;sudo ./install
-&lt;span class=&quot;err&quot;&gt;$&lt;/span&gt;
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;vm86
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -a i386
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;compile-project-on-windows&quot;&gt;Compile project on windows&lt;/h3&gt;
-
-&lt;p&gt;Downloads https://github.com/waruqi/xmake/archive/master.zip first.&lt;/p&gt;
-
-&lt;p&gt;Extracts it and run install.bat&lt;/p&gt;
-
-&lt;p&gt;Lastly, we start compiling vm86 project.&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;compile-project-for-android&quot;&gt;Compile project for android&lt;/h3&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;vm86
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p android --ndk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/xxx/ndk
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h2 id=&quot;running&quot;&gt;Running&lt;/h2&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake r demo
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h2 id=&quot;ida-scripts&quot;&gt;Ida scripts&lt;/h2&gt;
-
-&lt;p&gt;The script files: &lt;code class=&quot;highlighter-rouge&quot;&gt;export_function.idc&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;export_data.idc&lt;/code&gt; in the project directory (idc) 
-can help us to export the given assembly function and data from the ida pro.&lt;/p&gt;
-
-</description>
-        <pubDate>Tue, 26 Jul 2016 00:00:00 +0800</pubDate>
-        <link>http://www.tboox.net/2016/07/26/x86-script-instruction-virtual-machine/</link>
-        <guid isPermaLink="true">http://www.tboox.net/2016/07/26/x86-script-instruction-virtual-machine/</guid>
-        
-        <category>xmake</category>
-        
-        <category>x86</category>
-        
-        <category>script</category>
-        
-        <category>assembly</category>
-        
-        <category>virtual</category>
-        
-        <category>machine</category>
-        
-        <category>idapro</category>
-        
-        
-        <category>vm86</category>
         
       </item>
     

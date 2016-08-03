@@ -6,17 +6,17 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>xmake默认启用pdb符号文件</title>
-    <meta name="description" content="之前xmake默认编译windows目标，debug模式下采用的是-Z7编译选项，内置的调试符号信息到obj文件里面但是这种方式按msdn的文档上说，是属于旧式的调试符号文件格式，所以为了考虑后续的兼容性，xmake修改了默认的调试符号生成规则，改为默认启用pdb符号文件，并且pdb的方式更为常用。。这个行为的修...">
+    <title>高精度定时器的使用</title>
+    <meta name="description" content="tbox内部提供了两种定时器实现：timer和ltimer  timer: 高精度版本，采用最小堆实现，复杂度是：O(log(n))  ltimer: 低精度版本，采用linux内核中的timing-wheel算法，复杂度是：O(1)这里主要讲解下，如何使用timer实现高精度的定时器任务，精确到ms级别，对于低...">
 
     
-    <meta name="keywords" content="xmake,lua,编译,符号文件,调试符号,tboox" /> 
+    <meta name="keywords" content="tbox,定时器,最小堆,时间轮算法,tboox" /> 
 
     <link rel="shortcut icon" href="/favicon.ico?" type="image/x-icon">
     <link rel="icon" href="/favicon.ico?" type="image/x-icon">
     <link rel="stylesheet" href=" /css/fontawesome/css/font-awesome.min.css ">
     <link rel="stylesheet" href=" /css/main.css ">
-    <link rel="canonical" href="http://www.tboox.net/cn/2016/07/24/enable-pdb-on-windows/">
+    <link rel="canonical" href="http://www.tboox.net/cn/2016/08/03/high-precision-timer/">
     <link rel="alternate" type="application/rss+xml" title="TBOOX Open Source Project" href="http://www.tboox.net/feed.xml ">
     <link rel="alternate" hreflang="en" href="http://www.tboox.net/" />
     <link rel="alternate" hreflang="zh-Hans" href="http://www.tboox.net/cn/" />
@@ -218,11 +218,11 @@
 
         <div class="page clearfix" post>
     <div class="left">
-        <h1>xmake默认启用pdb符号文件</h1>
+        <h1>高精度定时器的使用</h1>
         <div class="label">
 
             <div class="label-card">
-                <i class="fa fa-calendar"></i>2016-07-24
+                <i class="fa fa-calendar"></i>2016-08-03
             </div>
 
             <div class="label-card">
@@ -242,7 +242,7 @@
   <i class="fa fa-th-list"></i>
   
     
-        <a href="/category/#xmake" title="Category: xmake" rel="category">xmake</a>
+        <a href="/category/#tbox" title="Category: tbox" rel="category">tbox</a>
     
   
 
@@ -259,20 +259,17 @@
   <i class="fa fa-tags"></i>
   
     
-        <!--a href="/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a-->
-        <a href="/cn/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a>&nbsp;
+        <!--a href="/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a-->
+        <a href="/cn/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a>&nbsp;
     
-        <!--a href="/tag/#lua" title="Tag: lua" rel="tag">lua</a-->
-        <a href="/cn/tag/#lua" title="Tag: lua" rel="tag">lua</a>&nbsp;
+        <!--a href="/tag/#%E5%AE%9A%E6%97%B6%E5%99%A8" title="Tag: 定时器" rel="tag">定时器</a-->
+        <a href="/cn/tag/#定时器" title="Tag: 定时器" rel="tag">定时器</a>&nbsp;
     
-        <!--a href="/tag/#%E7%BC%96%E8%AF%91" title="Tag: 编译" rel="tag">编译</a-->
-        <a href="/cn/tag/#编译" title="Tag: 编译" rel="tag">编译</a>&nbsp;
+        <!--a href="/tag/#%E6%9C%80%E5%B0%8F%E5%A0%86" title="Tag: 最小堆" rel="tag">最小堆</a-->
+        <a href="/cn/tag/#最小堆" title="Tag: 最小堆" rel="tag">最小堆</a>&nbsp;
     
-        <!--a href="/tag/#%E7%AC%A6%E5%8F%B7%E6%96%87%E4%BB%B6" title="Tag: 符号文件" rel="tag">符号文件</a-->
-        <a href="/cn/tag/#符号文件" title="Tag: 符号文件" rel="tag">符号文件</a>&nbsp;
-    
-        <!--a href="/tag/#%E8%B0%83%E8%AF%95%E7%AC%A6%E5%8F%B7" title="Tag: 调试符号" rel="tag">调试符号</a-->
-        <a href="/cn/tag/#调试符号" title="Tag: 调试符号" rel="tag">调试符号</a>
+        <!--a href="/tag/#%E6%97%B6%E9%97%B4%E8%BD%AE%E7%AE%97%E6%B3%95" title="Tag: 时间轮算法" rel="tag">时间轮算法</a-->
+        <a href="/cn/tag/#时间轮算法" title="Tag: 时间轮算法" rel="tag">时间轮算法</a>
     
   
 
@@ -283,39 +280,121 @@
         </div>
         <hr>
         <article itemscope itemtype="http://schema.org/BlogPosting">
-        <p>之前xmake默认编译windows目标，debug模式下采用的是<code class="highlighter-rouge">-Z7</code>编译选项，内置的调试符号信息到obj文件里面</p>
+        <p>tbox内部提供了两种定时器实现：timer和ltimer</p>
 
-<p>但是这种方式按msdn的文档上说，是属于旧式的调试符号文件格式，所以为了考虑后续的兼容性，xmake修改了默认的调试符号生成规则，</p>
+<ul>
+  <li>timer: 高精度版本，采用最小堆实现，复杂度是：O(log(n))</li>
+  <li>ltimer: 低精度版本，采用linux内核中的timing-wheel算法，复杂度是：O(1)</li>
+</ul>
 
-<p>改为默认启用pdb符号文件，并且pdb的方式更为常用。。</p>
+<p>这里主要讲解下，如何使用timer实现高精度的定时器任务，精确到ms级别，对于低精度的ltimer，可以参考：<a href="/cn/2016/08/03/low-precision-timer/">低精度定时器的使用</a></p>
 
-<p>这个行为的修改，并不会影响到<code class="highlighter-rouge">xmake.lua</code>的设置，如果在这个文件中，设置了启用调试符号：</p>
+<p>下面先给个简单的例子来说明：</p>
 
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">set_symbols</span><span class="p">(</span><span class="s2">"debug"</span><span class="p">)</span>
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="cm">/* 定义一个定时器任务处理函数
+ *
+ * @param killed 表示当前任务是否被tb_timer_task_kill强行kill掉的
+ * @param priv   投递任务时传入的用户自定义数据指针
+ */</span>
+<span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">tb_demo_timer_task_func</span><span class="p">(</span><span class="n">tb_bool_t</span> <span class="n">killed</span><span class="p">,</span> <span class="n">tb_cpointer_t</span> <span class="n">priv</span><span class="p">)</span>
+<span class="p">{</span>
+    
+<span class="p">}</span>
+
+<span class="cm">/* 投递一个定时器任务到全局timer中，间隔1000ms，会重复执行
+ *
+ * 其中tb_true表示是否会重复执行，如果设为tb_false，那么只会执行一次
+ * tb_null参数，就是传入给任务函数的用户自定义数据指针
+ */</span>
+<span class="n">tb_timer_task_post</span><span class="p">(</span><span class="n">tb_timer</span><span class="p">(),</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">tb_true</span><span class="p">,</span> <span class="n">tb_demo_timer_task_func</span><span class="p">,</span> <span class="n">tb_null</span><span class="p">);</span>
 </code></pre>
 </div>
 
-<p>那么，编译debug版本的目标时，就会自动生成pdb文件，以tbox为例：</p>
+<p>上面的投递，会在post调用完，立刻开始任务的计时和运行，如果想要在10s后，才开始启动定时器，可以这么投递：</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake f -m debug
-<span class="gp">$ </span>xmake
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="c1">// 在10s后才开始投递一个定时器任务到全局timer中，间隔1000ms，会重复执行
+</span><span class="n">tb_timer_task_post_after</span><span class="p">(</span><span class="n">tb_timer</span><span class="p">(),</span> <span class="mi">10000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">tb_true</span><span class="p">,</span> <span class="n">tb_demo_timer_task_func</span><span class="p">,</span> <span class="n">tb_null</span><span class="p">);</span>
 </code></pre>
 </div>
 
-<p>编译完成后，会自动在build目录下生成两个pdb文件：</p>
+<p>如果要确定绝对投递时间，可以这么投递：</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>build\tbox.pdb
-build\demo.pdb
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="c1">// 在指定时间戳tb_time() + 150000才开始投递一个定时器任务到全局timer中，间隔1000ms，会重复执行
+// 这里相当于15s后才开始投递
+</span><span class="n">tb_timer_task_post_at</span><span class="p">(</span><span class="n">tb_timer</span><span class="p">(),</span> <span class="n">tb_time</span><span class="p">()</span> <span class="o">+</span> <span class="mi">150000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">tb_true</span><span class="p">,</span> <span class="n">tb_demo_timer_task_func</span><span class="p">,</span> <span class="n">tb_null</span><span class="p">);</span>
 </code></pre>
 </div>
 
-<p>一个是静态库的pdb文件，一个是demo程序的pdb文件，并且如果我们执行打包命令：</p>
+<p>前面使用的post投递接口，都是无法维护和控制任务的，如果想要在某个特定的时刻取消还在执行队列中的定时器任务</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake package
+<p>可以使用下面的方式来维护：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="c1">// 创建一个间隔10s的定时器任务，不会重复执行
+</span><span class="n">tb_timer_task_ref_t</span> <span class="n">task</span> <span class="o">=</span> <span class="n">tb_timer_task_init</span><span class="p">(</span><span class="n">tb_timer</span><span class="p">(),</span> <span class="mi">10000</span><span class="p">,</span> <span class="n">tb_false</span><span class="p">,</span> <span class="n">tb_demo_timer_task_func</span><span class="p">,</span> <span class="n">tb_null</span><span class="p">);</span>
+
+<span class="c1">// 过段时间后
+// ...
+</span>
+<span class="c1">// 如果觉得不想执行这个任务了，可以手动取消掉，这个是线程安全的
+</span><span class="k">if</span> <span class="p">(</span><span class="n">task</span><span class="p">)</span> <span class="n">tb_timer_task_kill</span><span class="p">(</span><span class="n">tb_timer</span><span class="p">(),</span> <span class="n">task</span><span class="p">);</span>
+
+
+<span class="c1">// 最后在程序退出时，销毁这个任务资源
+</span><span class="k">if</span> <span class="p">(</span><span class="n">task</span><span class="p">)</span> <span class="n">tb_timer_task_exit</span><span class="p">(</span><span class="n">tb_timer</span><span class="p">(),</span> <span class="n">task</span><span class="p">);</span>
 </code></pre>
 </div>
 
-<p>的话，也会在包目录里面，将pdb文件也给自动打包进去。。。</p>
+<p>前面的例子都是在全局的默认<code class="highlighter-rouge">tb_timer()</code>中投递的定时器任务，tbox会在后台创建一个单独的线程去维护它的所有任务，如果觉得这个太占资源，
+自己有特定线程在不断loop的话可以创建个独立的timer，挂接到自己的loop线程中，重用线程资源：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="c1">// 假设这个是你自己的线程
+</span><span class="k">static</span> <span class="n">tb_pointer_t</span> <span class="nf">tb_demo_timer_loop</span><span class="p">(</span><span class="n">tb_cpointer_t</span> <span class="n">priv</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// the timer
+</span>    <span class="n">tb_timer_ref_t</span> <span class="n">timer</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_ltimer_ref_t</span><span class="p">)</span><span class="n">priv</span><span class="p">;</span>
+
+<span class="cp">#if 1
+</span>    <span class="c1">// 自己的线程loop
+</span>    <span class="k">while</span> <span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// 等待特定的定时器延时
+</span>        <span class="c1">// 不一定非得用sleep， 如果你的线程正在处理select/epoll等，可以直接利用这些接口的timeout参数来等待
+</span>        <span class="n">tb_sleep</span><span class="p">(</span><span class="n">tb_timer_delay</span><span class="p">(</span><span class="n">timer</span><span class="p">));</span>
+
+        <span class="c1">// 自己的一些其他逻辑代码
+</span>        <span class="c1">// ...
+</span>
+        <span class="c1">// 固定调用，脉动一下定时器，很快的，不会长时间阻塞，除非有耗时的任务
+</span>        <span class="n">tb_timer_spak</span><span class="p">(</span><span class="n">timer</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="cp">#else
+</span>    <span class="c1">// 如果没有其他逻辑代码，那么可以直接用timer自带的loop来代替
+</span>    <span class="n">tb_timer_loop</span><span class="p">(</span><span class="n">timer</span><span class="p">);</span>
+<span class="cp">#endif
+</span>
+    <span class="c1">// exit it
+</span>    <span class="n">tb_thread_return</span><span class="p">(</span><span class="n">tb_null</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">tb_null</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="cm">/* 创建一个定时器
+ *
+ * 第一个参数：指定定时器最大并发任务规模，默认可以传0，也可以自己指定规模数
+ * 第二个参数：是否启用时间戳缓存优化，传tb_false就行了，这个一般用于服务器端高并发处理时的优化
+ */</span>
+<span class="n">tb_timer_ref_t</span> <span class="n">timer</span> <span class="o">=</span> <span class="n">tb_timer_init</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">tb_false</span><span class="p">);</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">timer</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// 投递一些任务
+</span>    <span class="c1">// ...
+</span>
+    <span class="c1">// 退出定时器
+</span>    <span class="n">tb_timer_exit</span><span class="p">(</span><span class="n">timer</span><span class="p">);</span>
+<span class="p">}</span>
+
+</code></pre>
+</div>
+
 
         </article>
         <hr>
@@ -566,12 +645,57 @@ build\demo.pdb
             
                 
                     
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
                         
                         <h2 id="similar_posts">相关文章</h2>
                         <ul>
                         
                         <li class="relatedPost">
-                            <a href="/cn/2016/08/03/switch-library-kind/">静态库和动态库的编译切换
+                            <a href="/cn/2016/08/03/low-precision-timer/">低精度定时器的使用
                             
                             </a>
                         </li>
@@ -585,8 +709,6 @@ build\demo.pdb
                 
                     
                 
-                    
-                
             
                 
                     
@@ -597,23 +719,7 @@ build\demo.pdb
                 
                     
                 
-                    
-                
             
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
                 
                     
                 
@@ -638,6 +744,14 @@ build\demo.pdb
                 
                     
                 
+            
+                
+                    
+                
+                    
+                
+                    
+                
                     
                 
             
@@ -650,11 +764,17 @@ build\demo.pdb
                 
                     
                 
-                    
-                
             
                 
                     
+                
+                    
+                
+                    
+                
+                    
+                
+            
                 
                     
                 
@@ -679,8 +799,6 @@ build\demo.pdb
                 
                     
                 
-                    
-                
             
                 
                     
@@ -691,23 +809,7 @@ build\demo.pdb
                 
                     
                 
-                    
-                
             
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
                 
                     
                 
@@ -727,7 +829,7 @@ build\demo.pdb
                     
                         
                         <li class="relatedPost">
-                            <a href="/cn/2016/08/02/plugin-doxygen/">xmake插件使用之doxygen文档生成
+                            <a href="/cn/2016/08/02/regex-match-replace/">利用正则实现匹配和替换
                             
                             </a>
                         </li>
@@ -741,23 +843,7 @@ build\demo.pdb
                 
                     
                 
-                    
-                
             
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
                 
                     
                 
@@ -777,11 +863,197 @@ build\demo.pdb
                 
                     
                 
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
                     
                 
             
                 
                     
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
                 
                     
                 
@@ -801,7 +1073,7 @@ build\demo.pdb
                     
                         
                         <li class="relatedPost">
-                            <a href="/cn/2016/08/02/binding-option/">xmake高级特性之选项绑定
+                            <a href="/cn/2016/07/29/code-style/">聊聊tbox的代码风格
                             
                             </a>
                         </li>
@@ -815,309 +1087,7 @@ build\demo.pdb
                 
                     
                 
-                    
-                
             
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-            
-        
-            
-            
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-            
-        
-            
-            
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-            
-        
-            
-            
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-            
-        
-            
-            
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-            
-        
-            
-            
-            
-                
-                    
-                        
-                        <li class="relatedPost">
-                            <a href="/cn/2016/07/29/next-plan/">关于xmake下一步的开发计划
-                            
-                            </a>
-                        </li>
-                        
-                        
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
                 
                     
                 
@@ -1143,7 +1113,7 @@ build\demo.pdb
 
         
         
-        <p><strong>上一篇</strong> <a href="/cn/2016/07/23/condition-and-select-compile/">xmake工程描述编写之选择性编译</a></p>
+        <p><strong>上一篇</strong> <a href="/cn/2016/08/02/plugin-doxygen/">xmake插件使用之doxygen文档生成</a></p>
         
     </div>
 
@@ -1155,7 +1125,7 @@ build\demo.pdb
 
         
         
-        <p><strong>下一篇</strong> <a href="/cn/2016/07/25/itrace-descrption/">ios方法调用自动追踪工具：itrace</a></p>
+        <p><strong>下一篇</strong> <a href="/cn/2016/08/03/low-precision-timer/">低精度定时器的使用</a></p>
         
     </div>
 </div>
@@ -1165,7 +1135,7 @@ build\demo.pdb
         
 
 <!-- 多说评论框 start -->
-<div class="ds-thread" data-thread-key="http://www.tboox.net/cn/2016/07/24/enable-pdb-on-windows/" data-title="xmake默认启用pdb符号文件" data-url="http://www.tboox.net/cn/2016/07/24/enable-pdb-on-windows/"></div>
+<div class="ds-thread" data-thread-key="http://www.tboox.net/cn/2016/08/03/high-precision-timer/" data-title="高精度定时器的使用" data-url="http://www.tboox.net/cn/2016/08/03/high-precision-timer/"></div>
 <!-- 多说评论框 end -->
 <!-- 多说公共JS代码 start (一个网页只需插入一次) -->
 <script type="text/javascript">
