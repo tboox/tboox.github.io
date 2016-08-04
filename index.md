@@ -88,10 +88,14 @@ layout: default
                     Recent Posts
                 </div>
                 <ul class="content-ul" recent>
-                    {% for post in site.posts offset: 0 limit: 10  %}
-                    {% unless post.url contains '/cn/' %}
-                        <li><a href="{{ post.url }}">{{ post.title }}</a></li>
-                    {% endunless %}
+                    {% assign count = 0 %}
+                    {% for post in site.posts offset: 0 %}
+                    {% if count < 10 %}
+                        {% unless post.url contains '/cn/' %}
+                            <li><a href="{{ post.url }}">{{ post.title }}</a></li>
+                            {% assign count = count | plus: 1 %}
+                        {% endunless %}
+                    {% endif %}
                     {% endfor %}
                 </ul>
             </div>

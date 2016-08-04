@@ -89,9 +89,13 @@ layout: default.cn
                     最近文章
                 </div>
                 <ul class="content-ul" recent>
-                    {% for post in site.posts offset: 0 limit: 10  %}
-                    {% if post.url contains '/cn/' %}
-                        <li><a href="{{ post.url }}">{{ post.title }}</a></li>
+                    {% assign count = 0 %}
+                    {% for post in site.posts offset: 0 %}
+                    {% if count < 10 %}
+                        {% if post.url contains '/cn/' %}
+                            <li><a href="{{ post.url }}">{{ post.title }}</a></li>
+                            {% assign count = count | plus: 1 %}
+                        {% endif %}
                     {% endif %}
                     {% endfor %}
                 </ul>
