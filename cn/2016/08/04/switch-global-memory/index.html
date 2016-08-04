@@ -6,17 +6,17 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>手写数字识别系统之细化图像</title>
-    <meta name="description" content="简介所谓的细化就是经过一层层的剥离，从原来的图中去掉一些点，但仍要保持原来的形状，直到得到图像的骨架。骨架，可以理解为图象的中轴，例如一个长方形的骨架是它的长方向上的中轴线；正方形的骨架是它的中心点；圆的骨架是它的圆心，直线的骨架是它自身，孤立点的骨架也是自身。细化删除条件  内部点不能删除  孤立点不能删除  ...">
+    <title>切换tbox全局内存分配器</title>
+    <meta name="description" content="tbox的默认内存分配，是完全基于自己的内存池架构，支持内存的快速分配，和对碎片的优化，并且支持各种内存泄露、溢出检测。如果不想用tbox内置的默认内存分配管理，也可以灵活切换到其他分配模式，因为tbox现在已经完全支持allocator架构，只要在init阶段传入不同的分配器模型，就能快速切换分配模式，例如： ...">
 
     
-    <meta name="keywords" content="手写数字识别,神经网络,细化,图像处理,tboox" /> 
+    <meta name="keywords" content="tbox,内存池,分配器,tboox" /> 
 
     <link rel="shortcut icon" href="/favicon.ico?" type="image/x-icon">
     <link rel="icon" href="/favicon.ico?" type="image/x-icon">
     <link rel="stylesheet" href=" /css/fontawesome/css/font-awesome.min.css ">
     <link rel="stylesheet" href=" /css/main.css ">
-    <link rel="canonical" href="http://www.tboox.net/cn/2016/07/31/hnr-thin/">
+    <link rel="canonical" href="http://www.tboox.net/cn/2016/08/04/switch-global-memory/">
     <link rel="alternate" type="application/rss+xml" title="TBOOX Open Source Project" href="http://www.tboox.net/feed.xml ">
     <link rel="alternate" hreflang="en" href="http://www.tboox.net/" />
     <link rel="alternate" hreflang="zh-Hans" href="http://www.tboox.net/cn/" />
@@ -220,11 +220,11 @@
 
         <div class="page clearfix" post>
     <div class="left">
-        <h1>手写数字识别系统之细化图像</h1>
+        <h1>切换tbox全局内存分配器</h1>
         <div class="label">
 
             <div class="label-card">
-                <i class="fa fa-calendar"></i>2016-07-31
+                <i class="fa fa-calendar"></i>2016-08-04
             </div>
 
             <div class="label-card">
@@ -244,7 +244,7 @@
   <i class="fa fa-th-list"></i>
   
     
-        <a href="/category/#hnr" title="Category: hnr" rel="category">hnr</a>
+        <a href="/category/#tbox" title="Category: tbox" rel="category">tbox</a>
     
   
 
@@ -261,17 +261,14 @@
   <i class="fa fa-tags"></i>
   
     
-        <!--a href="/tag/#%E6%89%8B%E5%86%99%E6%95%B0%E5%AD%97%E8%AF%86%E5%88%AB" title="Tag: 手写数字识别" rel="tag">手写数字识别</a-->
-        <a href="/cn/tag/#手写数字识别" title="Tag: 手写数字识别" rel="tag">手写数字识别</a>&nbsp;
+        <!--a href="/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a-->
+        <a href="/cn/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a>&nbsp;
     
-        <!--a href="/tag/#%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C" title="Tag: 神经网络" rel="tag">神经网络</a-->
-        <a href="/cn/tag/#神经网络" title="Tag: 神经网络" rel="tag">神经网络</a>&nbsp;
+        <!--a href="/tag/#%E5%86%85%E5%AD%98%E6%B1%A0" title="Tag: 内存池" rel="tag">内存池</a-->
+        <a href="/cn/tag/#内存池" title="Tag: 内存池" rel="tag">内存池</a>&nbsp;
     
-        <!--a href="/tag/#%E7%BB%86%E5%8C%96" title="Tag: 细化" rel="tag">细化</a-->
-        <a href="/cn/tag/#细化" title="Tag: 细化" rel="tag">细化</a>&nbsp;
-    
-        <!--a href="/tag/#%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86" title="Tag: 图像处理" rel="tag">图像处理</a-->
-        <a href="/cn/tag/#图像处理" title="Tag: 图像处理" rel="tag">图像处理</a>
+        <!--a href="/tag/#%E5%88%86%E9%85%8D%E5%99%A8" title="Tag: 分配器" rel="tag">分配器</a-->
+        <a href="/cn/tag/#分配器" title="Tag: 分配器" rel="tag">分配器</a>
     
   
 
@@ -282,98 +279,84 @@
         </div>
         <hr>
         <article itemscope itemtype="http://schema.org/BlogPosting">
-        <h2 id="section">简介</h2>
+        <p>tbox的默认内存分配，是完全基于自己的内存池架构，支持内存的快速分配，和对碎片的优化，并且支持各种内存泄露、溢出检测。</p>
 
-<p>所谓的细化就是经过一层层的剥离，从原来的图中去掉一些点，但仍要保持原来的形状，直到得到图像的骨架。</p>
+<p>如果不想用tbox内置的默认内存分配管理，也可以灵活切换到其他分配模式，因为tbox现在已经完全支持allocator架构，
+只要在init阶段传入不同的分配器模型，就能快速切换分配模式，例如：</p>
 
-<p>骨架，可以理解为图象的中轴，例如一个长方形的骨架是它的长方向上的中轴线；正方形的骨架是它的中心点；圆的骨架是它的圆心，直线的骨架是它自身，孤立点的骨架也是自身。</p>
+<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="o">--</span> <span class="err">采用默认的</span><span class="n">tbox</span><span class="err">内存管理，启用内存池维护、碎片优化、内存泄露溢出检测等所有特性</span>
+    <span class="o">--</span> <span class="err">相当于使用了：</span><span class="n">tb_default_allocator</span><span class="p">(</span><span class="n">tb_null</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">tb_init</span><span class="p">(</span><span class="n">tb_null</span><span class="p">,</span> <span class="n">tb_null</span><span class="p">);</span>
 
-<h2 id="section-1">细化删除条件</h2>
+    <span class="o">--</span> <span class="err">采用默认的</span><span class="n">tbox</span><span class="err">内存管理，启用内存池维护、碎片优化、内存泄露溢出检测等所有特性</span>
+    <span class="o">--</span> <span class="err">并且完全使用外部传入的一整块</span><span class="n">buffer</span><span class="err">上进行维护，不再使用其他</span><span class="n">native</span><span class="err">内存</span>
+    <span class="n">tb_init</span><span class="p">(</span><span class="n">tb_null</span><span class="p">,</span> <span class="n">tb_default_allocator</span><span class="p">((</span><span class="n">tb_byte_t</span><span class="o">*</span><span class="p">)</span><span class="n">malloc</span><span class="p">(</span><span class="mi">300</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">),</span> <span class="mi">300</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">));</span>
 
-<ul>
-  <li>内部点不能删除</li>
-  <li>孤立点不能删除</li>
-  <li>直线端点不能删除</li>
-  <li>如果P是边界点，去掉P后，如果连通分量不增加，则P可以删除</li>
-</ul>
+    <span class="o">--</span> <span class="err">采用一整块静态</span><span class="n">buffer</span><span class="err">上进行维护，启用内存泄露溢出检测等所有特性</span>
+    <span class="o">--</span> <span class="err">这个跟</span><span class="n">tb_default_allocator</span><span class="err">的区别就是，这个</span><span class="n">allocator</span><span class="err">比较轻量，内部的数据结构简单，占用内存少，适合低资源环境</span>
+    <span class="o">--</span> <span class="err">但是这个</span><span class="n">allocator</span><span class="err">不支持碎片优化，容易产生碎片</span>
+    <span class="n">tb_init</span><span class="p">(</span><span class="n">tb_null</span><span class="p">,</span> <span class="n">tb_static_allocator</span><span class="p">((</span><span class="n">tb_byte_t</span><span class="o">*</span><span class="p">)</span><span class="n">malloc</span><span class="p">(</span><span class="mi">300</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">),</span> <span class="mi">300</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">));</span>
 
-<h2 id="section-2">细化步骤</h2>
-
-<p>通过基于数学形态学的腐蚀细化法，通过刚才的删除条件，进行匹配删除，由于是直接判断，省了模板匹配的这一步。</p>
-
-<p>针对3*3的八邻域，进行操作：</p>
-
-<table>
-  <tbody>
-    <tr>
-      <td> </td>
-      <td>p3</td>
-      <td> </td>
-      <td>p2</td>
-      <td> </td>
-      <td>p9</td>
-      <td> </td>
-    </tr>
-    <tr>
-      <td> </td>
-      <td>p4</td>
-      <td> </td>
-      <td>p1</td>
-      <td> </td>
-      <td>p8</td>
-      <td> </td>
-    </tr>
-    <tr>
-      <td> </td>
-      <td>p5</td>
-      <td> </td>
-      <td>p6</td>
-      <td> </td>
-      <td>p7</td>
-      <td> </td>
-    </tr>
-  </tbody>
-</table>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>其中p1 = 1为黑点，如果以下四个条件同时满足，则删除p1，即令p1 = 0：
-
-2 ≤ NZ(p1) ≤ 6	// 用于排除孤立点和内部点
-
-NZ(p1) = l // NZ(p1)为p1点分支数，分支数为1说明是边界点，删除后不增加连通分量
-
-p2 * p4 * p8 = 0 or NZ(p2) != 1 // 向下删除，避免打断
-p2 * p4 * p6 = 0 or NZ(p4) != 1 // 向右删除，避免打断
-
-p6 * p8 * p2 = 0 or NZ(p8) != 1 // 向左删除，避免打断
-p6 * p4 * p8 = 0 or NZ(p6) != 1 // 向上删除，避免打断
+    <span class="o">--</span> <span class="err">完全使用系统</span><span class="n">native</span><span class="err">内存分配，内部不做任何处理和数据维护，所有特性依赖系统环境，</span><span class="n">tbox</span><span class="err">不再支持内存池和内存检测等特性</span>
+    <span class="n">tb_init</span><span class="p">(</span><span class="n">tb_null</span><span class="p">,</span> <span class="n">tb_native_allocator</span><span class="p">());</span>
 </code></pre>
 </div>
 
-<h2 id="section-3">实验结果</h2>
+<p>如果觉得这些分配器还是不够用，可以自定义自己的内存分配器，让tbox去使用，自定义的方式也很简单，这里拿<code class="highlighter-rouge">tb_native_allocator</code>的实现代码为例：</p>
 
-<p>细化前：</p>
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="k">static</span> <span class="n">tb_pointer_t</span> <span class="nf">tb_native_allocator_malloc</span><span class="p">(</span><span class="n">tb_allocator_ref_t</span> <span class="n">allocator</span><span class="p">,</span> <span class="n">tb_size_t</span> <span class="n">size</span> <span class="n">__tb_debug_decl__</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// trace
+</span>    <span class="n">tb_trace_d</span><span class="p">(</span><span class="s">"malloc(%lu) at %s(): %lu, %s"</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">func_</span><span class="p">,</span> <span class="n">line_</span><span class="p">,</span> <span class="n">file_</span><span class="p">);</span>
 
-<p><img src="/static/img/hnr/thin_1.png" alt="thin_1" /></p>
+    <span class="c1">// malloc it
+</span>    <span class="k">return</span> <span class="n">malloc</span><span class="p">(</span><span class="n">size</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="k">static</span> <span class="n">tb_pointer_t</span> <span class="nf">tb_native_allocator_ralloc</span><span class="p">(</span><span class="n">tb_allocator_ref_t</span> <span class="n">allocator</span><span class="p">,</span> <span class="n">tb_pointer_t</span> <span class="n">data</span><span class="p">,</span> <span class="n">tb_size_t</span> <span class="n">size</span> <span class="n">__tb_debug_decl__</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// trace
+</span>    <span class="n">tb_trace_d</span><span class="p">(</span><span class="s">"realloc(%p, %lu) at %s(): %lu, %s"</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">func_</span><span class="p">,</span> <span class="n">line_</span><span class="p">,</span> <span class="n">file_</span><span class="p">);</span>
 
-<p>细化后：</p>
+    <span class="c1">// realloc it
+</span>    <span class="k">return</span> <span class="n">realloc</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="k">static</span> <span class="n">tb_bool_t</span> <span class="nf">tb_native_allocator_free</span><span class="p">(</span><span class="n">tb_allocator_ref_t</span> <span class="n">allocator</span><span class="p">,</span> <span class="n">tb_pointer_t</span> <span class="n">data</span> <span class="n">__tb_debug_decl__</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// trace    
+</span>    <span class="n">tb_trace_d</span><span class="p">(</span><span class="s">"free(%p) at %s(): %lu, %s"</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">func_</span><span class="p">,</span> <span class="n">line_</span><span class="p">,</span> <span class="n">file_</span><span class="p">);</span>
 
-<p><img src="/static/img/hnr/thin_2.png" alt="thin_2" /></p>
+    <span class="c1">// free it
+</span>    <span class="k">return</span> <span class="n">free</span><span class="p">(</span><span class="n">data</span><span class="p">);</span>
+<span class="p">}</span>
 
-<h2 id="section-4">不足与改进</h2>
 
-<p>可以看到，使用这种算法的效果还算不错，但是还是有许多不足的地方，比如说：</p>
+<span class="c1">// 初始化一个native分配器
+</span><span class="n">tb_allocator_t</span> <span class="n">allocator</span>    <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="n">allocator</span><span class="p">.</span><span class="n">type</span>              <span class="o">=</span> <span class="n">TB_ALLOCATOR_NATIVE</span><span class="p">;</span>
+<span class="n">allocator</span><span class="p">.</span><span class="n">malloc</span>            <span class="o">=</span> <span class="n">tb_native_allocator_malloc</span><span class="p">;</span>
+<span class="n">allocator</span><span class="p">.</span><span class="n">ralloc</span>            <span class="o">=</span> <span class="n">tb_native_allocator_ralloc</span><span class="p">;</span>
+<span class="n">allocator</span><span class="p">.</span><span class="n">free</span>              <span class="o">=</span> <span class="n">tb_native_allocator_free</span><span class="p">;</span>
 
-<ul>
-  <li>颈部化：线条交叉处会产生变形</li>
-  <li>多余分支：由于线条粗细不均会产生多余分支</li>
-  <li>头部消减：较粗的线条端点容易在逐层腐蚀中被消减，这对于原本就较短的数字线条尤为严重。</li>
-</ul>
+</code></pre>
+</div>
 
-<p>这些问题虽然有一些解决方法，但我目前实现的效果不佳，有待进一步研究</p>
+<p>是不是很简单，需要注意的是，上面的<code class="highlighter-rouge">__tb_debug_decl__</code>宏里面声明了一些debug信息，例如<code class="highlighter-rouge">_file, _func, _line</code>等内存分配时候记录的信息，
+你可以在debug的时候打印出来，做调试，也可以利用这些信息自己去处理一些高级的内存检测操作，但是这些在release下，是不可获取的</p>
 
-<h2 id="section-5">参考文献</h2>
+<p>所以处理的时候，需要使用<code class="highlighter-rouge">__tb_debug__</code>宏，来分别处理。。</p>
 
-<p>如果想要了解更多数字图像处理相关的内容，可以去我的<a href="/cn/book/">书柜</a>看看，冈萨雷斯写的那本书<a href="/cn/book/">数字图像处理</a>还是非常经典的。。</p>
+<p>将allocator传入<code class="highlighter-rouge">tb_init</code>接口后，之后 <code class="highlighter-rouge">tb_malloc/tb_ralloc/tb_free/...</code> 等所有tbox内存分配接口都会切到新的allocator上进行分配。。</p>
+
+<p>当然如果想直接从一个特定的allocator上进行分配，还可以直接调用allocator的分配接口来实现：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="n">tb_allocator_malloc</span><span class="p">(</span><span class="n">allocator</span><span class="p">,</span> <span class="mi">10</span><span class="p">);</span>
+<span class="n">tb_allocator_ralloc</span><span class="p">(</span><span class="n">allocator</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="mi">100</span><span class="p">);</span>
+<span class="n">tb_allocator_free</span><span class="p">(</span><span class="n">allocator</span><span class="p">,</span> <span class="n">data</span><span class="p">);</span>
+</code></pre>
+</div>
+
+<p>等等。</p>
+
 
         </article>
         <hr>
@@ -628,342 +611,12 @@ p6 * p4 * p8 = 0 or NZ(p6) != 1 // 向上删除，避免打断
             
                 
                     
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-            
-        
-            
-            
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-            
-        
-            
-            
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-            
-        
-            
-            
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-            
-        
-            
-            
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-            
-        
-            
-            
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-            
-        
-            
-            
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-            
-        
-            
-            
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-            
-        
-            
-            
-            
-                
-                    
                         
                         <h2 id="similar_posts">相关文章</h2>
                         <ul>
                         
                         <li class="relatedPost">
-                            <a href="/cn/2016/08/01/hnr-correct-slope/">手写数字识别系统之倾斜矫正
+                            <a href="/cn/2016/08/04/uses-vector/">tbox中vector容器的使用
                             
                             </a>
                         </li>
@@ -975,6 +628,12 @@ p6 * p4 * p8 = 0 or NZ(p6) != 1 // 向上删除，避免打断
                 
                     
                 
+            
+                
+                    
+                
+                    
+                
                     
                 
             
@@ -985,6 +644,17 @@ p6 * p4 * p8 = 0 or NZ(p6) != 1 // 向上删除，避免打断
                 
                     
                 
+            
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
                     
                 
             
@@ -995,11 +665,15 @@ p6 * p4 * p8 = 0 or NZ(p6) != 1 // 向上删除，避免打断
                 
                     
                 
-                    
-                
             
                 
                     
+                
+                    
+                
+                    
+                
+            
                 
                     
                 
@@ -1017,7 +691,7 @@ p6 * p4 * p8 = 0 or NZ(p6) != 1 // 向上删除，避免打断
                     
                         
                         <li class="relatedPost">
-                            <a href="/cn/2016/07/30/hnr-extract-digital/">手写数字识别系统之数字提取
+                            <a href="/cn/2016/08/03/low-precision-timer/">低精度定时器的使用
                             
                             </a>
                         </li>
@@ -1029,21 +703,7 @@ p6 * p4 * p8 = 0 or NZ(p6) != 1 // 向上删除，避免打断
                 
                     
                 
-                    
-                
             
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
                 
                     
                 
@@ -1059,11 +719,284 @@ p6 * p4 * p8 = 0 or NZ(p6) != 1 // 向上删除，避免打断
                 
                     
                 
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/08/03/high-precision-timer/">高精度定时器的使用
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
                     
                 
             
                 
                     
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/08/02/regex-match-replace/">利用正则实现匹配和替换
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
                 
                     
                 
@@ -1087,7 +1020,7 @@ p6 * p4 * p8 = 0 or NZ(p6) != 1 // 向上删除，避免打断
 
         
         
-        <p><strong>上一篇</strong> <a href="/cn/2016/07/30/hnr-extract-digital/">手写数字识别系统之数字提取</a></p>
+        <p><strong>上一篇</strong> <a href="/cn/2016/08/03/switch-library-kind/">静态库和动态库的编译切换</a></p>
         
     </div>
 
@@ -1099,7 +1032,7 @@ p6 * p4 * p8 = 0 or NZ(p6) != 1 // 向上删除，避免打断
 
         
         
-        <p><strong>下一篇</strong> <a href="/cn/2016/08/01/hnr-correct-slope/">手写数字识别系统之倾斜矫正</a></p>
+        <p><strong>下一篇</strong> <a href="/cn/2016/08/04/uses-vector/">tbox中vector容器的使用</a></p>
         
     </div>
 </div>
@@ -1109,7 +1042,7 @@ p6 * p4 * p8 = 0 or NZ(p6) != 1 // 向上删除，避免打断
         
 
 <!-- 多说评论框 start -->
-<div class="ds-thread" data-thread-key="http://www.tboox.net/cn/2016/07/31/hnr-thin/" data-title="手写数字识别系统之细化图像" data-url="http://www.tboox.net/cn/2016/07/31/hnr-thin/"></div>
+<div class="ds-thread" data-thread-key="http://www.tboox.net/cn/2016/08/04/switch-global-memory/" data-title="切换tbox全局内存分配器" data-url="http://www.tboox.net/cn/2016/08/04/switch-global-memory/"></div>
 <!-- 多说评论框 end -->
 <!-- 多说公共JS代码 start (一个网页只需插入一次) -->
 <script type="text/javascript">

@@ -16,7 +16,7 @@
     <link rel="icon" href="/favicon.ico?" type="image/x-icon">
     <link rel="stylesheet" href=" /css/fontawesome/css/font-awesome.min.css ">
     <link rel="stylesheet" href=" /css/main.css ">
-    <link rel="canonical" href="http://www.tboox.net/cn/page6/">
+    <link rel="canonical" href="http://www.tboox.net/cn/page13/">
     <link rel="alternate" type="application/rss+xml" title="TBOOX Open Source Project" href="http://www.tboox.net/feed.xml ">
     <link rel="alternate" hreflang="en" href="http://www.tboox.net/" />
     <link rel="alternate" hreflang="zh-Hans" href="http://www.tboox.net/cn/" />
@@ -227,11 +227,11 @@
             
               <li>
                 <h2>
-                  <a class="post-link" href="/cn/2016/07/17/update-v2.0.3/">xmake v2.0.3 更新!</a>
+                  <a class="post-link" href="/cn/2016/02/03/bloom-filter/">利用bloom filter算法处理大规模数据过滤</a>
                 </h2>
                 <div class="label">
                     <div class="label-card">
-                        <i class="fa fa-calendar"></i>2016-07-17
+                        <i class="fa fa-calendar"></i>2016-02-03
                     </div>
                     <div class="label-card">
                         
@@ -249,7 +249,7 @@
   <i class="fa fa-th-list"></i>
   
     
-        <a href="/category/#xmake" title="Category: xmake" rel="category">xmake</a>
+        <a href="/category/#tbox" title="Category: tbox" rel="category">tbox</a>
     
   
 
@@ -266,15 +266,19 @@
   <i class="fa fa-tags"></i>
   
     
-        <a href="/cn/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a>&nbsp;
+        <a href="/cn/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a>&nbsp;
     
-        <a href="/cn/tag/#lua" title="Tag: lua" rel="tag">lua</a>&nbsp;
+        <a href="/cn/tag/#c" title="Tag: c" rel="tag">c</a>&nbsp;
     
-        <a href="/cn/tag/#版本更新" title="Tag: 版本更新" rel="tag">版本更新</a>&nbsp;
+        <a href="/cn/tag/#bloom" title="Tag: bloom" rel="tag">bloom</a>&nbsp;
     
-        <a href="/cn/tag/#xmake.io" title="Tag: xmake.io" rel="tag">xmake.io</a>&nbsp;
+        <a href="/cn/tag/#filter" title="Tag: filter" rel="tag">filter</a>&nbsp;
     
-        <a href="/cn/tag/#windows" title="Tag: windows" rel="tag">windows</a>
+        <a href="/cn/tag/#算法" title="Tag: 算法" rel="tag">算法</a>&nbsp;
+    
+        <a href="/cn/tag/#大数据" title="Tag: 大数据" rel="tag">大数据</a>&nbsp;
+    
+        <a href="/cn/tag/#过滤" title="Tag: 过滤" rel="tag">过滤</a>
     
   
 
@@ -283,35 +287,22 @@
                     </div>
                 </div>
                 <div class="excerpt">
-                    <p><a href="http://www.xmake.io/cn">主页</a>
-<a href="https://github.com/waruqi/xmake">源码</a></p>
+                    <p>Bloom Filter是由Bloom在1970年提出的一种快速查找算法，通过多个hash算法来共同判断某个元素是否在某个集合内。可以用于网络爬虫的url重复过滤、垃圾邮件的过滤等等。</p>
 
-<h1 id="section">更新内容</h1>
+<p>它相比hash容器的一个优势就是，不需要存储元素的实际数据到容器中去来一个个的比较是否存在。
+只需要对应的位段来标记是否存在就行了，所以想当节省内存，特别适合海量的数据处理。并且由于省去了存储元素和比较操作，所以性能也比基于hash容器的高了很多。</p>
 
-<h3 id="section-1">新特性</h3>
+<p>但是由于bloom filter没有去比较元素，只通过多个hash来判断唯一性，所以存在一定的hash冲突导致误判。误判率的大小由hash函数的个数、hash函数优劣、以及存储的位空间大小共同决定。</p>
 
-<ul>
-  <li>增加头文件依赖自动检测和增量编译，提高编译速度</li>
-  <li>在终端中进行颜色高亮提示</li>
-  <li>添加调试器支持，<code class="highlighter-rouge">xmake run -d program ...</code></li>
-</ul>
+<p>并且删除也比较困难，解决办法是使用其变种，带计数的bloom filter，这个这里就不多说了。</p>
 
-<h3 id="section-2">改进</h3>
+<p>对于bloom filter算法的实现，相当简单：
+首先分配一块固定的连续空间，大小是m个比特位（m/8+1个字节），然后再提供k个不同hash函数，同时对每个元素进行计算位索引。如果每个位索引对应的位都为1，则存在该元素，否则就是不存在。</p>
 
-<ul>
-  <li>增强运行shell的系列接口</li>
-  <li>更新luajit到v2.0.4版本</li>
-  <li>改进makefile生成插件，移除对xmake的依赖，并且支持<code class="highlighter-rouge">windows/linux/macosx</code>等大部分pc平台</li>
-  <li>优化多任务编译速度，在windows下编译提升较为明显</li>
-</ul>
+<p>可以看出，如果判断为不存在，那么肯定是不存在的，只有在判断为存在的时候，才会存在误判。</p>
 
-<h3 id="bugs">Bugs修复</h3>
-
-<ul>
-  <li>修复安装目录错误问题</li>
-  <li>修复<code class="highlighter-rouge">import</code>根目录错误问题</li>
-  <li>修复在多版本vs同时存在的情况下，检测vs环境失败问题</li>
-</ul>
+<p>bloom filter主要的难点其实在于估算：
+保证指定误判率的情况下，到底需要多少个hash函数，多少的存储空间。</p>
 
 
                 </div>
@@ -407,12 +398,6 @@
                         
                         
                             
-                                
-                                <a href="/2016/07/17/update-v2.0.3/"><i class="fa fa-language"></i>Read English</a>
-                                
-                                
-                                
-                            
                         
                     
                         
@@ -565,18 +550,18 @@
                         
                     
 
-                    <a href="/cn/2016/07/17/update-v2.0.3/"><i class="fa fa-newspaper-o"></i>阅读全文</a>
+                    <a href="/cn/2016/02/03/bloom-filter/"><i class="fa fa-newspaper-o"></i>阅读全文</a>
                 </div>
                 <hr />
               </li>
             
               <li>
                 <h2>
-                  <a class="post-link" href="/cn/2016/07/17/demo-build-a-simple-project/">演示：构建一个简单的程序</a>
+                  <a class="post-link" href="/cn/2016/01/30/welcome/">欢迎来到TBOOX开源项目!</a>
                 </h2>
                 <div class="label">
                     <div class="label-card">
-                        <i class="fa fa-calendar"></i>2016-07-17
+                        <i class="fa fa-calendar"></i>2016-01-30
                     </div>
                     <div class="label-card">
                         
@@ -594,7 +579,7 @@
   <i class="fa fa-th-list"></i>
   
     
-        <a href="/category/#xmake" title="Category: xmake" rel="category">xmake</a>
+        <a href="/category/#tboox" title="Category: tboox" rel="category">tboox</a>
     
   
 
@@ -611,15 +596,9 @@
   <i class="fa fa-tags"></i>
   
     
-        <a href="/cn/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a>&nbsp;
+        <a href="/cn/tag/#tboox" title="Tag: tboox" rel="tag">tboox</a>&nbsp;
     
-        <a href="/cn/tag/#lua" title="Tag: lua" rel="tag">lua</a>&nbsp;
-    
-        <a href="/cn/tag/#演示" title="Tag: 演示" rel="tag">演示</a>&nbsp;
-    
-        <a href="/cn/tag/#编译" title="Tag: 编译" rel="tag">编译</a>&nbsp;
-    
-        <a href="/cn/tag/#交叉编译" title="Tag: 交叉编译" rel="tag">交叉编译</a>
+        <a href="/cn/tag/#站点" title="Tag: 站点" rel="tag">站点</a>
     
   
 
@@ -628,341 +607,7 @@
                     </div>
                 </div>
                 <div class="excerpt">
-                    <p><a href="https://asciinema.org/a/79998"><img src="https://asciinema.org/a/79998.png" alt="asciicast" /></a></p>
-
-                </div>
-                <div class="read-all">
- 
-                    
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                                
-                                <a href="/2016/07/17/demo-build-a-simple-project/"><i class="fa fa-language"></i>Read English</a>
-                                
-                                
-                                
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-
-                    <a href="/cn/2016/07/17/demo-build-a-simple-project/"><i class="fa fa-newspaper-o"></i>阅读全文</a>
-                </div>
-                <hr />
-              </li>
-            
-              <li>
-                <h2>
-                  <a class="post-link" href="/cn/2016/07/16/run-debug/">利用xmake运行和调试程序</a>
-                </h2>
-                <div class="label">
-                    <div class="label-card">
-                        <i class="fa fa-calendar"></i>2016-07-16
-                    </div>
-                    <div class="label-card">
-                        
-                    </div>
-                    <div class="label-card">
-                        
-                    </div>
-
-                    <div class="label-card">
-                    
-
-
-<!-- <span class="point">•</span> -->
-<span class="categories">
-  <i class="fa fa-th-list"></i>
-  
-    
-        <a href="/category/#xmake" title="Category: xmake" rel="category">xmake</a>
-    
-  
-
-  <!-- <span class="point">•</span> -->
-</span>
-
-
-                    </div>
-
-                    <div class="label-card">
-                    
-<!-- <span class="point">•</span> -->
-<span class="pageTag">
-  <i class="fa fa-tags"></i>
-  
-    
-        <a href="/cn/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a>&nbsp;
-    
-        <a href="/cn/tag/#lua" title="Tag: lua" rel="tag">lua</a>&nbsp;
-    
-        <a href="/cn/tag/#调试" title="Tag: 调试" rel="tag">调试</a>&nbsp;
-    
-        <a href="/cn/tag/#运行" title="Tag: 运行" rel="tag">运行</a>
-    
-  
-
-</span>
-
-                    </div>
-                </div>
-                <div class="excerpt">
-                    <p>xmake默认在编译完程序后，可以通过以下命令运行指定目标程序：</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    <span class="nv">$xmake</span> run <span class="o">[</span>target] <span class="o">[</span>arguments] ...
-</code></pre>
-</div>
-
-<p>并且在linux/macosx下面，目前已经支持关联调试器，去直接调试指定目标了，只需要加上<code class="highlighter-rouge">-d/--debug</code>参数选项：</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    <span class="nv">$xmake</span> run -d <span class="o">[</span>target] <span class="o">[</span>arguments] ...
-</code></pre>
-</div>
-
-<p>默认情况下，xmake在macosx下用的是lldb，在linux下用的是gdb，调试器xmake会在配置的时候去自动检测，如果需要指定调试器路径，可以手动去配置它：</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    <span class="nv">$xmake</span> f --debugger<span class="o">=</span>/usr/bin/gdb
-    <span class="nv">$xmake</span> run -d demo 
-</code></pre>
-</div>
-
-<p>需要注意的是，目前windows上还没有支持，不过已经在计划中了，后续不久就会去支持它。。</p>
-
+                    <p><img src="/static/img/logo2.jpg" alt="" /></p>
 
                 </div>
                 <div class="read-all">
@@ -1204,229 +849,8 @@
                         
                         
                             
-                        
-                    
-                        
-                    
-
-                    <a href="/cn/2016/07/16/run-debug/"><i class="fa fa-newspaper-o"></i>阅读全文</a>
-                </div>
-                <hr />
-              </li>
-            
-              <li>
-                <h2>
-                  <a class="post-link" href="/cn/2016/07/16/how-to-build-a-simple-project/">如何快速构建一个简单的程序</a>
-                </h2>
-                <div class="label">
-                    <div class="label-card">
-                        <i class="fa fa-calendar"></i>2016-07-16
-                    </div>
-                    <div class="label-card">
-                        
-                    </div>
-                    <div class="label-card">
-                        
-                    </div>
-
-                    <div class="label-card">
-                    
-
-
-<!-- <span class="point">•</span> -->
-<span class="categories">
-  <i class="fa fa-th-list"></i>
-  
-    
-        <a href="/category/#xmake" title="Category: xmake" rel="category">xmake</a>
-    
-  
-
-  <!-- <span class="point">•</span> -->
-</span>
-
-
-                    </div>
-
-                    <div class="label-card">
-                    
-<!-- <span class="point">•</span> -->
-<span class="pageTag">
-  <i class="fa fa-tags"></i>
-  
-    
-        <a href="/cn/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a>&nbsp;
-    
-        <a href="/cn/tag/#lua" title="Tag: lua" rel="tag">lua</a>&nbsp;
-    
-        <a href="/cn/tag/#编译" title="Tag: 编译" rel="tag">编译</a>&nbsp;
-    
-        <a href="/cn/tag/#交叉编译" title="Tag: 交叉编译" rel="tag">交叉编译</a>
-    
-  
-
-</span>
-
-                    </div>
-                </div>
-                <div class="excerpt">
-                    <p>首先我们通过内置的工程模板创建一个空工程:</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake create -P ./hello
-
-create hello ...
-create ok!👌
-</code></pre>
-</div>
-
-<p>这个时候xmake将会产生一些工程文件，如下:</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span><span class="nb">cd</span> ./hello
-<span class="gp">$ </span>tree .
-
-.
-├── src
-│   └── main.c
-└── xmake.lua
-</code></pre>
-</div>
-
-<p>这个简单的程序仅仅只是为了打印输出： <code class="highlighter-rouge">hello xmake!</code></p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>cat ./src/main.c 
-
-<span class="c">#include &lt;stdio.h&gt;</span>
-int main<span class="o">(</span>int argc, char<span class="k">**</span> argv<span class="o">)</span>
-<span class="o">{</span>
-    <span class="nb">printf</span><span class="o">(</span><span class="s2">"hello xmake!</span><span class="se">\n</span><span class="s2">"</span><span class="o">)</span>;
-    <span class="k">return </span>0;
-<span class="o">}</span>
-</code></pre>
-</div>
-
-<p><code class="highlighter-rouge">xmake.lua</code>是基于lua语法的工程描述文件，它很简单：</p>
-
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="err">$</span> <span class="n">cat</span> <span class="n">xmake</span><span class="p">.</span><span class="n">lua</span> 
-
-<span class="n">target</span><span class="p">(</span><span class="s2">"hello"</span><span class="p">)</span>
-    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"binary"</span><span class="p">)</span>
-    <span class="n">add_files</span><span class="p">(</span><span class="s2">"src/*.c"</span><span class="p">)</span> 
-
-</code></pre>
-</div>
-
-
-                </div>
-                <div class="read-all">
- 
-                    
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
                                 
-                                <a href="/2016/07/16/how-to-build-a-simple-project/"><i class="fa fa-language"></i>Read English</a>
+                                <a href="/2016/01/30/welcome/"><i class="fa fa-language"></i>Read English</a>
                                 
                                 
                                 
@@ -1435,463 +859,8 @@ int main<span class="o">(</span>int argc, char<span class="k">**</span> argv<spa
                     
                         
                     
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
 
-                    <a href="/cn/2016/07/16/how-to-build-a-simple-project/"><i class="fa fa-newspaper-o"></i>阅读全文</a>
-                </div>
-                <hr />
-              </li>
-            
-              <li>
-                <h2>
-                  <a class="post-link" href="/cn/2016/07/14/plugin-print-colors/">插件开发之色彩高亮显示</a>
-                </h2>
-                <div class="label">
-                    <div class="label-card">
-                        <i class="fa fa-calendar"></i>2016-07-14
-                    </div>
-                    <div class="label-card">
-                        
-                    </div>
-                    <div class="label-card">
-                        
-                    </div>
-
-                    <div class="label-card">
-                    
-
-
-<!-- <span class="point">•</span> -->
-<span class="categories">
-  <i class="fa fa-th-list"></i>
-  
-    
-        <a href="/category/#xmake" title="Category: xmake" rel="category">xmake</a>
-    
-  
-
-  <!-- <span class="point">•</span> -->
-</span>
-
-
-                    </div>
-
-                    <div class="label-card">
-                    
-<!-- <span class="point">•</span> -->
-<span class="pageTag">
-  <i class="fa fa-tags"></i>
-  
-    
-        <a href="/cn/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a>&nbsp;
-    
-        <a href="/cn/tag/#lua" title="Tag: lua" rel="tag">lua</a>&nbsp;
-    
-        <a href="/cn/tag/#插件" title="Tag: 插件" rel="tag">插件</a>&nbsp;
-    
-        <a href="/cn/tag/#终端色彩高亮" title="Tag: 终端色彩高亮" rel="tag">终端色彩高亮</a>
-    
-  
-
-</span>
-
-                    </div>
-                </div>
-                <div class="excerpt">
-                    <p>xmake在开发插件脚本的时候，除了可以使用lua内置的print进行终端输出外，还可以通过另外一个接口：<code class="highlighter-rouge">cprint</code>实现终端的色彩高亮输出</p>
-
-<p>例如：</p>
-
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code>    <span class="n">cprint</span><span class="p">(</span><span class="s1">'${bright}hello xmake'</span><span class="p">)</span>
-    <span class="n">cprint</span><span class="p">(</span><span class="s1">'${red}hello xmake'</span><span class="p">)</span>
-    <span class="n">cprint</span><span class="p">(</span><span class="s1">'${bright green}hello ${clear}xmake'</span><span class="p">)</span>
-    <span class="n">cprint</span><span class="p">(</span><span class="s1">'${blue onyellow underline}hello xmake${clear}'</span><span class="p">)</span>
-    <span class="n">cprint</span><span class="p">(</span><span class="s1">'${red}hello ${magenta}xmake'</span><span class="p">)</span>
-    <span class="n">cprint</span><span class="p">(</span><span class="s1">'${cyan}hello ${dim yellow}xmake'</span><span class="p">)</span>
-</code></pre>
-</div>
-
-<p>显示结果如下：</p>
-
-<p><img src="/static/img/xmake/cprint_colors.png" alt="cprint_colors" /></p>
-
-
-                </div>
-                <div class="read-all">
- 
-                    
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-
-                    <a href="/cn/2016/07/14/plugin-print-colors/"><i class="fa fa-newspaper-o"></i>阅读全文</a>
+                    <a href="/cn/2016/01/30/welcome/"><i class="fa fa-newspaper-o"></i>阅读全文</a>
                 </div>
                 <hr />
               </li>
@@ -1904,12 +873,12 @@ int main<span class="o">(</span>int argc, char<span class="k">**</span> argv<spa
         <div class="pagination">
           
             <a href="/cn/index.html" class="previous"><i class="fa fa-angle-double-left"></i></a>
-            <a href="/cn/page5" class="previous"><i class="fa fa-angle-left"></i></a>
+            <a href="/cn/page12" class="previous"><i class="fa fa-angle-left"></i></a>
           
-          <span class="page_number ">6/13</span>
+          <span class="page_number ">13/13</span>
           
-            <a href="/cn/page7" class="next"><i class="fa fa-angle-right"></i></a>
-            <a href="/cn/page13" class="next"><i class="fa fa-angle-double-right"></i></a>
+            <span class="next disable"><i class="fa fa-angle-right"></i></span>
+            <span class="next disable"><i class="fa fa-angle-double-right"></i></span>
           
         </div>
     </div>
