@@ -11,20 +11,23 @@ tbox的默认内存分配，是完全基于自己的内存池架构，支持内�
 只要在init阶段传入不同的分配器模型，就能快速切换分配模式，例如：
 
 ```c
-    -- 采用默认的tbox内存管理，启用内存池维护、碎片优化、内存泄露溢出检测等所有特性
-    -- 相当于使用了：tb_default_allocator(tb_null, 0)
+    /* 采用默认的tbox内存管理，启用内存池维护、碎片优化、内存泄露溢出检测等所有特性
+     * 相当于使用了：tb_default_allocator(tb_null, 0)
+     */
     tb_init(tb_null, tb_null);
 
-    -- 采用默认的tbox内存管理，启用内存池维护、碎片优化、内存泄露溢出检测等所有特性
-    -- 并且完全使用外部传入的一整块buffer上进行维护，不再使用其他native内存
+    /* 采用默认的tbox内存管理，启用内存池维护、碎片优化、内存泄露溢出检测等所有特性
+     * 并且完全使用外部传入的一整块buffer上进行维护，不再使用其他native内存
+     */
     tb_init(tb_null, tb_default_allocator((tb_byte_t*)malloc(300 * 1024 * 1024), 300 * 1024 * 1024));
 
-    -- 采用一整块静态buffer上进行维护，启用内存泄露溢出检测等所有特性
-    -- 这个跟tb_default_allocator的区别就是，这个allocator比较轻量，内部的数据结构简单，占用内存少，适合低资源环境
-    -- 但是这个allocator不支持碎片优化，容易产生碎片
+    /* 采用一整块静态buffer上进行维护，启用内存泄露溢出检测等所有特性
+     * 这个跟tb_default_allocator的区别就是，这个allocator比较轻量，内部的数据结构简单，占用内存少，适合低资源环境
+     * 但是这个allocator不支持碎片优化，容易产生碎片
+     */
     tb_init(tb_null, tb_static_allocator((tb_byte_t*)malloc(300 * 1024 * 1024), 300 * 1024 * 1024));
 
-    -- 完全使用系统native内存分配，内部不做任何处理和数据维护，所有特性依赖系统环境，tbox不再支持内存池和内存检测等特性
+    // 完全使用系统native内存分配，内部不做任何处理和数据维护，所有特性依赖系统环境，tbox不再支持内存池和内存检测等特性
     tb_init(tb_null, tb_native_allocator());
 ```
 
