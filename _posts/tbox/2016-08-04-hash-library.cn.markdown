@@ -22,6 +22,7 @@ bkdr, fnv, fnv-1a, aphash, rshash, djb2, murmur, sdbm, blizzard ...
 
 
 
+
 此外，这次整理抽取了散落在tbox代码各处的hash代码后，如果配置`xmake f --smallest=y`最小化编译，库会更小些。
 
 因为现在新增了一个 `xmake f --hash=[y|n]` 的配置选项，来禁用和启用hash模块，smallest模式下，会禁用它，也就是不会去编译这些hash代码，如果用不到的话。。
@@ -123,20 +124,10 @@ tb_char_t const*    tb_uuid_make_cstr(tb_char_t uuid_cstr[37], tb_char_t const* 
 
 但是并不符合 RFC 4122 4.3 的规范，即需要满足如下要求：
 
-```
-o  The UUIDs generated at different times from the same name in the
-      same namespace MUST be equal.
-
-o  The UUIDs generated from two different names in the same namespace
-  should be different (with very high probability).
-
-o  The UUIDs generated from the same name in two different namespaces
-  should be different with (very high probability).
-
-o  If two UUIDs that were generated from names are equal, then they
-  were generated from the same name in the same namespace (with very
-  high probability).
-```
+* The UUIDs generated at different times from the same name in the same namespace MUST be equal.
+* The UUIDs generated from two different names in the same namespace should be different (with very high probability).
+* The UUIDs generated from the same name in two different namespaces should be different with (very high probability).
+* If two UUIDs that were generated from names are equal, then they were generated from the same name in the same namespace (with very high probability).
 
 我目前主要是用uuid来为生成vs的工程文件做准备，只要保证唯一性就行了，等以后需要实现完整版了，我再去实现的更好些。。
 
