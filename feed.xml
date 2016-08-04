@@ -5,8 +5,8 @@
     <description>Focus on cross-platform development using c language</description>
     <link>http://www.tboox.net/</link>
     <atom:link href="http://www.tboox.net/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Thu, 04 Aug 2016 16:06:28 +0800</pubDate>
-    <lastBuildDate>Thu, 04 Aug 2016 16:06:28 +0800</lastBuildDate>
+    <pubDate>Thu, 04 Aug 2016 18:08:23 +0800</pubDate>
+    <lastBuildDate>Thu, 04 Aug 2016 18:08:23 +0800</lastBuildDate>
     <generator>Jekyll v3.1.1</generator>
     
       <item>
@@ -245,6 +245,201 @@
         <category>内存池</category>
         
         <category>分配器</category>
+        
+        
+        <category>tbox</category>
+        
+      </item>
+    
+      <item>
+        <title>tbox新增hash库模块</title>
+        <description>&lt;p&gt;最近稍微整理了下tbox的utils模块，发现里面有很多都是一些，之前放置的hash算法，例如：md5, sha1, crc32, adler32啊什么，比较凌乱。&lt;/p&gt;
+
+&lt;p&gt;因此我抽时间整理下这些hash算法，打算单独建立个hash算法模块，来放置各种大大小小的hash算法。&lt;/p&gt;
+
+&lt;p&gt;顺便把tbox里面用到的一些字符串hash算法，也做了些整理，一并归并到这个新模块中，例如比较常用的一些字符串哈希：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;bkdr, fnv, fnv-1a, aphash, rshash, djb2, murmur, sdbm, blizzard ...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;其中 bkdr 的效果比较好，因此目前作为tbox里面主要的string哈希来用，其他的hash虽然实现了很多，但是大部分tbox都没怎么去用。。&lt;/p&gt;
+
+&lt;p&gt;现在也只有&lt;a href=&quot;/cn/2016/02/03/bloom-filter/&quot;&gt;bloomfilter算法&lt;/a&gt;模块，会用到其他多个hash的情况。&lt;/p&gt;
+
+&lt;p&gt;此外，这次整理抽取了散落在tbox代码各处的hash代码后，如果配置&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f --smallest=y&lt;/code&gt;最小化编译，库会更小些。&lt;/p&gt;
+
+&lt;p&gt;因为现在新增了一个 &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f --hash=[y|n]&lt;/code&gt; 的配置选项，来禁用和启用hash模块，smallest模式下，会禁用它，也就是不会去编译这些hash代码，如果用不到的话。。&lt;/p&gt;
+
+&lt;p&gt;我还新增了一个benchmark的测试demo，可以测试各个hash的执行性能，因为目前只有adler32, crc32是稍微优化过的，其他的暂时没怎么去优化，所以测试结果仅作参考。&lt;/p&gt;
+
+&lt;p&gt;如果想要运行demo，可以执行：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake r demo hash_benchmark
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;我这边的结果如下（仅供参考）：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[demo]: [hash(1K)]: fnv32   : cae7edac 1431 ms
+[demo]: [hash(1K)]: fnv32-1a: 42041cc2 1419 ms
+[demo]: [hash(1K)]: rs      : 449e09d7 1614 ms
+[demo]: [hash(1K)]: ap      : 743c6a7d 2181 ms
+[demo]: [hash(1K)]: djb2    : c5fdc8ca 1450 ms
+[demo]: [hash(1K)]: sdbm    : 3a7175d1 1462 ms
+[demo]: [hash(1K)]: adler32 : 95feffd4 105 ms
+[demo]: [hash(1K)]: crc32   : a846383f 2658 ms
+[demo]: [hash(1K)]: crc32-le: 69de964b 2658 ms
+[demo]: [hash(1K)]: bkdr    : 01466ac5 1513 ms
+[demo]: [hash(1K)]: murmur  : cf826c7d 2463 ms
+[demo]: [hash(1K)]: blizzard: 3a7175d1 1638 ms
+[demo]: 
+[demo]: [hash(1M)]: fnv32   : 240670f1 1520 ms
+[demo]: [hash(1M)]: fnv32-1a: 49f2b159 1517 ms
+[demo]: [hash(1M)]: rs      : db1cd2ca 1510 ms
+[demo]: [hash(1M)]: ap      : 9ee66044 2167 ms
+[demo]: [hash(1M)]: djb2    : 683d1cd5 1525 ms
+[demo]: [hash(1M)]: sdbm    : 6cf0e47c 1538 ms
+[demo]: [hash(1M)]: adler32 : 93b3e9c2 102 ms
+[demo]: [hash(1M)]: crc32   : 42175630 2725 ms
+[demo]: [hash(1M)]: crc32-le: def09f36 2788 ms
+[demo]: [hash(1M)]: bkdr    : 2d447f50 1614 ms
+[demo]: [hash(1M)]: murmur  : 4d041d9c 2365 ms
+[demo]: [hash(1M)]: blizzard: 6cf0e47c 1580 ms
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;对这个有兴趣的同学，可以尝试帮忙优化下各个hash的实现，并且欢迎贡献一些其他hash算法的实现。。：）&lt;/p&gt;
+
+&lt;p&gt;对于如何使用这个hash接口，这边就拿crc32为例：&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;cm&quot;&gt;/*! make crc32 (IEEE)
+ *
+ * @param data      the input data
+ * @param size      the input size
+ * @param seed      uses this seed if be non-zero
+ *
+ * @return          the crc value
+ */&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;tb_uint32_t&lt;/span&gt;         &lt;span class=&quot;n&quot;&gt;tb_crc32_make&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_byte_t&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_size_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_uint32_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;seed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;cm&quot;&gt;/*! make crc32 (IEEE) for cstr
+ *
+ * @param cstr      the input cstr
+ * @param seed      uses this seed if be non-zero
+ *
+ * @return          the crc value
+ */&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;tb_uint32_t&lt;/span&gt;         &lt;span class=&quot;n&quot;&gt;tb_crc32_make_from_cstr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_char_t&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cstr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_uint32_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;seed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;上面的接口，一个是对数据buffer进行计算，一个是对字符串数据进行计算，最后的seed值，就是初始化值，一般默认传0。。&lt;/p&gt;
+
+&lt;p&gt;计算字符串crc32如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;tb_trace_i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;[crc32]: %x&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_crc32_make_from_cstr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;hello tbox&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;另外这回，还加了个uuid生成的接口：&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;cm&quot;&gt;/*! make an uuid
+ *
+ * @param uuid      the uuid output buffer
+ * @param name      we only generate it using a simple hashing function for speed if name is supplied 
+ *
+ * @return          tb_true or tb_false
+ */&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;tb_bool_t&lt;/span&gt;           &lt;span class=&quot;n&quot;&gt;tb_uuid_make&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_byte_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;uuid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;16&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_char_t&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;cm&quot;&gt;/*! make an uuid string
+ *
+ * @param uuid_cstr the uuid output c-string
+ * @param name      we only generate it using a simple hashing function for speed if name is supplied 
+ *
+ * @return          the uuid c-string or tb_null
+ */&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;tb_char_t&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_uuid_make_cstr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_char_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;uuid_cstr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;37&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_char_t&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;对于windows，内部直接调用的 &lt;code class=&quot;highlighter-rouge&quot;&gt;CocCreateGuid&lt;/code&gt; 接口来生成，其他平台上，目前仅仅只是通过随机数来生成了个唯一的id而已&lt;/p&gt;
+
+&lt;p&gt;但是并不符合 RFC 4122 4.3 的规范，即需要满足如下要求：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;o  The UUIDs generated at different times from the same name in the
+      same namespace MUST be equal.
+
+o  The UUIDs generated from two different names in the same namespace
+  should be different (with very high probability).
+
+o  The UUIDs generated from the same name in two different namespaces
+  should be different with (very high probability).
+
+o  If two UUIDs that were generated from names are equal, then they
+  were generated from the same name in the same namespace (with very
+  high probability).
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;我目前主要是用uuid来为生成vs的工程文件做准备，只要保证唯一性就行了，等以后需要实现完整版了，我再去实现的更好些。。&lt;/p&gt;
+
+&lt;p&gt;目前的生成结果已经满足日常所需了，就暂时不去花太多精力到这上了，毕竟个人时间有限。&lt;/p&gt;
+
+&lt;p&gt;使用uuid的接口也很简单：&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;tb_char_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;uuid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;37&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;tb_trace_i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;[uuid]: %s&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_uuid_make_cstr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;uuid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;输出结果如下：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[demo]: [uuid]: 37DD735D-27FE-EC7D-520F-4189312D10E2
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;如果有时候，上层已经有过key能够保证唯一性了，那么我们可以直接通过这个key来产生一个唯一的uuid，没必要再去按rfc的生成规则来运算&lt;/p&gt;
+
+&lt;p&gt;这样效率会更快些，例如（通过指定唯一的key: &lt;code class=&quot;highlighter-rouge&quot;&gt;hello tbox&lt;/code&gt;来生成）：&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;tb_char_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;uuid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;37&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;tb_trace_i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;[uuid]: %s&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_uuid_make_cstr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;uuid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;hello tbox&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;目前tbox内部对于uuid的key哈希算法用的是bkdr，这个算法的综合效果不错，散列性也很好，基本上大部分库都默认首选这个hash算法。。&lt;/p&gt;
+
+&lt;p&gt;这边贴下tbox里面的实现，我暂时没时间去优化它，毕竟对字符串作为key的输入一般都很小，暂时没需求去优化它：&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;tb_size_t&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;tb_bkdr_make&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_byte_t&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_size_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_size_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;seed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// check
+&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_assert_and_check_return_val&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;// init value
+&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_size_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;  
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;seed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;131313&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;seed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;// generate it
+&lt;/span&gt;    &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;131313&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;  
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;其他的hash实现，可参考tbox下&lt;code class=&quot;highlighter-rouge&quot;&gt;src/tbox/hash&lt;/code&gt;目录，这里就不一一介绍了。。。&lt;/p&gt;
+</description>
+        <pubDate>Thu, 04 Aug 2016 00:00:00 +0800</pubDate>
+        <link>http://www.tboox.net/cn/2016/08/04/hash-library/</link>
+        <guid isPermaLink="true">http://www.tboox.net/cn/2016/08/04/hash-library/</guid>
+        
+        <category>tbox</category>
+        
+        <category>hash</category>
+        
+        <category>算法</category>
         
         
         <category>tbox</category>
@@ -854,118 +1049,6 @@ xmake
         <category>神经网络</category>
         
         <category>倾斜矫正</category>
-        
-        <category>图像处理</category>
-        
-        
-        <category>hnr</category>
-        
-      </item>
-    
-      <item>
-        <title>手写数字识别系统之细化图像</title>
-        <description>&lt;h2 id=&quot;section&quot;&gt;简介&lt;/h2&gt;
-
-&lt;p&gt;所谓的细化就是经过一层层的剥离，从原来的图中去掉一些点，但仍要保持原来的形状，直到得到图像的骨架。&lt;/p&gt;
-
-&lt;p&gt;骨架，可以理解为图象的中轴，例如一个长方形的骨架是它的长方向上的中轴线；正方形的骨架是它的中心点；圆的骨架是它的圆心，直线的骨架是它自身，孤立点的骨架也是自身。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-1&quot;&gt;细化删除条件&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;内部点不能删除&lt;/li&gt;
-  &lt;li&gt;孤立点不能删除&lt;/li&gt;
-  &lt;li&gt;直线端点不能删除&lt;/li&gt;
-  &lt;li&gt;如果P是边界点，去掉P后，如果连通分量不增加，则P可以删除&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;section-2&quot;&gt;细化步骤&lt;/h2&gt;
-
-&lt;p&gt;通过基于数学形态学的腐蚀细化法，通过刚才的删除条件，进行匹配删除，由于是直接判断，省了模板匹配的这一步。&lt;/p&gt;
-
-&lt;p&gt;针对3*3的八邻域，进行操作：&lt;/p&gt;
-
-&lt;table&gt;
-  &lt;tbody&gt;
-    &lt;tr&gt;
-      &lt;td&gt; &lt;/td&gt;
-      &lt;td&gt;p3&lt;/td&gt;
-      &lt;td&gt; &lt;/td&gt;
-      &lt;td&gt;p2&lt;/td&gt;
-      &lt;td&gt; &lt;/td&gt;
-      &lt;td&gt;p9&lt;/td&gt;
-      &lt;td&gt; &lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt; &lt;/td&gt;
-      &lt;td&gt;p4&lt;/td&gt;
-      &lt;td&gt; &lt;/td&gt;
-      &lt;td&gt;p1&lt;/td&gt;
-      &lt;td&gt; &lt;/td&gt;
-      &lt;td&gt;p8&lt;/td&gt;
-      &lt;td&gt; &lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt; &lt;/td&gt;
-      &lt;td&gt;p5&lt;/td&gt;
-      &lt;td&gt; &lt;/td&gt;
-      &lt;td&gt;p6&lt;/td&gt;
-      &lt;td&gt; &lt;/td&gt;
-      &lt;td&gt;p7&lt;/td&gt;
-      &lt;td&gt; &lt;/td&gt;
-    &lt;/tr&gt;
-  &lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;其中p1 = 1为黑点，如果以下四个条件同时满足，则删除p1，即令p1 = 0：
-
-2 ≤ NZ(p1) ≤ 6	// 用于排除孤立点和内部点
-
-NZ(p1) = l // NZ(p1)为p1点分支数，分支数为1说明是边界点，删除后不增加连通分量
-
-p2 * p4 * p8 = 0 or NZ(p2) != 1 // 向下删除，避免打断
-p2 * p4 * p6 = 0 or NZ(p4) != 1 // 向右删除，避免打断
-
-p6 * p8 * p2 = 0 or NZ(p8) != 1 // 向左删除，避免打断
-p6 * p4 * p8 = 0 or NZ(p6) != 1 // 向上删除，避免打断
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h2 id=&quot;section-3&quot;&gt;实验结果&lt;/h2&gt;
-
-&lt;p&gt;细化前：&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/hnr/thin_1.png&quot; alt=&quot;thin_1&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;细化后：&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/hnr/thin_2.png&quot; alt=&quot;thin_2&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;section-4&quot;&gt;不足与改进&lt;/h2&gt;
-
-&lt;p&gt;可以看到，使用这种算法的效果还算不错，但是还是有许多不足的地方，比如说：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;颈部化：线条交叉处会产生变形&lt;/li&gt;
-  &lt;li&gt;多余分支：由于线条粗细不均会产生多余分支&lt;/li&gt;
-  &lt;li&gt;头部消减：较粗的线条端点容易在逐层腐蚀中被消减，这对于原本就较短的数字线条尤为严重。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;这些问题虽然有一些解决方法，但我目前实现的效果不佳，有待进一步研究&lt;/p&gt;
-
-&lt;h2 id=&quot;section-5&quot;&gt;参考文献&lt;/h2&gt;
-
-&lt;p&gt;如果想要了解更多数字图像处理相关的内容，可以去我的&lt;a href=&quot;/cn/book/&quot;&gt;书柜&lt;/a&gt;看看，冈萨雷斯写的那本书&lt;a href=&quot;/cn/book/&quot;&gt;数字图像处理&lt;/a&gt;还是非常经典的。。&lt;/p&gt;
-</description>
-        <pubDate>Sun, 31 Jul 2016 00:00:00 +0800</pubDate>
-        <link>http://www.tboox.net/cn/2016/07/31/hnr-thin/</link>
-        <guid isPermaLink="true">http://www.tboox.net/cn/2016/07/31/hnr-thin/</guid>
-        
-        <category>手写数字识别</category>
-        
-        <category>神经网络</category>
-        
-        <category>细化</category>
         
         <category>图像处理</category>
         
