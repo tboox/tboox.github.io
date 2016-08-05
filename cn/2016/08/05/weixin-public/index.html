@@ -6,17 +6,17 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>线程池的使用</title>
-    <meta name="description" content="TBOX的线程池通过在每个worker中批量一次拉取多个task，对锁的竞争进行了优化。由于每个task的函数实现不会太多，所以可以根据每个task的函数地址做hash，统计出每个task执行所花费的平均时间。然后根据这个平均值来动态计算每个worker一次拉取的task的数量，TBOX里面默认每个worker一...">
+    <title>TBOOX开通微信公众号</title>
+    <meta name="description" content="欢迎加入TBOOX开源工程微信公众号，我们会不定期推送一些TBOOX开发上的最新资讯以及技术文章给大家。">
 
     
-    <meta name="keywords" content="tbox,c,线程池,tboox" /> 
+    <meta name="keywords" content="tboox,微信,公众号,tboox" /> 
 
     <link rel="shortcut icon" href="/favicon.ico?" type="image/x-icon">
     <link rel="icon" href="/favicon.ico?" type="image/x-icon">
     <link rel="stylesheet" href=" /css/fontawesome/css/font-awesome.min.css ">
     <link rel="stylesheet" href=" /css/main.css ">
-    <link rel="canonical" href="http://www.tboox.net/cn/2016/02/04/platform-thread-pool/">
+    <link rel="canonical" href="http://www.tboox.net/cn/2016/08/05/weixin-public/">
     <link rel="alternate" type="application/rss+xml" title="TBOOX Open Source Project" href="http://www.tboox.net/feed.xml ">
     <link rel="alternate" hreflang="en" href="http://www.tboox.net/" />
     <link rel="alternate" hreflang="zh-Hans" href="http://www.tboox.net/cn/" />
@@ -220,11 +220,11 @@
 
         <div class="page clearfix" post>
     <div class="left">
-        <h1>线程池的使用</h1>
+        <h1>TBOOX开通微信公众号</h1>
         <div class="label">
 
             <div class="label-card">
-                <i class="fa fa-calendar"></i>2016-02-04
+                <i class="fa fa-calendar"></i>2016-08-05
             </div>
 
             <div class="label-card">
@@ -244,7 +244,7 @@
   <i class="fa fa-th-list"></i>
   
     
-        <a href="/category/#tbox" title="Category: tbox" rel="category">tbox</a>
+        <a href="/category/#tboox" title="Category: tboox" rel="category">tboox</a>
     
   
 
@@ -261,14 +261,14 @@
   <i class="fa fa-tags"></i>
   
     
-        <!--a href="/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a-->
-        <a href="/cn/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a>&nbsp;
+        <!--a href="/tag/#tboox" title="Tag: tboox" rel="tag">tboox</a-->
+        <a href="/cn/tag/#tboox" title="Tag: tboox" rel="tag">tboox</a>&nbsp;
     
-        <!--a href="/tag/#c" title="Tag: c" rel="tag">c</a-->
-        <a href="/cn/tag/#c" title="Tag: c" rel="tag">c</a>&nbsp;
+        <!--a href="/tag/#%E5%BE%AE%E4%BF%A1" title="Tag: 微信" rel="tag">微信</a-->
+        <a href="/cn/tag/#微信" title="Tag: 微信" rel="tag">微信</a>&nbsp;
     
-        <!--a href="/tag/#%E7%BA%BF%E7%A8%8B%E6%B1%A0" title="Tag: 线程池" rel="tag">线程池</a-->
-        <a href="/cn/tag/#线程池" title="Tag: 线程池" rel="tag">线程池</a>
+        <!--a href="/tag/#%E5%85%AC%E4%BC%97%E5%8F%B7" title="Tag: 公众号" rel="tag">公众号</a-->
+        <a href="/cn/tag/#公众号" title="Tag: 公众号" rel="tag">公众号</a>
     
   
 
@@ -279,97 +279,9 @@
         </div>
         <hr>
         <article itemscope itemtype="http://schema.org/BlogPosting">
-        <p>TBOX的线程池通过在每个worker中批量一次拉取多个task，对锁的竞争进行了优化。</p>
+        <p>欢迎加入TBOOX开源工程微信公众号，我们会不定期推送一些TBOOX开发上的最新资讯以及技术文章给大家。</p>
 
-<p>由于每个task的函数实现不会太多，所以可以根据每个task的函数地址做hash，统计出每个task执行所花费的平均时间。然后根据这个平均值来动态计算每个worker一次拉取的task的数量，TBOX里面默认每个worker一次拉取10s的task量，这样可以尽可能的避免worker间锁的频繁抢占。</p>
-
-<p>所有从等待队列被拉取出来的task，都会被放到pending队列中去，如果等待队列中的task都被取完了，某个worker处于了空闲状态，就会尝试去pending中，重新拉取其他worker还没有执行到的task， 这样可以解决某些task耗时太长，将worker中剩余的task阻塞住的问题。</p>
-
-<p>重新从pending队列中拉取其他worker的task，并没有通过锁来维护，而是通过原子操作判断task的状态来维护的，所以性能上还是可以保证的。</p>
-
-<p>整个线程池，只用到了一个锁来维护内部的几个队列，每个worker在大部分情况都是独立运行的，只有在自己的所有task都执行完空闲时，才回去全局等待队列中取task，并且上层接口也提供了批量投递任务的接口，来最小化对锁的使用。</p>
-
-<p>下面看下简单的使用例子：</p>
-
-<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">tb_demo_task_time_done</span><span class="p">(</span><span class="n">tb_cpointer_t</span> <span class="n">priv</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="n">tb_msleep</span><span class="p">((</span><span class="n">tb_size_t</span><span class="p">)(</span><span class="n">priv</span><span class="p">));</span>
-    <span class="p">}</span>
-
-    <span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">tb_demo_task_time_exit</span><span class="p">(</span><span class="n">tb_cpointer_t</span> <span class="n">priv</span><span class="p">)</span>
-    <span class="p">{</span>
-    <span class="p">}</span>
-
-    <span class="cm">/* 投递一个60s的任务到全局线程池
-     *
-     * tb_thread_pool(): 全局线程池实例，如果不想用全局的，也可以自己创建个线程池
-     * "60000ms": 指定的一个任务名，常量字符串
-     * tb_demo_task_time_done: 任务函数地址
-     * tb_demo_task_time_exit: 任务被执行完或取消的时候的清理函数，可以用于释放一些自有数据，这个是可选的，不用直接传tb_null
-     * (tb_cpointer_t)60000: 传递的私有数据指针，这里简单的传了个等待时间值进去
-     * tb_false: 是否为紧急任务， 如果为tb_true， 则这个任务会尽可能第一时间优先呗执行
-     */</span>
-    <span class="n">tb_thread_pool_task_post</span><span class="p">(</span><span class="n">tb_thread_pool</span><span class="p">(),</span> <span class="s">"60000ms"</span><span class="p">,</span> <span class="n">tb_demo_task_time_done</span><span class="p">,</span> <span class="n">tb_demo_task_time_exit</span><span class="p">,</span> <span class="p">(</span><span class="n">tb_cpointer_t</span><span class="p">)</span><span class="mi">60000</span><span class="p">,</span> <span class="n">tb_false</span><span class="p">);</span>
-
-    <span class="c1">// 投递一个10s的紧急任务
-</span>    <span class="n">tb_thread_pool_task_post</span><span class="p">(</span><span class="n">tb_thread_pool</span><span class="p">(),</span> <span class="s">"10000ms"</span><span class="p">,</span> <span class="n">tb_demo_task_time_done</span><span class="p">,</span> <span class="n">tb_null</span><span class="p">,</span> <span class="p">(</span><span class="n">tb_cpointer_t</span><span class="p">)</span><span class="mi">10000</span><span class="p">,</span> <span class="n">tb_true</span><span class="p">);</span>
-
-    <span class="c1">// 批量投递两个任务
-</span>    <span class="n">tb_thread_pool_task_t</span> <span class="n">list</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
-    <span class="n">list</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">name</span> <span class="o">=</span> <span class="s">"60000ms"</span><span class="p">;</span>
-    <span class="n">list</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">done</span> <span class="o">=</span> <span class="n">tb_demo_task_time_done</span><span class="p">;</span>
-    <span class="n">list</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">exit</span> <span class="o">=</span> <span class="n">tb_demo_task_time_exit</span><span class="p">;</span>
-    <span class="n">list</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">priv</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_pointer_t</span><span class="p">)</span><span class="mi">60000</span><span class="p">;</span>
-    <span class="n">list</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">urgent</span> <span class="o">=</span> <span class="n">tb_false</span><span class="p">;</span>
-    <span class="n">list</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">name</span> <span class="o">=</span> <span class="s">"10000ms"</span><span class="p">;</span>
-    <span class="n">list</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">done</span> <span class="o">=</span> <span class="n">tb_demo_task_time_done</span><span class="p">;</span>
-    <span class="n">list</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">exit</span> <span class="o">=</span> <span class="n">tb_null</span><span class="p">;</span>
-    <span class="n">list</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">priv</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_pointer_t</span><span class="p">)</span><span class="mi">10000</span><span class="p">;</span>
-    <span class="n">list</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">urgent</span> <span class="o">=</span> <span class="n">tb_true</span><span class="p">;</span>
-    <span class="n">tb_thread_pool_task_post_list</span><span class="p">(</span><span class="n">tb_thread_pool</span><span class="p">(),</span> <span class="n">list</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
-
-    <span class="c1">// 初始化并且投递一个10s的紧急任务, 返回一个有效句柄
-</span>    <span class="n">tb_thread_pool_task_ref_t</span> <span class="n">task</span> <span class="o">=</span> <span class="n">tb_thread_pool_task_init</span><span class="p">(</span><span class="n">tb_thread_pool</span><span class="p">(),</span> <span class="s">"10000ms"</span><span class="p">,</span> <span class="n">tb_demo_task_time_done</span><span class="p">,</span> <span class="n">tb_null</span><span class="p">,</span> <span class="p">(</span><span class="n">tb_cpointer_t</span><span class="p">)</span><span class="mi">10000</span><span class="p">,</span> <span class="n">tb_true</span><span class="p">);</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">task</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="c1">// 取消这个任务，如果这个任务已经在执行中了，就没法取消了
-</span>        <span class="n">tb_thread_pool_task_kill</span><span class="p">(</span><span class="n">tb_thread_pool</span><span class="p">(),</span> <span class="n">task</span><span class="p">);</span>
-        
-        <span class="c1">// 等待任务取消或完成，超时值：-1：无限等待
-</span>        <span class="n">tb_thread_pool_task_wait</span><span class="p">(</span><span class="n">tb_thread_pool</span><span class="p">(),</span> <span class="n">task</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">);</span>
-        
-        <span class="c1">// 释放这个任务
-</span>        <span class="n">tb_thread_pool_task_exit</span><span class="p">(</span><span class="n">tb_thread_pool</span><span class="p">(),</span> <span class="n">task</span><span class="p">);</span>
-    <span class="p">}</span>
-</code></pre>
-</div>
-
-<p>如果不想用全局线程池，可以自己初始化一个：</p>
-
-<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="cm">/* 初始化线程池
-     *
-     * 8：最大worker的数量，上限值，如果传0就是使用默认值
-     * 0: 每个worker线程的堆栈大小，如果传0就是使用默认值
-     */</span>
-    <span class="n">tb_thread_pool_ref_t</span> <span class="n">thread_pool</span> <span class="o">=</span> <span class="n">tb_thread_pool_init</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">thread_pool</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="c1">// 投递一个10s的紧急任务
-</span>        <span class="n">tb_thread_pool_task_post</span><span class="p">(</span><span class="n">thread_pool</span><span class="p">,</span> <span class="s">"10000ms"</span><span class="p">,</span> <span class="n">tb_demo_task_time_done</span><span class="p">,</span> <span class="n">tb_null</span><span class="p">,</span> <span class="p">(</span><span class="n">tb_cpointer_t</span><span class="p">)</span><span class="mi">10000</span><span class="p">,</span> <span class="n">tb_true</span><span class="p">);</span>
-        
-        <span class="c1">// 如果的调试模式下，可以dump整个线程池的状态和所有处理中的任务状态
-</span>    <span class="cp">#ifdef __tb_debug__
-</span>        <span class="n">tb_thread_pool_dump</span><span class="p">(</span><span class="n">thread_pool</span><span class="p">);</span>
-    <span class="cp">#endif
-</span>
-        <span class="c1">// 等待所有任务执行完成或被取消
-</span>        <span class="n">tb_thread_pool_task_wait_all</span><span class="p">(</span><span class="n">thread_pool</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">);</span>
-        
-        <span class="c1">// 退出线程池
-</span>        <span class="n">tb_thread_pool_exit</span><span class="p">(</span><span class="n">thread_pool</span><span class="p">);</span>
-    <span class="p">}</span>
-</code></pre>
-</div>
+<p><img src="/static/img/weixin_public.jpg" alt="weixin" width="256" height="256" /></p>
 
 
         </article>
@@ -658,18 +570,6 @@
             
                 
                     
-                        
-                        <h2 id="similar_posts">相关文章</h2>
-                        <ul>
-                        
-                        <li class="relatedPost">
-                            <a href="/cn/2016/08/04/uses-vector/">tbox中vector容器的使用
-                            
-                            </a>
-                        </li>
-                        
-                        
-                    
                 
                     
                 
@@ -698,53 +598,6 @@
             
             
                 
-                    
-                        
-                        <li class="relatedPost">
-                            <a href="/cn/2016/08/04/switch-global-memory/">切换tbox全局内存分配器
-                            
-                            </a>
-                        </li>
-                        
-                        
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-            
-        
-            
-            
-            
-                
-                    
-                        
-                        <li class="relatedPost">
-                            <a href="/cn/2016/08/04/hash-library/">tbox新增hash库模块
-                            
-                            </a>
-                        </li>
-                        
-                        
                     
                 
                     
@@ -812,15 +665,6 @@
             
                 
                     
-                        
-                        <li class="relatedPost">
-                            <a href="/cn/2016/08/03/low-precision-timer/">低精度定时器的使用
-                            
-                            </a>
-                        </li>
-                        
-                        
-                    
                 
                     
                 
@@ -849,15 +693,6 @@
             
             
                 
-                    
-                        
-                        <li class="relatedPost">
-                            <a href="/cn/2016/08/03/high-precision-timer/">高精度定时器的使用
-                            
-                            </a>
-                        </li>
-                        
-                        
                     
                 
                     
@@ -970,14 +805,42 @@
             
                 
                     
-                        
-                        <li class="relatedPost">
-                            <a href="/cn/2016/08/02/regex-match-replace/">利用正则实现匹配和替换
-                            
-                            </a>
-                        </li>
-                        
-                        
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
                     
                 
                     
@@ -1011,8 +874,6 @@
             
             
         
-        
-            </ul>
         
 
         <div class="post-recent">
@@ -1024,7 +885,7 @@
 
         
         
-        <p><strong>上一篇</strong> <a href="/cn/2016/02/04/platform-exception/">用c实现跨平台异常捕获机制</a></p>
+        <p><strong>上一篇</strong> <a href="/cn/2016/08/04/uses-vector/">tbox中vector容器的使用</a></p>
         
     </div>
 
@@ -1035,8 +896,523 @@
         
 
         
+
         
-        <p><strong>下一篇</strong> <a href="/cn/2016/02/04/smallest-compile/">tbox的裁剪和定制化编译</a></p>
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
         
     </div>
 </div>
@@ -1046,7 +1422,7 @@
         
 
 <!-- 多说评论框 start -->
-<div class="ds-thread" data-thread-key="http://www.tboox.net/cn/2016/02/04/platform-thread-pool/" data-title="线程池的使用" data-url="http://www.tboox.net/cn/2016/02/04/platform-thread-pool/"></div>
+<div class="ds-thread" data-thread-key="http://www.tboox.net/cn/2016/08/05/weixin-public/" data-title="TBOOX开通微信公众号" data-url="http://www.tboox.net/cn/2016/08/05/weixin-public/"></div>
 <!-- 多说评论框 end -->
 <!-- 多说公共JS代码 start (一个网页只需插入一次) -->
 <script type="text/javascript">
