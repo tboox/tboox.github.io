@@ -16,6 +16,14 @@ icon: user
 * 聊天室：[![Join the chat at https://gitter.im/waruqi/tboox](https://badges.gitter.im/waruqi/tboox.svg)](https://gitter.im/waruqi/tboox?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 * QQ群: 343118190
 
+
+## 微信公众号
+
+欢迎加入TBOOX开源工程微信公众好，我们会不定期推送一些TBOOX开发上的最新资讯以及技术文章。
+
+<img src="/static/img/weixin_public.png" alt="weixin" width="256" height="256">
+
+
 ## 友情链接
 
 有需要跟本站换链的可以留言，或者发邮件给我。。
