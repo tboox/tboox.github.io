@@ -29,10 +29,10 @@ demo
 
 ```lua
 -- 添加依赖包目录，之后添加需要的包，都会从这个目录里面查找
-add_pkgdirs("pkg")
+add_packagedirs("pkg")
 
 -- 添加目标
-add_target("demo")
+target("demo")
 
     -- 设置程序类型为二进制可执行程序
     set_kind("binary")
@@ -108,31 +108,31 @@ zlib.pkg
 
 ```lua
 -- 添加一个zlib包自动配置选项
-add_option("zlib")
+option("zlib")
 
     -- 设置是否在xmake f -h配置菜单中显示
     -- 如果你想让你的包在工程项目中，可以提示用户手动禁用，那么就启用他吧
-    set_option_showmenu(true)
+    set_showmenu(true)
 
     -- 在xmake f -h中显示相关描述信息
-    set_option_description("The mysql package")
+    set_description("The mysql package")
 
     -- 如果检测通过，定义宏开关到config.h
-    add_option_defines_h_if_ok("$(prefix)_PACKAGE_HAVE_ZLIB")
+    add_defines_h_if_ok("$(prefix)_PACKAGE_HAVE_ZLIB")
 
     -- 检测链接
-    add_option_links("z")
+    add_links("z")
 
     -- 添加检测的链接库目录，这里设置优先检测zlib.pkg/lib/下相关平台是否存在链接库，然后再去检测系统的
     -- 如果这个不去设置，xmake只能检测一些系统目录下的链接库，例如：/usr/lib, /usr/local/lib
     -- 如果常用系统目录下检测不到，但是你又装了这个库，你可以自己设定检测的搜索目录
-    add_option_linkdirs("lib/$(plat)/$(arch)")
+    add_linkdirs("lib/$(plat)/$(arch)")
 
     -- 检测 #include "zlib/zlib.h" 是否能编译通过
-    add_option_cincludes("zlib/zlib.h")
+    add_cincludes("zlib/zlib.h")
 
     -- 添加一些检测的头文件目录，默认会在zlib.pkg/inc进行搜索，当然你也可以指定其他目录
-    add_option_includedirs("inc/$(plat)", "inc")
+    add_includedirs("inc/$(plat)", "inc")
 ```
 
 只要描述好xxx.pkg/xmake.lua， 一个包就能被xmake使用，并进行自动检测，其中利用的就是xmake的option机制，当然在包里面不仅仅可以检测依赖库和头文件，你也可以检测是否存在某些需要的接口、类型定义等等。。
@@ -143,22 +143,22 @@ add_option("zlib")
 
 ```lua
 -- 基础包base.pkg
-add_option("base")
+option("base")
     
     -- 如果当前为windows平台，检测ws2_32链接库依赖
-    if os("windows") then add_option_links("ws2_32") 
+    if os("windows") then add_links("ws2_32") 
     -- 如果是其他平台，检测-lm，-ldl，-lpthread依赖（由于都是些系统库，这里就没有设置搜索目录）
-    else add_option_links("m", "dl", "pthread") end
+    else add_links("m", "dl", "pthread") end
 ```
 
 如果你的包只是通过xmake.lua来描述，没有其他文件目录，那么你也可以把你的包xmake.lua的描述内容，直接嵌入到工程描述文件xmake.lua中， 这两者原本都是通用的，说白了 `add_pkgdirs("pkg")` 的机制，就是调用工程描述api：`add_subdirs("pkg/*")`进行添加子工程的过程。。而xxx.pkg说白了就是一个子工程描述文件而已。。。
 
 如果你想在你的包检测中增加对接口的检测，那么只需要用:
 
-* `add_option_cfuncs`
-* `add_option_cxxfuncs`
-* `add_option_ctypes`
-* `add_option_cxxtypes`
+* `add_cfuncs`
+* `add_cxxfuncs`
+* `add_ctypes`
+* `add_cxxtypes`
 
 就行了
 
