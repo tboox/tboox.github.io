@@ -212,6 +212,8 @@
                 
                     
                 
+                    
+                
             </ul>
         </nav>
     </div>
@@ -224,6 +226,1027 @@
         <small>专注于跨平台c开发解决方案</small>
         <hr />
         <ul>
+            
+              <li>
+                <h2>
+                  <a class="post-link" href="/cn/2016/02/04/stream-zip/">通过流进行解压缩文件</a>
+                </h2>
+                <div class="label">
+                    <div class="label-card">
+                        <i class="fa fa-calendar"></i>2016-02-04
+                    </div>
+                    <div class="label-card">
+                        
+                    </div>
+                    <div class="label-card">
+                        
+                    </div>
+
+                    <div class="label-card">
+                    
+
+
+<!-- <span class="point">•</span> -->
+<span class="categories">
+  <i class="fa fa-th-list"></i>
+  
+    
+        <a href="/category/#tbox" title="Category: tbox" rel="category">tbox</a>
+    
+  
+
+  <!-- <span class="point">•</span> -->
+</span>
+
+
+                    </div>
+
+                    <div class="label-card">
+                    
+<!-- <span class="point">•</span> -->
+<span class="pageTag">
+  <i class="fa fa-tags"></i>
+  
+    
+        <a href="/cn/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a>&nbsp;
+    
+        <a href="/cn/tag/#c" title="Tag: c" rel="tag">c</a>&nbsp;
+    
+        <a href="/cn/tag/#stream" title="Tag: stream" rel="tag">stream</a>&nbsp;
+    
+        <a href="/cn/tag/#流" title="Tag: 流" rel="tag">流</a>&nbsp;
+    
+        <a href="/cn/tag/#解压缩" title="Tag: 解压缩" rel="tag">解压缩</a>
+    
+  
+
+</span>
+
+                    </div>
+                </div>
+                <div class="excerpt">
+                    <p>这里为了使代码更加简洁，直接用了transfer来挂接两路流的传输操作。</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="c1">// 初始化文件输入流
+</span>    <span class="n">tb_stream_ref_t</span> <span class="n">istream</span> <span class="o">=</span> <span class="n">tb_stream_init_from_url</span><span class="p">(</span><span class="s">"/home/file.txt"</span><span class="p">);</span>
+
+    <span class="c1">// 初始化文件输出流
+</span>    <span class="n">tb_stream_ref_t</span> <span class="n">ostream</span> <span class="o">=</span> <span class="n">tb_stream_init_from_file</span><span class="p">(</span><span class="s">"/home/file.gz"</span><span class="p">,</span> <span class="n">TB_FILE_MODE_RW</span> <span class="o">|</span> <span class="n">TB_FILE_MODE_CREAT</span> <span class="o">|</span> <span class="n">TB_FILE_MODE_BINARY</span> <span class="o">|</span> <span class="n">TB_FILE_MODE_TRUNC</span><span class="p">);</span>
+
+    <span class="c1">// 初始化解压缩流，以istream作为输入
+</span>    <span class="n">tb_stream_ref_t</span> <span class="n">fstream</span> <span class="o">=</span> <span class="n">tb_stream_init_filter_from_zip</span><span class="p">(</span><span class="n">istream</span><span class="p">,</span> <span class="n">TB_ZIP_ALGO_GZIP</span><span class="p">,</span> <span class="n">TB_ZIP_ACTION_INFLATE</span><span class="p">);</span>
+
+    <span class="c1">// 初始化压缩流，以istream作为输入
+</span>    <span class="c1">//tb_stream_ref_t fstream = tb_stream_init_filter_from_zip(istream, TB_ZIP_ALGO_GZIP, TB_ZIP_ACTION_DEFLATE);    
+</span>
+    <span class="c1">// 进行流传输，并且通过 fstream进行中间外挂解压、压缩
+</span>    <span class="k">if</span> <span class="p">(</span><span class="n">istream</span> <span class="o">&amp;&amp;</span> <span class="n">ostream</span> <span class="o">&amp;&amp;</span> <span class="n">fstream</span><span class="p">)</span> 
+    <span class="p">{</span>
+        <span class="cm">/* 保存流数据，如果每个流都还没有调用tb_stream_open打开过
+         * 这里会自动帮你打开，这样上层接口使用上，看上去更加简洁明了
+         * 
+         * 后面三个参数主要用于：限速、进度信息回调，这些之后再详细说明
+         * 现在只需要传空就行了
+         *
+         * save 是 实际传输的数据大小，失败返回：-1
+         */</span>
+        <span class="n">tb_hong_t</span> <span class="n">save</span> <span class="o">=</span> <span class="n">tb_transfer_done</span><span class="p">(</span><span class="n">fstream</span><span class="p">,</span> <span class="n">ostream</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">tb_null</span><span class="p">,</span> <span class="n">tb_null</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// 释放流数据
+</span>    <span class="k">if</span> <span class="p">(</span><span class="n">fstream</span><span class="p">)</span> <span class="n">tb_stream_exit</span><span class="p">(</span><span class="n">fstream</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">istream</span><span class="p">)</span> <span class="n">tb_stream_exit</span><span class="p">(</span><span class="n">istream</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ostream</span><span class="p">)</span> <span class="n">tb_stream_exit</span><span class="p">(</span><span class="n">ostream</span><span class="p">);</span>
+</code></pre>
+</div>
+
+                </div>
+                <div class="read-all">
+ 
+                    
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+
+                    <a href="/cn/2016/02/04/stream-zip/"><i class="fa fa-newspaper-o"></i>阅读全文</a>
+                </div>
+                <hr />
+              </li>
+            
+              <li>
+                <h2>
+                  <a class="post-link" href="/cn/2016/02/04/smallest-compile/">tbox的裁剪和定制化编译</a>
+                </h2>
+                <div class="label">
+                    <div class="label-card">
+                        <i class="fa fa-calendar"></i>2016-02-04
+                    </div>
+                    <div class="label-card">
+                        
+                    </div>
+                    <div class="label-card">
+                        
+                    </div>
+
+                    <div class="label-card">
+                    
+
+
+<!-- <span class="point">•</span> -->
+<span class="categories">
+  <i class="fa fa-th-list"></i>
+  
+    
+        <a href="/category/#tbox" title="Category: tbox" rel="category">tbox</a>
+    
+  
+
+  <!-- <span class="point">•</span> -->
+</span>
+
+
+                    </div>
+
+                    <div class="label-card">
+                    
+<!-- <span class="point">•</span> -->
+<span class="pageTag">
+  <i class="fa fa-tags"></i>
+  
+    
+        <a href="/cn/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a>&nbsp;
+    
+        <a href="/cn/tag/#c" title="Tag: c" rel="tag">c</a>&nbsp;
+    
+        <a href="/cn/tag/#裁剪" title="Tag: 裁剪" rel="tag">裁剪</a>&nbsp;
+    
+        <a href="/cn/tag/#编译" title="Tag: 编译" rel="tag">编译</a>&nbsp;
+    
+        <a href="/cn/tag/#配置" title="Tag: 配置" rel="tag">配置</a>
+    
+  
+
+</span>
+
+                    </div>
+                </div>
+                <div class="excerpt">
+                    <p>默认编译出来的tbox库，支持的功能比较全，带有所有模块，并且支持ssl（依赖polarssl/openssl）、gzip（依赖zlib）、database（依赖sqlite3/mysql）。</p>
+
+<p>因此生成的库文件偏大，而且会依赖三个第三方库，如果你用不到上述三个模块，完全可以自己配置编译所需要的模块，减小生成库的大小。</p>
+
+<p>新版采用xmake进行构建，裁剪模块已经是相当方便了，默认情况下回去自动检测依赖的第三方库进行编译。</p>
+
+<p>如果要禁用某个第三方库或者模块，只要执行<code class="highlighter-rouge">xmake f --xxxx=false</code>就行了，所有第三方库依赖都是可选，完全可以禁用。。</p>
+
+<p>例如，禁用所有第三方库支持：</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    xmake f --polarssl<span class="o">=</span><span class="nb">false</span> --sqlite3<span class="o">=</span><span class="nb">false</span> --openssl<span class="o">=</span><span class="nb">false</span> --mysql<span class="o">=</span><span class="nb">false</span> --zlib<span class="o">=</span><span class="nb">false</span>
+</code></pre>
+</div>
+
+<p>如果要最小化编译，可以禁用所有可选模块和特性：</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    xmake f --network<span class="o">=</span><span class="nb">false</span> --asio<span class="o">=</span><span class="nb">false</span> --charset<span class="o">=</span><span class="nb">false</span> --xml<span class="o">=</span><span class="nb">false</span> --database<span class="o">=</span><span class="nb">false</span> --zip<span class="o">=</span><span class="nb">false</span> --thread<span class="o">=</span><span class="nb">false</span>
+</code></pre>
+</div>
+
+<p>tbox中使用float相关的代码，也是可以裁剪掉的，并且tbox还提供了一整套fixed16、fixed30、fixed6的定点运算库，来应付一些需要float运算的地方</p>
+
+
+                </div>
+                <div class="read-all">
+ 
+                    
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+
+                    <a href="/cn/2016/02/04/smallest-compile/"><i class="fa fa-newspaper-o"></i>阅读全文</a>
+                </div>
+                <hr />
+              </li>
+            
+              <li>
+                <h2>
+                  <a class="post-link" href="/cn/2016/02/04/platform-thread-pool/">线程池的使用</a>
+                </h2>
+                <div class="label">
+                    <div class="label-card">
+                        <i class="fa fa-calendar"></i>2016-02-04
+                    </div>
+                    <div class="label-card">
+                        
+                    </div>
+                    <div class="label-card">
+                        
+                    </div>
+
+                    <div class="label-card">
+                    
+
+
+<!-- <span class="point">•</span> -->
+<span class="categories">
+  <i class="fa fa-th-list"></i>
+  
+    
+        <a href="/category/#tbox" title="Category: tbox" rel="category">tbox</a>
+    
+  
+
+  <!-- <span class="point">•</span> -->
+</span>
+
+
+                    </div>
+
+                    <div class="label-card">
+                    
+<!-- <span class="point">•</span> -->
+<span class="pageTag">
+  <i class="fa fa-tags"></i>
+  
+    
+        <a href="/cn/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a>&nbsp;
+    
+        <a href="/cn/tag/#c" title="Tag: c" rel="tag">c</a>&nbsp;
+    
+        <a href="/cn/tag/#线程池" title="Tag: 线程池" rel="tag">线程池</a>
+    
+  
+
+</span>
+
+                    </div>
+                </div>
+                <div class="excerpt">
+                    <p>TBOX的线程池通过在每个worker中批量一次拉取多个task，对锁的竞争进行了优化。</p>
+
+<p>由于每个task的函数实现不会太多，所以可以根据每个task的函数地址做hash，统计出每个task执行所花费的平均时间。然后根据这个平均值来动态计算每个worker一次拉取的task的数量，TBOX里面默认每个worker一次拉取10s的task量，这样可以尽可能的避免worker间锁的频繁抢占。</p>
+
+<p>所有从等待队列被拉取出来的task，都会被放到pending队列中去，如果等待队列中的task都被取完了，某个worker处于了空闲状态，就会尝试去pending中，重新拉取其他worker还没有执行到的task， 这样可以解决某些task耗时太长，将worker中剩余的task阻塞住的问题。</p>
+
+<p>重新从pending队列中拉取其他worker的task，并没有通过锁来维护，而是通过原子操作判断task的状态来维护的，所以性能上还是可以保证的。</p>
+
+<p>整个线程池，只用到了一个锁来维护内部的几个队列，每个worker在大部分情况都是独立运行的，只有在自己的所有task都执行完空闲时，才回去全局等待队列中取task，并且上层接口也提供了批量投递任务的接口，来最小化对锁的使用。</p>
+
+<p>下面看下简单的使用例子：</p>
+
+
+                </div>
+                <div class="read-all">
+ 
+                    
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+
+                    <a href="/cn/2016/02/04/platform-thread-pool/"><i class="fa fa-newspaper-o"></i>阅读全文</a>
+                </div>
+                <hr />
+              </li>
             
               <li>
                 <h2>
@@ -336,6 +1359,12 @@
                 <div class="read-all">
  
                     
+                    
+                        
+                    
+                        
+                    
+                        
                     
                         
                     
@@ -715,340 +1744,6 @@
                         
                     
                         
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-
-                    <a href="/cn/2016/02/04/memory-pool/"><i class="fa fa-newspaper-o"></i>阅读全文</a>
-                </div>
-                <hr />
-              </li>
-            
-              <li>
-                <h2>
-                  <a class="post-link" href="/cn/2016/02/04/memory-check/">内存检测</a>
-                </h2>
-                <div class="label">
-                    <div class="label-card">
-                        <i class="fa fa-calendar"></i>2016-02-04
-                    </div>
-                    <div class="label-card">
-                        
-                    </div>
-                    <div class="label-card">
-                        
-                    </div>
-
-                    <div class="label-card">
-                    
-
-
-<!-- <span class="point">•</span> -->
-<span class="categories">
-  <i class="fa fa-th-list"></i>
-  
-    
-        <a href="/category/#tbox" title="Category: tbox" rel="category">tbox</a>
-    
-  
-
-  <!-- <span class="point">•</span> -->
-</span>
-
-
-                    </div>
-
-                    <div class="label-card">
-                    
-<!-- <span class="point">•</span> -->
-<span class="pageTag">
-  <i class="fa fa-tags"></i>
-  
-    
-        <a href="/cn/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a>&nbsp;
-    
-        <a href="/cn/tag/#c" title="Tag: c" rel="tag">c</a>&nbsp;
-    
-        <a href="/cn/tag/#内存检测" title="Tag: 内存检测" rel="tag">内存检测</a>
-    
-  
-
-</span>
-
-                    </div>
-                </div>
-                <div class="excerpt">
-                    <p>TBOX的内存分配在调试模式下，可以检测支持内存泄露和越界，而且还能精确定位到出问题的那块内存具体分配位置，和函数调用堆栈。</p>
-
-<ol>
-  <li>内存泄露检测</li>
-</ol>
-
-<p>内存泄露的检测必须在程序退出的前一刻，调用tb_exit()的时候，才会执行，如果有泄露，会有详细输出到终端上。</p>
-
-<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="n">tb_void_t</span> <span class="nf">tb_demo_leak</span><span class="p">()</span>
-    <span class="p">{</span>
-        <span class="n">tb_pointer_t</span> <span class="n">data</span> <span class="o">=</span> <span class="n">tb_malloc0</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
-    <span class="p">}</span>
-</code></pre>
-</div>
-
-<p>输出：</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>    [tbox]: [error]: leak: 0x7f9d5b058908 at tb_static_fixed_pool_dump(): 735, memory/impl/static_fixed_pool.c
-    [tbox]: [error]: data: from: tb_demo_leak(): 43, memory/check.c
-    [tbox]: [error]:     [0x000001050e742a]: 0   demo.b                              0x00000001050e742a tb_fixed_pool_malloc0_ + 186
-    [tbox]: [error]:     [0x000001050f972b]: 1   demo.b                              0x00000001050f972b tb_small_pool_malloc0_ + 507
-    [tbox]: [error]:     [0x000001050f593c]: 2   demo.b                              0x00000001050f593c tb_pool_malloc0_ + 540
-    [tbox]: [error]:     [0x00000105063cd7]: 3   demo.b                              0x0000000105063cd7 tb_demo_leak + 55
-    [tbox]: [error]:     [0x00000105063e44]: 4   demo.b                              0x0000000105063e44 tb_demo_memory_check_main + 20
-    [tbox]: [error]:     [0x0000010505b08e]: 5   demo.b                              0x000000010505b08e main + 878
-    [tbox]: [error]:     [0x007fff8c95a5fd]: 6   libdyld.dylib                       0x00007fff8c95a5fd start + 1
-    [tbox]: [error]:     [0x00000000000002]: 7   ???                                 0x0000000000000002 0x0 + 2
-    [tbox]: [error]: data: 0x7f9d5b058908, size: 10, patch: cc
-</code></pre>
-</div>
-
-
-                </div>
-                <div class="read-all">
- 
-                    
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
                     
                         
                     
@@ -1266,698 +1961,7 @@
                         
                     
 
-                    <a href="/cn/2016/02/04/memory-check/"><i class="fa fa-newspaper-o"></i>阅读全文</a>
-                </div>
-                <hr />
-              </li>
-            
-              <li>
-                <h2>
-                  <a class="post-link" href="/cn/2016/02/04/iterator/">迭代器的使用</a>
-                </h2>
-                <div class="label">
-                    <div class="label-card">
-                        <i class="fa fa-calendar"></i>2016-02-04
-                    </div>
-                    <div class="label-card">
-                        
-                    </div>
-                    <div class="label-card">
-                        
-                    </div>
-
-                    <div class="label-card">
-                    
-
-
-<!-- <span class="point">•</span> -->
-<span class="categories">
-  <i class="fa fa-th-list"></i>
-  
-    
-        <a href="/category/#tbox" title="Category: tbox" rel="category">tbox</a>
-    
-  
-
-  <!-- <span class="point">•</span> -->
-</span>
-
-
-                    </div>
-
-                    <div class="label-card">
-                    
-<!-- <span class="point">•</span> -->
-<span class="pageTag">
-  <i class="fa fa-tags"></i>
-  
-    
-        <a href="/cn/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a>&nbsp;
-    
-        <a href="/cn/tag/#c" title="Tag: c" rel="tag">c</a>&nbsp;
-    
-        <a href="/cn/tag/#迭代器" title="Tag: 迭代器" rel="tag">迭代器</a>
-    
-  
-
-</span>
-
-                    </div>
-                </div>
-                <div class="excerpt">
-                    <p>stl的容器库常用模式就是将容器、迭代器和算法的进行分离，容器专于存储，迭代器负责枚举，这样互相独立好处多多。</p>
-
-<p>因此TBOX也借鉴了这种模式，不同的是没用模板，仅仅用了c语言来实现。容器库里面的大部分容器都是继承自迭代器的，所以迭代起来相当的方便。</p>
-
-<p>下面先看个迭代器使用的例子：</p>
-
-
-                </div>
-                <div class="read-all">
- 
-                    
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-
-                    <a href="/cn/2016/02/04/iterator/"><i class="fa fa-newspaper-o"></i>阅读全文</a>
-                </div>
-                <hr />
-              </li>
-            
-              <li>
-                <h2>
-                  <a class="post-link" href="/cn/2016/02/04/container-hash/">哈希容器的使用</a>
-                </h2>
-                <div class="label">
-                    <div class="label-card">
-                        <i class="fa fa-calendar"></i>2016-02-04
-                    </div>
-                    <div class="label-card">
-                        
-                    </div>
-                    <div class="label-card">
-                        
-                    </div>
-
-                    <div class="label-card">
-                    
-
-
-<!-- <span class="point">•</span> -->
-<span class="categories">
-  <i class="fa fa-th-list"></i>
-  
-    
-        <a href="/category/#tbox" title="Category: tbox" rel="category">tbox</a>
-    
-  
-
-  <!-- <span class="point">•</span> -->
-</span>
-
-
-                    </div>
-
-                    <div class="label-card">
-                    
-<!-- <span class="point">•</span> -->
-<span class="pageTag">
-  <i class="fa fa-tags"></i>
-  
-    
-        <a href="/cn/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a>&nbsp;
-    
-        <a href="/cn/tag/#c" title="Tag: c" rel="tag">c</a>&nbsp;
-    
-        <a href="/cn/tag/#哈希" title="Tag: 哈希" rel="tag">哈希</a>&nbsp;
-    
-        <a href="/cn/tag/#容器" title="Tag: 容器" rel="tag">容器</a>
-    
-  
-
-</span>
-
-                    </div>
-                </div>
-                <div class="excerpt">
-                    <p>stl的容器库非常强大，但是为了要兼容各种元素类型，采用了模板进行泛化，这样的好处就是使用非常的方便，但是编译器会对使用到的每种类型都进行一遍实例化，用的类型太多的话不仅影响编译速度而且生成的可执行文件也很冗余。</p>
-
-<p>因此，TBOX在设计容器架构的时候，引入tb_item_func_t类型，来设置容器使用的成员类型，这样在实现容器通用性的同时，也不会产生过的冗余，而且容器接口操作上，同样相当的便利。</p>
-
-<p>可以先看个简单使用哈希的例子：</p>
-
-<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="cm">/* 初始化hash, 哈希桶大小8
-     * 键：大小写敏感字符串
-     * 值：long整型
-     */</span>
-    <span class="n">tb_hash_ref_t</span> <span class="n">hash</span> <span class="o">=</span> <span class="n">tb_hash_init</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="n">tb_item_func_str</span><span class="p">(</span><span class="n">tb_true</span><span class="p">),</span> <span class="n">tb_item_func_long</span><span class="p">());</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">hash</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="c1">// 设置键值对："key" =&gt; 123
-</span>        <span class="n">tb_hash_set</span><span class="p">(</span><span class="n">hash</span><span class="p">,</span> <span class="s">"key"</span><span class="p">,</span> <span class="p">(</span><span class="n">tb_pointer_t</span><span class="p">)</span><span class="mi">123</span><span class="p">);</span>
-
-        <span class="c1">// 获取值
-</span>        <span class="n">tb_long_t</span> <span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_long_t</span><span class="p">)</span><span class="n">tb_hash_get</span><span class="p">(</span><span class="n">hash</span><span class="p">,</span> <span class="s">"key"</span><span class="p">);</span>
-
-        <span class="c1">// 退出hash
-</span>        <span class="n">tb_hash_exit</span><span class="p">(</span><span class="n">hash</span><span class="p">);</span>
-    <span class="p">}</span>
-
-    <span class="cm">/* 初始化hash, 哈希桶大小: TB_HASH_BULK_SIZE_MICRO
-     * 键：tb_struct_xxxx_t 结构体类型，内存数据由hash内部自己维护, 后面两个参数设置成员的释放回调函数
-     * 值：true类型，永远是tb_true, 这种hash相当于stl的set&lt;tb_struct_xxxx_t&gt;，内部会去优化掉value占用的内存
-     */</span>
-    <span class="n">tb_hash_ref_t</span> <span class="n">hash</span> <span class="o">=</span> <span class="n">tb_hash_init</span><span class="p">(</span><span class="n">TB_HASH_BULK_SIZE_MICRO</span><span class="p">,</span> <span class="n">tb_item_func_mem</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">tb_struct_xxxx_t</span><span class="p">),</span> <span class="n">tb_null</span><span class="p">,</span> <span class="n">tb_null</span><span class="p">),</span> <span class="n">tb_item_func_true</span><span class="p">());</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">hash</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="c1">// 初始化tb_struct_xxxx_t
-</span>        <span class="n">tb_struct_xxxx_t</span> <span class="n">xxxx</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
-
-        <span class="c1">// 设置键值对：xxxx =&gt; tb_true
-</span>        <span class="n">tb_hash_set</span><span class="p">(</span><span class="n">hash</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">xxxx</span><span class="p">,</span> <span class="p">(</span><span class="n">tb_pointer_t</span><span class="p">)</span><span class="n">tb_true</span><span class="p">);</span>
-
-        <span class="c1">// 判断键是否存在
-</span>        <span class="k">if</span> <span class="p">(</span><span class="n">tb_hash_get</span><span class="p">(</span><span class="n">hash</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">xxxx</span><span class="p">))</span> 
-        <span class="p">{</span>
-            <span class="c1">// ...
-</span>        <span class="p">}</span>
-
-        <span class="c1">// 退出hash
-</span>        <span class="n">tb_hash_exit</span><span class="p">(</span><span class="n">hash</span><span class="p">);</span>
-    <span class="p">}</span>
-
-    <span class="cm">/* 初始化hash, 哈希桶大小使用默认大小: 0
-     * 键：大小写不敏感字符串
-     * 值：uint8整型
-     */</span>
-    <span class="n">tb_hash_ref_t</span> <span class="n">hash</span> <span class="o">=</span> <span class="n">tb_hash_init</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">tb_item_func_str</span><span class="p">(</span><span class="n">tb_false</span><span class="p">),</span> <span class="n">tb_item_func_uint8</span><span class="p">());</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">hash</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="c1">// 设置键值对："key" =&gt; 123
-</span>        <span class="n">tb_hash_set</span><span class="p">(</span><span class="n">hash</span><span class="p">,</span> <span class="s">"key"</span><span class="p">,</span> <span class="p">(</span><span class="n">tb_pointer_t</span><span class="p">)</span><span class="mi">123</span><span class="p">);</span>
-
-        <span class="c1">// 获取u位整型键值
-</span>        <span class="n">tb_uint8_t</span> <span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_uint8_t</span><span class="p">)</span><span class="n">tb_hash_get</span><span class="p">(</span><span class="n">hash</span><span class="p">,</span> <span class="s">"key"</span><span class="p">);</span>
-
-        <span class="c1">// 退出hash
-</span>        <span class="n">tb_hash_exit</span><span class="p">(</span><span class="n">hash</span><span class="p">);</span>
-    <span class="p">}</span>
-</code></pre>
-</div>
-
-
-                </div>
-                <div class="read-all">
- 
-                    
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-
-                    <a href="/cn/2016/02/04/container-hash/"><i class="fa fa-newspaper-o"></i>阅读全文</a>
+                    <a href="/cn/2016/02/04/memory-pool/"><i class="fa fa-newspaper-o"></i>阅读全文</a>
                 </div>
                 <hr />
               </li>
@@ -1972,10 +1976,10 @@
             <a href="/cn/index.html" class="previous"><i class="fa fa-angle-double-left"></i></a>
             <a href="/cn/page11" class="previous"><i class="fa fa-angle-left"></i></a>
           
-          <span class="page_number ">12/13</span>
+          <span class="page_number ">12/14</span>
           
             <a href="/cn/page13" class="next"><i class="fa fa-angle-right"></i></a>
-            <a href="/cn/page13" class="next"><i class="fa fa-angle-double-right"></i></a>
+            <a href="/cn/page14" class="next"><i class="fa fa-angle-double-right"></i></a>
           
         </div>
     </div>
@@ -1988,6 +1992,27 @@
                     最近文章
                 </div>
                 <ul class="content-ul" recent="">
+                    
+                    
+                    
+                        
+                            <li><a href="/cn/2016/08/06/compile-swift/">使用xmake编译swift代码</a></li>
+                            
+                        
+                    
+                    
+                    
+                        
+                            <li><a href="/cn/2016/08/06/batch-check-library-interfaces/">xmake高级特性之批量检测库函数</a></li>
+                            
+                        
+                    
+                    
+                    
+                        
+                            <li><a href="/cn/2016/08/06/add-package-and-autocheck/">依赖包的添加和自动检测机制</a></li>
+                            
+                        
                     
                     
                     
@@ -2040,24 +2065,9 @@
                     
                     
                     
-                        
-                            <li><a href="/cn/2016/08/02/plugin-doxygen/">xmake插件使用之doxygen文档生成</a></li>
-                            
-                        
                     
                     
                     
-                        
-                            <li><a href="/cn/2016/08/02/binding-option/">xmake高级特性之选项绑定</a></li>
-                            
-                        
-                    
-                    
-                    
-                        
-                            <li><a href="/cn/2016/08/02/regex-match-replace/">利用正则实现匹配和替换</a></li>
-                            
-                        
                     
                     
                     
@@ -2248,7 +2258,7 @@
                             <span class="name">
                                 xmake
                             </span>
-                            <span class="badge">53</span>
+                            <span class="badge">56</span>
                         </a>
                     </li>
                     
@@ -2342,7 +2352,7 @@
                       
                       
                       
-                      <a href="/cn/tag/#tbox" style="font-size: 12.5pt; color: #555;">tbox</a>
+                      <a href="/cn/tag/#tbox" style="font-size: 12.5pt; color: #666;">tbox</a>
                     
                     
                     
@@ -3829,6 +3839,42 @@
                       
                       
                       <a href="/cn/tag/#公众号" style="font-size: 9pt; color: #999;">公众号</a>
+                    
+                    
+                    
+                     
+                     
+                     
+                      
+                      
+                      
+                      
+                      
+                      <a href="/cn/tag/#依赖包" style="font-size: 9pt; color: #999;">依赖包</a>
+                    
+                    
+                    
+                     
+                     
+                     
+                      
+                      
+                      
+                      
+                      
+                      <a href="/cn/tag/#批量检测" style="font-size: 9pt; color: #999;">批量检测</a>
+                    
+                    
+                    
+                     
+                     
+                     
+                      
+                      
+                      
+                      
+                      
+                      <a href="/cn/tag/#swift" style="font-size: 9pt; color: #999;">swift</a>
                     
                     
                     

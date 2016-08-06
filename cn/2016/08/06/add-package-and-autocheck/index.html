@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>依赖包的添加和自动检测机制</title>
+    <meta name="description" content="xmake将依赖库、依赖头文件、依赖类型、依赖接口统一用 option 选项机制进行了封装，更在上一层引入package包的机制，使得添加和检测依赖更加的模块化，简单化。。。下面通过一个具体实例，来看下xmake的包机制怎么使用。。假如你现在的工程已经有了两个包：zlib.pkg，polarssl.pkg（如何构...">
+
+    
+    <meta name="keywords" content="xmake,lua,依赖包,自动检测,tboox" /> 
+
+    <link rel="shortcut icon" href="/favicon.ico?" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico?" type="image/x-icon">
+    <link rel="stylesheet" href=" /css/fontawesome/css/font-awesome.min.css ">
+    <link rel="stylesheet" href=" /css/main.css ">
+    <link rel="canonical" href="http://www.tboox.net/cn/2016/08/06/add-package-and-autocheck/">
+    <link rel="alternate" type="application/rss+xml" title="TBOOX Open Source Project" href="http://www.tboox.net/feed.xml ">
+    <link rel="alternate" hreflang="en" href="http://www.tboox.net/" />
+    <link rel="alternate" hreflang="zh-Hans" href="http://www.tboox.net/cn/" />
+
+
+    <script>
+    // 百度统计代码
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?1f2e7c366588e460fe2b6f4da3a5746d";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+
+
+</head>
+
+
+  <body>
+
+    <header id="top">
+    <div class="wrapper">
+        <a href="/cn" class="brand">TBOOX</a>
+        <button id="headerMenu" class="menu"><i class="fa fa-bars"></i></button>
+        <nav id="headerNav">
+            <ul>
+                <li>
+                    
+                    <a href="/">
+                    
+                        <i class="fa fa-home"></i>English
+                    </a>
+                </li>
+
+                
+                    
+                    
+                    <li>
+                        
+                        <a href="/cn/project/">
+                        
+                            <i class="fa fa-bookmark"></i>项目
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                        <a href="/cn/archive/">
+                        
+                            <i class="fa fa-archive"></i>归档
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                        <a href="/cn/category/">
+                        
+                            <i class="fa fa-th-list"></i>分类
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                        <a href="/cn/tag/">
+                        
+                            <i class="fa fa-tags"></i>标记
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                    
+                    <li>
+                        
+                        <a href="/cn/book/">
+                        
+                            <i class="fa fa-book"></i>书柜
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                        <a href="/cn/donation/">
+                        
+                            <i class="fa fa-heart"></i>捐助
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                        <a href="/cn/about/">
+                        
+                            <i class="fa fa-user"></i>关于
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            </ul>
+        </nav>
+    </div>
+</header>
+
+
+        <div class="page clearfix" post>
+    <div class="left">
+        <h1>依赖包的添加和自动检测机制</h1>
+        <div class="label">
+
+            <div class="label-card">
+                <i class="fa fa-calendar"></i>2016-08-06
+            </div>
+
+            <div class="label-card">
+                
+            </div>
+
+            <div class="label-card">
+                
+            </div>
+
+            <div class="label-card">
+            
+
+
+<!-- <span class="point">•</span> -->
+<span class="categories">
+  <i class="fa fa-th-list"></i>
+  
+    
+        <a href="/category/#xmake" title="Category: xmake" rel="category">xmake</a>
+    
+  
+
+  <!-- <span class="point">•</span> -->
+</span>
+
+
+            </div>
+
+            <div class="label-card">
+            
+<!-- <span class="point">•</span> -->
+<span class="pageTag">
+  <i class="fa fa-tags"></i>
+  
+    
+        <!--a href="/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a-->
+        <a href="/cn/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a>&nbsp;
+    
+        <!--a href="/tag/#lua" title="Tag: lua" rel="tag">lua</a-->
+        <a href="/cn/tag/#lua" title="Tag: lua" rel="tag">lua</a>&nbsp;
+    
+        <!--a href="/tag/#%E4%BE%9D%E8%B5%96%E5%8C%85" title="Tag: 依赖包" rel="tag">依赖包</a-->
+        <a href="/cn/tag/#依赖包" title="Tag: 依赖包" rel="tag">依赖包</a>&nbsp;
+    
+        <!--a href="/tag/#%E8%87%AA%E5%8A%A8%E6%A3%80%E6%B5%8B" title="Tag: 自动检测" rel="tag">自动检测</a-->
+        <a href="/cn/tag/#自动检测" title="Tag: 自动检测" rel="tag">自动检测</a>
+    
+  
+
+</span>
+
+            </div>
+
+        </div>
+        <hr>
+        <article itemscope itemtype="http://schema.org/BlogPosting">
+        <p>xmake将依赖库、依赖头文件、依赖类型、依赖接口统一用 option 选项机制进行了封装，更在上一层引入package包的机制，使得添加和检测依赖更加的模块化，简单化。。。</p>
+
+<p>下面通过一个具体实例，来看下xmake的包机制怎么使用。。</p>
+
+<p>假如你现在的工程已经有了两个包：zlib.pkg，polarssl.pkg（如何构建包，后续会详细说明，现在可以参考<a href="https://github.com/waruqi/tbox/tree/master/pkg">TBOX依赖包</a>下已有包的例子），你的工程目录结构如下：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>demo
+ - xmake.lua
+ - src
+   main.c
+ - pkg
+   zlib.pkg
+   polarssl.pkg
+</code></pre>
+</div>
+
+<p>那么你可以修改xmake.lua来使用上述的两个依赖包：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="c1">-- 添加依赖包目录，之后添加需要的包，都会从这个目录里面查找</span>
+<span class="n">add_pkgdirs</span><span class="p">(</span><span class="s2">"pkg"</span><span class="p">)</span>
+
+<span class="c1">-- 添加目标</span>
+<span class="n">add_target</span><span class="p">(</span><span class="s2">"demo"</span><span class="p">)</span>
+
+    <span class="c1">-- 设置程序类型为二进制可执行程序</span>
+    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"binary"</span><span class="p">)</span>
+
+    <span class="c1">-- 添加源代码文件</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"src/*.c"</span><span class="p">)</span> 
+
+    <span class="c1">-- 通过option机制添加polarssl、zlib包，如果检测通过，会去自动链接它</span>
+    <span class="c1">-- 第一次执行xmake config或者xmake编译的时候会去自动检测它，然后缓存配置</span>
+    <span class="c1">-- 如果要重新检测，则可以执行 xmake config -c清除原有配置，重新配置所有。。。</span>
+    <span class="n">add_options</span><span class="p">(</span><span class="s2">"polarssl"</span><span class="p">,</span> <span class="s2">"zlib"</span><span class="p">)</span>
+
+    <span class="c1">-- 设置自动生成的配置头文件，如果mysql检测通过，会生成CONFIG_PACKAGE_HAVE_MYSQL开关</span>
+    <span class="n">set_config_h</span><span class="p">(</span><span class="s2">"$(buildir)/config.h"</span><span class="p">)</span>
+
+    <span class="c1">-- 设置config.h宏开关的前缀: CONFIG_xxxx</span>
+    <span class="n">set_config_h_prefix</span><span class="p">(</span><span class="s2">"CONFIG"</span><span class="p">)</span>
+
+    <span class="c1">-- 添加头文件搜索目录，这里为了搜索到config.h</span>
+    <span class="n">add_includedirs</span><span class="p">(</span><span class="s2">"$(buildir)"</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>接下来是代码里面怎么去使用它：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="cp">#include &lt;stdio.h&gt;
+</span>
+<span class="c1">// 包含自动生成的config.h头文件
+// 搜索路径设置在./build下面
+</span><span class="cp">#include "config.h"
+</span>
+<span class="c1">// 如果当前平台存在zlib，那么使用它
+</span><span class="cp">#ifdef CONFIG_PACKAGE_HAVE_ZLIB
+#   include "zlib/zlib.h"
+#endif
+</span>
+<span class="c1">// 如果当前平台存在polarssl，那么使用它
+</span><span class="cp">#ifdef CONFIG_PACKAGE_HAVE_POLARSSL
+#   include "polarssl/polarssl.h"
+#endif
+</span>
+<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span><span class="o">**</span> <span class="n">argv</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">"hello world!</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+
+</code></pre>
+</div>
+
+<p>上面就是一个包使用的最简单的例子，下面我们来看下具体这个zlib.pkg是怎么生成的：</p>
+
+<p>如果这个包是你自己的项目xxx开发的，那么你只需要执行xmake p进行打包，自动会在./build目录下生成一个xxx.pkg的包，你直接在其他项目中使用就行了。。。</p>
+
+<p>如果是第三方的库，那么你需要自己去构建它，但是也很方便，实在不行你可以参考已有的<a href="https://github.com/waruqi/tbox/tree/master/pkg">TBOX依赖包</a>中一些包，做修改就行了。。。</p>
+
+<p>一个pkg包的目录结构：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>zlib.pkg
+    - inc（头文件目录，可选）
+       - zlib/zlib.h
+    - lib（链接库目录，可选）
+       - linux/i386/libz.a
+       - windows/i386/zlib.lib
+    - xmake.lua（包描述文件）
+</code></pre>
+</div>
+
+<p>其中 inc、lib是可选的，具体逻辑还是在xmake.lua进行描述，xmake默认生成的包逻辑，是会优先去检测zlib.pkg目录有没有当前可用的库和头文件，如果检测不通过，才会去检测系统平台的。。。</p>
+
+<p>当然你也可以自己修改检测逻辑，不一定非得这么来，你只需要根据自己的需求描述xxx.pkg/xmake.lua文件就行了。。。</p>
+
+<p>下面看下我这里提供的zlib.pkg/xmake.lua描述逻辑：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="c1">-- 添加一个zlib包自动配置选项</span>
+<span class="n">add_option</span><span class="p">(</span><span class="s2">"zlib"</span><span class="p">)</span>
+
+    <span class="c1">-- 设置是否在xmake f -h配置菜单中显示</span>
+    <span class="c1">-- 如果你想让你的包在工程项目中，可以提示用户手动禁用，那么就启用他吧</span>
+    <span class="n">set_option_showmenu</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span>
+
+    <span class="c1">-- 在xmake f -h中显示相关描述信息</span>
+    <span class="n">set_option_description</span><span class="p">(</span><span class="s2">"The mysql package"</span><span class="p">)</span>
+
+    <span class="c1">-- 如果检测通过，定义宏开关到config.h</span>
+    <span class="n">add_option_defines_h_if_ok</span><span class="p">(</span><span class="s2">"$(prefix)_PACKAGE_HAVE_ZLIB"</span><span class="p">)</span>
+
+    <span class="c1">-- 检测链接</span>
+    <span class="n">add_option_links</span><span class="p">(</span><span class="s2">"z"</span><span class="p">)</span>
+
+    <span class="c1">-- 添加检测的链接库目录，这里设置优先检测zlib.pkg/lib/下相关平台是否存在链接库，然后再去检测系统的</span>
+    <span class="c1">-- 如果这个不去设置，xmake只能检测一些系统目录下的链接库，例如：/usr/lib, /usr/local/lib</span>
+    <span class="c1">-- 如果常用系统目录下检测不到，但是你又装了这个库，你可以自己设定检测的搜索目录</span>
+    <span class="n">add_option_linkdirs</span><span class="p">(</span><span class="s2">"lib/$(plat)/$(arch)"</span><span class="p">)</span>
+
+    <span class="c1">-- 检测 #include "zlib/zlib.h" 是否能编译通过</span>
+    <span class="n">add_option_cincludes</span><span class="p">(</span><span class="s2">"zlib/zlib.h"</span><span class="p">)</span>
+
+    <span class="c1">-- 添加一些检测的头文件目录，默认会在zlib.pkg/inc进行搜索，当然你也可以指定其他目录</span>
+    <span class="n">add_option_includedirs</span><span class="p">(</span><span class="s2">"inc/$(plat)"</span><span class="p">,</span> <span class="s2">"inc"</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>只要描述好xxx.pkg/xmake.lua， 一个包就能被xmake使用，并进行自动检测，其中利用的就是xmake的option机制，当然在包里面不仅仅可以检测依赖库和头文件，你也可以检测是否存在某些需要的接口、类型定义等等。。</p>
+
+<p>而且检测机制完全采用lua语法，支持if条件逻辑，你可以针对一些特定的平台，做一些特别处理，使得你的包更加的通用。</p>
+
+<p>例如下面这个基础包base.pkg的描述：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="c1">-- 基础包base.pkg</span>
+<span class="n">add_option</span><span class="p">(</span><span class="s2">"base"</span><span class="p">)</span>
+    
+    <span class="c1">-- 如果当前为windows平台，检测ws2_32链接库依赖</span>
+    <span class="k">if</span> <span class="n">os</span><span class="p">(</span><span class="s2">"windows"</span><span class="p">)</span> <span class="k">then</span> <span class="n">add_option_links</span><span class="p">(</span><span class="s2">"ws2_32"</span><span class="p">)</span> 
+    <span class="c1">-- 如果是其他平台，检测-lm，-ldl，-lpthread依赖（由于都是些系统库，这里就没有设置搜索目录）</span>
+    <span class="k">else</span> <span class="n">add_option_links</span><span class="p">(</span><span class="s2">"m"</span><span class="p">,</span> <span class="s2">"dl"</span><span class="p">,</span> <span class="s2">"pthread"</span><span class="p">)</span> <span class="k">end</span>
+</code></pre>
+</div>
+
+<p>如果你的包只是通过xmake.lua来描述，没有其他文件目录，那么你也可以把你的包xmake.lua的描述内容，直接嵌入到工程描述文件xmake.lua中， 这两者原本都是通用的，说白了 <code class="highlighter-rouge">add_pkgdirs("pkg")</code> 的机制，就是调用工程描述api：<code class="highlighter-rouge">add_subdirs("pkg/*")</code>进行添加子工程的过程。。而xxx.pkg说白了就是一个子工程描述文件而已。。。</p>
+
+<p>如果你想在你的包检测中增加对接口的检测，那么只需要用:</p>
+
+<ul>
+  <li><code class="highlighter-rouge">add_option_cfuncs</code></li>
+  <li><code class="highlighter-rouge">add_option_cxxfuncs</code></li>
+  <li><code class="highlighter-rouge">add_option_ctypes</code></li>
+  <li><code class="highlighter-rouge">add_option_cxxtypes</code></li>
+</ul>
+
+<p>就行了</p>
+
+<p>所以利用包的机制，可以让你的不同项目最大化重用你的依赖环境。。是个非常有用的功能。。</p>
+
+
+        </article>
+        <hr>
+
+        
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+        
+
+        
+        
+            
+            
+            
+                
+                    
+                        
+                        <h2 id="similar_posts">相关文章</h2>
+                        <ul>
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/08/06/compile-swift/">使用xmake编译swift代码
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/08/06/batch-check-library-interfaces/">xmake高级特性之批量检测库函数
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/08/03/switch-library-kind/">静态库和动态库的编译切换
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/08/02/plugin-doxygen/">xmake插件使用之doxygen文档生成
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+        
+            </ul>
+        
+
+        <div class="post-recent">
+    <div class="pre">
+
+        
+
+        
+
+        
+        
+        <p><strong>上一篇</strong> <a href="/cn/2016/08/05/weixin-public/">TBOOX开通微信公众号</a></p>
+        
+    </div>
+
+    <div class="nex">
+
+        
+
+        
+
+        
+        
+        <p><strong>下一篇</strong> <a href="/cn/2016/08/06/batch-check-library-interfaces/">xmake高级特性之批量检测库函数</a></p>
+        
+    </div>
+</div>
+
+
+        <h2 id="comments">评论</h2>
+        
+
+<!-- 多说评论框 start -->
+<div class="ds-thread" data-thread-key="http://www.tboox.net/cn/2016/08/06/add-package-and-autocheck/" data-title="依赖包的添加和自动检测机制" data-url="http://www.tboox.net/cn/2016/08/06/add-package-and-autocheck/"></div>
+<!-- 多说评论框 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"tboox"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- 多说公共JS代码 end -->
+<!-- 多说公共JS代码 end -->
+
+
+
+
+
+
+
+
+    </div>
+    <button class="anchor"><i class="fa fa-anchor"></i></button>
+    <div class="right">
+        <div class="wrap">
+
+            <!-- Content -->
+            <div class="side content">
+                <div>
+                    内容
+                </div>
+                <ul id="content-side" class="content-ul">
+                    <li><a href="#english">English</a></li>
+                    <li><a href="#similar_posts">相关文章</a></li>
+                    <li><a href="#comments">评论</a></li>
+                </ul>
+            </div>
+            
+            <br>
+            <div class="side">
+                <div>
+                    <i class="fa fa-external-link"></i>
+                    链接
+                </div>
+                <ul class="content-ul">
+                  <li><a href="http://github.com/waruqi/tbox">tbox</a></li>
+                  <li><a href="http://www.xmake.io">xmake</a></li>
+                  <li><a href="https://github.com/waruqi">github</a></li>
+                </ul>
+            </div> 
+
+            <!-- 其他div框放到这里 -->
+            
+
+
+            <!-- amazon ads -->
+            
+            <br>
+            <div class="side" ads>
+            <iframe src="http://rcm-cn.amazon-adsystem.com/e/cm?t=tboox01-23&o=28&p=12&l=ur1&category=books&banner=1WBTNK2HJQF8QHK2R682&f=ifr" width="265" height="243" scrolling="no" border="0" marginwidth="0" style="border:none;max-width:800px;max-height:600px;" frameborder="0"></iframe>
+            </div>
+            
+
+        </div>
+    </div>
+</div>
+<script>
+/**
+ * target _blank
+ */
+(function() {
+    var aTags = document.querySelectorAll('article a:not([id])')
+    for (var i = 0; i < aTags.length; i++) {
+        aTags[i].setAttribute('target', '_blank')
+    }
+}());
+</script>
+<script src="/js/pageContent.js " charset="utf-8"></script>
+
+
+    <footer class="site-footer">
+    <div class="wrapper">
+        <p class="description">
+             Copyright (c) 2016 tboox.net 
+        </p>
+        <p class="contact">
+            
+            <a href="https://github.com/waruqi" title="GitHub"><i class="fa fa-github" aria-hidden="true"></i></a> 
+             
+            
+            <a href="mailto:waruqi@gmail.com" title="email"><i class="fa fa-envelope-o" aria-hidden="true"></i></a> 
+            
+            
+            <a href="https://twitter.com/waruqi" title="Twitter"><i class="fa fa-twitter" aria-hidden="true"></i></a> 
+            
+            <a href="/feed.xml" title="feed"><i class="fa fa-feed" aria-hidden="true"></i></a> 
+        </p>
+        <p class="power">
+            <span>
+                Site powered by <a href="https://jekyllrb.com/">Jekyll</a> & <a href="https://pages.github.com/">Github Pages</a>.
+            </span>
+            <span>
+                Theme designed by <a href="https://github.com/Gaohaoyang">HyG</a>.
+            </span>
+        </p>
+    </div>
+</footer>
+
+    <div class="back-to-top">
+    <a href="#top" class="scroll">
+        <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    </a>
+</div>
+
+    <script src=" /js/main.js " charset="utf-8"></script>
+    <script src=" /js/scroll.min.js " charset="utf-8"></script>
+  </body>
+
+</html>
