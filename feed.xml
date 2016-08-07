@@ -5,9 +5,237 @@
     <description>Focus on cross-platform development using c language</description>
     <link>http://www.tboox.net/</link>
     <atom:link href="http://www.tboox.net/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Sat, 06 Aug 2016 22:26:12 +0800</pubDate>
-    <lastBuildDate>Sat, 06 Aug 2016 22:26:12 +0800</lastBuildDate>
+    <pubDate>Sun, 07 Aug 2016 20:22:45 +0800</pubDate>
+    <lastBuildDate>Sun, 07 Aug 2016 20:22:45 +0800</lastBuildDate>
     <generator>Jekyll v3.1.1</generator>
+    
+      <item>
+        <title>xmake高级特性之自定义选项</title>
+        <description>&lt;p&gt;xmake还可以支持一些自定义选项开关，使得工程支持可选编译，方便工程的模块化管理。&lt;/p&gt;
+
+&lt;h2 id=&quot;section&quot;&gt;增加自定义编译开关&lt;/h2&gt;
+
+&lt;p&gt;我们拿一个实际的例子来说：&lt;/p&gt;
+
+&lt;p&gt;我们想在自己的工程中增加一个新开关选项：hello， 如果这个开关被启用，会在target中添加特定的一些源码文件，但是这个开挂默认是不被启用的，需要通过配置&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f --hello=true&lt;/code&gt;才会被链接和使用&lt;/p&gt;
+
+&lt;p&gt;并且使用的时候，需要定义一些特殊的宏定义：&lt;code class=&quot;highlighter-rouge&quot;&gt;-DHELLO_TEST -DHELLO_ENABLE&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;那么我们开始进行xmake.lua修改，过程并不复杂：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;在xmake.lua的头部通过option接口定义一个名叫hello的开关选项&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+&lt;span class=&quot;c1&quot;&gt;--定义一个名叫hello的开关选项，这个接口跟add_target是同级的，不要在add_target里面使用（使用了也没什么问题，只是不大好看）&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;hello&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 默认禁用这个开关，需要手动xmake f --hello=true才会启用，当然你也可以默认启用它&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_enable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 定义一些宏开关，这个只有在hello被启用的时候才会被定义&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_defines_if_ok&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;HELLO_ENABLE&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;HELLO_TEST&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;将定义好的hello开关选项，与你的target项目进行绑定&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+&lt;span class=&quot;c1&quot;&gt;-- 添加一个test目标&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    
+    &lt;span class=&quot;c1&quot;&gt;-- 生成可执行程序&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 绑定hello开关选项&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_options&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;hello&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 添加一些hello才需要的源码文件&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;options&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;hello&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;hello/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;ok了，只要两步，接下来就是编译了：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+&lt;span class=&quot;c&quot;&gt;# 直接编译，默认是禁用hello的，所以hello的相关代码，都没有被编译进去&lt;/span&gt;
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake 
+
+&lt;span class=&quot;c&quot;&gt;# 接下来我们启用它，重新编译下，这个时候，hello/*.c的代码也被编译进去了，同时-DHELLO_TEST -DHELLO_ENABLE也被添加到编译选项中了&lt;/span&gt;
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f --hello&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt;
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake -r
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;很方便吧。。只需两步就行。。接下来，我们再稍微修饰下：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;hello&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 默认禁用这个开关，需要手动xmake f --hello=true才会启用，当然你也可以默认启用它&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_enable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 定义一些宏开关，这个只有在hello被启用的时候才会被定义&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_defines_if_ok&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;HELLO_ENABLE&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;HELLO_TEST&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 启用显示菜单，这样xmake f --help的时候，你这个新加的开关就会被显示出来&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_showmenu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 对菜单中开关进行分类，这样显示的时候 布局会更好看，这个不是必须的&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_category&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;module_xxx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 在菜单中，对这个开关进行详细描述&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_description&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Enable or disable the hello module&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这个时候，你再敲下：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f --help
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;会显示如下菜单信息：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;此处省略...
+
+--hello=HELLO       Enable or disable the hello module (default: false)
+
+此处省略...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这样给别人看的时候，也就更明了些。。。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-1&quot;&gt;自动检测机制&lt;/h2&gt;
+
+&lt;p&gt;接下来，我们整的稍微复杂些，让这个hello被启用的时候，自动链接上libhello.a库，并且可以对libhello.a进行自动检测，如果不存在，就禁用hello开关。。&lt;/p&gt;
+
+&lt;p&gt;修改如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;hello&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 默认禁用这个开关，需要手动xmake f --hello=true才会启用，当然你也可以默认启用它&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_enable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 定义一些宏开关，这个只有在hello被启用的时候才会被定义&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_defines_if_ok&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;HELLO_ENABLE&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;HELLO_TEST&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 启用显示菜单，这样xmake f --help的时候，你这个新加的开关就会被显示出来&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_showmenu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 在菜单中，对这个开关进行详细描述&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_description&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Enable or disable the hello module&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 添加链接库libhello.a，这个在xmake f 会去自动检测，如果检测链接不通过，那么这个开关就会被禁用掉&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;-- 如果ok，编译的时候会自动加上-lhello&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_links&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;hello&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 添加链接库检测搜索目录，如果路径不对，检测就会链接不通过，如果ok，在编译的时候，会自动加上-L./libs&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_linkdirs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;libs&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;修改后，如果这个hello开关被手动启用，或者自动检测通过，会在编译连接的时候，自动加上-L./libs -lhello的连接选项。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-2&quot;&gt;增加一些其他的检测规则&lt;/h2&gt;
+
+&lt;p&gt;针对自动检测，除了可以检测链接库，还可以增加一些其他的检测规则：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;检测头文件是否能够正常包含&lt;/li&gt;
+  &lt;li&gt;类型定义是否存在&lt;/li&gt;
+  &lt;li&gt;接口api是否存在&lt;/li&gt;
+  &lt;li&gt;检测链接库是否能够正常链接&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;hello&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 默认禁用这个开关，需要手动xmake f --hello=true才会启用，当然你也可以默认启用它&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_enable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 定义一些宏开关，这个只有在hello被启用的时候才会被定义&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_defines_if_ok&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;HELLO_ENABLE&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;HELLO_TEST&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 启用显示菜单，这样xmake f --help的时候，你这个新加的开关就会被显示出来&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_showmenu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 在菜单中，对这个开关进行详细描述&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_description&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Enable or disable the hello module&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 添加链接库libhello.a，这个在xmake f 会去自动检测，如果检测链接不通过，那么这个开关就会被禁用掉&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;-- 如果ok，编译的时候会自动加上-lhello&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_links&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;hello&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 添加链接库检测搜索目录，如果路径不对，检测就会链接不通过，如果ok，在编译的时候，会自动加上-L./libs&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_linkdirs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;libs&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 检测在c代码中: include &quot;hello/hello.h&quot;，是否成功，ok的话才启用hello&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;-- 检测c++代码请使用：add_cxxincludes&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_cincludes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;hello/hello.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 添加头文件检测路径，ok的话，会自动加上：-Iinc/xxx -I./inc的 编译选项&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_includedirs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;inc/$(plat)&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;inc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 检测对c代码类型wchar_t的支持，如果不存在这个类型，就检测失败&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;-- 检测会依赖add_cincludes中提供的头文件，如果给定的头文件中定义了这个类型，就能检测通过&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;-- 检测c++代码请使用：add_cxxtypes&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_ctypes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wchar_t&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 检测对c代码中是否存在接口api：hello_test()&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;-- 检测会依赖add_cincludes中提供的头文件，如果给定的头文件中定义了这个类型，就能检测通过&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;-- 检测c++代码请使用：add_cxxfuncs&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_cfuncs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;hello_test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;需要注意的是，所有的检测都是and关系，必须全部通过，才会自动启用hello开关。&lt;/p&gt;
+
+&lt;h2 id=&quot;api&quot;&gt;其他可以被自动添加的api&lt;/h2&gt;
+
+&lt;p&gt;并且在检测ok或者被手动启用后，可以自动添加一些特殊的编译选项、宏定义，这些接口如下：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;add_cflags&lt;/code&gt;：选项开关被启用后，自动添加c编译选项&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;add_cxflags&lt;/code&gt;：选项开关被启用后，自动添加c/c++编译选项&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;add_cxxflags&lt;/code&gt;：选项开关被启用后，自动添加c++编译选项&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;add_ldflags&lt;/code&gt;：选项开关被启用后，自动添加链接选项&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;add_vectorexts&lt;/code&gt;：选项开关被启用后，自动添加指令扩展选项，例如：mmx, sse …&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;configh&quot;&gt;自动生成config.h配置文件&lt;/h2&gt;
+
+&lt;p&gt;option不仅可以在编译的时候，自动添加编译选项，还可以在启用后，自动生成各种宏开关到config.h文件中，方便我们在代码里面控制编译逻辑&lt;/p&gt;
+
+&lt;p&gt;具体的使用说明，见：&lt;a href=&quot;/cn/2016/08/06/add-package-and-autocheck/&quot;&gt;依赖包的添加和自动检测机制&lt;/a&gt;&lt;/p&gt;
+
+</description>
+        <pubDate>Sun, 07 Aug 2016 00:00:00 +0800</pubDate>
+        <link>http://www.tboox.net/cn/2016/08/07/custom-option/</link>
+        <guid isPermaLink="true">http://www.tboox.net/cn/2016/08/07/custom-option/</guid>
+        
+        <category>xmake</category>
+        
+        <category>lua</category>
+        
+        <category>自定义选项</category>
+        
+        
+        <category>xmake</category>
+        
+      </item>
     
       <item>
         <title>使用xmake编译swift代码</title>
@@ -1162,141 +1390,6 @@ xmake
         <category>tbox</category>
         
         <category>定时器</category>
-        
-        <category>时间轮算法</category>
-        
-        
-        <category>tbox</category>
-        
-      </item>
-    
-      <item>
-        <title>高精度定时器的使用</title>
-        <description>&lt;p&gt;tbox内部提供了两种定时器实现：timer和ltimer&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;timer: 高精度版本，采用最小堆实现，复杂度是：O(log(n))&lt;/li&gt;
-  &lt;li&gt;ltimer: 低精度版本，采用linux内核中的timing-wheel算法，复杂度是：O(1)&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;这里主要讲解下，如何使用timer实现高精度的定时器任务，精确到ms级别，对于低精度的ltimer，可以参考：&lt;a href=&quot;/cn/2016/08/03/low-precision-timer/&quot;&gt;低精度定时器的使用&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;下面先给个简单的例子来说明：&lt;/p&gt;
-
-&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;cm&quot;&gt;/* 定义一个定时器任务处理函数
- *
- * @param killed 表示当前任务是否被tb_timer_task_kill强行kill掉的
- * @param priv   投递任务时传入的用户自定义数据指针
- */&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_void_t&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;tb_demo_timer_task_func&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_bool_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;killed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_cpointer_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;cm&quot;&gt;/* 投递一个定时器任务到全局timer中，间隔1000ms，会重复执行
- *
- * 其中tb_true表示是否会重复执行，如果设为tb_false，那么只会执行一次
- * tb_null参数，就是传入给任务函数的用户自定义数据指针
- */&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;tb_timer_task_post&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_timer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_demo_timer_task_func&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;上面的投递，会在post调用完，立刻开始任务的计时和运行，如果想要在10s后，才开始启动定时器，可以这么投递：&lt;/p&gt;
-
-&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// 在10s后才开始投递一个定时器任务到全局timer中，间隔1000ms，会重复执行
-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_timer_task_post_after&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_timer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_demo_timer_task_func&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;如果要确定绝对投递时间，可以这么投递：&lt;/p&gt;
-
-&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// 在指定时间戳tb_time() + 150000才开始投递一个定时器任务到全局timer中，间隔1000ms，会重复执行
-// 这里相当于15s后才开始投递
-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_timer_task_post_at&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_timer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;150000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_demo_timer_task_func&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;前面使用的post投递接口，都是无法维护和控制任务的，如果想要在某个特定的时刻取消还在执行队列中的定时器任务&lt;/p&gt;
-
-&lt;p&gt;可以使用下面的方式来维护：&lt;/p&gt;
-
-&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// 创建一个间隔10s的定时器任务，不会重复执行
-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_timer_task_ref_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;task&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_timer_task_init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_timer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_demo_timer_task_func&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-&lt;span class=&quot;c1&quot;&gt;// 过段时间后
-// ...
-&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;// 如果觉得不想执行这个任务了，可以手动取消掉，这个是线程安全的
-&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;task&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_timer_task_kill&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_timer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;task&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-
-&lt;span class=&quot;c1&quot;&gt;// 最后在程序退出时，销毁这个任务资源
-&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;task&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_timer_task_exit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_timer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;task&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;前面的例子都是在全局的默认&lt;code class=&quot;highlighter-rouge&quot;&gt;tb_timer()&lt;/code&gt;中投递的定时器任务，tbox会在后台创建一个单独的线程去维护它的所有任务，如果觉得这个太占资源，
-自己有特定线程在不断loop的话可以创建个独立的timer，挂接到自己的loop线程中，重用线程资源：&lt;/p&gt;
-
-&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// 假设这个是你自己的线程
-&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_pointer_t&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;tb_demo_timer_loop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_cpointer_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;// the timer
-&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_timer_ref_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;timer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_ltimer_ref_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-
-&lt;span class=&quot;cp&quot;&gt;#if 1
-&lt;/span&gt;    &lt;span class=&quot;c1&quot;&gt;// 自己的线程loop
-&lt;/span&gt;    &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;c1&quot;&gt;// 等待特定的定时器延时
-&lt;/span&gt;        &lt;span class=&quot;c1&quot;&gt;// 不一定非得用sleep， 如果你的线程正在处理select/epoll等，可以直接利用这些接口的timeout参数来等待
-&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;tb_sleep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_timer_delay&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;timer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;// 自己的一些其他逻辑代码
-&lt;/span&gt;        &lt;span class=&quot;c1&quot;&gt;// ...
-&lt;/span&gt;
-        &lt;span class=&quot;c1&quot;&gt;// 固定调用，脉动一下定时器，很快的，不会长时间阻塞，除非有耗时的任务
-&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;tb_timer_spak&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;timer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;cp&quot;&gt;#else
-&lt;/span&gt;    &lt;span class=&quot;c1&quot;&gt;// 如果没有其他逻辑代码，那么可以直接用timer自带的loop来代替
-&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_timer_loop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;timer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;cp&quot;&gt;#endif
-&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;// exit it
-&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_thread_return&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;cm&quot;&gt;/* 创建一个定时器
- *
- * 第一个参数：指定定时器最大并发任务规模，默认可以传0，也可以自己指定规模数
- * 第二个参数：是否启用时间戳缓存优化，传tb_false就行了，这个一般用于服务器端高并发处理时的优化
- */&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;tb_timer_ref_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;timer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_timer_init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;timer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;// 投递一些任务
-&lt;/span&gt;    &lt;span class=&quot;c1&quot;&gt;// ...
-&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;// 退出定时器
-&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_timer_exit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;timer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-</description>
-        <pubDate>Wed, 03 Aug 2016 00:00:00 +0800</pubDate>
-        <link>http://www.tboox.net/cn/2016/08/03/high-precision-timer/</link>
-        <guid isPermaLink="true">http://www.tboox.net/cn/2016/08/03/high-precision-timer/</guid>
-        
-        <category>tbox</category>
-        
-        <category>定时器</category>
-        
-        <category>最小堆</category>
         
         <category>时间轮算法</category>
         
