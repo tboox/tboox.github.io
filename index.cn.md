@@ -110,7 +110,7 @@ layout: default.cn
                 <ul class="content-ul" cate>
                     {% for category in site.categories order:ascending %}
                     <li>
-                        <a href="{{ root_url }}/{{ site.category_dir }}#{{ category | first }}" class="categories-list-item" cate="{{ category | first }}">
+                        <a href="{{ root_url }}/cn/{{ site.category_dir }}#{{ category | first }}" class="categories-list-item" cate="{{ category | first }}">
                             <span class="name">
                                 {{ category | first }}
                             </span>
