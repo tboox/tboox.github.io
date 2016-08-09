@@ -145,7 +145,7 @@ layout: default.cn
                     {% endif %}
 
                     {% for tag in site.tags %}
-                     {% if tag[1].size > 0 %}
+                     {% if tag[1].size > 1 %}
                      {% assign post_first = tag[1][0] %}
                      {% if post_first.url contains '/cn/' %}
                       {% assign temp = tag[1].size | minus: min | times: 36 | divided_by: diff %}
