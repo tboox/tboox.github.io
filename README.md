@@ -1,5 +1,11 @@
 # TBOOX Open Source Project Website
 
+### Installing jekyll 
+
+```bash
+    $gem install jekyll -v 3.1.0 
+```
+
 ### Installing Kramdown and Rouge
 
 ```bash
@@ -11,6 +17,7 @@
 ```bash
     $gem install jekyll-paginate
 ```
+
 ## Installing Jekyll Multiple Languages
 
 ```bash
