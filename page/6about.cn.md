@@ -31,7 +31,7 @@ icon: user
 不过英文站点页面只接受英文站点链接哦，中文站点我会放到中文首页上。
 
 || [tbox](http://github.com/waruqi/tbox)    || [xmake.io](http://www.xmake.io/cn)   || [EyreFree](http://www.eyrefree.org)          || [闲鱼](http://www.macrr.com/)                ||
-|| {% if site.domain contains "tboox.org" %}[tboox.net](http://www.tboox.net){% else %}[tboox.org](http://www.tboox.org){% endif %} || [懒人的小窝](http://suppore.cn)      || [六阿哥博客](https://blog.6ag.cn)            || [愛尚丨輕博客](http://crackerme.github.io/)  ||
+|| [tboox.net](http://www.tboox.net)        || [懒人的小窝](http://suppore.cn)      || [六阿哥博客](https://blog.6ag.cn)            || [愛尚丨輕博客](http://crackerme.github.io/)  ||
 || [七空幻音](http://www.acgxt.com)         || [Ghosty Core](http://blog.a0z.me)    || [飞翔的技术宅](http://techair.cc/)           || [BanYuner](http://www.banyuner.com)          ||
 || [HyG](https://gaohaoyang.github.io)      || 
 
