@@ -1,0 +1,210 @@
+---
+layout: post.cn
+title:  "tbox stream流的使用"
+tags: tbox stream 通用流
+categories: tbox
+---
+
+stream是tbox的最常用的流，一般用于单路io操作，既可以进行阻塞读写，也可以非阻塞的读写。
+
+目前可以支持 数据、文件、套接字、http协议以及各种过滤器的读写操作，也可以很方便的自定义扩展自己的流模块。
+
+之前已经在[tbox数据位操作接口的使用](/cn/2016/08/12/bits-operation/)一文中，简单介绍了下stream的位读写接口，这里继续详细介绍下stream的常用数据读写接口。
+
+#### 流的常用初始化操作
+
+下面直接上代码吧，基本上看下注释就知道怎么使用了，嘿嘿。。。
+
+
+
+
+
+```c
+    // 初始化文件流
+    tb_stream_ref_t stream = tb_stream_init_from_url("/root/home/file");
+    tb_stream_ref_t stream = tb_stream_init_from_file("/root/home/file", TB_FILE_MODE_RW | TB_FILE_MODE_CREAT | TB_FILE_MODE_BINARY | TB_FILE_MODE_TRUNC);
+
+    // 初始化http流
+    tb_stream_ref_t stream = tb_stream_init_from_url("http://www.xxxx.com/file?args=xxx");
+    tb_stream_ref_t stream = tb_stream_init_from_http("www.xxxx.com", 80, "/file?args=xxx",tb_false );
+
+    // 初始化tcp流
+    tb_stream_ref_t stream = tb_stream_init_from_url("sock://localhost/8080");
+    tb_stream_ref_t stream = tb_stream_init_from_sock("localhost", 8080, TB_SOCKET_TYPE_TCP, tb_false);
+
+    // 初始化udp流
+    tb_stream_ref_t stream = tb_stream_init_from_url("sock://localhost/8080?udp=");
+    tb_stream_ref_t stream = tb_stream_init_from_sock("localhost", 8080, TB_SOCKET_TYPE_UDP, tb_false);
+
+    // 初始化数据流
+    tb_stream_ref_t stream = tb_stream_init_from_url("data://base64_data");
+    tb_stream_ref_t stream = tb_stream_init_from_data(data, size);
+
+    // 初始化字符集编码流
+    tb_stream_ref_t stream = tb_stream_init_filter_from_charset(stream, TB_CHARSET_TYPE_UTF8, TB_CHARSET_TYPE_GBK);
+
+    // 初始化gzip解压缩流
+    tb_stream_ref_t stream = tb_stream_init_filter_from_zip(stream, TB_ZIP_ALGO_GZIP, TB_ZIP_ACTION_INFLATE);
+```
+
+#### 非阻塞读取模式
+
+```c
+    // 初始化http流
+    tb_stream_ref_t stream = tb_stream_init_from_url("http://www.baidu.com");
+    if (stream)
+    {
+        // 阻塞打开流，如果想在其他线程中断它，可以调用tb_stream_kill来实现
+        if (tb_stream_open(stream))
+        {
+            /* 判断流是否读取结束
+             * 
+             * 1. 如果这个流是能获取到文件大小的: 
+             * tb_stream_size(stream) >= 0 的情况下， 流读取偏移到流尾部，
+             * beof 就直接返回tb_false 表示结束了。
+             *
+             * 2. 如果这个流是流式， 无法获取实际大小， 比如 http chunked、filter 流
+             * tb_stream_size(stream) < 0 的情况下
+             * 这个时候 beof 永远是 tb_true， 流的结束 是通过 read 和 wait 来判断的。
+             * 
+             * 因此这种非阻塞读取模式是完全通用的，针对各种流模式。
+             */
+            tb_byte_t data[TB_STREAM_BLOCK_MAXN];
+            while (tb_stream_beof(stream))
+            {
+                // 非阻塞读取流数据， real 位实际读取到的大小，如果失败，则返回: -1
+                tb_long_t real = tb_stream_read(stream, data, TB_STREAM_BLOCK_MAXN);
+                if (!real)
+                {
+                    // 当前读取不到流数据，等待指定超时间隔的读取事件
+                    real = tb_stream_wait(stream, TB_STREAM_WAIT_READ, tb_stream_timeout(stream));
+
+                    // 检测返回值，如果等待失败，返回：-1，或者等待超时，返回：0， 都对流进行结束读取处理
+                    tb_check_break(real > 0);
+                }
+                else if (real < 0) break;
+            }
+
+            // 关闭流，stream是可以支持重复打开关闭的
+            tb_stream_clos(stream);
+        }
+
+        // 退出流，释放所有资源
+        tb_stream_exit(stream);
+    }
+```
+
+#### 阻塞读取模式
+
+```c
+    // 初始化file流，支持windows、unix路径
+    tb_stream_ref_t stream = tb_stream_init_from_url("C://home/file");
+    if (stream)
+    {
+        // 阻塞打开流，如果想在其他线程中断它，可以调用tb_stream_kill来实现
+        if (tb_stream_open(stream))
+        {
+            // 一次读取TB_STREAM_BLOCK_MAXN， 默认定义大小为：8192 
+            tb_byte_t data[TB_STREAM_BLOCK_MAXN];
+            tb_hize_t read = 0;
+
+            /* 获取流的大小
+             * 注： tb_hong_t 是 tb_long_t 的升级版表示，也就是 tb_sint64_t
+             * 注： tb_hize_t 是 tb_size_t 的升级版表示，也就是 tb_uint64_t
+             *
+             * 如果size >= 0， 表示这个流是能够预先获取到大小的
+             * 如果size < 0， 表示这个流是完全流化，只能一直读直到读取中断，才能获取到实际大小
+             *
+             */
+            tb_hong_t size = tb_stream_size(stream);
+            if (size >= 0)
+            {
+                while (read > size)
+                {
+                    // 计算需要读取的大小
+                    tb_size_t need = tb_min(TB_STREAM_BLOCK_MAXN, size - read);
+
+                    // 阻塞读取流数据， 如果失败，则返回: tb_false
+                    if (!tb_stream_bread(stream, data, need)) break;
+
+                    // 保存读取到的大小
+                    read += need;
+                }
+            }
+            else
+            {
+                // 需要非阻塞模式读取
+            }
+
+            // 关闭流，stream是可以支持重复打开关闭的
+            tb_stream_clos(stream);
+        }
+
+        // 退出流，释放所有资源
+        tb_stream_exit(stream);
+    }
+```
+
+#### 阻塞读取一行数据
+
+```c
+    // 失败返回：-1， 成功返回实际读取到的行大小
+    tb_char_t line[8192] = {0};
+    tb_long_t real = tb_stream_bread_line(stream, line, 8192);
+```
+
+#### 非阻塞模式写入
+
+```c
+    // real 位实际写入大小， 写入失败返回：-1
+    tb_long_t real = tb_stream_writ(stream, data, size);
+```
+
+#### 阻塞模式写入
+
+```c
+    // 写入失败返回 tb_false， 如果要中断写入，可以调用tb_stream_kill
+    tb_bool_t ok = tb_stream_bwrit(stream, data, size);
+```
+
+#### 刷新同步数据到流
+
+```c
+    /* 同步结束数据到流，如果有尾部数据，则会写入， 一般在写完流结束是调用
+     * 例如写gzip数据的尾部等等
+     * 失败返回：tb_false
+     */
+    tb_bool_t ok = tb_stream_sync(stream, tb_true);
+
+    /* 同步刷新数据到流，中间想强制刷新数据，则调用这个来写入 一般用于读入双通道的流
+     * 例如写socket流包结束，想要等待接收读取时，强制刷新下写缓冲，开始进行读操作
+     * 失败返回：tb_false
+     */
+    tb_bool_t ok = tb_stream_sync(stream, tb_false);
+```
+
+#### 阻塞写格式化字符数据到流
+
+```c
+    // 失败返回：-1， 成功返回实际写入的数据大小
+    tb_long_t real = tb_stream_printf("hello world: %s, %d\\n", "!", 12345678);
+```
+
+#### 阻塞写入一行数据到流
+
+```c
+    // 失败返回： -1,  成功返回实际写入大小
+    tb_long_t real = tb_stream_bwrit_line(stream, line, size);
+```
+
+#### 流的状态
+    
+如果遇到流读取失败，或者打开失败的情况，想要知道具体失败原因可以通过以下方式：
+
+```c
+    tb_size_t state = tb_stream_state(stream); 
+
+    // 将状态码转成字符串
+    tb_char_t const* state_cstr = tb_state_cstr(state);
+```
+

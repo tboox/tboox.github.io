@@ -21,7 +21,7 @@ Please send email to me if you want to exchange links.
 
 * [tbox](http://github.com/waruqi/tbox)
 * [xmake.io](http://www.xmake.io)
-* {% if site.domain contains "tboox.org" %}[tboox.net](http://www.tboox.net){% else %}[tboox.org](http://www.tboox.org){% endif %}
+* [tboox.net](http://www.tboox.net)
 
 ## Comments
 
