@@ -6,11 +6,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>线程池的使用</title>
-    <meta name="description" content="TBOX的线程池通过在每个worker中批量一次拉取多个task，对锁的竞争进行了优化。由于每个task的函数实现不会太多，所以可以根据每个task的函数地址做hash，统计出每个task执行所花费的平均时间。然后根据这个平均值来动态计算每个worker一次拉取的task的数量，TBOX里面默认每个worker一...">
+    <title>tbox stream流的架构介绍</title>
+    <meta name="description" content="tbox主要有三种流：  stream: 最常用的流，一般用于单路阻塞、非阻塞io的处理，接口简单易用  async_stream：异步流，基于asio的流，全程回调处理，可以在单个线程里支持多路流的并发，节省系统资源，提高效率  static_stream：静态流，用于对纯buffer的位流处理，一般用于各种解...">
 
     
-    <meta name="keywords" content="tbox,c,线程池,tboox" /> 
+    <meta name="keywords" content="tbox,stream,流架构,tboox" /> 
 
     <!-- qq oauth -->
     <meta property="qc:admins" content="5211601217706727767255" />
@@ -19,7 +19,7 @@
 	<link rel="icon" sizes="139x139" href="/static/img/logo1.png" />
     <link rel="stylesheet" href=" /css/fontawesome/css/font-awesome.min.css ">
     <link rel="stylesheet" href=" /css/main.css ">
-    <link rel="canonical" href="http://www.tboox.org/cn/2016/02/04/platform-thread-pool/">
+    <link rel="canonical" href="http://www.tboox.org/cn/2016/08/27/stream-architecture/">
     <link rel="alternate" type="application/rss+xml" title="TBOOX Open Source Project" href="http://www.tboox.org/feed.xml ">
     <link rel="alternate" hreflang="en" href="http://www.tboox.org/" />
     <link rel="alternate" hreflang="zh-Hans" href="http://www.tboox.org/cn/" />
@@ -259,11 +259,11 @@
 
         <div class="page clearfix" post>
     <div class="left">
-        <h1>线程池的使用</h1>
+        <h1>tbox stream流的架构介绍</h1>
         <div class="label">
 
             <div class="label-card">
-                <i class="fa fa-calendar"></i>2016-02-04
+                <i class="fa fa-calendar"></i>2016-08-27
             </div>
 
             <div class="label-card">
@@ -303,11 +303,11 @@
         <!--a href="/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a-->
         <a href="/cn/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a>&nbsp;
     
-        <!--a href="/tag/#c" title="Tag: c" rel="tag">c</a-->
-        <a href="/cn/tag/#c" title="Tag: c" rel="tag">c</a>&nbsp;
+        <!--a href="/tag/#stream" title="Tag: stream" rel="tag">stream</a-->
+        <a href="/cn/tag/#stream" title="Tag: stream" rel="tag">stream</a>&nbsp;
     
-        <!--a href="/tag/#%E7%BA%BF%E7%A8%8B%E6%B1%A0" title="Tag: 线程池" rel="tag">线程池</a-->
-        <a href="/cn/tag/#线程池" title="Tag: 线程池" rel="tag">线程池</a>
+        <!--a href="/tag/#%E6%B5%81%E6%9E%B6%E6%9E%84" title="Tag: 流架构" rel="tag">流架构</a-->
+        <a href="/cn/tag/#流架构" title="Tag: 流架构" rel="tag">流架构</a>
     
   
 
@@ -318,97 +318,54 @@
         </div>
         <hr>
         <article itemscope itemtype="http://schema.org/BlogPosting">
-        <p>TBOX的线程池通过在每个worker中批量一次拉取多个task，对锁的竞争进行了优化。</p>
+        <p>tbox主要有三种流：</p>
 
-<p>由于每个task的函数实现不会太多，所以可以根据每个task的函数地址做hash，统计出每个task执行所花费的平均时间。然后根据这个平均值来动态计算每个worker一次拉取的task的数量，TBOX里面默认每个worker一次拉取10s的task量，这样可以尽可能的避免worker间锁的频繁抢占。</p>
+<ol>
+  <li><strong>stream</strong>: 最常用的流，一般用于单路阻塞、非阻塞io的处理，接口简单易用</li>
+  <li><strong>async_stream</strong>：异步流，基于asio的流，全程回调处理，可以在单个线程里支持多路流的并发，节省系统资源，提高效率</li>
+  <li><strong>static_stream</strong>：静态流，用于对纯buffer的位流处理，一般用于各种解析器</li>
+</ol>
 
-<p>所有从等待队列被拉取出来的task，都会被放到pending队列中去，如果等待队列中的task都被取完了，某个worker处于了空闲状态，就会尝试去pending中，重新拉取其他worker还没有执行到的task， 这样可以解决某些task耗时太长，将worker中剩余的task阻塞住的问题。</p>
+<p>不管是stream还是async_stream，都可以在其上挂接多路filter，实现流之间数据过滤和变换。目前支持以下几种filter：</p>
 
-<p>重新从pending队列中拉取其他worker的task，并没有通过锁来维护，而是通过原子操作判断task的状态来维护的，所以性能上还是可以保证的。</p>
+<ol>
+  <li><strong>zip_filter：gzip</strong>、zlib的压缩和解压缩过滤器</li>
+  <li><strong>charset_filter</strong>：字符集编码的过滤器</li>
+  <li><strong>chunked_filter：http</strong> chunked编码的解码过滤器</li>
+</ol>
 
-<p>整个线程池，只用到了一个锁来维护内部的几个队列，每个worker在大部分情况都是独立运行的，只有在自己的所有task都执行完空闲时，才回去全局等待队列中取task，并且上层接口也提供了批量投递任务的接口，来最小化对锁的使用。</p>
+<p>如果在一个xml解析器上同时挂接：</p>
 
-<p>下面看下简单的使用例子：</p>
-
-<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">tb_demo_task_time_done</span><span class="p">(</span><span class="n">tb_cpointer_t</span> <span class="n">priv</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="n">tb_msleep</span><span class="p">((</span><span class="n">tb_size_t</span><span class="p">)(</span><span class="n">priv</span><span class="p">));</span>
-    <span class="p">}</span>
-
-    <span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">tb_demo_task_time_exit</span><span class="p">(</span><span class="n">tb_cpointer_t</span> <span class="n">priv</span><span class="p">)</span>
-    <span class="p">{</span>
-    <span class="p">}</span>
-
-    <span class="cm">/* 投递一个60s的任务到全局线程池
-     *
-     * tb_thread_pool(): 全局线程池实例，如果不想用全局的，也可以自己创建个线程池
-     * "60000ms": 指定的一个任务名，常量字符串
-     * tb_demo_task_time_done: 任务函数地址
-     * tb_demo_task_time_exit: 任务被执行完或取消的时候的清理函数，可以用于释放一些自有数据，这个是可选的，不用直接传tb_null
-     * (tb_cpointer_t)60000: 传递的私有数据指针，这里简单的传了个等待时间值进去
-     * tb_false: 是否为紧急任务， 如果为tb_true， 则这个任务会尽可能第一时间优先呗执行
-     */</span>
-    <span class="n">tb_thread_pool_task_post</span><span class="p">(</span><span class="n">tb_thread_pool</span><span class="p">(),</span> <span class="s">"60000ms"</span><span class="p">,</span> <span class="n">tb_demo_task_time_done</span><span class="p">,</span> <span class="n">tb_demo_task_time_exit</span><span class="p">,</span> <span class="p">(</span><span class="n">tb_cpointer_t</span><span class="p">)</span><span class="mi">60000</span><span class="p">,</span> <span class="n">tb_false</span><span class="p">);</span>
-
-    <span class="c1">// 投递一个10s的紧急任务
-</span>    <span class="n">tb_thread_pool_task_post</span><span class="p">(</span><span class="n">tb_thread_pool</span><span class="p">(),</span> <span class="s">"10000ms"</span><span class="p">,</span> <span class="n">tb_demo_task_time_done</span><span class="p">,</span> <span class="n">tb_null</span><span class="p">,</span> <span class="p">(</span><span class="n">tb_cpointer_t</span><span class="p">)</span><span class="mi">10000</span><span class="p">,</span> <span class="n">tb_true</span><span class="p">);</span>
-
-    <span class="c1">// 批量投递两个任务
-</span>    <span class="n">tb_thread_pool_task_t</span> <span class="n">list</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
-    <span class="n">list</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">name</span> <span class="o">=</span> <span class="s">"60000ms"</span><span class="p">;</span>
-    <span class="n">list</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">done</span> <span class="o">=</span> <span class="n">tb_demo_task_time_done</span><span class="p">;</span>
-    <span class="n">list</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">exit</span> <span class="o">=</span> <span class="n">tb_demo_task_time_exit</span><span class="p">;</span>
-    <span class="n">list</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">priv</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_pointer_t</span><span class="p">)</span><span class="mi">60000</span><span class="p">;</span>
-    <span class="n">list</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">urgent</span> <span class="o">=</span> <span class="n">tb_false</span><span class="p">;</span>
-    <span class="n">list</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">name</span> <span class="o">=</span> <span class="s">"10000ms"</span><span class="p">;</span>
-    <span class="n">list</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">done</span> <span class="o">=</span> <span class="n">tb_demo_task_time_done</span><span class="p">;</span>
-    <span class="n">list</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">exit</span> <span class="o">=</span> <span class="n">tb_null</span><span class="p">;</span>
-    <span class="n">list</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">priv</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_pointer_t</span><span class="p">)</span><span class="mi">10000</span><span class="p">;</span>
-    <span class="n">list</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">urgent</span> <span class="o">=</span> <span class="n">tb_true</span><span class="p">;</span>
-    <span class="n">tb_thread_pool_task_post_list</span><span class="p">(</span><span class="n">tb_thread_pool</span><span class="p">(),</span> <span class="n">list</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
-
-    <span class="c1">// 初始化并且投递一个10s的紧急任务, 返回一个有效句柄
-</span>    <span class="n">tb_thread_pool_task_ref_t</span> <span class="n">task</span> <span class="o">=</span> <span class="n">tb_thread_pool_task_init</span><span class="p">(</span><span class="n">tb_thread_pool</span><span class="p">(),</span> <span class="s">"10000ms"</span><span class="p">,</span> <span class="n">tb_demo_task_time_done</span><span class="p">,</span> <span class="n">tb_null</span><span class="p">,</span> <span class="p">(</span><span class="n">tb_cpointer_t</span><span class="p">)</span><span class="mi">10000</span><span class="p">,</span> <span class="n">tb_true</span><span class="p">);</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">task</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="c1">// 取消这个任务，如果这个任务已经在执行中了，就没法取消了
-</span>        <span class="n">tb_thread_pool_task_kill</span><span class="p">(</span><span class="n">tb_thread_pool</span><span class="p">(),</span> <span class="n">task</span><span class="p">);</span>
-        
-        <span class="c1">// 等待任务取消或完成，超时值：-1：无限等待
-</span>        <span class="n">tb_thread_pool_task_wait</span><span class="p">(</span><span class="n">tb_thread_pool</span><span class="p">(),</span> <span class="n">task</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">);</span>
-        
-        <span class="c1">// 释放这个任务
-</span>        <span class="n">tb_thread_pool_task_exit</span><span class="p">(</span><span class="n">tb_thread_pool</span><span class="p">(),</span> <span class="n">task</span><span class="p">);</span>
-    <span class="p">}</span>
+<div class="highlighter-rouge"><pre class="highlight"><code>http/xml =&gt; chunked_filter =&gt; zip_filter =&gt; charset_filter =&gt; stream/async_stream =&gt; xml_reader
 </code></pre>
 </div>
 
-<p>如果不想用全局线程池，可以自己初始化一个：</p>
+<p>就可以实现对xml文件的边下载、边解压、边转码、边解析，这样就可以完美支持大规模xml数据的解析支持，而且内存使用率也不会太高</p>
 
-<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="cm">/* 初始化线程池
-     *
-     * 8：最大worker的数量，上限值，如果传0就是使用默认值
-     * 0: 每个worker线程的堆栈大小，如果传0就是使用默认值
-     */</span>
-    <span class="n">tb_thread_pool_ref_t</span> <span class="n">thread_pool</span> <span class="o">=</span> <span class="n">tb_thread_pool_init</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">thread_pool</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="c1">// 投递一个10s的紧急任务
-</span>        <span class="n">tb_thread_pool_task_post</span><span class="p">(</span><span class="n">thread_pool</span><span class="p">,</span> <span class="s">"10000ms"</span><span class="p">,</span> <span class="n">tb_demo_task_time_done</span><span class="p">,</span> <span class="n">tb_null</span><span class="p">,</span> <span class="p">(</span><span class="n">tb_cpointer_t</span><span class="p">)</span><span class="mi">10000</span><span class="p">,</span> <span class="n">tb_true</span><span class="p">);</span>
-        
-        <span class="c1">// 如果的调试模式下，可以dump整个线程池的状态和所有处理中的任务状态
-</span>    <span class="cp">#ifdef __tb_debug__
-</span>        <span class="n">tb_thread_pool_dump</span><span class="p">(</span><span class="n">thread_pool</span><span class="p">);</span>
-    <span class="cp">#endif
-</span>
-        <span class="c1">// 等待所有任务执行完成或被取消
-</span>        <span class="n">tb_thread_pool_task_wait_all</span><span class="p">(</span><span class="n">thread_pool</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">);</span>
-        
-        <span class="c1">// 退出线程池
-</span>        <span class="n">tb_thread_pool_exit</span><span class="p">(</span><span class="n">thread_pool</span><span class="p">);</span>
-    <span class="p">}</span>
-</code></pre>
-</div>
+<p>还有两种<strong>基于流的传输器</strong>：</p>
+
+<ol>
+  <li><strong>transfer</strong>：基于两路stream的传输器，可以用于简单的http下载、上传、文件之间的copy等等。</li>
+  <li><strong>async_transfer</strong>：基于<code class="highlighter-rouge">async_stream</code>的异步传输器，可以用于多路并发io传输。</li>
+</ol>
+
+<p>还有一个对<code class="highlighter-rouge">async_transfer</code>进行管理的传输池：<strong>transfer_pool</strong>，你可以把各种下载任务、上传任务以及其他io传输任务，一股脑的扔到池子里面去，什么时候哪个任务传输完了，传输了多少，都有进度回调报告状态，用起来相当方便。</p>
+
+<p>目前的流可以支持如下几种url格式：</p>
+
+<ol>
+  <li>data://base64</li>
+  <li>file://path or unix path: e.g. /root/xxxx/file</li>
+  <li>sock://host:port?tcp=</li>
+  <li>sock://host:port?udp=</li>
+  <li>socks://host:port</li>
+  <li>http://host:port/path?arg0=&amp;arg1=…</li>
+  <li>https://host:port/path?arg0=&amp;arg1=…</li>
+</ol>
+
+<p>具体架构见下图：</p>
+
+<p><img src="/static/img/tbox/streamarch.png" alt="流架构" /></p>
 
 
         </article>
@@ -698,44 +655,6 @@
                         
                         <h2 id="similar_posts">相关文章</h2>
                         <ul>
-                        
-                        <li class="relatedPost">
-                            <a href="/cn/2016/08/27/stream-architecture/">tbox stream流的架构介绍
-                            
-                            </a>
-                        </li>
-                        
-                        
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-            
-        
-            
-            
-            
-                
-                    
                         
                         <li class="relatedPost">
                             <a href="/cn/2016/08/25/stream-rw/">tbox stream流的使用
@@ -1056,6 +975,35 @@
             
             
         
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
         
             </ul>
         
@@ -1069,7 +1017,7 @@
 
         
         
-        <p><strong>上一篇</strong> <a href="/cn/2016/02/04/platform-exception/">用c实现跨平台异常捕获机制</a></p>
+        <p><strong>上一篇</strong> <a href="/cn/2016/08/25/stream-rw/">tbox stream流的使用</a></p>
         
     </div>
 
@@ -1080,8 +1028,595 @@
         
 
         
+
         
-        <p><strong>下一篇</strong> <a href="/cn/2016/02/04/smallest-compile/">tbox的裁剪和定制化编译</a></p>
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
         
     </div>
 </div>
@@ -1091,7 +1626,7 @@
         
 
 <!-- 多说评论框 start -->
-<div class="ds-thread" data-thread-key="http://www.tboox.org/cn/2016/02/04/platform-thread-pool/" data-title="线程池的使用" data-url="http://www.tboox.org/cn/2016/02/04/platform-thread-pool/"></div>
+<div class="ds-thread" data-thread-key="http://www.tboox.org/cn/2016/08/27/stream-architecture/" data-title="tbox stream流的架构介绍" data-url="http://www.tboox.org/cn/2016/08/27/stream-architecture/"></div>
 <!-- 多说评论框 end -->
 <!-- 多说公共JS代码 start (一个网页只需插入一次) -->
 <script type="text/javascript">

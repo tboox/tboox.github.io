@@ -5,9 +5,76 @@
     <description>Focus on cross-platform development using c language</description>
     <link>http://www.tboox.org/</link>
     <atom:link href="http://www.tboox.org/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Sat, 27 Aug 2016 19:00:40 +0800</pubDate>
-    <lastBuildDate>Sat, 27 Aug 2016 19:00:40 +0800</lastBuildDate>
+    <pubDate>Sat, 27 Aug 2016 23:10:46 +0800</pubDate>
+    <lastBuildDate>Sat, 27 Aug 2016 23:10:46 +0800</lastBuildDate>
     <generator>Jekyll v3.1.1</generator>
+    
+      <item>
+        <title>tbox stream流的架构介绍</title>
+        <description>&lt;p&gt;tbox主要有三种流：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;stream&lt;/strong&gt;: 最常用的流，一般用于单路阻塞、非阻塞io的处理，接口简单易用&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;async_stream&lt;/strong&gt;：异步流，基于asio的流，全程回调处理，可以在单个线程里支持多路流的并发，节省系统资源，提高效率&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;static_stream&lt;/strong&gt;：静态流，用于对纯buffer的位流处理，一般用于各种解析器&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;不管是stream还是async_stream，都可以在其上挂接多路filter，实现流之间数据过滤和变换。目前支持以下几种filter：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;zip_filter：gzip&lt;/strong&gt;、zlib的压缩和解压缩过滤器&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;charset_filter&lt;/strong&gt;：字符集编码的过滤器&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;chunked_filter：http&lt;/strong&gt; chunked编码的解码过滤器&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;如果在一个xml解析器上同时挂接：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;http/xml =&amp;gt; chunked_filter =&amp;gt; zip_filter =&amp;gt; charset_filter =&amp;gt; stream/async_stream =&amp;gt; xml_reader
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;就可以实现对xml文件的边下载、边解压、边转码、边解析，这样就可以完美支持大规模xml数据的解析支持，而且内存使用率也不会太高&lt;/p&gt;
+
+&lt;p&gt;还有两种&lt;strong&gt;基于流的传输器&lt;/strong&gt;：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;transfer&lt;/strong&gt;：基于两路stream的传输器，可以用于简单的http下载、上传、文件之间的copy等等。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;async_transfer&lt;/strong&gt;：基于&lt;code class=&quot;highlighter-rouge&quot;&gt;async_stream&lt;/code&gt;的异步传输器，可以用于多路并发io传输。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;还有一个对&lt;code class=&quot;highlighter-rouge&quot;&gt;async_transfer&lt;/code&gt;进行管理的传输池：&lt;strong&gt;transfer_pool&lt;/strong&gt;，你可以把各种下载任务、上传任务以及其他io传输任务，一股脑的扔到池子里面去，什么时候哪个任务传输完了，传输了多少，都有进度回调报告状态，用起来相当方便。&lt;/p&gt;
+
+&lt;p&gt;目前的流可以支持如下几种url格式：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;data://base64&lt;/li&gt;
+  &lt;li&gt;file://path or unix path: e.g. /root/xxxx/file&lt;/li&gt;
+  &lt;li&gt;sock://host:port?tcp=&lt;/li&gt;
+  &lt;li&gt;sock://host:port?udp=&lt;/li&gt;
+  &lt;li&gt;socks://host:port&lt;/li&gt;
+  &lt;li&gt;http://host:port/path?arg0=&amp;amp;arg1=…&lt;/li&gt;
+  &lt;li&gt;https://host:port/path?arg0=&amp;amp;arg1=…&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;具体架构见下图：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/static/img/tbox/streamarch.png&quot; alt=&quot;流架构&quot; /&gt;&lt;/p&gt;
+
+</description>
+        <pubDate>Sat, 27 Aug 2016 00:00:00 +0800</pubDate>
+        <link>http://www.tboox.org/cn/2016/08/27/stream-architecture/</link>
+        <guid isPermaLink="true">http://www.tboox.org/cn/2016/08/27/stream-architecture/</guid>
+        
+        <category>tbox</category>
+        
+        <category>stream</category>
+        
+        <category>流架构</category>
+        
+        
+        <category>tbox</category>
+        
+      </item>
     
       <item>
         <title>tbox stream流的使用</title>
@@ -1515,244 +1582,6 @@ xmake
         <category>lua</category>
         
         <category>swift</category>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>xmake高级特性之批量检测库函数</title>
-        <description>&lt;p&gt;有时候可能用到某个库的某些函数接口，但是这个库有可能在某个平台上被裁减过了，接口支持不全，如果你想跨平台使用，就会出问题&lt;/p&gt;
-
-&lt;p&gt;因此在使用之前进行检测是否存在这个函数，还是很有必要的，xmake提供了方便的api，可以批量检测某个库的一些函数：&lt;/p&gt;
-
-&lt;p&gt;例如：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-    &lt;span class=&quot;c1&quot;&gt;-- 检测libc库中，对宽字符操作的接口是否存在，检测条件：检查wchar.h、stdlib.h中是否有函数声明&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_cfuncs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;libc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;         &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wchar.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;stdlib.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;            &lt;span class=&quot;s2&quot;&gt;&quot;wcscat&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-                                                                        &lt;span class=&quot;s2&quot;&gt;&quot;wcsncat&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-                                                                        &lt;span class=&quot;s2&quot;&gt;&quot;wcscpy&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-                                                                        &lt;span class=&quot;s2&quot;&gt;&quot;wcsncpy&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-                                                                        &lt;span class=&quot;s2&quot;&gt;&quot;wcslcpy&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-                                                                        &lt;span class=&quot;s2&quot;&gt;&quot;wcslen&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-                                                                        &lt;span class=&quot;s2&quot;&gt;&quot;wcsnlen&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-                                                                        &lt;span class=&quot;s2&quot;&gt;&quot;wcsstr&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-                                                                        &lt;span class=&quot;s2&quot;&gt;&quot;wcscasestr&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-                                                                        &lt;span class=&quot;s2&quot;&gt;&quot;wcscmp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-                                                                        &lt;span class=&quot;s2&quot;&gt;&quot;wcscasecmp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-                                                                        &lt;span class=&quot;s2&quot;&gt;&quot;wcsncmp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-                                                                        &lt;span class=&quot;s2&quot;&gt;&quot;wcsncasecmp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-                                                                        &lt;span class=&quot;s2&quot;&gt;&quot;wcstombs&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-                                                                        &lt;span class=&quot;s2&quot;&gt;&quot;mbstowcs&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-    &lt;span class=&quot;c1&quot;&gt;-- 检测pthread库中，是否存在pthread_mutex_init, pthread_create接口，相当于检测了pthread是否存在&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;-- 第一个参数是库类型、别名，可以随便写&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_cfuncs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;posix&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;        &lt;span class=&quot;s2&quot;&gt;&quot;pthread.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;                        &lt;span class=&quot;s2&quot;&gt;&quot;pthread_mutex_init&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;pthread_create&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-    &lt;span class=&quot;c1&quot;&gt;-- 检测pthread库中，是否存在pthread_mutex_init, pthread_create接口，相当于检测了pthread是否存在&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;-- 这个检测更加严格，同时检测了libpthread.a静态库是否存在这个接口的定义，如果链接不通过，就检测失败&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;-- xmake会在检测时，尝试链接-lpthread&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_cfuncs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;posix&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;pthread&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;  &lt;span class=&quot;s2&quot;&gt;&quot;pthread.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;                        &lt;span class=&quot;s2&quot;&gt;&quot;pthread_mutex_init&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;pthread_create&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;可以执行：&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f -v&lt;/code&gt; 看到实际的检测信息，这里随便摘取了一段tbox中检测信息：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;checking for the c include string.h ... ok
-checking for the c include stdlib.h ... ok
-checking for the c function strlen ... ok
-checking for the c function sincosf ... no
-checking for the c include wchar.h ... ok
-checking for the c function wcscmp ... ok
-checking for the c function wcsncat ... ok
-checking for the c include dlfcn.h ... ok
-checking for the c function dlopen ... ok
-checking for the links polarssl ... ok
-checking for the c include polarssl/polarssl.h ... ok
-checking for the c function strcat ... ok
-checking for the c function wcsstr ... ok
-checking for the c function wcscat ... ok
-checking for the c function sincos ... no
-checking for the c function memcpy ... ok
-checking for the c function sqrtf ... ok
-checking for the c function wcsnlen ... ok
-checking for the c function acosf ... ok
-checking for the links pthread, dl, m, c ... ok
-checking for the c include sys/stat.h ... ok
-checking for the c function open ... ok
-checking for the c function strnlen ... ok
-checking for the c function system ... ok
-checking for the links z ... ok
-checking for the c include zlib/zlib.h ... ok
-checking for the c function strncat ... ok
-checking for the c function wcsncpy ... ok
-checking for the c function gmtime ... ok
-checking for the c include signal.h ... ok
-checking for the c include setjmp.h ... ok
-checking for the c function sigsetjmp ... ok
-checking for the c function sinf ... ok
-checking for the c function strncmp ... ok
-checking for the c function memmove ... ok
-checking for the c function strncasecmp ... ok
-checking for the c function strlcpy ... ok
-checking for the links sqlite3 ... ok
-checking for the c include sqlite3/sqlite3.h ... ok
-checking for the c include sys/sem.h ... ok
-checking for the c include sys/ipc.h ... ok
-checking for the c function semtimedop ... no
-checking for the c function wcscpy ... ok
-checking for the c function sqrt ... ok
-checking for the c function strcmp ... ok
-checking for the c function strcasecmp ... ok
-checking for the c function semget ... ok
-checking for the c include unistd.h ... ok
-checking for the c function sysconf ... ok
-checking for the c function memset ... ok
-checking for the c function getpagesize ... ok
-checking for the c include semaphore.h ... ok
-checking for the c function sem_init ... ok
-checking for the c function strncpy ... ok
-checking for the c function localtime ... ok
-checking for the c include ifaddrs.h ... ok
-checking for the c function getifaddrs ... ok
-checking for the c function strcpy ... ok
-checking for the c function gethostname ... ok
-checking for the c function wcslcpy ... ok
-checking for the c include dirent.h ... ok
-checking for the c function opendir ... ok
-checking for the c function wcslen ... ok
-checking for the c function cos ... ok
-checking for the c include sys/time.h ... ok
-checking for the c function gettimeofday ... ok
-checking for the c function signal ... ok
-checking for the c function strstr ... ok
-checking for the c function exp ... ok
-checking for the c function log2f ... ok
-checking for the c function sin ... ok
-checking for the c function log2 ... ok
-checking for the c function cosf ... ok
-checking for the c include pthread.h ... ok
-checking for the c function pthread_mutex_init ... ok
-checking for the c function fmodf ... ok
-checking for the c function wcstombs ... ok
-checking for the c function fmod ... ok
-checking for the c function memcmp ... ok
-checking for the c function atan2f ... ok
-checking for the c function atan2 ... ok
-checking for the c function atanf ... ok
-checking for the c function atan ... ok
-checking for the c function powf ... ok
-checking for the c function pow ... ok
-checking for the c function asinf ... ok
-checking for the c function asin ... ok
-checking for the c function pthread_create ... ok
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;最后的检测结果会自动输出到config.h中（如果有启用的话）：&lt;/p&gt;
-
-&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;cp&quot;&gt;#define TB_CONFIG_LIBC_HAVE_MEMCPY
-#define TB_CONFIG_LIBC_HAVE_MEMSET
-#define TB_CONFIG_LIBC_HAVE_MEMMOVE
-#define TB_CONFIG_LIBC_HAVE_MEMCMP
-#define TB_CONFIG_LIBC_HAVE_MEMMEM
-#define TB_CONFIG_LIBC_HAVE_STRCAT
-#define TB_CONFIG_LIBC_HAVE_STRNCAT
-#define TB_CONFIG_LIBC_HAVE_STRCPY
-#define TB_CONFIG_LIBC_HAVE_STRNCPY
-#define TB_CONFIG_LIBC_HAVE_STRLCPY
-#define TB_CONFIG_LIBC_HAVE_STRLEN
-#define TB_CONFIG_LIBC_HAVE_STRNLEN
-#define TB_CONFIG_LIBC_HAVE_STRSTR
-#define TB_CONFIG_LIBC_HAVE_STRCASESTR
-#define TB_CONFIG_LIBC_HAVE_STRCMP
-#define TB_CONFIG_LIBC_HAVE_STRCASECMP
-#define TB_CONFIG_LIBC_HAVE_STRNCMP
-#define TB_CONFIG_LIBC_HAVE_STRNCASECMP
-#define TB_CONFIG_LIBC_HAVE_WCSCAT
-#define TB_CONFIG_LIBC_HAVE_WCSNCAT
-#define TB_CONFIG_LIBC_HAVE_WCSCPY
-#define TB_CONFIG_LIBC_HAVE_WCSNCPY
-#define TB_CONFIG_LIBC_HAVE_WCSLCPY
-#define TB_CONFIG_LIBC_HAVE_WCSLEN
-#define TB_CONFIG_LIBC_HAVE_WCSNLEN
-#define TB_CONFIG_LIBC_HAVE_WCSSTR
-#define TB_CONFIG_LIBC_HAVE_WCSCMP
-#define TB_CONFIG_LIBC_HAVE_WCSCASECMP
-#define TB_CONFIG_LIBC_HAVE_WCSNCMP
-#define TB_CONFIG_LIBC_HAVE_WCSNCASECMP
-#define TB_CONFIG_LIBC_HAVE_WCSTOMBS
-#define TB_CONFIG_LIBC_HAVE_MBSTOWCS
-#define TB_CONFIG_LIBC_HAVE_GMTIME
-#define TB_CONFIG_LIBC_HAVE_MKTIME
-#define TB_CONFIG_LIBC_HAVE_LOCALTIME
-#define TB_CONFIG_LIBC_HAVE_GETTIMEOFDAY
-#define TB_CONFIG_LIBC_HAVE_SIGNAL
-#define TB_CONFIG_LIBC_HAVE_SETJMP
-#define TB_CONFIG_LIBC_HAVE_SIGSETJMP
-#define TB_CONFIG_LIBC_HAVE_BACKTRACE
-#define TB_CONFIG_LIBC_HAVE_SYSTEM
-#define TB_CONFIG_LIBM_HAVE_LOG2
-#define TB_CONFIG_LIBM_HAVE_LOG2F
-#define TB_CONFIG_LIBM_HAVE_SQRT
-#define TB_CONFIG_LIBM_HAVE_SQRTF
-#define TB_CONFIG_LIBM_HAVE_ACOS
-#define TB_CONFIG_LIBM_HAVE_ACOSF
-#define TB_CONFIG_LIBM_HAVE_ASIN
-#define TB_CONFIG_LIBM_HAVE_ASINF
-#define TB_CONFIG_LIBM_HAVE_POW
-#define TB_CONFIG_LIBM_HAVE_POWF
-#define TB_CONFIG_LIBM_HAVE_FMOD
-#define TB_CONFIG_LIBM_HAVE_FMODF
-#define TB_CONFIG_LIBM_HAVE_ATAN
-#define TB_CONFIG_LIBM_HAVE_ATANF
-#define TB_CONFIG_LIBM_HAVE_ATAN2
-#define TB_CONFIG_LIBM_HAVE_ATAN2F
-#define TB_CONFIG_LIBM_HAVE_COS
-#define TB_CONFIG_LIBM_HAVE_COSF
-#define TB_CONFIG_LIBM_HAVE_SIN
-#define TB_CONFIG_LIBM_HAVE_SINF
-#define TB_CONFIG_LIBM_HAVE_EXP
-#define TB_CONFIG_LIBM_HAVE_EXPF
-#define TB_CONFIG_POSIX_HAVE_POLL
-#define TB_CONFIG_POSIX_HAVE_PTHREAD_MUTEX_INIT
-#define TB_CONFIG_POSIX_HAVE_PTHREAD_CREATE
-#define TB_CONFIG_POSIX_HAVE_SOCKET
-#define TB_CONFIG_POSIX_HAVE_OPENDIR
-#define TB_CONFIG_POSIX_HAVE_DLOPEN
-#define TB_CONFIG_POSIX_HAVE_OPEN
-#define TB_CONFIG_POSIX_HAVE_GETHOSTNAME
-#define TB_CONFIG_POSIX_HAVE_GETIFADDRS
-#define TB_CONFIG_POSIX_HAVE_SEM_INIT
-#define TB_CONFIG_POSIX_HAVE_GETPAGESIZE
-#define TB_CONFIG_POSIX_HAVE_SYSCONF
-#define TB_CONFIG_POSIX_HAVE_SCHED_YIELD
-#define TB_CONFIG_SYSTEMV_HAVE_SEMGET
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;之后就可以在代码中，包含这个config.h来判断是否需要实际调用这个接口了，如果要多c++代码的接口进行检测，只需把名字改成：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_cxxfuncs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;...&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;就行了，更加详细的检测设置，可以参考&lt;a href=&quot;/cn/2016/08/06/add-package-and-autocheck/&quot;&gt;依赖包的添加和自动检测机制&lt;/a&gt;&lt;/p&gt;
-
-</description>
-        <pubDate>Sat, 06 Aug 2016 00:00:00 +0800</pubDate>
-        <link>http://www.tboox.org/cn/2016/08/06/batch-check-library-interfaces/</link>
-        <guid isPermaLink="true">http://www.tboox.org/cn/2016/08/06/batch-check-library-interfaces/</guid>
-        
-        <category>xmake</category>
-        
-        <category>lua</category>
-        
-        <category>批量检测</category>
         
         
         <category>xmake</category>
