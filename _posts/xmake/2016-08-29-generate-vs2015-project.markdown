@@ -1,5 +1,5 @@
 ---
-layout: post.cn
+layout: post
 title: "The xmake plugin for generating vstudio project file (vs2002 - 2015)"
 tags: xmake lua VisualStudio plugin vs2008 vs2015
 categories: xmake
