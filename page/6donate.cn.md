@@ -26,7 +26,7 @@ TBOOX的所有项目都是属于个人开源项目，它的发展需要您的帮
 
 ## Paypal
 
-[![Paypal Me](/static/img/paypal.png)](http://paypal.me/tboox/10)
+[![Paypal Me](/static/img/paypal.png)](http://paypal.me/tboox/5)
 
 ## 支持者
 

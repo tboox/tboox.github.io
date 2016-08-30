@@ -15,7 +15,7 @@ If you would like to support the development of these projects, welcome to donat
 
 ## Paypal
 
-[![Paypal Me](/static/img/paypal.png)](http://paypal.me/tboox/10)
+[![Paypal Me](/static/img/paypal.png)](http://paypal.me/tboox/5)
 
 ## Books
 
