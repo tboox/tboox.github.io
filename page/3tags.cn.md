@@ -62,7 +62,7 @@ icon: tags
                 </ul>
             </div>
             
-            <!-- 其他div框放到这里 -->
+            <!-- google ads -->
             {% if site.adsbygoogle_client %}
             <br>
             <div class="side">
@@ -76,6 +76,16 @@ icon: tags
                 </script>
             </div> 
             {% endif %}
+
+            <!-- baidu ads -->
+            {% if site.baiduads_slide_id0 %}
+            <br>
+            <script type="text/javascript">
+                var cpro_id = "{{site.baiduads_slide_id0}}";
+            </script>
+            <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
+            {% endif %}
+
         </div>
     </div>
 </div>

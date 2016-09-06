@@ -210,11 +210,12 @@ layout: default.cn
             </div> 
             {% endif %}
 
-            <!-- amazon ads -->
-            {% if site.amazon_ads_cn %}
-            <div class="side" ads>
-            <iframe src="http://rcm-cn.amazon-adsystem.com/e/cm?t={{site.amazon_ads_cn}}&o=28&p=12&l=ur1&category=books&banner=178RNKETN7QTJC5BPR82&f=ifr" width="265" height="243" scrolling="no" border="0" marginwidth="0" style="border:none;max-width:800px;max-height:600px;" frameborder="0"></iframe>
-            </div>
+            <!-- baidu ads -->
+            {% if site.baiduads_slide_id0 %}
+            <script type="text/javascript">
+                var cpro_id = "{{site.baiduads_slide_id0}}";
+            </script>
+            <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
             {% endif %}
 
         </div>

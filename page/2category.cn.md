@@ -53,7 +53,7 @@ icon: th-list
                 </ul>
             </div>
             
-            <!-- 其他div框放到这里 -->
+            <!-- google ads -->
             {% if site.adsbygoogle_client %}
             <br>
             <div class="side">
@@ -68,14 +68,15 @@ icon: th-list
             </div> 
             {% endif %}
 
-
-            <!-- amazon ads -->
-            {% if site.amazon_ads_cn %}
+            <!-- baidu ads -->
+            {% if site.baiduads_slide_id0 %}
             <br>
-            <div class="side" ads>
-            <iframe src="http://rcm-cn.amazon-adsystem.com/e/cm?t={{site.amazon_ads_cn}}&o=28&p=12&l=ur1&category=books&banner=13KHSWM8QK53P2BAMKG2&f=ifr" width="265" height="243" scrolling="no" border="0" marginwidth="0" style="border:none;max-width:800px;max-height:600px;" frameborder="0"></iframe>
-            </div>
+            <script type="text/javascript">
+                var cpro_id = "{{site.baiduads_slide_id0}}";
+            </script>
+            <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
             {% endif %}
+
         </div>
     </div>
 </div>
