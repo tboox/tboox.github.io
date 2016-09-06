@@ -17,10 +17,6 @@ If you would like to support the development of these projects, welcome to donat
 
 [![Paypal Me](/static/img/paypal.png)](http://paypal.me/tboox/5)
 
-## Books
-
-Buy some books to support us: [Go to see it](/book)
-
 ## Alipay 
 
 <img src="/static/img/alipay.png" alt="alipay" width="256" height="256">

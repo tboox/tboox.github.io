@@ -10,10 +10,6 @@ icon: heart
 
 TBOOX的所有项目都是属于个人开源项目，它的发展需要您的帮助，如果您愿意支持TBOOX项目的开发，欢迎为其捐赠，支持它的发展。
 
-## 书柜
-
-买几本书支持下我们：[去逛逛](/cn/book)
-
 ## 支付宝
 
 <img src="/static/img/alipay.png" alt="alipay" width="256" height="256">
