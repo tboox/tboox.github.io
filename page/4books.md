@@ -1,11 +1,12 @@
 ---
 layout: book
-permalink: /404.html
+title: Books
+tags: book,programing,software,development,reverse engineering
+permalink: /book/
+icon: book
 ---
 
-### Oh, 404 errors!
 
-Let's take a break, read some books ..
 
 <div class="grid">
 </div>
