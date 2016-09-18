@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Compile project"
-tags: xmake lua compile configure
+tags: xmake compile configure
 categories: xmake
 ---
 

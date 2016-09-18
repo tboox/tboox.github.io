@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "How to install xmake"
-tags: xmake lua install linux windows macosx homebrew
+tags: xmake install linux windows macosx homebrew
 categories: xmake
 ---
 

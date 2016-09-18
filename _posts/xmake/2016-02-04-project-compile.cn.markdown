@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "使用xmake编译工程"
-tags: xmake lua 编译 跨平台
+tags: xmake 编译 跨平台
 categories: xmake
 ---
 

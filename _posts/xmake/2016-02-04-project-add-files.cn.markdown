@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "xmake中add_files的使用"
-tags: xmake lua 模式匹配
+tags: xmake 模式匹配
 categories: xmake
 ---
 

@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title: "xmake高级特性之批量检测库函数"
-tags: xmake lua 批量检测
+tags: xmake 批量检测
 categories: xmake
 ---
 

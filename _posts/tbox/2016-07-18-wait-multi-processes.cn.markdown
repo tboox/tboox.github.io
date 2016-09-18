@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "多进程等待的跨平台实现"
-tags: xmake lua tbox windows 协程 进程等待 跨平台
+tags: xmake tbox windows 协程 进程等待 跨平台
 categories: tbox xmake
 ---
 

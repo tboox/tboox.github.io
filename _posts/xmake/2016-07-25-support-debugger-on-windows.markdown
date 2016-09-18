@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Running and debugging program using xmake"
-tags: xmake lua symbolfile run debug windbg ollydbg windows
+tags: xmake symbolfile run debug windbg ollydbg windows
 categories: xmake
 ---
 

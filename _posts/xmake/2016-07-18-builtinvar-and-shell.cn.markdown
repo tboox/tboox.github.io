@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title: "内置变量与原生shell脚本运行"
-tags: xmake lua shell 内置变量 pkg-config
+tags: xmake shell 内置变量 pkg-config
 categories: xmake
 ---
 

@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title: "xmake高级特性之选项绑定"
-tags: xmake lua 选项绑定
+tags: xmake 选项绑定
 categories: xmake
 ---
 

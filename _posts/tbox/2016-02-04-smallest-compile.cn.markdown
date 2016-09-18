@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "tbox的裁剪和定制化编译"
-tags: tbox c 裁剪 编译 配置
+tags: tbox 裁剪 编译 配置
 categories: tbox
 ---
 

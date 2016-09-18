@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title: "如何通过xmake进行交叉编译"
-tags: xmake lua 交叉编译
+tags: xmake 交叉编译
 categories: xmake
 ---
 

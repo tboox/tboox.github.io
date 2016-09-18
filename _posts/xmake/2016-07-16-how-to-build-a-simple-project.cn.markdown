@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "如何快速构建一个简单的程序"
-tags: xmake lua 编译 交叉编译 
+tags: xmake 编译 交叉编译 
 categories: xmake
 ---
 

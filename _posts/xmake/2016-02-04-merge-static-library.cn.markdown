@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "xmake高级特性之合并静态库"
-tags: xmake lua 静态库
+tags: xmake 静态库
 categories: xmake
 ---
 

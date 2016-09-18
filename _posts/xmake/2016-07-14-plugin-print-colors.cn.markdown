@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "插件开发之色彩高亮显示"
-tags: xmake lua 插件 终端色彩高亮
+tags: xmake 插件 终端色彩高亮
 categories: xmake
 ---
 

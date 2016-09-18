@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title: "xmake编译配置过程详解"
-tags: xmake lua 配置 android vs 自动检测
+tags: xmake 配置 android vs 自动检测
 categories: xmake
 ---
 

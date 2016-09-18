@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title: "xmake默认启用pdb符号文件"
-tags: xmake lua 编译 符号文件 调试符号
+tags: xmake 编译 符号文件 调试符号
 categories: xmake
 ---
 

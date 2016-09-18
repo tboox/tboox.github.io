@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Builtin variables and shell"
-tags: xmake lua shell builtin-variables pkg-config
+tags: xmake shell builtin-variables pkg-config
 categories: xmake
 ---
 

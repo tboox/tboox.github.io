@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Run target"
-tags: xmake lua run 
+tags: xmake run 
 categories: xmake
 ---
 

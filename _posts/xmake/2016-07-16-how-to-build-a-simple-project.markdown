@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "How to build a simple project quickly"
-tags: xmake lua build project hello 
+tags: xmake build project hello 
 categories: xmake
 ---
 

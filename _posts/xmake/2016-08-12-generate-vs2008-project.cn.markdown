@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title: "xmake支持vs2008生成"
-tags: xmake lua VisualStudio vs2008
+tags: xmake VisualStudio vs2008
 categories: xmake
 ---
 

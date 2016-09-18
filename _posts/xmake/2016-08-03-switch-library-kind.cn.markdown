@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title: "静态库和动态库的编译切换"
-tags: xmake lua 静态库 动态库
+tags: xmake 静态库 动态库
 categories: xmake
 ---
 

@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "插件开发之参数配置"
-tags: xmake lua 插件 菜单选项
+tags: xmake 插件 菜单选项
 categories: xmake
 ---
 

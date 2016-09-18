@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "通过流进行解压缩文件"
-tags: tbox c stream 流 解压缩
+tags: tbox stream 流 解压缩
 categories: tbox
 ---
 

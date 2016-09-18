@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title: "使用xmake编译swift代码"
-tags: xmake lua swift
+tags: xmake swift
 categories: xmake
 ---
 

@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title: "如何为windows编译启用pdb支持"
-tags: xmake lua pdb 调试符号 windows
+tags: xmake pdb 调试符号 windows
 categories: xmake
 ---
 

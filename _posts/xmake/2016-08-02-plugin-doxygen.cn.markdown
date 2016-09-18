@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title: "xmake插件使用之doxygen文档生成"
-tags: xmake lua doxygen 插件 文档生成
+tags: xmake doxygen 插件 文档生成
 categories: xmake
 ---
 

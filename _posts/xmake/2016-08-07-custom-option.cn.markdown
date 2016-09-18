@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title: "xmake高级特性之自定义选项"
-tags: xmake lua 自定义选项
+tags: xmake 自定义选项
 categories: xmake
 ---
 

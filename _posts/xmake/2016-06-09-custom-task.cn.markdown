@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "高级特性之自定义task任务"
-tags: xmake lua task 自定义脚本 插件
+tags: xmake task 自定义脚本 插件
 categories: xmake
 ---
 

@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Demo: Build a simple project"
-tags: xmake lua demo build project hello 
+tags: xmake demo build project hello 
 categories: xmake
 ---
 

@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title: "xmake支持vs2002-vs2015工程文件生成"
-tags: xmake lua VisualStudio vs2008
+tags: xmake VisualStudio vs2008
 categories: xmake
 ---
 

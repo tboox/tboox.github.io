@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "How to configure for compiling"
-tags: xmake lua configure android auto-detection
+tags: xmake configure android auto-detection
 categories: xmake
 ---
 

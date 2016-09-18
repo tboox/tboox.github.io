@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "用c实现跨平台异常捕获机制"
-tags: tbox c 跨平台 异常捕获 windows linux
+tags: tbox 跨平台 异常捕获 windows linux
 categories: tbox
 ---
 

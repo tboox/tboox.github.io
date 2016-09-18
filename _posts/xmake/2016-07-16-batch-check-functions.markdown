@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Batch checking library functions"
-tags: xmake lua check batch function 
+tags: xmake check batch function 
 categories: xmake
 ---
 

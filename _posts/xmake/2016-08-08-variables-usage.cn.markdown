@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title: "xmake内建变量和外置变量的使用"
-tags: xmake lua 内建变量 外置变量
+tags: xmake 内建变量 外置变量
 categories: xmake
 ---
 

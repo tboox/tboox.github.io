@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "插件开发之hello xmake"
-tags: xmake lua 插件 hello makefile doxygen 宏脚本
+tags: xmake 插件 hello makefile doxygen 宏脚本
 categories: xmake
 ---
 

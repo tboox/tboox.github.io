@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title: "xmake工程描述编写之选择性编译"
-tags: xmake lua 编译 工程描述 xmake.lua 条件判断
+tags: xmake 编译 工程描述 xmake.lua 条件判断
 categories: xmake
 ---
 

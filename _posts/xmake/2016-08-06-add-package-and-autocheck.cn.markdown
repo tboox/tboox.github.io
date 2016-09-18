@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title: "依赖包的添加和自动检测机制"
-tags: xmake lua 依赖包 自动检测
+tags: xmake 依赖包 自动检测
 categories: xmake
 ---
 

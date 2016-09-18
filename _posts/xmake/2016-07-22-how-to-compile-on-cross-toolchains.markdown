@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "How to complie project using the cross-toolchains"
-tags: xmake lua cross-toolchains cross-compiling
+tags: xmake cross-toolchains cross-compiling
 categories: xmake
 ---
 

@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title: "演示：构建一个简单的程序"
-tags: xmake lua 演示 编译 交叉编译 
+tags: xmake 演示 编译 交叉编译 
 categories: xmake
 ---
 

@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title: "在windows下支持调试运行"
-tags: xmake lua 编译 符号文件 调试器 windows
+tags: xmake 编译 符号文件 调试器 windows
 categories: xmake
 ---
 

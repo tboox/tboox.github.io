@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "头文件自动依赖检测和构建"
-tags: xmake lua 头文件依赖 增量编译
+tags: xmake 头文件依赖 增量编译
 categories: xmake
 ---
 

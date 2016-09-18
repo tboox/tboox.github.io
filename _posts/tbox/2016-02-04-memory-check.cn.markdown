@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "内存检测"
-tags: tbox c 内存检测
+tags: tbox 内存检测
 categories: tbox
 ---
 
