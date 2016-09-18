@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>使用printf定制化打印对象</title>
+    <meta name="description" content="tbox内置的libc库，有一份自有的printf实现，在支持了所有标准格式化参数的同时，也对其进行了一些扩展，来支持自定义的格式化参数打印， 例如：    // 输出定点数：3.14    tb_printf("%{fixed}\n", tb_float_to_fixed(3.14));    // 输出ipv...">
+
+    
+    <meta name="keywords" content="tbox,printf,打印,tboox" /> 
+
+    <!-- qq oauth -->
+    <meta property="qc:admins" content="5211601217706727767255" />
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+	<link rel="icon" sizes="139x139" href="/static/img/logo1.jpg" />
+    <link rel="stylesheet" href=" /css/fontawesome/css/font-awesome.min.css ">
+    <link rel="stylesheet" href=" /css/main.css ">
+    <link rel="canonical" href="http://www.tboox.org/cn/2016/09/18/custom-printf/">
+    <link rel="alternate" type="application/rss+xml" title="TBOOX Open Source Project" href="http://www.tboox.org/feed.xml ">
+    <link rel="alternate" hreflang="en" href="http://www.tboox.org/" />
+    <link rel="alternate" hreflang="zh-Hans" href="http://www.tboox.org/cn/" />
+
+
+    <script>
+    // 百度统计代码
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?162f1cd478898a0686b0b5d5115e2af2";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+
+
+</head>
+
+
+  <body>
+
+    <header id="top">
+    <div class="wrapper">
+        <a href="/cn" class="brand">TBOOX</a>
+        <button id="headerMenu" class="menu"><i class="fa fa-bars"></i></button>
+        <nav id="headerNav">
+            <ul>
+                <li>
+                    
+                    <a href="/">
+                    
+                        <i class="fa fa-home"></i>English
+                    </a>
+                </li>
+
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/project/">
+                            
+                        
+                            <i class="fa fa-bookmark"></i>项目
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/archive/">
+                            
+                        
+                            <i class="fa fa-archive"></i>归档
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/category/">
+                            
+                        
+                            <i class="fa fa-th-list"></i>分类
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/tag/">
+                            
+                        
+                            <i class="fa fa-tags"></i>标记
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/book/">
+                            
+                        
+                            <i class="fa fa-book"></i>书柜
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/forum">
+                            
+                        
+                            <i class="fa fa-forumbee"></i>社区
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/donation/">
+                            
+                        
+                            <i class="fa fa-heart"></i>捐助
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/about/">
+                            
+                        
+                            <i class="fa fa-user"></i>关于
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            </ul>
+        </nav>
+    </div>
+</header>
+
+
+        <div class="page clearfix" post>
+    <div class="left">
+        <h1>使用printf定制化打印对象</h1>
+        <div class="label">
+
+            <div class="label-card">
+                <i class="fa fa-calendar"></i>2016-09-18
+            </div>
+
+            <div class="label-card">
+                
+            </div>
+
+            <div class="label-card">
+                
+            </div>
+
+            <div class="label-card">
+            
+
+
+<!-- <span class="point">•</span> -->
+<span class="categories">
+  <i class="fa fa-th-list"></i>
+  
+    
+        <a href="/category/#tbox" title="Category: tbox" rel="category">tbox</a>
+    
+  
+
+  <!-- <span class="point">•</span> -->
+</span>
+
+
+            </div>
+
+            <div class="label-card">
+            
+<!-- <span class="point">•</span> -->
+<span class="pageTag">
+  <i class="fa fa-tags"></i>
+  
+    
+        <!--a href="/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a-->
+        <a href="/cn/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a>&nbsp;
+    
+        <!--a href="/tag/#printf" title="Tag: printf" rel="tag">printf</a-->
+        <a href="/cn/tag/#printf" title="Tag: printf" rel="tag">printf</a>&nbsp;
+    
+        <!--a href="/tag/#%E6%89%93%E5%8D%B0" title="Tag: 打印" rel="tag">打印</a-->
+        <a href="/cn/tag/#打印" title="Tag: 打印" rel="tag">打印</a>
+    
+  
+
+</span>
+
+            </div>
+
+        </div>
+        <hr>
+        <article itemscope itemtype="http://schema.org/BlogPosting">
+        <p>tbox内置的libc库，有一份自有的printf实现，在支持了所有标准格式化参数的同时，也对其进行了一些扩展，来支持自定义的格式化参数打印， 例如：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="c1">// 输出定点数：3.14
+</span>    <span class="n">tb_printf</span><span class="p">(</span><span class="s">"%{fixed}</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">tb_float_to_fixed</span><span class="p">(</span><span class="mi">3</span><span class="p">.</span><span class="mi">14</span><span class="p">));</span>
+
+    <span class="c1">// 输出ipv4地址：127.0.0.1
+</span>    <span class="n">tb_ipv4_t</span> <span class="n">addr</span><span class="p">;</span>
+    <span class="n">tb_ipv4_set</span><span class="p">(</span><span class="o">&amp;</span><span class="n">addr</span><span class="p">,</span> <span class="s">"127.0.0.1"</span><span class="p">);</span>
+    <span class="n">tb_printf</span><span class="p">(</span><span class="s">"%{ipv4}</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">addr</span><span class="p">);</span>
+</code></pre>
+</div>
+
+<p>以上两种都是TBOX内置的对象参数打印，你只需要吧你需要打印的对象名和对象描述函数注册进来，就行了。</p>
+
+<p>其中<code class="highlighter-rouge">%{object_name}</code> 就是自定义参数化对象打印的格式，这个是对%s、%f等标准格式的扩展，使你可以像ios中的<code class="highlighter-rouge">NSLog(@"%@", object)</code> 那样方便的打印自定义对象的内容。</p>
+
+<p>例如：如果你要支持自定义打印如下内容：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="k">typedef</span> <span class="k">struct</span> <span class="n">_rect_t</span>
+    <span class="p">{</span>
+        <span class="n">tb_long_t</span> <span class="n">x</span><span class="p">;</span>
+        <span class="n">tb_long_t</span> <span class="n">y</span><span class="p">;</span>
+        <span class="n">tb_size_t</span> <span class="n">w</span><span class="p">;</span>
+        <span class="n">tb_size_t</span> <span class="n">h</span><span class="p">;</span>
+
+    <span class="p">}</span><span class="n">rect_t</span><span class="p">;</span>
+
+    <span class="n">tb_printf</span><span class="p">(</span><span class="s">"%{rect}</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">rect</span><span class="p">);</span>
+</code></pre>
+</div>
+
+<p>那么你只需要提供对应的rect对象的描述函数，并对其进行注册，就行了：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="c1">// rect对象的描述函数，将描述内容格式化到cstr中，并返回实际的字符串大小
+</span>    <span class="k">static</span> <span class="n">tb_long_t</span> <span class="nf">tb_printf_rect_func</span><span class="p">(</span><span class="n">tb_cpointer_t</span> <span class="n">object</span><span class="p">,</span> <span class="n">tb_char_t</span><span class="o">*</span> <span class="n">cstr</span><span class="p">,</span> <span class="n">tb_size_t</span> <span class="n">maxn</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// check
+</span>        <span class="n">tb_assert_and_check_return_val</span><span class="p">(</span><span class="n">object</span> <span class="o">&amp;&amp;</span> <span class="n">cstr</span> <span class="o">&amp;&amp;</span> <span class="n">maxn</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+
+        <span class="c1">// the rect
+</span>        <span class="n">rect_t</span><span class="o">*</span> <span class="n">rect</span> <span class="o">=</span> <span class="p">(</span><span class="n">rect_t</span><span class="o">*</span><span class="p">)</span><span class="n">object</span><span class="p">;</span>
+
+        <span class="c1">// format
+</span>        <span class="n">tb_long_t</span> <span class="n">size</span> <span class="o">=</span> <span class="n">tb_snprintf</span><span class="p">(</span><span class="n">cstr</span><span class="p">,</span> <span class="n">maxn</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="s">"(x: %ld, y: %ld, w: %lu, h: %lu)"</span><span class="p">,</span> <span class="n">rect</span><span class="o">-&gt;</span><span class="n">x</span><span class="p">,</span> <span class="n">rect</span><span class="o">-&gt;</span><span class="n">y</span><span class="p">,</span> <span class="n">rect</span><span class="o">-&gt;</span><span class="n">w</span><span class="p">,</span> <span class="n">rect</span><span class="o">-&gt;</span><span class="n">h</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="n">cstr</span><span class="p">[</span><span class="n">size</span><span class="p">]</span> <span class="o">=</span> <span class="sc">'\0'</span><span class="p">;</span>
+
+        <span class="c1">// ok?
+</span>        <span class="k">return</span> <span class="n">size</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c1">// 注册%{rect}对象的printf参数化打印支持，注：最好在程序初始化阶段来进行注册
+</span>    <span class="n">tb_printf_object_register</span><span class="p">(</span><span class="s">"rect"</span><span class="p">,</span> <span class="n">tb_printf_rect_func</span><span class="p">);</span>
+
+    <span class="c1">// 打印rect对象信息，显示："(x: 10, y: 10, w: 640, h: 480)"
+</span>    <span class="n">rect_t</span> <span class="n">rect</span> <span class="o">=</span> <span class="p">{</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">640</span><span class="p">,</span> <span class="mi">480</span><span class="p">};</span>
+    <span class="n">tb_printf</span><span class="p">(</span><span class="s">"%{rect}</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">rect</span><span class="p">);</span>
+</code></pre>
+</div>
+
+<p>当然不仅仅只有printf支持自定义的参数化对象打印，只要是printf系列的都支持这个特性，例如如下接口：</p>
+
+<ul>
+  <li>tb_printf</li>
+  <li>tb_snprintf</li>
+  <li>tb_vsnprintf</li>
+  <li>tb_wprintf</li>
+  <li>tb_swprintf</li>
+  <li>tb_vswprintf</li>
+  <li>tb_trace_i</li>
+  <li>tb_trace_d</li>
+  <li>tb_trace_e</li>
+  <li>tb_trace_w</li>
+</ul>
+
+<p>等等，这些都是可以自定义的参数化对象打印，每个对象，只要注册一次就行了。</p>
+
+
+        </article>
+        <hr>
+
+        
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+        
+
+        
+        
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <h2 id="similar_posts">相关文章</h2>
+                        <ul>
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/09/18/database-usage/">tbox中数据库的使用
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/08/29/update-v1.5.3/">tbox v1.5.3发布！
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/08/27/stream-architecture/">tbox stream流的架构介绍
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/08/25/stream-rw/">tbox stream流的使用
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+        
+            </ul>
+        
+
+        <div class="post-recent">
+    <div class="pre">
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        <p><strong>上一篇</strong> <a href="/cn/2016/08/29/update-v2.0.4/">xmake v2.0.4发布！</a></p>
+        
+    </div>
+
+    <div class="nex">
+
+        
+
+        
+
+        
+        
+        <p><strong>下一篇</strong> <a href="/cn/2016/09/18/database-usage/">tbox中数据库的使用</a></p>
+        
+    </div>
+</div>
+
+
+        <h2 id="comments">评论</h2>
+        
+
+<!-- 多说评论框 start -->
+<div class="ds-thread" data-thread-key="http://www.tboox.org/cn/2016/09/18/custom-printf/" data-title="使用printf定制化打印对象" data-url="http://www.tboox.org/cn/2016/09/18/custom-printf/"></div>
+<!-- 多说评论框 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"tboox"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- 多说公共JS代码 end -->
+<!-- 多说公共JS代码 end -->
+
+
+
+
+
+
+
+
+    </div>
+    <button class="anchor"><i class="fa fa-anchor"></i></button>
+    <div class="right">
+        <div class="wrap">
+
+            <!-- Content -->
+            <div class="side content">
+                <div>
+                    内容
+                </div>
+                <ul id="content-side" class="content-ul">
+                    <li><a href="#english">English</a></li>
+                    <li><a href="#similar_posts">相关文章</a></li>
+                    <li><a href="#comments">评论</a></li>
+                </ul>
+            </div>
+            
+            <br>
+            <div class="side">
+                <div>
+                    <i class="fa fa-external-link"></i>
+                    链接
+                </div>
+                <ul class="content-ul">
+                  <li><a href="http://github.com/waruqi/tbox">tbox</a></li>
+                  <li><a href="http://www.xmake.io">xmake</a></li>
+                  <li><a href="https://github.com/waruqi">github</a></li>
+                </ul>
+            </div> 
+
+            <!-- google ads -->
+            
+
+            <!-- baidu ads -->
+            
+            <br>
+            <script type="text/javascript">
+                var cpro_id = "u2755106";
+            </script>
+            <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
+            
+
+        </div>
+    </div>
+</div>
+<script>
+/**
+ * target _blank
+ */
+(function() {
+    var aTags = document.querySelectorAll('article a:not([id])')
+    for (var i = 0; i < aTags.length; i++) {
+        aTags[i].setAttribute('target', '_blank')
+    }
+}());
+</script>
+<script src="/js/pageContent.js " charset="utf-8"></script>
+
+
+    <footer class="site-footer">
+    <div class="wrapper">
+        <p class="description">
+             Copyright (c) 2016 tboox.org 
+        </p>
+        <p class="contact">
+            
+            <a href="https://github.com/waruqi" title="GitHub"><i class="fa fa-github" aria-hidden="true"></i></a> 
+             
+            
+            <a href="mailto:waruqi@gmail.com" title="email"><i class="fa fa-envelope-o" aria-hidden="true"></i></a> 
+            
+            
+            <a href="https://twitter.com/waruqi" title="Twitter"><i class="fa fa-twitter" aria-hidden="true"></i></a> 
+            
+            <a href="/feed.xml" title="feed"><i class="fa fa-feed" aria-hidden="true"></i></a> 
+        </p>
+        <p class="power">
+            <span>
+                Site powered by <a href="https://jekyllrb.com/">Jekyll</a> & <a href="https://github.com/Gaohaoyang">HyG</a>.
+            </span>
+            <span>
+                <a href="http://www.miitbeian.gov.cn/">沪ICP备16031914号</a>.
+                <a href="http://www.beian.gov.cn/">沪公网安备31011702000303号</a>.
+            </span>
+        </p>
+    </div>
+</footer>
+
+    <div class="back-to-top">
+    <a href="#top" class="scroll">
+        <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    </a>
+</div>
+
+    <script src=" /js/main.js " charset="utf-8"></script>
+    <script src=" /js/scroll.min.js " charset="utf-8"></script>
+  </body>
+
+</html>
