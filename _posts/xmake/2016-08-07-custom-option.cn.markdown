@@ -25,7 +25,7 @@ xmake还可以支持一些自定义选项开关，使得工程支持可选编译
 option("hello")
 
     -- 默认禁用这个开关，需要手动xmake f --hello=true才会启用，当然你也可以默认启用它
-    set_enable(false)
+    set_default(false)
 
     -- 定义一些宏开关，这个只有在hello被启用的时候才会被定义
     add_defines_if_ok("HELLO_ENABLE", "HELLO_TEST")
@@ -72,7 +72,7 @@ $ xmake -r
 option("hello")
 
     -- 默认禁用这个开关，需要手动xmake f --hello=true才会启用，当然你也可以默认启用它
-    set_enable(false)
+    set_default(false)
 
     -- 定义一些宏开关，这个只有在hello被启用的时候才会被定义
     add_defines_if_ok("HELLO_ENABLE", "HELLO_TEST")
@@ -117,7 +117,7 @@ $ xmake f --help
 option("hello")
 
     -- 默认禁用这个开关，需要手动xmake f --hello=true才会启用，当然你也可以默认启用它
-    set_enable(false)
+    set_default(false)
 
     -- 定义一些宏开关，这个只有在hello被启用的时候才会被定义
     add_defines_if_ok("HELLO_ENABLE", "HELLO_TEST")
@@ -155,7 +155,7 @@ option("hello")
 option("hello")
 
     -- 默认禁用这个开关，需要手动xmake f --hello=true才会启用，当然你也可以默认启用它
-    set_enable(false)
+    set_default(false)
 
     -- 定义一些宏开关，这个只有在hello被启用的时候才会被定义
     add_defines_if_ok("HELLO_ENABLE", "HELLO_TEST")
