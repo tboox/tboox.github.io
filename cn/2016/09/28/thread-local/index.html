@@ -7,11 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta http-equiv="Cache-Control" content="no-siteapp" />
 
-    <title>欢迎来到TBOOX开源项目!</title>
-    <meta name="description" content="">
+    <title>线程局部存储tls的使用</title>
+    <meta name="description" content="线程局部存储(Thread Local Storage，TLS)主要用于在多线程中，存储和维护一些线程相关的数据，存储的数据会被关联到当前线程中去，并不需要锁来维护。。因此也没有多线程间资源竞争问题，那如何去实现TLS存储呢，主要有以下几种方式：  gcc和clang的__thread修饰符  windows下m...">
 
     
-    <meta name="keywords" content="tboox,站点,tboox" /> 
+    <meta name="keywords" content="tbox,多线程,tls,线程局部存储,tboox" /> 
 
     <!-- qq oauth -->
     <meta property="qc:admins" content="5211601217706727767255" />
@@ -28,7 +28,7 @@
 	
     <link rel="stylesheet" href=" /css/fontawesome/css/font-awesome.min.css ">
     <link rel="stylesheet" href=" /css/main.css ">
-    <link rel="canonical" href="http://www.tboox.org/cn/2016/01/30/welcome/">
+    <link rel="canonical" href="http://www.tboox.org/cn/2016/09/28/thread-local/">
     <link rel="alternate" type="application/rss+xml" title="TBOOX Open Source Project" href="http://www.tboox.org/feed.xml ">
     <link rel="alternate" hreflang="en" href="http://www.tboox.org/" />
     <link rel="alternate" hreflang="zh-Hans" href="http://www.tboox.org/cn/" />
@@ -274,11 +274,11 @@
 
         <div class="page clearfix" post>
     <div class="left">
-        <h1>欢迎来到TBOOX开源项目!</h1>
+        <h1>线程局部存储tls的使用</h1>
         <div class="label">
 
             <div class="label-card">
-                <i class="fa fa-calendar"></i>2016-01-30
+                <i class="fa fa-calendar"></i>2016-09-28
             </div>
 
             <div class="label-card">
@@ -298,7 +298,7 @@
   <i class="fa fa-th-list"></i>
   
     
-        <a href="/category/#tboox" title="Category: tboox" rel="category">tboox</a>
+        <a href="/category/#tbox" title="Category: tbox" rel="category">tbox</a>
     
   
 
@@ -315,11 +315,17 @@
   <i class="fa fa-tags"></i>
   
     
-        <!--a href="/tag/#tboox" title="Tag: tboox" rel="tag">tboox</a-->
-        <a href="/cn/tag/#tboox" title="Tag: tboox" rel="tag">tboox</a>&nbsp;
+        <!--a href="/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a-->
+        <a href="/cn/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a>&nbsp;
     
-        <!--a href="/tag/#%E7%AB%99%E7%82%B9" title="Tag: 站点" rel="tag">站点</a-->
-        <a href="/cn/tag/#站点" title="Tag: 站点" rel="tag">站点</a>
+        <!--a href="/tag/#%E5%A4%9A%E7%BA%BF%E7%A8%8B" title="Tag: 多线程" rel="tag">多线程</a-->
+        <a href="/cn/tag/#多线程" title="Tag: 多线程" rel="tag">多线程</a>&nbsp;
+    
+        <!--a href="/tag/#tls" title="Tag: tls" rel="tag">tls</a-->
+        <a href="/cn/tag/#tls" title="Tag: tls" rel="tag">tls</a>&nbsp;
+    
+        <!--a href="/tag/#%E7%BA%BF%E7%A8%8B%E5%B1%80%E9%83%A8%E5%AD%98%E5%82%A8" title="Tag: 线程局部存储" rel="tag">线程局部存储</a-->
+        <a href="/cn/tag/#线程局部存储" title="Tag: 线程局部存储" rel="tag">线程局部存储</a>
     
   
 
@@ -330,7 +336,179 @@
         </div>
         <hr>
         <article itemscope itemtype="http://schema.org/BlogPosting">
-        <p><img src="/static/img/logo2.jpg" alt="" /></p>
+        <p>线程局部存储(Thread Local Storage，TLS)主要用于在多线程中，存储和维护一些线程相关的数据，存储的数据会被关联到当前线程中去，并不需要锁来维护。。</p>
+
+<p>因此也没有多线程间资源竞争问题，那如何去实现TLS存储呢，主要有以下几种方式：</p>
+
+<ol>
+  <li>gcc和clang的<code class="highlighter-rouge">__thread</code>修饰符</li>
+  <li>windows下msvc的<code class="highlighter-rouge">__declspec(thread)</code>修饰符</li>
+  <li>pthread库<code class="highlighter-rouge">pthread_setspecific</code>和<code class="highlighter-rouge">pthread_getspecific</code>接口</li>
+  <li>windows下的<code class="highlighter-rouge">TlsSetValue</code>和<code class="highlighter-rouge">TlsGetValue</code></li>
+</ol>
+
+<h4 id="threaddeclspecthread">__thread和__declspec(thread)的使用</h4>
+
+<p>其中__thread和__declspec(thread)用起来最为方便，只需要在static或者全局变量前加上此修饰符，然后在线程里面访问变量就行了</p>
+
+<p>例如：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="n">tb_void_t</span> <span class="nf">tb_thread_func</span><span class="p">(</span><span class="n">tb_cpointer_t</span> <span class="n">priv</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// 定义一个线程局部变量
+</span>    <span class="k">static</span> <span class="kr">__thread</span> <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+        
+    <span class="c1">// 初始化这个变量，设置为当前线程id
+</span>    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">a</span><span class="p">)</span> <span class="n">a</span> <span class="o">=</span> <span class="n">tb_thread_self</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>如果运行多个线程的话，上述代码中每个线程的变量a的值，都是不相同的，值为每个线程的id</p>
+
+<p>而 <code class="highlighter-rouge">__declspec(thread)</code> 用起来也是类似，只需替换下 <code class="highlighter-rouge">__thread</code>就行了</p>
+
+<p>虽然这两个修饰符用起来很方便，但是需要编译器支持，虽然现在大部分平台的编译器都已支持，但是作为跨平台开发，这样还是不够的</p>
+
+<p>毕竟还是有不少低版本gcc，不一定支持<code class="highlighter-rouge">__thread</code>，尤其是嵌入式开发领域，交叉编译工具链中的编译器支持力度差异还是蛮大的。。</p>
+
+<p>另外，使用<code class="highlighter-rouge">__thread</code>进行tls数据维护，需要手动管理相关内存的释放问题，用的不好很容易导致内存泄露。。</p>
+
+<h4 id="pthread">pthread接口</h4>
+
+<p>pthread 的 tls 相关接口，比较完善，并且支持注册free函数，在线程退出的时候，自动释放相关tls数据，避免内存泄露，但是使用上稍显复杂了些</p>
+
+<p>我们看个简单的例子：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="c1">// 测试线程中tls变量存储的key，需定义为全局或者static
+</span><span class="k">static</span> <span class="n">pthread_key_t</span> <span class="n">g_local_key</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+<span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">tb_thread_local_free</span><span class="p">(</span><span class="n">tb_pointer_t</span> <span class="n">priv</span><span class="p">)</span>  
+<span class="p">{</span>  
+    <span class="n">tb_trace_i</span><span class="p">(</span><span class="s">"thread[%lx]: free: %p"</span><span class="p">,</span> <span class="n">tb_thread_self</span><span class="p">(),</span> <span class="n">priv</span><span class="p">);</span>
+<span class="p">}</span>  
+<span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">tb_thread_local_init</span><span class="p">(</span><span class="n">tb_void_t</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// 创建tls的key，并且设置自动释放函数
+</span>	<span class="n">pthread_key_create</span><span class="p">(</span><span class="o">&amp;</span><span class="n">g_local_key</span><span class="p">,</span> <span class="n">tb_thread_local_free</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="k">static</span> <span class="n">tb_int_t</span> <span class="nf">tb_thread_local_test</span><span class="p">(</span><span class="n">tb_cpointer_t</span> <span class="n">priv</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// 在所有线程中，仅执行一次，用于在线程内部初始化 tls 的 key
+</span>    <span class="k">static</span> <span class="n">pthread_once_t</span> <span class="n">s_once</span> <span class="o">=</span> <span class="n">PTHREAD_ONCE_INIT</span><span class="p">;</span>
+    <span class="n">pthread_once</span><span class="p">(</span><span class="o">&amp;</span><span class="n">s_once</span><span class="p">,</span> <span class="n">tb_thread_local_init</span><span class="p">);</span>
+
+    <span class="c1">// 尝试读取当前tls数据
+</span>    <span class="n">tb_size_t</span> <span class="n">local</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">local</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_size_t</span><span class="p">)</span><span class="n">pthread_getspecific</span><span class="p">(</span><span class="n">g_local_key</span><span class="p">)))</span>
+    <span class="p">{</span>
+        <span class="c1">// 设置tls数据为当前线程id
+</span>        <span class="n">tb_size_t</span> <span class="n">self</span> <span class="o">=</span> <span class="n">tb_thread_self</span><span class="p">();</span>
+        <span class="k">if</span> <span class="p">(</span><span class="mi">0</span> <span class="o">==</span> <span class="n">pthread_setspecific</span><span class="p">(</span><span class="n">g_local_key</span><span class="p">,</span> <span class="p">(</span><span class="n">tb_pointer_t</span><span class="p">)</span><span class="n">self</span><span class="p">))</span>
+            <span class="n">local</span> <span class="o">=</span> <span class="n">self</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>看上去复杂了些，但是更加灵活，如果不需要在线程内部创建key的话，就不需要调用<code class="highlighter-rouge">pthread_once</code>了，直接把创建好的key传入线程内部去访问就好。</p>
+
+<h4 id="tlssetvalue-">TlsSetValue 接口</h4>
+
+<p>此套接口（TlsSetValue, TlsGetValue, TlsAlloc, TlsFree），属于windows的tls操作接口，当然不能跨平台了，使用起来和pthread的差不多，但是无法注册自动释放函数，并且也没提供类似<code class="highlighter-rouge">pthread_once</code>的接口
+在线程内部自创建key，功能上稍显不足。。</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="k">static</span> <span class="n">tb_int_t</span> <span class="nf">tb_thread_local_test</span><span class="p">(</span><span class="n">tb_cpointer_t</span> <span class="n">priv</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// 创建一个tls的key，注：此处非线程安全，最好放到类似pthread_once提供的init函数中去创建
+</span>    <span class="c1">// 此处就临时先这么写了，仅仅只是为了方便描述api用法，不要照搬哦。。
+</span>    <span class="k">static</span> <span class="n">DWORD</span> <span class="n">s_key</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">s_key</span><span class="p">)</span> <span class="n">s_key</span> <span class="o">=</span> <span class="n">TlsAlloc</span><span class="p">();</span>
+
+    <span class="c1">// 尝试读取当前tls数据
+</span>    <span class="n">DWORD</span> <span class="n">local</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">local</span> <span class="o">=</span> <span class="n">TlsGetValue</span><span class="p">(</span><span class="n">s_key</span><span class="p">)))</span> 
+    <span class="p">{</span>
+        <span class="c1">// 设置tls数据为当前线程id
+</span>        <span class="n">tb_size_t</span> <span class="n">self</span> <span class="o">=</span> <span class="n">tb_thread_self</span><span class="p">();</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">TlsSetValue</span><span class="p">(</span><span class="n">s_key</span><span class="p">,</span> <span class="p">(</span><span class="n">LPVOID</span><span class="p">)</span><span class="n">self</span><span class="p">))</span>
+            <span class="n">local</span> <span class="o">=</span> <span class="n">self</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>其实windows上还提供了FlsAlloc, FlsSetValue系列接口，给协程使用，并且支持注册自动释放的回调函数，不过对系统版本有些要求，像xp这些老系统就用不了了。。
+这里就不多描述了。</p>
+
+<h4 id="tboxthreadlocal">tbox提供的<code class="highlighter-rouge">thread_local</code>接口封装</h4>
+
+<p>最近对tbox的tls接口进行了改造，并且重构了实现逻辑，在剪口易用性、功能性以及效率上都得到了很大的提升。。</p>
+
+<p>目前支持以下功能：</p>
+
+<ul>
+  <li>支持注册自动释放回调，保证在线程退出时，自动释放设置的tls数据</li>
+  <li>支持在线程内部进行线程安全的key创建</li>
+  <li>tbox退出时会自动销毁所有创建的key，当然也可以提前主动销毁它</li>
+</ul>
+
+<p>用起来也很方便，很pthread很类似，但是内部自动调用了<code class="highlighter-rouge">pthread_once</code>，不用想pthread那样显式的去调用它了，例如：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">tb_demo_thread_local_free</span><span class="p">(</span><span class="n">tb_cpointer_t</span> <span class="n">priv</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">tb_trace_i</span><span class="p">(</span><span class="s">"thread[%lx]: free: %p"</span><span class="p">,</span> <span class="n">tb_thread_self</span><span class="p">(),</span> <span class="n">priv</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="k">static</span> <span class="n">tb_int_t</span> <span class="nf">tb_demo_thread_local_test</span><span class="p">(</span><span class="n">tb_cpointer_t</span> <span class="n">priv</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="cm">/* 线程安全地初始化一个tls对象，相当于key，并且注册自动free回调
+     *
+     * 注：虽然所有线程都会执行到这个tb_thread_local_init
+     *     但是s_local的tls对象，只会确保初始化一次，内部有类似pthread_once接口来维护
+     */</span>
+    <span class="k">static</span> <span class="n">tb_thread_local_t</span> <span class="n">s_local</span> <span class="o">=</span> <span class="n">TB_THREAD_LOCAL_INIT</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">tb_thread_local_init</span><span class="p">(</span><span class="o">&amp;</span><span class="n">s_local</span><span class="p">,</span> <span class="n">tb_demo_thread_local_free</span><span class="p">))</span> <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+
+    <span class="c1">// 尝试读取当前tls数据
+</span>    <span class="n">tb_size_t</span> <span class="n">local</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">local</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_size_t</span><span class="p">)</span><span class="n">tb_thread_local_get</span><span class="p">(</span><span class="o">&amp;</span><span class="n">s_local</span><span class="p">)))</span>
+    <span class="p">{</span>
+        <span class="c1">// 设置tls数据为当前线程id
+</span>        <span class="n">tb_size_t</span> <span class="n">self</span> <span class="o">=</span> <span class="n">tb_thread_self</span><span class="p">();</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">tb_thread_local_set</span><span class="p">(</span><span class="o">&amp;</span><span class="n">s_local</span><span class="p">,</span> <span class="p">(</span><span class="n">tb_cpointer_t</span><span class="p">)</span><span class="n">self</span><span class="p">))</span>
+            <span class="n">local</span> <span class="o">=</span> <span class="n">self</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>在线程退出时，它会自动调用free回调，释放对应残留的tls数据，并且在<code class="highlighter-rouge">tb_exit</code>退出后，销毁所有创建的tls对象</p>
+
+<p>当然你可以可以主动调用：<code class="highlighter-rouge">tb_thread_local_exit(&amp;s_local)</code> 来销毁它。。</p>
+
+<p>tbox的这套接口，相比pthread减少了一个init的回调函数，比windows那套多了自动释放的机制，并且同时支持跨平台。。</p>
+
+<h4 id="section">杂谈</h4>
+
+<p>之前我看到一些库中，对<code class="highlighter-rouge">__thread</code>和pthread接口进行了混用，感到很是莫名，个人感觉是有问题的，例如：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="k">static</span> <span class="kr">__thread</span> <span class="n">pthread_key_t</span> <span class="n">g_key</span><span class="p">;</span>
+</code></pre>
+</div>
+
+<p>原本pthread文档中就明确表述key需要全局或者static存储，而这里加上<code class="highlighter-rouge">__thread</code>后，其实每个线程访问的key都不是同一个key了哦。。</p>
+
+<h4 id="section-1">总结</h4>
+
+<p>如果仅仅只是想用来在线程内部存储一些简单的int数据，并且不考虑完备的跨平台支持，那么建议直接使用<code class="highlighter-rouge">__thread</code>或者<code class="highlighter-rouge">__declspec(thread)</code>j就行了，非常方便易用</p>
+
+<p>如果要考虑跨平台操作的话，tbox的tls接口也是个不错的选择哦。。</p>
 
         </article>
         <hr>
@@ -635,39 +813,37 @@
             
             
                 
-                    
-                    <h2 id="english">English</h2>
-                    <ul>
-                    
-                    <li class="relatedPost">
-                        <a href="/2016/01/30/welcome/">Welcome to TBOOX!
-                        
-                        </a>
-                    </li>
-                    
-                    
-                
             
         
             
         
-        
-            </ul>
         
 
         
         
             
+        
             
             
-                
-                    
-                
-                    
-                
             
                 
                     
+                        
+                        <h2 id="similar_posts">相关文章</h2>
+                        <ul>
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/09/18/database-usage/">tbox中数据库的使用
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
                 
                     
                 
@@ -677,7 +853,69 @@
                 
                     
                 
+                    
+                
+                    
+                
             
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/09/18/custom-printf/">使用printf定制化打印对象
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
                 
                     
                 
@@ -696,8 +934,6 @@
                 
                     
                 
-            
-                
                     
                 
                     
@@ -707,31 +943,6 @@
                     
                 
                     
-                
-            
-                
-                    
-                
-                    
-                
-            
-            
-        
-            
-            
-            
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-            
                 
                     
                 
@@ -750,7 +961,25 @@
                 
                     
                 
+                    
+                
+                    
+                
             
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
                 
                     
                 
@@ -766,35 +995,27 @@
             
                 
                     
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-            
-                
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/08/29/update-v1.5.3/">tbox v1.5.3发布！
+                            
+                            </a>
+                        </li>
+                        
+                        
                     
                 
                     
-                
-            
-            
-        
-            
-        
-            
-            
-            
                 
                     
                 
                     
                 
             
+                
+                    
+                
+                    
                 
                     
                 
@@ -803,6 +1024,52 @@
             
             
         
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/08/27/stream-architecture/">tbox stream流的架构介绍
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+        
+            </ul>
         
 
         <div class="post-recent">
@@ -813,645 +1080,7 @@
         
 
         
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
         
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
         
 
         
@@ -1459,9 +1088,8 @@
         
 
         
-
         
-
+        <p><strong>上一篇</strong> <a href="/cn/2016/09/18/database-usage/">tbox中数据库的使用</a></p>
         
     </div>
 
@@ -1472,7 +1100,11 @@
         
 
         
+
         
+
+        
+
         
 
         
@@ -1480,8 +1112,643 @@
         
 
         
+
         
-        <p><strong>下一篇</strong> <a href="/cn/2016/02/03/bloom-filter/">利用bloom filter算法处理大规模数据过滤</a></p>
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
         
     </div>
 </div>
@@ -1491,7 +1758,7 @@
         
 
 <!-- 多说评论框 start -->
-<div class="ds-thread" data-thread-key="http://www.tboox.org/cn/2016/01/30/welcome/" data-title="欢迎来到TBOOX开源项目!" data-url="http://www.tboox.org/cn/2016/01/30/welcome/"></div>
+<div class="ds-thread" data-thread-key="http://www.tboox.org/cn/2016/09/28/thread-local/" data-title="线程局部存储tls的使用" data-url="http://www.tboox.org/cn/2016/09/28/thread-local/"></div>
 <!-- 多说评论框 end -->
 <!-- 多说公共JS代码 start (一个网页只需插入一次) -->
 <script type="text/javascript">

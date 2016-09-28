@@ -5,9 +5,202 @@
     <description>Focus on cross-platform development using c language</description>
     <link>http://www.tboox.org/</link>
     <atom:link href="http://www.tboox.org/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Tue, 20 Sep 2016 11:15:32 +0800</pubDate>
-    <lastBuildDate>Tue, 20 Sep 2016 11:15:32 +0800</lastBuildDate>
+    <pubDate>Wed, 28 Sep 2016 21:47:58 +0800</pubDate>
+    <lastBuildDate>Wed, 28 Sep 2016 21:47:58 +0800</lastBuildDate>
     <generator>Jekyll v3.1.1</generator>
+    
+      <item>
+        <title>线程局部存储tls的使用</title>
+        <description>&lt;p&gt;线程局部存储(Thread Local Storage，TLS)主要用于在多线程中，存储和维护一些线程相关的数据，存储的数据会被关联到当前线程中去，并不需要锁来维护。。&lt;/p&gt;
+
+&lt;p&gt;因此也没有多线程间资源竞争问题，那如何去实现TLS存储呢，主要有以下几种方式：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;gcc和clang的&lt;code class=&quot;highlighter-rouge&quot;&gt;__thread&lt;/code&gt;修饰符&lt;/li&gt;
+  &lt;li&gt;windows下msvc的&lt;code class=&quot;highlighter-rouge&quot;&gt;__declspec(thread)&lt;/code&gt;修饰符&lt;/li&gt;
+  &lt;li&gt;pthread库&lt;code class=&quot;highlighter-rouge&quot;&gt;pthread_setspecific&lt;/code&gt;和&lt;code class=&quot;highlighter-rouge&quot;&gt;pthread_getspecific&lt;/code&gt;接口&lt;/li&gt;
+  &lt;li&gt;windows下的&lt;code class=&quot;highlighter-rouge&quot;&gt;TlsSetValue&lt;/code&gt;和&lt;code class=&quot;highlighter-rouge&quot;&gt;TlsGetValue&lt;/code&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h4 id=&quot;threaddeclspecthread&quot;&gt;__thread和__declspec(thread)的使用&lt;/h4&gt;
+
+&lt;p&gt;其中__thread和__declspec(thread)用起来最为方便，只需要在static或者全局变量前加上此修饰符，然后在线程里面访问变量就行了&lt;/p&gt;
+
+&lt;p&gt;例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;tb_void_t&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;tb_thread_func&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_cpointer_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// 定义一个线程局部变量
+&lt;/span&gt;    &lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kr&quot;&gt;__thread&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        
+    &lt;span class=&quot;c1&quot;&gt;// 初始化这个变量，设置为当前线程id
+&lt;/span&gt;    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_thread_self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;如果运行多个线程的话，上述代码中每个线程的变量a的值，都是不相同的，值为每个线程的id&lt;/p&gt;
+
+&lt;p&gt;而 &lt;code class=&quot;highlighter-rouge&quot;&gt;__declspec(thread)&lt;/code&gt; 用起来也是类似，只需替换下 &lt;code class=&quot;highlighter-rouge&quot;&gt;__thread&lt;/code&gt;就行了&lt;/p&gt;
+
+&lt;p&gt;虽然这两个修饰符用起来很方便，但是需要编译器支持，虽然现在大部分平台的编译器都已支持，但是作为跨平台开发，这样还是不够的&lt;/p&gt;
+
+&lt;p&gt;毕竟还是有不少低版本gcc，不一定支持&lt;code class=&quot;highlighter-rouge&quot;&gt;__thread&lt;/code&gt;，尤其是嵌入式开发领域，交叉编译工具链中的编译器支持力度差异还是蛮大的。。&lt;/p&gt;
+
+&lt;p&gt;另外，使用&lt;code class=&quot;highlighter-rouge&quot;&gt;__thread&lt;/code&gt;进行tls数据维护，需要手动管理相关内存的释放问题，用的不好很容易导致内存泄露。。&lt;/p&gt;
+
+&lt;h4 id=&quot;pthread&quot;&gt;pthread接口&lt;/h4&gt;
+
+&lt;p&gt;pthread 的 tls 相关接口，比较完善，并且支持注册free函数，在线程退出的时候，自动释放相关tls数据，避免内存泄露，但是使用上稍显复杂了些&lt;/p&gt;
+
+&lt;p&gt;我们看个简单的例子：&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// 测试线程中tls变量存储的key，需定义为全局或者static
+&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pthread_key_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;g_local_key&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_void_t&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;tb_thread_local_free&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_pointer_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;  
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;  
+    &lt;span class=&quot;n&quot;&gt;tb_trace_i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;thread[%lx]: free: %p&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_thread_self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;  
+&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_void_t&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;tb_thread_local_init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_void_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// 创建tls的key，并且设置自动释放函数
+&lt;/span&gt;	&lt;span class=&quot;n&quot;&gt;pthread_key_create&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g_local_key&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_thread_local_free&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_int_t&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;tb_thread_local_test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_cpointer_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// 在所有线程中，仅执行一次，用于在线程内部初始化 tls 的 key
+&lt;/span&gt;    &lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pthread_once_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s_once&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;PTHREAD_ONCE_INIT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;pthread_once&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s_once&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_thread_local_init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;// 尝试读取当前tls数据
+&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_size_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;local&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_size_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pthread_getspecific&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g_local_key&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)))&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;// 设置tls数据为当前线程id
+&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;tb_size_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;self&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_thread_self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pthread_setspecific&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g_local_key&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_pointer_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;看上去复杂了些，但是更加灵活，如果不需要在线程内部创建key的话，就不需要调用&lt;code class=&quot;highlighter-rouge&quot;&gt;pthread_once&lt;/code&gt;了，直接把创建好的key传入线程内部去访问就好。&lt;/p&gt;
+
+&lt;h4 id=&quot;tlssetvalue-&quot;&gt;TlsSetValue 接口&lt;/h4&gt;
+
+&lt;p&gt;此套接口（TlsSetValue, TlsGetValue, TlsAlloc, TlsFree），属于windows的tls操作接口，当然不能跨平台了，使用起来和pthread的差不多，但是无法注册自动释放函数，并且也没提供类似&lt;code class=&quot;highlighter-rouge&quot;&gt;pthread_once&lt;/code&gt;的接口
+在线程内部自创建key，功能上稍显不足。。&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_int_t&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;tb_thread_local_test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_cpointer_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// 创建一个tls的key，注：此处非线程安全，最好放到类似pthread_once提供的init函数中去创建
+&lt;/span&gt;    &lt;span class=&quot;c1&quot;&gt;// 此处就临时先这么写了，仅仅只是为了方便描述api用法，不要照搬哦。。
+&lt;/span&gt;    &lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DWORD&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s_key&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s_key&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s_key&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TlsAlloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;// 尝试读取当前tls数据
+&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;DWORD&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;local&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TlsGetValue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s_key&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)))&lt;/span&gt; 
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;// 设置tls数据为当前线程id
+&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;tb_size_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;self&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_thread_self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TlsSetValue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s_key&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LPVOID&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;其实windows上还提供了FlsAlloc, FlsSetValue系列接口，给协程使用，并且支持注册自动释放的回调函数，不过对系统版本有些要求，像xp这些老系统就用不了了。。
+这里就不多描述了。&lt;/p&gt;
+
+&lt;h4 id=&quot;tboxthreadlocal&quot;&gt;tbox提供的&lt;code class=&quot;highlighter-rouge&quot;&gt;thread_local&lt;/code&gt;接口封装&lt;/h4&gt;
+
+&lt;p&gt;最近对tbox的tls接口进行了改造，并且重构了实现逻辑，在剪口易用性、功能性以及效率上都得到了很大的提升。。&lt;/p&gt;
+
+&lt;p&gt;目前支持以下功能：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;支持注册自动释放回调，保证在线程退出时，自动释放设置的tls数据&lt;/li&gt;
+  &lt;li&gt;支持在线程内部进行线程安全的key创建&lt;/li&gt;
+  &lt;li&gt;tbox退出时会自动销毁所有创建的key，当然也可以提前主动销毁它&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;用起来也很方便，很pthread很类似，但是内部自动调用了&lt;code class=&quot;highlighter-rouge&quot;&gt;pthread_once&lt;/code&gt;，不用想pthread那样显式的去调用它了，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_void_t&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;tb_demo_thread_local_free&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_cpointer_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;tb_trace_i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;thread[%lx]: free: %p&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_thread_self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_int_t&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;tb_demo_thread_local_test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_cpointer_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;cm&quot;&gt;/* 线程安全地初始化一个tls对象，相当于key，并且注册自动free回调
+     *
+     * 注：虽然所有线程都会执行到这个tb_thread_local_init
+     *     但是s_local的tls对象，只会确保初始化一次，内部有类似pthread_once接口来维护
+     */&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_thread_local_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s_local&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TB_THREAD_LOCAL_INIT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_thread_local_init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s_local&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_demo_thread_local_free&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;// 尝试读取当前tls数据
+&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_size_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;local&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_size_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_thread_local_get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s_local&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)))&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;// 设置tls数据为当前线程id
+&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;tb_size_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;self&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_thread_self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_thread_local_set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s_local&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_cpointer_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;在线程退出时，它会自动调用free回调，释放对应残留的tls数据，并且在&lt;code class=&quot;highlighter-rouge&quot;&gt;tb_exit&lt;/code&gt;退出后，销毁所有创建的tls对象&lt;/p&gt;
+
+&lt;p&gt;当然你可以可以主动调用：&lt;code class=&quot;highlighter-rouge&quot;&gt;tb_thread_local_exit(&amp;amp;s_local)&lt;/code&gt; 来销毁它。。&lt;/p&gt;
+
+&lt;p&gt;tbox的这套接口，相比pthread减少了一个init的回调函数，比windows那套多了自动释放的机制，并且同时支持跨平台。。&lt;/p&gt;
+
+&lt;h4 id=&quot;section&quot;&gt;杂谈&lt;/h4&gt;
+
+&lt;p&gt;之前我看到一些库中，对&lt;code class=&quot;highlighter-rouge&quot;&gt;__thread&lt;/code&gt;和pthread接口进行了混用，感到很是莫名，个人感觉是有问题的，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kr&quot;&gt;__thread&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pthread_key_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;g_key&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;原本pthread文档中就明确表述key需要全局或者static存储，而这里加上&lt;code class=&quot;highlighter-rouge&quot;&gt;__thread&lt;/code&gt;后，其实每个线程访问的key都不是同一个key了哦。。&lt;/p&gt;
+
+&lt;h4 id=&quot;section-1&quot;&gt;总结&lt;/h4&gt;
+
+&lt;p&gt;如果仅仅只是想用来在线程内部存储一些简单的int数据，并且不考虑完备的跨平台支持，那么建议直接使用&lt;code class=&quot;highlighter-rouge&quot;&gt;__thread&lt;/code&gt;或者&lt;code class=&quot;highlighter-rouge&quot;&gt;__declspec(thread)&lt;/code&gt;j就行了，非常方便易用&lt;/p&gt;
+
+&lt;p&gt;如果要考虑跨平台操作的话，tbox的tls接口也是个不错的选择哦。。&lt;/p&gt;
+</description>
+        <pubDate>Wed, 28 Sep 2016 00:00:00 +0800</pubDate>
+        <link>http://www.tboox.org/cn/2016/09/28/thread-local/</link>
+        <guid isPermaLink="true">http://www.tboox.org/cn/2016/09/28/thread-local/</guid>
+        
+        <category>tbox</category>
+        
+        <category>多线程</category>
+        
+        <category>tls</category>
+        
+        <category>线程局部存储</category>
+        
+        
+        <category>tbox</category>
+        
+      </item>
     
       <item>
         <title>Access sql database using tbox</title>
@@ -830,73 +1023,6 @@
         <category>tbox</category>
         
         <category>版本发布</category>
-        
-        
-        <category>tbox</category>
-        
-      </item>
-    
-      <item>
-        <title>tbox stream流的架构介绍</title>
-        <description>&lt;p&gt;tbox主要有三种流：&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;&lt;strong&gt;stream&lt;/strong&gt;: 最常用的流，一般用于单路阻塞、非阻塞io的处理，接口简单易用&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;async_stream&lt;/strong&gt;：异步流，基于asio的流，全程回调处理，可以在单个线程里支持多路流的并发，节省系统资源，提高效率&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;static_stream&lt;/strong&gt;：静态流，用于对纯buffer的位流处理，一般用于各种解析器&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;不管是stream还是async_stream，都可以在其上挂接多路filter，实现流之间数据过滤和变换。目前支持以下几种filter：&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;&lt;strong&gt;zip_filter：gzip&lt;/strong&gt;、zlib的压缩和解压缩过滤器&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;charset_filter&lt;/strong&gt;：字符集编码的过滤器&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;chunked_filter：http&lt;/strong&gt; chunked编码的解码过滤器&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;如果在一个xml解析器上同时挂接：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;http/xml =&amp;gt; chunked_filter =&amp;gt; zip_filter =&amp;gt; charset_filter =&amp;gt; stream/async_stream =&amp;gt; xml_reader
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;就可以实现对xml文件的边下载、边解压、边转码、边解析，这样就可以完美支持大规模xml数据的解析支持，而且内存使用率也不会太高&lt;/p&gt;
-
-&lt;p&gt;还有两种&lt;strong&gt;基于流的传输器&lt;/strong&gt;：&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;&lt;strong&gt;transfer&lt;/strong&gt;：基于两路stream的传输器，可以用于简单的http下载、上传、文件之间的copy等等。&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;async_transfer&lt;/strong&gt;：基于&lt;code class=&quot;highlighter-rouge&quot;&gt;async_stream&lt;/code&gt;的异步传输器，可以用于多路并发io传输。&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;还有一个对&lt;code class=&quot;highlighter-rouge&quot;&gt;async_transfer&lt;/code&gt;进行管理的传输池：&lt;strong&gt;transfer_pool&lt;/strong&gt;，你可以把各种下载任务、上传任务以及其他io传输任务，一股脑的扔到池子里面去，什么时候哪个任务传输完了，传输了多少，都有进度回调报告状态，用起来相当方便。&lt;/p&gt;
-
-&lt;p&gt;目前的流可以支持如下几种url格式：&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;data://base64&lt;/li&gt;
-  &lt;li&gt;file://path or unix path: e.g. /root/xxxx/file&lt;/li&gt;
-  &lt;li&gt;sock://host:port?tcp=&lt;/li&gt;
-  &lt;li&gt;sock://host:port?udp=&lt;/li&gt;
-  &lt;li&gt;socks://host:port&lt;/li&gt;
-  &lt;li&gt;http://host:port/path?arg0=&amp;amp;arg1=…&lt;/li&gt;
-  &lt;li&gt;https://host:port/path?arg0=&amp;amp;arg1=…&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;具体架构见下图：&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/tbox/streamarch.png&quot; alt=&quot;流架构&quot; /&gt;&lt;/p&gt;
-
-</description>
-        <pubDate>Sat, 27 Aug 2016 00:00:00 +0800</pubDate>
-        <link>http://www.tboox.org/cn/2016/08/27/stream-architecture/</link>
-        <guid isPermaLink="true">http://www.tboox.org/cn/2016/08/27/stream-architecture/</guid>
-        
-        <category>tbox</category>
-        
-        <category>stream</category>
-        
-        <category>流架构</category>
         
         
         <category>tbox</category>
