@@ -68,6 +68,15 @@ icon: th-list
             </div> 
             {% endif %}
 
+            <!-- baidu ads -->
+            {% if site.baiduads_slide_id0 %}
+            <br>
+            <script type="text/javascript">
+                var cpro_id = "{{site.baiduads_slide_id0}}";
+            </script>
+            <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
+            {% endif %}
+
             <!-- chitika ads -->
             {% if site.chitika_ads_en %}
             <br>
@@ -86,3 +95,27 @@ icon: th-list
     </div>
 </div>
 <script src="{{ "/js/pageContent.js " | prepend: site.baseurl }}" charset="utf-8"></script>
+
+<!-- baidu ads -->
+{% if site.baiduads_slide_id1 %}
+<script type="text/javascript">
+    var cpro_id = "{{site.baiduads_slide_id1}}";
+</script>
+<script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/f.js"></script>
+{% endif %}
+
+{% if site.baiduads_slide_id2 %}
+<script type="text/javascript">
+    function isPC(){    
+        var userAgentInfo = navigator.userAgent;  
+        var Agents = new Array("Android", "iPhone", "SymbianOS", "Windows Phone", "iPad", "iPod");    
+        var flag = true;    
+        for (var v = 0; v < Agents.length; v++) {    
+            if (userAgentInfo.indexOf(Agents[v]) > 0) { flag = false; break; }    
+        }    
+        return flag;    
+    }  
+    var cpro_id = !isPC()? "{{site.baiduads_slide_id2}}" : "";
+</script>
+<script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/cm.js"></script>
+{% endif %}

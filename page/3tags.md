@@ -77,12 +77,13 @@ icon: tags
             </div> 
             {% endif %}
 
-            <!-- amazon ads -->
-            {% if site.amazon_ads_en %}
+            <!-- baidu ads -->
+            {% if site.baiduads_slide_id0 %}
             <br>
-            <div class="side" ads>
-            <iframe src="//rcm-na.amazon-adsystem.com/e/cm?o=1&p=12&l=ur1&category=books&banner=01MEDV80D9378NXA6202&f=ifr&linkID=ef80848a534a13814aca2786129afa65&t={{site.amazon_ads_en}}&tracking_id={{site.amazon_ads_en}}" width="265" height="243" scrolling="no" border="0" marginwidth="0" style="border:none;" frameborder="0"></iframe>
-            </div>
+            <script type="text/javascript">
+                var cpro_id = "{{site.baiduads_slide_id0}}";
+            </script>
+            <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
             {% endif %}
 
             <!-- chitika ads -->
@@ -103,3 +104,27 @@ icon: tags
     </div>
 </div>
 <script src="{{ "/js/pageContent.js " | prepend: site.baseurl }}" charset="utf-8"></script>
+
+<!-- baidu ads -->
+{% if site.baiduads_slide_id1 %}
+<script type="text/javascript">
+    var cpro_id = "{{site.baiduads_slide_id1}}";
+</script>
+<script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/f.js"></script>
+{% endif %}
+
+{% if site.baiduads_slide_id2 %}
+<script type="text/javascript">
+    function isPC(){    
+        var userAgentInfo = navigator.userAgent;  
+        var Agents = new Array("Android", "iPhone", "SymbianOS", "Windows Phone", "iPad", "iPod");    
+        var flag = true;    
+        for (var v = 0; v < Agents.length; v++) {    
+            if (userAgentInfo.indexOf(Agents[v]) > 0) { flag = false; break; }    
+        }    
+        return flag;    
+    }  
+    var cpro_id = !isPC()? "{{site.baiduads_slide_id2}}" : "";
+</script>
+<script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/cm.js"></script>
+{% endif %}
