@@ -1,0 +1,2007 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+    <title>聊聊原子操作那些事</title>
+    <meta name="description" content="原子操作，线程间交互数据最细粒度的同步操作，它可以保证线程间读写某个数值的原子性。由于不需要加重量级的互斥锁进行同步，因此非常轻量，而且也不需要在内核间来回切换调度，效率是非常高的。。那如何使用原子操作了，各个平台下都有相关api提供了支持，并且向gcc、clang这些编译器，也提供了编译器级的__builtin...">
+
+    
+    <meta name="keywords" content="tbox,原子操作,atomic,自旋锁,tboox" /> 
+
+    <!-- qq oauth -->
+    <meta property="qc:admins" content="5211601217706727767255" />
+
+    <! --icon -->
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" sizes="192x192" href="/static/img/nice-highres.png" />
+	<link rel="apple-touch-icon-precomposed" href="/static/img/apple-touch-icon-57x57-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="72x72" href="/static/img/apple-touch-icon-72x72-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="114x114" href="/static/img/apple-touch-icon-114x114-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/static/img/apple-touch-icon-144x144-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="180x180" href="/static/img/retinahd_icon.png" />
+	<meta name="msapplication-TileImage" content="/static/img/retinahd_icon.png" />
+	
+    <link rel="stylesheet" href=" /css/fontawesome/css/font-awesome.min.css ">
+    <link rel="stylesheet" href=" /css/main.css ">
+    <link rel="canonical" href="http://www.tboox.org/cn/2016/09/30/atomic-operation/">
+    <link rel="alternate" type="application/rss+xml" title="TBOOX Open Source Project" href="http://www.tboox.org/feed.xml ">
+    <link rel="alternate" hreflang="en" href="http://www.tboox.org/" />
+    <link rel="alternate" hreflang="zh-Hans" href="http://www.tboox.org/cn/" />
+
+
+    <script>
+    // 百度统计代码
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?162f1cd478898a0686b0b5d5115e2af2";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+
+
+</head>
+
+
+  <body>
+
+    <header id="top">
+    <div class="wrapper">
+        <a href="/cn" class="brand">TBOOX</a>
+        <button id="headerMenu" class="menu"><i class="fa fa-bars"></i></button>
+        <nav id="headerNav">
+            <ul>
+                <li>
+                    
+                    <a href="/">
+                    
+                        <i class="fa fa-home"></i>English
+                    </a>
+                </li>
+
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/project/">
+                            
+                        
+                            <i class="fa fa-bookmark"></i>项目
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/archive/">
+                            
+                        
+                            <i class="fa fa-archive"></i>归档
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/category/">
+                            
+                        
+                            <i class="fa fa-th-list"></i>分类
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/tag/">
+                            
+                        
+                            <i class="fa fa-tags"></i>标记
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/book/">
+                            
+                        
+                            <i class="fa fa-book"></i>书柜
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/forum">
+                            
+                        
+                            <i class="fa fa-forumbee"></i>社区
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/donation/">
+                            
+                        
+                            <i class="fa fa-heart"></i>捐助
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/about/">
+                            
+                        
+                            <i class="fa fa-user"></i>关于
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            </ul>
+        </nav>
+    </div>
+</header>
+
+
+        <div class="page clearfix" post>
+    <div class="left">
+        <h1>聊聊原子操作那些事</h1>
+        <div class="label">
+
+            <div class="label-card">
+                <i class="fa fa-calendar"></i>2016-09-30
+            </div>
+
+            <div class="label-card">
+                
+            </div>
+
+            <div class="label-card">
+                
+            </div>
+
+            <div class="label-card">
+            
+
+
+<!-- <span class="point">•</span> -->
+<span class="categories">
+  <i class="fa fa-th-list"></i>
+  
+    
+        <a href="/category/#tbox" title="Category: tbox" rel="category">tbox</a>
+    
+  
+
+  <!-- <span class="point">•</span> -->
+</span>
+
+
+            </div>
+
+            <div class="label-card">
+            
+<!-- <span class="point">•</span> -->
+<span class="pageTag">
+  <i class="fa fa-tags"></i>
+  
+    
+        <!--a href="/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a-->
+        <a href="/cn/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a>&nbsp;
+    
+        <!--a href="/tag/#%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C" title="Tag: 原子操作" rel="tag">原子操作</a-->
+        <a href="/cn/tag/#原子操作" title="Tag: 原子操作" rel="tag">原子操作</a>&nbsp;
+    
+        <!--a href="/tag/#atomic" title="Tag: atomic" rel="tag">atomic</a-->
+        <a href="/cn/tag/#atomic" title="Tag: atomic" rel="tag">atomic</a>&nbsp;
+    
+        <!--a href="/tag/#%E8%87%AA%E6%97%8B%E9%94%81" title="Tag: 自旋锁" rel="tag">自旋锁</a-->
+        <a href="/cn/tag/#自旋锁" title="Tag: 自旋锁" rel="tag">自旋锁</a>
+    
+  
+
+</span>
+
+            </div>
+
+        </div>
+        <hr>
+        <article itemscope itemtype="http://schema.org/BlogPosting">
+        <p>原子操作，线程间交互数据最细粒度的同步操作，它可以保证线程间读写某个数值的原子性。</p>
+
+<p>由于不需要加重量级的互斥锁进行同步，因此非常轻量，而且也不需要在内核间来回切换调度，效率是非常高的。。</p>
+
+<p>那如何使用原子操作了，各个平台下都有相关api提供了支持，并且向gcc、clang这些编译器，也提供了编译器级的__builtin接口进行支持</p>
+
+<ol>
+  <li>windows的Interlockedxxx和Interlockedxxx64系列api</li>
+  <li>macosx的OSAtomicXXX系列api</li>
+  <li>gcc的<code class="highlighter-rouge">__sync_val_compare_and_swap</code>和<code class="highlighter-rouge">__sync_val_compare_and_swap_8</code>等__builtin接口</li>
+  <li>x86和x86_64架构的<code class="highlighter-rouge">lock</code>汇编指令</li>
+  <li>tbox的跨平台原子接口</li>
+</ol>
+
+<h4 id="tbox">tbox接口使用</h4>
+
+<p>先拿tbox的<code class="highlighter-rouge">tb_atomic_fetch_and_add</code>接口为例，顾名思义，这个api会先读取原有数值，然后在其基础上加上一个数值：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="c1">// 相当于原子进行：b = *a++;
+</span><span class="n">tb_atomic_t</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="n">tb_long_t</span>   <span class="n">b</span> <span class="o">=</span> <span class="n">tb_atomic_fetch_and_add</span><span class="p">(</span><span class="o">&amp;</span><span class="n">a</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+</code></pre>
+</div>
+
+<p>如果需要先进行add计算，再返回结果可以用：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="c1">// 相当于原子进行：b = ++*a;
+</span><span class="n">tb_atomic_t</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="n">tb_long_t</span>   <span class="n">b</span> <span class="o">=</span> <span class="n">tb_atomic_add_and_fetch</span><span class="p">(</span><span class="o">&amp;</span><span class="n">a</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+</code></pre>
+</div>
+
+<p>或者可以更加简化为：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="n">tb_long_t</span> <span class="n">b</span> <span class="o">=</span> <span class="n">tb_atomic_fetch_and_inc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">a</span><span class="p">);</span>
+<span class="n">tb_long_t</span> <span class="n">b</span> <span class="o">=</span> <span class="n">tb_atomic_inc_and_fetch</span><span class="p">(</span><span class="o">&amp;</span><span class="n">a</span><span class="p">);</span>
+</code></pre>
+</div>
+
+<p>那tbox在内部如何去适配各个平台的呢，我们可以简单看下，基本上就是对原生api进行了一层wrap而已。</p>
+
+<h4 id="windows">windows接口封装</h4>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="k">static</span> <span class="n">__tb_inline__</span> <span class="n">tb_long_t</span> <span class="nf">tb_atomic_fetch_and_add_windows</span><span class="p">(</span><span class="n">tb_atomic_t</span><span class="o">*</span> <span class="n">a</span><span class="p">,</span> <span class="n">tb_long_t</span> <span class="n">v</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">tb_long_t</span><span class="p">)</span><span class="n">InterlockedExchangeAdd</span><span class="p">((</span><span class="n">LONG</span> <span class="n">__tb_volatile__</span><span class="o">*</span><span class="p">)</span><span class="n">a</span><span class="p">,</span> <span class="n">v</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="k">static</span> <span class="n">__tb_inline__</span> <span class="n">tb_long_t</span> <span class="nf">tb_atomic_inc_and_fetch_windows</span><span class="p">(</span><span class="n">tb_atomic_t</span><span class="o">*</span> <span class="n">a</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">tb_long_t</span><span class="p">)</span><span class="n">InterlockedIncrement</span><span class="p">((</span><span class="n">LONG</span> <span class="n">__tb_volatile__</span><span class="o">*</span><span class="p">)</span><span class="n">a</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<h4 id="gcc">gcc接口的封装</h4>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="k">static</span> <span class="n">__tb_inline__</span> <span class="n">tb_long_t</span> <span class="nf">tb_atomic_fetch_and_add_sync</span><span class="p">(</span><span class="n">tb_atomic_t</span><span class="o">*</span> <span class="n">a</span><span class="p">,</span> <span class="n">tb_long_t</span> <span class="n">v</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="n">__sync_fetch_and_add</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">v</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<h4 id="x86x8664">x86和x86_64架构汇编实现</h4>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="k">static</span> <span class="n">__tb_inline__</span> <span class="n">tb_long_t</span> <span class="nf">tb_atomic_fetch_and_add_x86</span><span class="p">(</span><span class="n">tb_atomic_t</span><span class="o">*</span> <span class="n">a</span><span class="p">,</span> <span class="n">tb_long_t</span> <span class="n">v</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="cm">/*
+     * xaddl v, [a]:
+     *
+     * o = [a]
+     * [a] += v;
+     * v = o;
+     *
+     * cf, ef, of, sf, zf, pf... maybe changed
+     */</span>
+    <span class="n">__tb_asm__</span> <span class="n">__tb_volatile__</span> 
+    <span class="p">(</span>
+<span class="cp">#if TB_CPU_BITSIZE == 64
+</span>        <span class="s">"lock xaddq %0, %1 </span><span class="se">\n</span><span class="s">"</span>          <span class="c1">//!&lt; xaddq v, [a]
+</span><span class="cp">#else
+</span>        <span class="s">"lock xaddl %0, %1 </span><span class="se">\n</span><span class="s">"</span>          <span class="c1">//!&lt; xaddl v, [a]
+</span><span class="cp">#endif
+</span>
+        <span class="o">:</span> <span class="s">"+r"</span> <span class="p">(</span><span class="n">v</span><span class="p">)</span> 
+        <span class="o">:</span> <span class="s">"m"</span> <span class="p">(</span><span class="o">*</span><span class="n">a</span><span class="p">)</span> 
+        <span class="o">:</span> <span class="s">"cc"</span><span class="p">,</span> <span class="s">"memory"</span>
+    <span class="p">);</span>
+
+    <span class="k">return</span> <span class="n">v</span><span class="p">;</span>
+<span class="p">}</span>
+
+</code></pre>
+</div>
+
+<p>原子操作除了可以进行对int32和int64数值加减乘除外，还可以进行xor, or, and等逻辑计算，用法类似，这里就不多说了。</p>
+
+<p>下面我们再来个简单的实例，来实际运用下，原子的应用场景还是蛮多的，比如：</p>
+
+<ul>
+  <li>用于实现自旋锁</li>
+  <li>用于实现无锁队列</li>
+  <li>线程间的状态同步</li>
+  <li>用于实现单例</li>
+</ul>
+
+<p>等等。。</p>
+
+<h4 id="section">自旋锁的实现</h4>
+
+<p>我们先来看下如何去实现一个简单的自旋锁，为了统一规范演示代码，下面的代码都用tbox提供的原子接口为例：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="k">static</span> <span class="n">__tb_inline_force__</span> <span class="n">tb_bool_t</span> <span class="nf">tb_spinlock_init</span><span class="p">(</span><span class="n">tb_spinlock_ref_t</span> <span class="n">lock</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// init 
+</span>    <span class="o">*</span><span class="n">lock</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+    <span class="c1">// ok
+</span>    <span class="k">return</span> <span class="n">tb_true</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="k">static</span> <span class="n">__tb_inline_force__</span> <span class="n">tb_void_t</span> <span class="nf">tb_spinlock_exit</span><span class="p">(</span><span class="n">tb_spinlock_ref_t</span> <span class="n">lock</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// exit 
+</span>    <span class="o">*</span><span class="n">lock</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="k">static</span> <span class="n">__tb_inline_force__</span> <span class="n">tb_void_t</span> <span class="nf">tb_spinlock_enter</span><span class="p">(</span><span class="n">tb_spinlock_ref_t</span> <span class="n">lock</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="cm">/* 尝试读取lock的状态值，如果还没获取到lock（状态0），则获取它（设置为1）
+     * 如果对方线程已经获取到lock（状态1），那么循环等待尝试重新获取
+     *
+     * 注：整个状态读取和设置，是原子的，无法被打断
+     */</span>
+    <span class="n">tb_size_t</span> <span class="n">tryn</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">tb_atomic_fetch_and_pset</span><span class="p">((</span><span class="n">tb_atomic_t</span><span class="o">*</span><span class="p">)</span><span class="n">lock</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="p">{</span>
+        <span class="c1">// 没获取到lock，尝试5次后，还不成功，则让出cpu切到其他线程运行，之后重新尝试获取
+</span>        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">tryn</span><span class="o">--</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="c1">// yield
+</span>            <span class="n">tb_sched_yield</span><span class="p">();</span>
+
+            <span class="c1">// reset tryn
+</span>            <span class="n">tryn</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="k">static</span> <span class="n">__tb_inline_force__</span> <span class="n">tb_void_t</span> <span class="nf">tb_spinlock_leave</span><span class="p">(</span><span class="n">tb_spinlock_ref_t</span> <span class="n">lock</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// 释放lock，此处无需原子，设置到一半被打断，数值部位0，对方线程还是在等待中，不收影响
+</span>    <span class="o">*</span><span class="p">((</span><span class="n">tb_atomic_t</span><span class="o">*</span><span class="p">)</span><span class="n">lock</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>这个实现非常简单，但是tbox里面，基本上默认都是在使用这个spinlock，因为tbox里面大部分多线程实现，粒度都被拆的很细</p>
+
+<p>大部分情况下，用自旋锁就ok了，无需进入内核态切换等待。。</p>
+
+<p>使用方式如下：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="c1">// 获取lock
+</span><span class="n">tb_spinlock_enter</span><span class="p">(</span><span class="o">&amp;</span><span class="n">lock</span><span class="p">);</span>
+
+<span class="c1">// 一些同步操作
+// ..
+</span>
+<span class="c1">// 释放lock
+</span><span class="n">tb_spinlock_leave</span><span class="p">(</span><span class="o">&amp;</span><span class="n">lock</span><span class="p">);</span>
+</code></pre>
+</div>
+
+<p>上面的代码中，省略了init和exit操作，实际使用时，在响应初始化和释放的地方，做相应处理下就行了。。</p>
+
+<h4 id="pthreadonce">类<code class="highlighter-rouge">pthread_once</code>的实现</h4>
+
+<p><code class="highlighter-rouge">pthread_once</code> 可以在多线程函数内，可以保证传入的函数只被调用到一次，一般可以用来初始化全局单例或者TLS的key初始化</p>
+
+<p>以tbox的接口为例，我先来来看下，这个函数的使用方式：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code>
+<span class="c1">// 初始化函数，只会被调用到一次
+</span><span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">tb_once_func</span><span class="p">(</span><span class="n">tb_cpointer_t</span> <span class="n">priv</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// 初始化一些单例对象，全局变量
+</span>    <span class="c1">// 或者执行一些初始化调用
+</span><span class="p">}</span>
+
+<span class="c1">// 线程函数
+</span><span class="k">static</span> <span class="n">tb_int_t</span> <span class="nf">tb_thread_func</span><span class="p">(</span><span class="n">tb_cpointer_t</span> <span class="n">priv</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// 全局存储lock，并初始化为0
+</span>    <span class="k">static</span> <span class="n">tb_atomic_t</span> <span class="n">lock</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">tb_thread_once</span><span class="p">(</span><span class="o">&amp;</span><span class="n">lock</span><span class="p">,</span> <span class="n">tb_once_func</span><span class="p">,</span> <span class="s">"user data"</span><span class="p">))</span>
+    <span class="p">{</span>
+        <span class="c1">// ok
+</span>    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>我们这里拿原子操作，可以简单模拟实现下这个函数：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="n">tb_bool_t</span> <span class="nf">tb_thread_once</span><span class="p">(</span><span class="n">tb_atomic_t</span><span class="o">*</span> <span class="n">lock</span><span class="p">,</span> <span class="n">tb_bool_t</span> <span class="p">(</span><span class="o">*</span><span class="n">func</span><span class="p">)(</span><span class="n">tb_cpointer_t</span><span class="p">),</span> <span class="n">tb_cpointer_t</span> <span class="n">priv</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// check
+</span>    <span class="n">tb_check_return_val</span><span class="p">(</span><span class="n">lock</span> <span class="o">&amp;&amp;</span> <span class="n">func</span><span class="p">,</span> <span class="n">tb_false</span><span class="p">);</span>
+
+    <span class="cm">/* 原子获取lock的状态
+     *
+     * 0: func还没有被调用
+     * 1: 已经获取到lock，func正在被其他线程调用中
+     * 2: func已经被调用完成，并且func返回ok
+     * -2: func已经被调用，并且func返回失败failed
+     */</span>
+    <span class="n">tb_atomic_t</span> <span class="n">called</span> <span class="o">=</span> <span class="n">tb_atomic_fetch_and_pset</span><span class="p">(</span><span class="n">lock</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+
+    <span class="c1">// func已经被其他线程调用过了？直接返回
+</span>    <span class="k">if</span> <span class="p">(</span><span class="n">called</span> <span class="o">&amp;&amp;</span> <span class="n">called</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">)</span> 
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="n">called</span> <span class="o">==</span> <span class="mi">2</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="c1">// func还没有被调用过？那么调用它
+</span>    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">called</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// 调用函数
+</span>        <span class="n">tb_bool_t</span> <span class="n">ok</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">priv</span><span class="p">);</span>
+
+        <span class="c1">// 设置返回状态
+</span>        <span class="n">tb_atomic_set</span><span class="p">(</span><span class="n">lock</span><span class="p">,</span> <span class="n">ok</span><span class="o">?</span> <span class="mi">2</span> <span class="o">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+
+        <span class="c1">// ok?
+</span>        <span class="k">return</span> <span class="n">ok</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="c1">// 正在被其他线程获取到lock，func正在被调用中，还没完成？尝试等待lock
+</span>    <span class="k">else</span>
+    <span class="p">{</span>
+        <span class="c1">// 此处简单的做了些sleep循环等待，直到对方线程func执行完成
+</span>        <span class="n">tb_size_t</span> <span class="n">tryn</span> <span class="o">=</span> <span class="mi">50</span><span class="p">;</span>
+        <span class="k">while</span> <span class="p">((</span><span class="mi">1</span> <span class="o">==</span> <span class="n">tb_atomic_get</span><span class="p">(</span><span class="n">lock</span><span class="p">))</span> <span class="o">&amp;&amp;</span> <span class="n">tryn</span><span class="o">--</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="c1">// wait some time
+</span>            <span class="n">tb_msleep</span><span class="p">(</span><span class="mi">100</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="cm">/* 重新获取lock的状态，判断是否成功
+     * 
+     * 成功：2
+     * 超时：1
+     * 失败：-2
+     *
+     * 此处只要不是2，都算失败
+     */</span>
+    <span class="k">return</span> <span class="n">tb_atomic_get</span><span class="p">(</span><span class="n">lock</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<h4 id="section-1">64位原子操作</h4>
+
+<p>64位操作跟32位的接口使用方式，是完全一样的，仅仅只是变量类型的区别：</p>
+
+<ol>
+  <li>tbox中类型为<code class="highlighter-rouge">tb_atomic64_t</code>，接口改为<code class="highlighter-rouge">tb_atomic64_xxxx</code></li>
+  <li>gcc中类型为<code class="highlighter-rouge">volatile long long</code>，接口改为<code class="highlighter-rouge">__sync_xxxx_8</code>系列</li>
+  <li>windows上则为Interlockedxxx64</li>
+</ol>
+
+<p>具体使用方式参考32位，这里就不详细介绍了。。</p>
+
+        </article>
+        <hr>
+
+        
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+        
+
+        
+        
+            
+            
+            
+                
+                    
+                        
+                        <h2 id="similar_posts">相关文章</h2>
+                        <ul>
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/09/28/thread-local/">线程局部存储tls的使用
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/09/18/database-usage/">tbox中数据库的使用
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/09/18/custom-printf/">使用printf定制化打印对象
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/08/29/update-v1.5.3/">tbox v1.5.3发布！
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+        
+            </ul>
+        
+
+        <div class="post-recent">
+    <div class="pre">
+
+        
+
+        
+
+        
+        
+        <p><strong>上一篇</strong> <a href="/cn/2016/09/28/thread-local/">线程局部存储tls的使用</a></p>
+        
+    </div>
+
+    <div class="nex">
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+    </div>
+</div>
+
+
+        <h2 id="comments">评论</h2>
+        
+
+<!-- 多说评论框 start -->
+<div class="ds-thread" data-thread-key="http://www.tboox.org/cn/2016/09/30/atomic-operation/" data-title="聊聊原子操作那些事" data-url="http://www.tboox.org/cn/2016/09/30/atomic-operation/"></div>
+<!-- 多说评论框 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"tboox"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- 多说公共JS代码 end -->
+<!-- 多说公共JS代码 end -->
+
+
+
+
+
+
+
+
+    </div>
+    <button class="anchor"><i class="fa fa-anchor"></i></button>
+    <div class="right">
+        <div class="wrap">
+
+            <!-- Content -->
+            <div class="side content">
+                <div>
+                    内容
+                </div>
+                <ul id="content-side" class="content-ul">
+                    <li><a href="#english">English</a></li>
+                    <li><a href="#similar_posts">相关文章</a></li>
+                    <li><a href="#comments">评论</a></li>
+                </ul>
+            </div>
+            
+            <br>
+            <div class="side">
+                <div>
+                    <i class="fa fa-external-link"></i>
+                    链接
+                </div>
+                <ul class="content-ul">
+                  <li><a href="http://github.com/waruqi/tbox">tbox</a></li>
+                  <li><a href="http://www.xmake.io">xmake</a></li>
+                  <li><a href="https://github.com/waruqi">github</a></li>
+                </ul>
+            </div> 
+
+            <!-- google ads -->
+            
+
+            <!-- baidu ads -->
+            
+
+        </div>
+    </div>
+</div>
+<script>
+/**
+ * target _blank
+ */
+(function() {
+    var aTags = document.querySelectorAll('article a:not([id])')
+    for (var i = 0; i < aTags.length; i++) {
+        aTags[i].setAttribute('target', '_blank')
+    }
+}());
+</script>
+<script src="/js/pageContent.js " charset="utf-8"></script>
+
+<!-- baidu ads -->
+
+<script type="text/javascript">
+    var cpro_id = "u2777558";
+</script>
+<script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/f.js"></script>
+
+
+
+<script type="text/javascript">
+    function isPC(){    
+        var userAgentInfo = navigator.userAgent;  
+        var Agents = new Array("Android", "iPhone", "SymbianOS", "Windows Phone", "iPad", "iPod");    
+        var flag = true;    
+        for (var v = 0; v < Agents.length; v++) {    
+            if (userAgentInfo.indexOf(Agents[v]) > 0) { flag = false; break; }    
+        }    
+        return flag;    
+    }  
+    var cpro_id = !isPC()? "u2777570" : "";
+</script>
+<script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/cm.js"></script>
+
+
+
+    <footer class="site-footer">
+    <div class="wrapper">
+        <p class="description">
+             Copyright (c) 2016 tboox.org 
+        </p>
+        <p class="contact">
+            
+            <a href="https://github.com/waruqi" title="GitHub"><i class="fa fa-github" aria-hidden="true"></i></a> 
+             
+            
+            <a href="mailto:waruqi@gmail.com" title="email"><i class="fa fa-envelope-o" aria-hidden="true"></i></a> 
+            
+            
+            <a href="https://twitter.com/waruqi" title="Twitter"><i class="fa fa-twitter" aria-hidden="true"></i></a> 
+            
+            <a href="/feed.xml" title="feed"><i class="fa fa-feed" aria-hidden="true"></i></a> 
+        </p>
+        <p class="power">
+            <span>
+                Site powered by <a href="https://jekyllrb.com/">Jekyll</a> & <a href="https://github.com/Gaohaoyang">HyG</a>.
+            </span>
+            <span>
+                <a href="http://www.miitbeian.gov.cn/">沪ICP备16031914号</a>.
+                <a href="http://www.beian.gov.cn/">沪公网安备31011702000303号</a>.
+            </span>
+        </p>
+    </div>
+</footer>
+
+    <div class="back-to-top">
+    <a href="#top" class="scroll">
+        <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    </a>
+</div>
+
+    <script src=" /js/main.js " charset="utf-8"></script>
+    <script src=" /js/scroll.min.js " charset="utf-8"></script>
+  </body>
+
+</html>
