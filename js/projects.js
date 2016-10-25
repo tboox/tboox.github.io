@@ -60,6 +60,13 @@
         code_repo: 'vm86',
         title: 'The x86 Script Instruction Virtual Machine',
         description: 'This is a very simple and lightweight x86 virtual machine which can load and run the assembly code from ida pro directly.'
+    },
+    {
+        page_link: 'https://github.com/waruqi/benchbox',
+        img_link: '/static/img/benchbox/benchbox.jpg',
+        code_repo: 'benchbox',
+        title: 'The Benchmark Testing Box',
+        description: 'Benchbox is a benchmark testing utilities.'
     }];
 
     contentInit(demoContent) //内容初始化
