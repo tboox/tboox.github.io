@@ -60,6 +60,13 @@
         code_repo: 'vm86',
         title: 'x86汇编指令脚本虚拟机',
         description: '这是一个可以直接解释执行从ida pro里面提取出来的x86汇编代码的虚拟机'
+    },
+    {
+        page_link: 'https://github.com/waruqi/benchbox',
+        img_link: '/static/img/benchbox/benchbox.jpg',
+        code_repo: 'benchbox',
+        title: '基准测试包',
+        description: 'Benchbox是一个基准测试包，里面包含许多针对第三方库功能的性能基准测试和对比'
     }];
 
     contentInit(demoContent) //内容初始化
