@@ -1,0 +1,2514 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+    <title>协程分析之context上下文切换</title>
+    <meta name="description" content="协程现在已经不是个新东西了，很多语言都提供了原生支持，也有很多开源的库也提供了协程支持。最近为了要给tbox增加协程，特地研究了下各大开源协程库的实现，例如：libtask, libmill, boost, libco, libgo等等。他们都属于stackfull协程，每个协程有完整的私有堆栈，里面的核心就是上...">
+
+    
+    <meta name="keywords" content="tbox,协程,ucontext,boost,libtask,tboox" /> 
+
+    <!-- qq oauth -->
+    <meta property="qc:admins" content="5211601217706727767255" />
+
+    <! --icon -->
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" sizes="192x192" href="/static/img/nice-highres.png" />
+	<link rel="apple-touch-icon-precomposed" href="/static/img/apple-touch-icon-57x57-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="72x72" href="/static/img/apple-touch-icon-72x72-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="114x114" href="/static/img/apple-touch-icon-114x114-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/static/img/apple-touch-icon-144x144-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="180x180" href="/static/img/retinahd_icon.png" />
+	<meta name="msapplication-TileImage" content="/static/img/retinahd_icon.png" />
+	
+    <link rel="stylesheet" href=" /css/fontawesome/css/font-awesome.min.css ">
+    <link rel="stylesheet" href=" /css/main.css ">
+    <link rel="canonical" href="http://www.tboox.org/cn/2016/10/28/coroutine-context/">
+    <link rel="alternate" type="application/rss+xml" title="TBOOX Open Source Project" href="http://www.tboox.org/feed.xml ">
+    <link rel="alternate" hreflang="en" href="http://www.tboox.org/" />
+    <link rel="alternate" hreflang="zh-Hans" href="http://www.tboox.org/cn/" />
+
+
+    <script>
+    // 百度统计代码
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?162f1cd478898a0686b0b5d5115e2af2";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+
+
+</head>
+
+
+  <body>
+
+    <header id="top">
+    <div class="wrapper">
+        <a href="/cn" class="brand">TBOOX</a>
+        <button id="headerMenu" class="menu"><i class="fa fa-bars"></i></button>
+        <nav id="headerNav">
+            <ul>
+                <li>
+                    
+                    <a href="/">
+                    
+                        <i class="fa fa-home"></i>English
+                    </a>
+                </li>
+
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/project/">
+                            
+                        
+                            <i class="fa fa-bookmark"></i>项目
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/archive/">
+                            
+                        
+                            <i class="fa fa-archive"></i>归档
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/category/">
+                            
+                        
+                            <i class="fa fa-th-list"></i>分类
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/tag/">
+                            
+                        
+                            <i class="fa fa-tags"></i>标记
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/book/">
+                            
+                        
+                            <i class="fa fa-book"></i>书柜
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/forum">
+                            
+                        
+                            <i class="fa fa-forumbee"></i>社区
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/donation/">
+                            
+                        
+                            <i class="fa fa-heart"></i>捐助
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/about/">
+                            
+                        
+                            <i class="fa fa-user"></i>关于
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            </ul>
+        </nav>
+    </div>
+</header>
+
+
+        <div class="page clearfix" post>
+    <div class="left">
+        <h1>协程分析之context上下文切换</h1>
+        <div class="label">
+
+            <div class="label-card">
+                <i class="fa fa-calendar"></i>2016-10-28
+            </div>
+
+            <div class="label-card">
+                
+            </div>
+
+            <div class="label-card">
+                
+            </div>
+
+            <div class="label-card">
+            
+
+
+<!-- <span class="point">•</span> -->
+<span class="categories">
+  <i class="fa fa-th-list"></i>
+  
+    
+        <a href="/category/#tbox" title="Category: tbox" rel="category">tbox</a>
+    
+  
+
+  <!-- <span class="point">•</span> -->
+</span>
+
+
+            </div>
+
+            <div class="label-card">
+            
+<!-- <span class="point">•</span> -->
+<span class="pageTag">
+  <i class="fa fa-tags"></i>
+  
+    
+        <!--a href="/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a-->
+        <a href="/cn/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a>&nbsp;
+    
+        <!--a href="/tag/#%E5%8D%8F%E7%A8%8B" title="Tag: 协程" rel="tag">协程</a-->
+        <a href="/cn/tag/#协程" title="Tag: 协程" rel="tag">协程</a>&nbsp;
+    
+        <!--a href="/tag/#ucontext" title="Tag: ucontext" rel="tag">ucontext</a-->
+        <a href="/cn/tag/#ucontext" title="Tag: ucontext" rel="tag">ucontext</a>&nbsp;
+    
+        <!--a href="/tag/#boost" title="Tag: boost" rel="tag">boost</a-->
+        <a href="/cn/tag/#boost" title="Tag: boost" rel="tag">boost</a>&nbsp;
+    
+        <!--a href="/tag/#libtask" title="Tag: libtask" rel="tag">libtask</a-->
+        <a href="/cn/tag/#libtask" title="Tag: libtask" rel="tag">libtask</a>
+    
+  
+
+</span>
+
+            </div>
+
+        </div>
+        <hr>
+        <article itemscope itemtype="http://schema.org/BlogPosting">
+        <p>协程现在已经不是个新东西了，很多语言都提供了原生支持，也有很多开源的库也提供了协程支持。</p>
+
+<p>最近为了要给<a href="https://github.com/waruqi/tbox">tbox</a>增加协程，特地研究了下各大开源协程库的实现，例如：libtask, libmill, boost, libco, libgo等等。</p>
+
+<p>他们都属于stackfull协程，每个协程有完整的私有堆栈，里面的核心就是上下文切换(context)，而stackless的协程，比较出名的有protothreads，这个比较另类，有兴趣的同学可以去看下源码，这里就不多说了。</p>
+
+<p>那么现有协程库，是怎么去实现context切换的呢，目前主要有以下几种方式：</p>
+
+<ol>
+  <li>使用ucontext系列接口，例如：libtask</li>
+  <li>使用setjmp/longjmp接口，例如：libmill</li>
+  <li>使用boost.context，纯汇编实现，内部实现机制跟ucontext完全不同，效率非常高，后面会细讲，tbox最后也是基于此实现</li>
+  <li>使用windows的GetThreadContext/SetThreadContext接口</li>
+  <li>使用windows的CreateFiber/ConvertThreadToFiber/SwitchToFiber接口</li>
+</ol>
+
+<p>各个协程协程库的切换效率的基准测试，可以参考：<a href="/cn/2016/10/28/benchbox-coroutine/">切换效率基准测试报告</a></p>
+
+<h4 id="ucontext">ucontext接口</h4>
+
+<p>要研究ucontext，其实只要看下libtask的实现就行了，非常经典，这套接口其实效率并不是很高，而且很多平台已经标记为废弃接口了（像macosx），目前主要是在linux下使用</p>
+
+<p>libtask里面对不提供此接口的平台，进行了汇编实现，已达到跨平台的目的，</p>
+
+<p>ucontext相关接口，主要有如下四个：</p>
+
+<ul>
+  <li>getcontext：获取当前context</li>
+  <li>setcontext：切换到指定context</li>
+  <li>makecontext: 用于将一个新函数和堆栈，绑定到指定context中</li>
+  <li>swapcontext：保存当前context，并且切换到指定context</li>
+</ul>
+
+<p>下面给个简单的例子：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="cp">#include &lt;stdio.h&gt;
+#include &lt;ucontext.h&gt;
+</span>
+<span class="k">static</span> <span class="n">ucontext_t</span> <span class="n">ctx</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+
+<span class="k">static</span> <span class="kt">void</span> <span class="nf">func1</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// 切换到func2
+</span>    <span class="n">swapcontext</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ctx</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="o">&amp;</span><span class="n">ctx</span><span class="p">[</span><span class="mi">2</span><span class="p">]);</span>
+
+    <span class="c1">// 返回后，切换到ctx[1].uc_link，也就是main的swapcontext返回处
+</span><span class="p">}</span>
+<span class="k">static</span> <span class="kt">void</span> <span class="nf">func2</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// 切换到func1
+</span>    <span class="n">swapcontext</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ctx</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="o">&amp;</span><span class="n">ctx</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+
+    <span class="c1">// 返回后，切换到ctx[2].uc_link，也就是func1的swapcontext返回处
+</span><span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">main</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// 初始化context1，绑定函数func1和堆栈stack1
+</span>    <span class="kt">char</span> <span class="n">stack1</span><span class="p">[</span><span class="mi">8192</span><span class="p">];</span>
+    <span class="n">getcontext</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ctx</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+    <span class="n">ctx</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">uc_stack</span><span class="p">.</span><span class="n">ss_sp</span>   <span class="o">=</span> <span class="n">stack1</span><span class="p">;</span>
+    <span class="n">ctx</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">uc_stack</span><span class="p">.</span><span class="n">ss_size</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">stack1</span><span class="p">);</span>
+    <span class="n">ctx</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">uc_link</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ctx</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+    <span class="n">makecontext</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ctx</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">func1</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+
+    <span class="c1">// 初始化context2，绑定函数func2和堆栈stack2
+</span>    <span class="kt">char</span> <span class="n">stack2</span><span class="p">[</span><span class="mi">8192</span><span class="p">];</span>
+    <span class="n">getcontext</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ctx</span><span class="p">[</span><span class="mi">2</span><span class="p">]);</span>
+    <span class="n">ctx</span><span class="p">[</span><span class="mi">2</span><span class="p">].</span><span class="n">uc_stack</span><span class="p">.</span><span class="n">ss_sp</span>   <span class="o">=</span> <span class="n">stack2</span><span class="p">;</span>
+    <span class="n">ctx</span><span class="p">[</span><span class="mi">2</span><span class="p">].</span><span class="n">uc_stack</span><span class="p">.</span><span class="n">ss_size</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">stack1</span><span class="p">);</span>
+    <span class="n">ctx</span><span class="p">[</span><span class="mi">2</span><span class="p">].</span><span class="n">uc_link</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ctx</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+    <span class="n">makecontext</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ctx</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">func2</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+
+    <span class="c1">// 保存当前context，然后切换到context2上去，也就是func2
+</span>    <span class="n">swapcontext</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ctx</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">&amp;</span><span class="n">ctx</span><span class="p">[</span><span class="mi">2</span><span class="p">]);</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>那这套接口的实现原理是什么呢，我们可以拿libtask的arm汇编实现，来看下，其他平台也类似。</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code>
+<span class="cm">/* get mcontext
+ *
+ * @param mcontext      r0
+ *
+ * @return              r0
+ */</span>
+<span class="p">.</span><span class="n">globl</span> <span class="n">getmcontext</span>
+<span class="n">getmcontext</span><span class="o">:</span>
+
+    <span class="cm">/* 保存所有当前寄存器，包括sp和lr */</span>
+    <span class="n">str</span> <span class="n">r1</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">,</span> <span class="err">#</span><span class="mi">4</span><span class="p">]</span>        <span class="c1">// mcontext.mc_r1 = r1
+</span>    <span class="n">str</span> <span class="n">r2</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">,</span> <span class="err">#</span><span class="mi">8</span><span class="p">]</span>        <span class="c1">// mcontext.mc_r2 = r2
+</span>    <span class="n">str</span> <span class="n">r3</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">,</span> <span class="err">#</span><span class="mi">12</span><span class="p">]</span>       <span class="c1">// mcontext.mc_r3 = r3
+</span>    <span class="n">str</span> <span class="n">r4</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">,</span> <span class="err">#</span><span class="mi">16</span><span class="p">]</span>       <span class="c1">// mcontext.mc_r4 = r4
+</span>    <span class="n">str</span> <span class="n">r5</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">,</span> <span class="err">#</span><span class="mi">20</span><span class="p">]</span>       <span class="c1">// mcontext.mc_r5 = r5
+</span>    <span class="n">str</span> <span class="n">r6</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">,</span> <span class="err">#</span><span class="mi">24</span><span class="p">]</span>       <span class="c1">// mcontext.mc_r6 = r6
+</span>    <span class="n">str</span> <span class="n">r7</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">,</span> <span class="err">#</span><span class="mi">28</span><span class="p">]</span>       <span class="c1">// mcontext.mc_r7 = r7
+</span>    <span class="n">str</span> <span class="n">r8</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">,</span> <span class="err">#</span><span class="mi">32</span><span class="p">]</span>       <span class="c1">// mcontext.mc_r8 = r8
+</span>    <span class="n">str</span> <span class="n">r9</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">,</span> <span class="err">#</span><span class="mi">36</span><span class="p">]</span>       <span class="c1">// mcontext.mc_r9 = r9
+</span>    <span class="n">str</span> <span class="n">r10</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">,</span> <span class="err">#</span><span class="mi">40</span><span class="p">]</span>      <span class="c1">// mcontext.mc_r10 = r10
+</span>    <span class="n">str</span> <span class="n">r11</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">,</span> <span class="err">#</span><span class="mi">44</span><span class="p">]</span>      <span class="c1">// mcontext.mc_fp = r11
+</span>    <span class="n">str</span> <span class="n">r12</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">,</span> <span class="err">#</span><span class="mi">48</span><span class="p">]</span>      <span class="c1">// mcontext.mc_ip = r12
+</span>    <span class="n">str</span> <span class="n">r13</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">,</span> <span class="err">#</span><span class="mi">52</span><span class="p">]</span>      <span class="c1">// mcontext.mc_sp = r13
+</span>    <span class="n">str</span> <span class="n">r14</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">,</span> <span class="err">#</span><span class="mi">56</span><span class="p">]</span>      <span class="c1">// mcontext.mc_lr = r14
+</span>
+    <span class="c1">// 设置从setcontext切换回getcontext后，从getcontext返回的值为1
+</span>    <span class="n">mov</span> <span class="n">r1</span><span class="p">,</span> <span class="err">#</span><span class="mi">1</span>              <span class="cm">/* mcontext.mc_r0 = 1
+                             * 
+                             * if (getcontext(ctx) == 0) 
+                             *      setcontext(ctx);
+                             *
+                             * getcontext() will return 1 after calling setcontext()
+                             */</span>
+    <span class="n">str</span> <span class="n">r1</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">]</span>
+
+    <span class="c1">// 返回0
+</span>    <span class="n">mov</span> <span class="n">r0</span><span class="p">,</span> <span class="err">#</span><span class="mi">0</span>              <span class="c1">// return 0
+</span>    <span class="n">mov</span> <span class="n">pc</span><span class="p">,</span> <span class="n">lr</span>
+
+<span class="cm">/* set mcontext
+ *
+ * @param mcontext      r0
+ */</span>
+<span class="p">.</span><span class="n">globl</span> <span class="n">setmcontext</span>
+<span class="n">setmcontext</span><span class="o">:</span>
+
+    <span class="c1">// 恢复指定context的所有寄存器，包括sp和lr
+</span>    <span class="n">ldr</span> <span class="n">r1</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">,</span> <span class="err">#</span><span class="mi">4</span><span class="p">]</span>        <span class="c1">// r1 = mcontext.mc_r1
+</span>    <span class="n">ldr</span> <span class="n">r2</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">,</span> <span class="err">#</span><span class="mi">8</span><span class="p">]</span>        <span class="c1">// r2 = mcontext.mc_r2
+</span>    <span class="n">ldr</span> <span class="n">r3</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">,</span> <span class="err">#</span><span class="mi">12</span><span class="p">]</span>       <span class="c1">// r3 = mcontext.mc_r3
+</span>    <span class="n">ldr</span> <span class="n">r4</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">,</span> <span class="err">#</span><span class="mi">16</span><span class="p">]</span>       <span class="c1">// r4 = mcontext.mc_r4
+</span>    <span class="n">ldr</span> <span class="n">r5</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">,</span> <span class="err">#</span><span class="mi">20</span><span class="p">]</span>       <span class="c1">// r5 = mcontext.mc_r5
+</span>    <span class="n">ldr</span> <span class="n">r6</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">,</span> <span class="err">#</span><span class="mi">24</span><span class="p">]</span>       <span class="c1">// r6 = mcontext.mc_r6
+</span>    <span class="n">ldr</span> <span class="n">r7</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">,</span> <span class="err">#</span><span class="mi">28</span><span class="p">]</span>       <span class="c1">// r7 = mcontext.mc_r7
+</span>    <span class="n">ldr</span> <span class="n">r8</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">,</span> <span class="err">#</span><span class="mi">32</span><span class="p">]</span>       <span class="c1">// r8 = mcontext.mc_r8
+</span>    <span class="n">ldr</span> <span class="n">r9</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">,</span> <span class="err">#</span><span class="mi">36</span><span class="p">]</span>       <span class="c1">// r9 = mcontext.mc_r9
+</span>    <span class="n">ldr</span> <span class="n">r10</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">,</span> <span class="err">#</span><span class="mi">40</span><span class="p">]</span>      <span class="c1">// r10 = mcontext.mc_r10
+</span>    <span class="n">ldr</span> <span class="n">r11</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">,</span> <span class="err">#</span><span class="mi">44</span><span class="p">]</span>      <span class="c1">// r11 = mcontext.mc_fp
+</span>    <span class="n">ldr</span> <span class="n">r12</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">,</span> <span class="err">#</span><span class="mi">48</span><span class="p">]</span>      <span class="c1">// r12 = mcontext.mc_ip
+</span>    <span class="n">ldr</span> <span class="n">r13</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">,</span> <span class="err">#</span><span class="mi">52</span><span class="p">]</span>      <span class="c1">// r13 = mcontext.mc_sp
+</span>    <span class="n">ldr</span> <span class="n">r14</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">,</span> <span class="err">#</span><span class="mi">56</span><span class="p">]</span>      <span class="c1">// r14 = mcontext.mc_lr
+</span>
+    <span class="c1">// 设置getcontext的返回值
+</span>    <span class="n">ldr</span> <span class="n">r0</span><span class="p">,</span> <span class="p">[</span><span class="n">r0</span><span class="p">]</span>            <span class="c1">// r0 = mcontext.mc_r0
+</span>
+    <span class="c1">// 切换到getcontext的返回处，继续执行
+</span>    <span class="n">mov</span> <span class="n">pc</span><span class="p">,</span> <span class="n">lr</span>              <span class="c1">// return
+</span></code></pre>
+</div>
+
+<p>其实说白了，就是对寄存器进行保存和恢复的过程，切换原理很简单</p>
+
+<p>然后外面只需要用宏包裹下，就行了：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="cp">#define setcontext(u)   setmcontext(&amp;(u)-&gt;uc_mcontext)
+#define getcontext(u)   getmcontext(&amp;(u)-&gt;uc_mcontext)
+</span></code></pre>
+</div>
+
+<p>而对于makecontext，主要的工作就是设置 函数指针 和 堆栈 到对应context保存的sp和pc寄存器中，这也就是为什么makecontext调用前，必须要先getcontext下的原因。</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">makecontext</span><span class="p">(</span><span class="n">ucontext_t</span> <span class="o">*</span><span class="n">uc</span><span class="p">,</span> <span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">fn</span><span class="p">)(</span><span class="kt">void</span><span class="p">),</span> <span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="p">...)</span>
+<span class="p">{</span>
+    <span class="kt">int</span> <span class="n">i</span><span class="p">,</span> <span class="o">*</span><span class="n">sp</span><span class="p">;</span>
+    <span class="kt">va_list</span> <span class="n">arg</span><span class="p">;</span>
+    
+    <span class="c1">// 将函数参数陆续设置到r0, r1，r2 .. 等参数寄存器中
+</span>    <span class="n">sp</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="o">*</span><span class="p">)</span><span class="n">uc</span><span class="o">-&gt;</span><span class="n">uc_stack</span><span class="p">.</span><span class="n">ss_sp</span> <span class="o">+</span> <span class="n">uc</span><span class="o">-&gt;</span><span class="n">uc_stack</span><span class="p">.</span><span class="n">ss_size</span> <span class="o">/</span> <span class="mi">4</span><span class="p">;</span>
+    <span class="n">va_start</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">argc</span><span class="p">);</span>
+    <span class="k">for</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">i</span><span class="o">&lt;</span><span class="mi">4</span> <span class="o">&amp;&amp;</span> <span class="n">i</span><span class="o">&lt;</span><span class="n">argc</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+        <span class="n">uc</span><span class="o">-&gt;</span><span class="n">uc_mcontext</span><span class="p">.</span><span class="n">gregs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">va_arg</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">uint</span><span class="p">);</span>
+    <span class="n">va_end</span><span class="p">(</span><span class="n">arg</span><span class="p">);</span>
+
+    <span class="c1">// 设置堆栈指针到sp寄存器
+</span>    <span class="n">uc</span><span class="o">-&gt;</span><span class="n">uc_mcontext</span><span class="p">.</span><span class="n">gregs</span><span class="p">[</span><span class="mi">13</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">uint</span><span class="p">)</span><span class="n">sp</span><span class="p">;</span>
+
+    <span class="c1">// 设置函数指针到lr寄存器，切换时会设置到pc寄存器中进行跳转到fn
+</span>    <span class="n">uc</span><span class="o">-&gt;</span><span class="n">uc_mcontext</span><span class="p">.</span><span class="n">gregs</span><span class="p">[</span><span class="mi">14</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">uint</span><span class="p">)</span><span class="n">fn</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>这套接口简单有效，不支持的平台还可以通过汇编实现来支持，看上去已经很完美了，但是确有个问题，就是效率不高，因为每次切换保存和恢复的寄存器太多。</p>
+
+<p>之后可以看下boost.context的实现，就可以对比出来了，下面先简单讲讲setjmp的切换。。</p>
+
+<h4 id="setjmplongjmp">setjmp/longjmp接口</h4>
+
+<p>libmill里面的切换主要用的就是此套接口，其实应该是sigsetjmp/siglongjmp，不仅保存了寄存器，还保存了signal mask。。</p>
+
+<p>通过<a href="/cn/2016/10/28/benchbox-coroutine/">切换效率基准测试报告</a>，可以看到libmill在x86_64架构上，切换非常的快</p>
+
+<p>其实是因为针对这个平台，libmill没有使用原生sigsetjmp/siglongjmp接口，而是自己汇编实现了一套，做了些优化，并且去掉了signal mask的保存。</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="cp">#if defined(__x86_64__)
+#if defined(__AVX__)
+#define MILL_CLOBBER \
+        , "ymm0", "ymm1", "ymm2", "ymm3", "ymm4", "ymm5", "ymm6", "ymm7",\
+        "ymm8", "ymm9", "ymm10", "ymm11", "ymm12", "ymm13", "ymm14", "ymm15"
+#else
+#define MILL_CLOBBER
+#endif
+#define mill_setjmp_(ctx) ({\
+    int ret;\
+    asm("lea     LJMPRET%=(%%rip), %%rcx\n\t"\
+        "xor     %%rax, %%rax\n\t"\
+        "mov     %%rbx, (%%rdx)\n\t"\
+        "mov     %%rbp, 8(%%rdx)\n\t"\
+        "mov     %%r12, 16(%%rdx)\n\t"\
+        "mov     %%rsp, 24(%%rdx)\n\t"\
+        "mov     %%r13, 32(%%rdx)\n\t"\
+        "mov     %%r14, 40(%%rdx)\n\t"\
+        "mov     %%r15, 48(%%rdx)\n\t"\
+        "mov     %%rcx, 56(%%rdx)\n\t"\
+        "mov     %%rdi, 64(%%rdx)\n\t"\
+        "mov     %%rsi, 72(%%rdx)\n\t"\
+        "LJMPRET%=:\n\t"\
+        : "=a" (ret)\
+        : "d" (ctx)\
+        : "memory", "rcx", "r8", "r9", "r10", "r11",\
+          "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7",\
+          "xmm8", "xmm9", "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15"\
+          MILL_CLOBBER\
+          );\
+    ret;\
+})
+#define mill_longjmp_(ctx) \
+    asm("movq   (%%rax), %%rbx\n\t"\
+        "movq   8(%%rax), %%rbp\n\t"\
+        "movq   16(%%rax), %%r12\n\t"\
+        "movq   24(%%rax), %%rdx\n\t"\
+        "movq   32(%%rax), %%r13\n\t"\
+        "movq   40(%%rax), %%r14\n\t"\
+        "mov    %%rdx, %%rsp\n\t"\
+        "movq   48(%%rax), %%r15\n\t"\
+        "movq   56(%%rax), %%rdx\n\t"\
+        "movq   64(%%rax), %%rdi\n\t"\
+        "movq   72(%%rax), %%rsi\n\t"\
+        "jmp    *%%rdx\n\t"\
+        : : "a" (ctx) : "rdx" \
+    )
+#else
+#define mill_setjmp_(ctx) \
+    sigsetjmp(*ctx, 0)
+#define mill_longjmp_(ctx) \
+    siglongjmp(*ctx, 1)
+#endif
+</span></code></pre>
+</div>
+
+<p>经过测试分析，其实libc自带的sigsetjmp/siglongjmp在不同平台下，效率上表现差异很大，而且切换也比setjmp/longjmp的慢了不少</p>
+
+<p>所以libmill除了优化过的x86_64平台，在其他arch上切换效果并不是很理想，完全依赖libc的实现效率。。</p>
+
+<p>因此后来再封装tbox的协程库的时候，并没有考虑此方案。</p>
+
+<h4 id="windowsgetthreadcontextsetthreadcontext">windows的GetThreadContext/SetThreadContext接口</h4>
+
+<p>这套接口，我之前用来封装setcontext/getcontext的时候，也实现并测试过，效果非常不理想，非常的慢，比用libtask那套纯汇编的实现慢了10倍左右，直接放弃了</p>
+
+<p>不过这套接口用起来还是很方便，跟ucontext类似，完全可以用来模拟封装成ucontext的使用方式，例如：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code>
+<span class="c1">// getcontext
+</span><span class="n">GetThreadContext</span><span class="p">(</span><span class="n">GetCurrentThread</span><span class="p">(),</span> <span class="n">mcontext</span><span class="p">);</span>
+
+<span class="c1">// setcontext
+</span><span class="n">SetThreadContext</span><span class="p">(</span><span class="n">GetCurrentThread</span><span class="p">(),</span> <span class="n">mcontext</span><span class="p">);</span>
+</code></pre>
+</div>
+
+<p>而makecontext，我贴下之前写的一些实现，不过现在已经废弃了，仅供参考：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="n">tb_bool_t</span> <span class="nf">makecontext</span><span class="p">(</span><span class="n">tb_context_ref_t</span> <span class="n">context</span><span class="p">,</span> <span class="n">tb_pointer_t</span> <span class="n">stack</span><span class="p">,</span> <span class="n">tb_size_t</span> <span class="n">stacksize</span><span class="p">,</span> <span class="n">tb_context_func_t</span> <span class="n">func</span><span class="p">,</span> <span class="n">tb_cpointer_t</span> <span class="n">priv</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// check
+</span>    <span class="n">LPCONTEXT</span> <span class="n">mcontext</span> <span class="o">=</span> <span class="p">(</span><span class="n">LPCONTEXT</span><span class="p">)</span><span class="n">context</span><span class="p">;</span>
+    <span class="n">tb_assert_and_check_return_val</span><span class="p">(</span><span class="n">mcontext</span> <span class="o">&amp;&amp;</span> <span class="n">stack</span> <span class="o">&amp;&amp;</span> <span class="n">stacksize</span> <span class="o">&amp;&amp;</span> <span class="n">func</span><span class="p">,</span> <span class="n">tb_false</span><span class="p">);</span>
+
+    <span class="c1">// make stack address
+</span>    <span class="n">tb_long_t</span><span class="o">*</span> <span class="n">sp</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_long_t</span><span class="o">*</span><span class="p">)</span><span class="n">stack</span> <span class="o">+</span> <span class="n">stacksize</span> <span class="o">/</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">tb_long_t</span><span class="p">);</span>
+
+    <span class="c1">// push arguments
+</span>    <span class="n">tb_uint64_t</span> <span class="n">value</span> <span class="o">=</span> <span class="n">tb_p2u64</span><span class="p">(</span><span class="n">priv</span><span class="p">);</span>
+    <span class="o">*--</span><span class="n">sp</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_long_t</span><span class="p">)(</span><span class="n">tb_uint32_t</span><span class="p">)(</span><span class="n">value</span><span class="p">);</span>
+    <span class="o">*--</span><span class="n">sp</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_long_t</span><span class="p">)(</span><span class="n">tb_uint32_t</span><span class="p">)(</span><span class="n">value</span> <span class="o">&gt;&gt;</span> <span class="mi">32</span><span class="p">);</span>
+
+    <span class="c1">// push return address(unused, only reverse the stack space)
+</span>    <span class="o">*--</span><span class="n">sp</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+    <span class="cm">/* save function and stack address
+     *
+     * sp + 8:  arg2
+     * sp + 4:  arg1                         
+     * sp:      return address(0)   =&gt; esp 
+     */</span>
+    <span class="n">mcontext</span><span class="o">-&gt;</span><span class="n">Eip</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_long_t</span><span class="p">)</span><span class="n">func</span><span class="p">;</span>
+    <span class="n">mcontext</span><span class="o">-&gt;</span><span class="n">Esp</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_long_t</span><span class="p">)</span><span class="n">sp</span><span class="p">;</span>
+    <span class="n">tb_assert_static</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">tb_long_t</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">);</span>
+
+    <span class="c1">// save and restore the full machine context 
+</span>    <span class="n">mcontext</span><span class="o">-&gt;</span><span class="n">ContextFlags</span> <span class="o">=</span> <span class="n">CONTEXT_FULL</span><span class="p">;</span>
+
+    <span class="c1">// ok
+</span>    <span class="k">return</span> <span class="n">tb_true</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>原理跟libtask的那个类似，就是修改esp和eip寄存器而已，具体实现可以参考我之前的<a href="https://github.com/waruqi/tbox/blob/2e5f3ebab1859e394f45b261afe5dcfbf6a48bfc/src/tbox/platform/windows/context.c">commit</a></p>
+
+<h4 id="windowsfibers">windows的fibers接口</h4>
+
+<p>这套接口，目前还没测试过，不过看msdn介绍，使用还是很方便的，不过部分xp系统上，并不提供此接口，需要较高版本的系统支持</p>
+
+<p>因此为了考虑跨平台，tbox暂时没去考虑使用，有兴趣的同学可以研究下。</p>
+
+<h4 id="boostcontext">boost.context</h4>
+
+<p>其实一开始tbox是参考libtask的ucontext汇编实现，封装了一套context切换，当时其实已经封装的差不多了，但是后来做<a href="https://github.com/waruqi/benchbox">benchbox</a>的基准测试</p>
+
+<p>把boost的切换一对比，直接就被秒杀了，哎。。然后去看boost的context实现源码，虽然对boost本身并不是太喜欢，但是底层的context是实现，确实非常精妙，不得不佩服。</p>
+
+<p>它主要有两个接口，一个<code class="highlighter-rouge">make_fcontext()</code>，一个<code class="highlighter-rouge">jump_fcontext()</code>，我在tbox的平台库里面参考其实现，进行了封装，使用方式跟boost类似，因此直接以tbox的使用为例：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">func1</span><span class="p">(</span><span class="n">tb_context_from_t</span> <span class="n">from</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// 获取切换时传入的contexts参数
+</span>    <span class="n">tb_context_ref_t</span><span class="o">*</span> <span class="n">contexts</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_context_ref_t</span><span class="o">*</span><span class="p">)</span><span class="n">from</span><span class="p">.</span><span class="n">priv</span><span class="p">;</span>
+
+    <span class="c1">// 保存原始context
+</span>    <span class="n">contexts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">from</span><span class="p">.</span><span class="n">context</span><span class="p">;</span>
+
+    <span class="c1">// 切换到func2
+</span>    <span class="n">from</span> <span class="o">=</span> <span class="n">tb_context_jump</span><span class="p">(</span><span class="n">contexts</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">contexts</span><span class="p">);</span>
+
+    <span class="c1">// 从func2返回后，切换回main
+</span>    <span class="n">tb_context_jump</span><span class="p">(</span><span class="n">contexts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tb_null</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">func2</span><span class="p">(</span><span class="n">tb_context_from_t</span> <span class="n">from</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// 获取切换时传入的contexts参数
+</span>    <span class="n">tb_context_ref_t</span><span class="o">*</span> <span class="n">contexts</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_context_ref_t</span><span class="o">*</span><span class="p">)</span><span class="n">from</span><span class="p">.</span><span class="n">priv</span><span class="p">;</span>
+
+    <span class="c1">// 切换到func1
+</span>    <span class="n">from</span> <span class="o">=</span> <span class="n">tb_context_jump</span><span class="p">(</span><span class="n">from</span><span class="p">.</span><span class="n">context</span><span class="p">,</span> <span class="n">contexts</span><span class="p">);</span>
+
+    <span class="c1">// 从func1返回后，切换回main
+</span>    <span class="n">tb_context_jump</span><span class="p">(</span><span class="n">contexts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tb_null</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span><span class="o">**</span> <span class="n">argv</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// the stacks
+</span>    <span class="k">static</span> <span class="n">tb_context_ref_t</span> <span class="n">contexts</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+    <span class="k">static</span> <span class="n">tb_byte_t</span>        <span class="n">stacks1</span><span class="p">[</span><span class="mi">8192</span><span class="p">];</span>
+    <span class="k">static</span> <span class="n">tb_byte_t</span>        <span class="n">stacks2</span><span class="p">[</span><span class="mi">8192</span><span class="p">];</span>
+
+    <span class="c1">// 通过stack1和func1生成context1
+</span>    <span class="n">contexts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">tb_context_make</span><span class="p">(</span><span class="n">stacks1</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">stacks1</span><span class="p">),</span> <span class="n">func1</span><span class="p">);</span>
+
+    <span class="c1">// 通过stack2和func2生成context2
+</span>    <span class="n">contexts</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">tb_context_make</span><span class="p">(</span><span class="n">stacks2</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">stacks2</span><span class="p">),</span> <span class="n">func2</span><span class="p">);</span>
+
+    <span class="c1">// 切换到func1，并且传入contexts作为参数
+</span>    <span class="n">tb_context_jump</span><span class="p">(</span><span class="n">contexts</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">contexts</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>其中<code class="highlighter-rouge">tb_context_make</code>相当于boost的<code class="highlighter-rouge">make_fcontext</code>, <code class="highlighter-rouge">tb_context_jump</code>相当于boost的<code class="highlighter-rouge">jump_fcontext</code></p>
+
+<p>相比ucontext，boost的切换模式，少了单独对context进行保存(getcontext)和切换(setcontext)过程，而是把两者合并到一起，通过jump_fcontext接口实现直接切换。</p>
+
+<p>这样做有个好处，就是更加容易进行优化，使得整个切换过程更加的紧凑，我们先来看下macosx平台x86_64的实现，这个比较简单易懂些。。</p>
+
+<p>这里我就直接贴tbox的代码了，实现差不多的，只不过多了些注释而已。</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="cm">/* make context (refer to boost.context)
+ *
+ *             -------------------------------------------------------------------------------
+ * stackdata: |                                                |         context        |||||||
+ *             -------------------------------------------------------------------------|-----
+ *                                                                             (16-align for macosx)
+ *
+ *
+ *             -------------------------------------------------------------------------------
+ * context:   |   r12   |   r13   |   r14   |   r15   |   rbx   |   rbp   |   rip   |   end   | args | padding ...
+ *             -------------------------------------------------------------------------------
+ *            0         8         16        24        32        40        48        56        |
+ *                                                                                  |  16-align for macosx
+ *                                                                                  |
+ *                                                                       esp when jump to function
+ *
+ * @param stackdata     the stack data (rdi)
+ * @param stacksize     the stack size (rsi)
+ * @param func          the entry function (rdx)
+ *
+ * @return              the context pointer (rax)
+ */</span>
+<span class="n">function</span><span class="p">(</span><span class="n">tb_context_make</span><span class="p">)</span>
+
+    <span class="c1">// 保存栈顶指针到rax
+</span>    <span class="n">addq</span> <span class="o">%</span><span class="n">rsi</span><span class="p">,</span> <span class="o">%</span><span class="n">rdi</span>
+    <span class="n">movq</span> <span class="o">%</span><span class="n">rdi</span><span class="p">,</span> <span class="o">%</span><span class="n">rax</span>
+
+    <span class="cm">/* 先对栈指针进行16字节对齐
+     *
+     *                      
+     *             ------------------------------
+     * context:   | retaddr |    padding ...     |
+     *             ------------------------------
+     *            |         | 
+     *            |     此处16字节对齐
+     *            |
+     *  esp到此处时，会进行ret
+     *
+     * 这么做，主要是因为macosx下，对调用栈布局进行了优化，在保存调用函数返回地址的堆栈处，需要进行16字节对齐，方便利用SIMD进行优化
+     */</span>
+    <span class="n">movabs</span> <span class="err">$</span><span class="o">-</span><span class="mi">16</span><span class="p">,</span> <span class="o">%</span><span class="n">r8</span>
+    <span class="n">andq</span> <span class="o">%</span><span class="n">r8</span><span class="p">,</span> <span class="o">%</span><span class="n">rax</span>
+
+    <span class="c1">// 保留context需要的一些空间，因为context和stack是在一起的，stack底指针就是context
+</span>    <span class="n">leaq</span> <span class="o">-</span><span class="mi">64</span><span class="p">(</span><span class="o">%</span><span class="n">rax</span><span class="p">),</span> <span class="o">%</span><span class="n">rax</span>
+
+    <span class="c1">// 保存func函数地址到context.rip
+</span>    <span class="n">movq</span> <span class="o">%</span><span class="n">rdx</span><span class="p">,</span> <span class="mi">48</span><span class="p">(</span><span class="o">%</span><span class="n">rax</span><span class="p">)</span>
+
+    <span class="cm">/* 保存__end地址到context.end，如果在在func返回时，没有指定jump切换到有效context
+     * 那么会继续会执行到此处，程序也就退出了
+     */</span>
+    <span class="n">leaq</span> <span class="n">__end</span><span class="p">(</span><span class="o">%</span><span class="n">rip</span><span class="p">),</span> <span class="o">%</span><span class="n">rcx</span>
+    <span class="n">movq</span> <span class="o">%</span><span class="n">rcx</span><span class="p">,</span> <span class="mi">56</span><span class="p">(</span><span class="o">%</span><span class="n">rax</span><span class="p">)</span>
+
+    <span class="c1">// 返回rax指向的栈底指针，作为context返回
+</span>    <span class="n">ret</span> 
+
+<span class="n">__end</span><span class="o">:</span>
+    <span class="c1">// exit(0)
+</span>    <span class="n">xorq</span> <span class="o">%</span><span class="n">rdi</span><span class="p">,</span> <span class="o">%</span><span class="n">rdi</span>
+<span class="cp">#ifdef TB_ARCH_ELF
+</span>    <span class="n">call</span> <span class="n">_exit</span><span class="err">@</span><span class="n">PLT</span>
+<span class="cp">#else
+</span>    <span class="n">call</span> <span class="n">__exit</span>
+<span class="cp">#endif
+</span>    <span class="n">hlt</span>
+
+<span class="n">endfunc</span>
+
+<span class="cm">/* jump context (refer to boost.context)
+ *
+ * @param context       the to-context (rdi)
+ * @param priv          the passed user private data (rsi)
+ *
+ * @return              the from-context (context: rax, priv: rdx)
+ */</span>
+<span class="n">function</span><span class="p">(</span><span class="n">tb_context_jump</span><span class="p">)</span>
+
+    <span class="c1">// 保存寄存器，并且按布局构造成当前context，包括jump()自身的返回地址retaddr(rip)
+</span>    <span class="n">pushq</span> <span class="o">%</span><span class="n">rbp</span>
+    <span class="n">pushq</span> <span class="o">%</span><span class="n">rbx</span>
+    <span class="n">pushq</span> <span class="o">%</span><span class="n">r15</span>
+    <span class="n">pushq</span> <span class="o">%</span><span class="n">r14</span>
+    <span class="n">pushq</span> <span class="o">%</span><span class="n">r13</span>
+    <span class="n">pushq</span> <span class="o">%</span><span class="n">r12</span>
+
+    <span class="c1">// 保存当前栈基址rsp，也就是contex，到rax中
+</span>    <span class="n">movq</span> <span class="o">%</span><span class="n">rsp</span><span class="p">,</span> <span class="o">%</span><span class="n">rax</span>
+
+    <span class="c1">// 切换到指定的新context上去，也就是切换堆栈
+</span>    <span class="n">movq</span> <span class="o">%</span><span class="n">rdi</span><span class="p">,</span> <span class="o">%</span><span class="n">rsp</span>
+
+    <span class="c1">// 然后按context上的栈布局依次恢复寄存器
+</span>    <span class="n">popq</span> <span class="o">%</span><span class="n">r12</span>
+    <span class="n">popq</span> <span class="o">%</span><span class="n">r13</span>
+    <span class="n">popq</span> <span class="o">%</span><span class="n">r14</span>
+    <span class="n">popq</span> <span class="o">%</span><span class="n">r15</span>
+    <span class="n">popq</span> <span class="o">%</span><span class="n">rbx</span>
+    <span class="n">popq</span> <span class="o">%</span><span class="n">rbp</span>
+
+    <span class="c1">// 获取context.rip，也就是make时候指定的func函数地址，或者是对方context中jump()调用的返回地址
+</span>    <span class="n">popq</span> <span class="o">%</span><span class="n">r8</span>
+
+    <span class="c1">// 设置返回值(from.context: rax, from.priv: rdx)，也就是来自对方jump()的context和传递参数
+</span>    <span class="n">movq</span> <span class="o">%</span><span class="n">rsi</span><span class="p">,</span> <span class="o">%</span><span class="n">rdx</span>
+
+    <span class="c1">// 传递当前(context: rax, priv: rdx)，作为function(from)函数调用的入口参数
+</span>    <span class="n">movq</span> <span class="o">%</span><span class="n">rax</span><span class="p">,</span> <span class="o">%</span><span class="n">rdi</span>
+
+    <span class="cm">/* 跳转切换到make时候指定的func函数地址，或者是对方context中jump()调用的返回地址
+     *
+     * 切换过去后，此时的栈布局如下：
+     *
+     * end是func的返回地址，也就是exit
+     *
+     *             -------------------------------
+     * context: .. |   end   | args | padding ... |
+     *             -------------------------------
+     *             0             8        
+     *             |             |  
+     *            rsp   16-align for macosx
+     */</span>
+    <span class="n">jmp</span> <span class="o">*%</span><span class="n">r8</span>
+
+<span class="n">endfunc</span>
+</code></pre>
+</div>
+
+<p>关于apple栈布局16字节对齐优化问题，可以参考：<a href="http://fabiensanglard.net/macosxassembly/index.php">http://fabiensanglard.net/macosxassembly/index.php</a></p>
+
+<p>借用下里面的图哈，可以看下：</p>
+
+<p><img src="/static/img/tbox/macosx_stack.png" alt="macosx_stack" /></p>
+
+<p>boost的context和stack是一起的，栈底指针就是context，设计非常巧妙，切换context就是切换stack，一举两得，但是这样每次切换就必须更新context</p>
+
+<p>因为每次切换context后，context地址都会变掉。</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="c1">// 切换返回时，需要更新from.context的地址
+</span><span class="n">from</span> <span class="o">=</span> <span class="n">tb_context_jump</span><span class="p">(</span><span class="n">from</span><span class="p">.</span><span class="n">context</span><span class="p">,</span> <span class="n">contexts</span><span class="p">);</span>
+</code></pre>
+</div>
+
+<p>现在可以和getcontext/setcontext对比下，就可以看出，这种切换方式的一些优势：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>1. 保存和恢复寄存器数据，在一个切换接口中，更加容易进行优化
+2. 通过stack基栈作为context，切换栈相当于切换了context，一举两得，指令数更少
+3. 通过push/pop操作保存寄存器，比mov等方式指令字节数更少，更加精简
+4. 对参数、可变寄存器没去保存，仅保存部分必须的寄存器，进一步减少指令数
+</code></pre>
+</div>
+
+<h4 id="boost-macosx-i386bug">关于boost macosx i386下的bug</h4>
+
+<p>为了实现跨平台，boost下各个架构的实现，我都研究了一遍，发现macosx i386的实现，是有问题的，运行会挂掉，里面直接照搬了linux elf的i386实现版本。</p>
+
+<p>估计macosx i386用的不多，所以没去做测试，后来发现，原来macosx i386下jump()返回from(context, priv)的结构体并不是基于栈的</p>
+
+<p>而是使用eax, edx返回，因此tbox里面针对这个架构，重新调整stack布局，重写了一套自己的实现。</p>
+
+<h4 id="boost-windows-i386">关于boost windows i386下的优化</h4>
+
+<p>其实在windows下，返回from(context, priv)的结构体，也是用的eax, edx，而不是像linux elf那样基于栈的，因此实现上效率会高很多。</p>
+
+<p>但是，boost里面，却像elf那个版本一样，还是采用了一个跳板，进行二次跳转后，才切换到context上去，是没有必要的。</p>
+
+<p>在boost里面的跳板代码，类似像这样（摘录自tbox elf i386的实现）：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="nl">__entry:</span>
+    
+    <span class="cm">/* pass arguments(context: eax, priv: edx) to the context function
+     *
+     *              patch __end
+     *                  |
+     *                  |        old-context
+     *              ----|------------------------------------
+     * context: .. | retval | context |   priv   |  padding  |  
+     *              -----------------------------------------
+     *             0        4     arguments 
+     *             |        |
+     *            esp    16-align
+     *           (now)
+     */</span>
+    <span class="n">movl</span> <span class="o">%</span><span class="n">eax</span><span class="p">,</span> <span class="p">(</span><span class="o">%</span><span class="n">esp</span><span class="p">)</span>
+    <span class="n">movl</span> <span class="o">%</span><span class="n">edx</span><span class="p">,</span> <span class="mh">0x4</span><span class="p">(</span><span class="o">%</span><span class="n">esp</span><span class="p">)</span>
+
+    <span class="c1">// retval = the address of label __end
+</span>    <span class="n">pushl</span> <span class="o">%</span><span class="n">ebp</span>
+
+    <span class="cm">/* jump to the context function entry
+     *
+     * @note need not adjust stack pointer(+4) using 'ret $4' when enter into function first
+     */</span>
+    <span class="n">jmp</span> <span class="o">*%</span><span class="n">ebx</span>
+
+</code></pre>
+</div>
+
+<p>由于elf i386下，返回from结构体是基于栈的，所以进入function入口的栈，和切换到对方jump()返回处的栈，并不是完全平衡的，因此需要一个跳板区分对待</p>
+
+<p>stack布局上也需要特殊处理，而windows i386的返回，只需要eax/edx就足够，没必要再去使用这个跳板。</p>
+
+<p>因此，tbox里面针对这个平台，进行了优化，重新调整了栈布局，省去跳板操作，直接进行跳转，实测切换效率比boost的实现提升30%左右。</p>
+
+        </article>
+        <hr>
+
+        
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+        
+
+        
+        
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                        
+                        <h2 id="similar_posts">相关文章</h2>
+                        <ul>
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/10/28/benchbox-coroutine/">benchbox新增协程库性能基准测试
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/09/30/atomic-operation/">聊聊原子操作那些事
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/09/28/thread-local/">线程局部存储tls的使用
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/09/18/database-usage/">tbox中数据库的使用
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/09/18/custom-printf/">使用printf定制化打印对象
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+        
+            </ul>
+        
+
+        <div class="post-recent">
+    <div class="pre">
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        <p><strong>上一篇</strong> <a href="/cn/2016/10/28/benchbox-coroutine/">benchbox新增协程库性能基准测试</a></p>
+        
+    </div>
+
+    <div class="nex">
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+    </div>
+</div>
+
+
+        <h2 id="comments">评论</h2>
+        
+
+<!-- 多说评论框 start -->
+<div class="ds-thread" data-thread-key="http://www.tboox.org/cn/2016/10/28/coroutine-context/" data-title="协程分析之context上下文切换" data-url="http://www.tboox.org/cn/2016/10/28/coroutine-context/"></div>
+<!-- 多说评论框 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"tboox"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- 多说公共JS代码 end -->
+<!-- 多说公共JS代码 end -->
+
+
+
+
+
+
+
+
+    </div>
+    <button class="anchor"><i class="fa fa-anchor"></i></button>
+    <div class="right">
+        <div class="wrap">
+
+            <!-- Content -->
+            <div class="side content">
+                <div>
+                    内容
+                </div>
+                <ul id="content-side" class="content-ul">
+                    <li><a href="#english">English</a></li>
+                    <li><a href="#similar_posts">相关文章</a></li>
+                    <li><a href="#comments">评论</a></li>
+                </ul>
+            </div>
+            
+            <br>
+            <div class="side">
+                <div>
+                    <i class="fa fa-external-link"></i>
+                    链接
+                </div>
+                <ul class="content-ul">
+                  <li><a href="http://github.com/waruqi/tbox">tbox</a></li>
+                  <li><a href="http://www.xmake.io">xmake</a></li>
+                  <li><a href="https://github.com/waruqi">github</a></li>
+                </ul>
+            </div> 
+
+            <!-- google ads -->
+            
+
+            <!-- baidu ads -->
+            
+
+        </div>
+    </div>
+</div>
+<script>
+/**
+ * target _blank
+ */
+(function() {
+    var aTags = document.querySelectorAll('article a:not([id])')
+    for (var i = 0; i < aTags.length; i++) {
+        aTags[i].setAttribute('target', '_blank')
+    }
+}());
+</script>
+<script src="/js/pageContent.js " charset="utf-8"></script>
+
+<!-- baidu ads -->
+
+<script type="text/javascript">
+    var cpro_id = "u2777558";
+</script>
+<script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/f.js"></script>
+
+
+
+<script type="text/javascript">
+    function isPC(){    
+        var userAgentInfo = navigator.userAgent;  
+        var Agents = new Array("Android", "iPhone", "SymbianOS", "Windows Phone", "iPad", "iPod");    
+        var flag = true;    
+        for (var v = 0; v < Agents.length; v++) {    
+            if (userAgentInfo.indexOf(Agents[v]) > 0) { flag = false; break; }    
+        }    
+        return flag;    
+    }  
+    var cpro_id = !isPC()? "u2777570" : "";
+</script>
+<script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/cm.js"></script>
+
+
+
+    <footer class="site-footer">
+    <div class="wrapper">
+        <p class="description">
+             Copyright (c) 2016 tboox.org 
+        </p>
+        <p class="contact">
+            
+            <a href="https://github.com/waruqi" title="GitHub"><i class="fa fa-github" aria-hidden="true"></i></a> 
+             
+            
+            <a href="mailto:waruqi@gmail.com" title="email"><i class="fa fa-envelope-o" aria-hidden="true"></i></a> 
+            
+            
+            <a href="https://twitter.com/waruqi" title="Twitter"><i class="fa fa-twitter" aria-hidden="true"></i></a> 
+            
+            <a href="/feed.xml" title="feed"><i class="fa fa-feed" aria-hidden="true"></i></a> 
+        </p>
+        <p class="power">
+            <span>
+                Site powered by <a href="https://jekyllrb.com/">Jekyll</a> & <a href="https://github.com/Gaohaoyang">HyG</a>.
+            </span>
+            <span>
+                <a href="http://www.miitbeian.gov.cn/">沪ICP备16031914号</a>.
+                <a href="http://www.beian.gov.cn/">沪公网安备31011702000303号</a>.
+            </span>
+        </p>
+    </div>
+</footer>
+
+    <div class="back-to-top">
+    <a href="#top" class="scroll">
+        <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    </a>
+</div>
+
+    <script src=" /js/main.js " charset="utf-8"></script>
+    <script src=" /js/scroll.min.js " charset="utf-8"></script>
+  </body>
+
+</html>
