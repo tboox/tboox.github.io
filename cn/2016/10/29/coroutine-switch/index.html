@@ -7,11 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta http-equiv="Cache-Control" content="no-siteapp" />
 
-    <title>插件使用之加载自定义lua脚本</title>
-    <meta name="description" content="xmake里面的lua脚本加载插件，可以让你方便调试和编写一些自定义的lua脚本，这个时候xmake就是一个纯lua的加载引擎。。例如，我想写个简单的hello xmake!的lua脚本，可以自己建个 hello.lua 文件，编写如下脚本：    function main()        print("he...">
+    <title>tbox协程使用之切换与等待</title>
+    <meta name="description" content="tbox的协程实现，是stackfull模式的，需要指定独立堆栈和协程函数，目前暂时还不能像golang那样实现堆栈的动态增长，之后会对其进行支持。目前提供下面一些功能特性：1. 提供yield切换调度支持，这个是必须的哈2. 提供suspend(挂起)/resume(恢复)协程接口，不同于yield的是，被su...">
 
     
-    <meta name="keywords" content="xmake,plugin,scripts,tboox" /> 
+    <meta name="keywords" content="tbox,协程,切换,调度器,tboox" /> 
 
     <!-- qq oauth -->
     <meta property="qc:admins" content="5211601217706727767255" />
@@ -28,7 +28,7 @@
 	
     <link rel="stylesheet" href=" /css/fontawesome/css/font-awesome.min.css ">
     <link rel="stylesheet" href=" /css/main.css ">
-    <link rel="canonical" href="http://www.tboox.org/cn/2016/07/07/plugin-lua/">
+    <link rel="canonical" href="http://www.tboox.org/cn/2016/10/29/coroutine-switch/">
     <link rel="alternate" type="application/rss+xml" title="TBOOX Open Source Project" href="http://www.tboox.org/feed.xml ">
     <link rel="alternate" hreflang="en" href="http://www.tboox.org/" />
     <link rel="alternate" hreflang="zh-Hans" href="http://www.tboox.org/cn/" />
@@ -276,11 +276,11 @@
 
         <div class="page clearfix" post>
     <div class="left">
-        <h1>插件使用之加载自定义lua脚本</h1>
+        <h1>tbox协程使用之切换与等待</h1>
         <div class="label">
 
             <div class="label-card">
-                <i class="fa fa-calendar"></i>2016-07-07
+                <i class="fa fa-calendar"></i>2016-10-29
             </div>
 
             <div class="label-card">
@@ -300,7 +300,7 @@
   <i class="fa fa-th-list"></i>
   
     
-        <a href="/category/#xmake" title="Category: xmake" rel="category">xmake</a>
+        <a href="/category/#tbox" title="Category: tbox" rel="category">tbox</a>
     
   
 
@@ -317,14 +317,17 @@
   <i class="fa fa-tags"></i>
   
     
-        <!--a href="/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a-->
-        <a href="/cn/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a>&nbsp;
+        <!--a href="/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a-->
+        <a href="/cn/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a>&nbsp;
     
-        <!--a href="/tag/#plugin" title="Tag: plugin" rel="tag">plugin</a-->
-        <a href="/cn/tag/#plugin" title="Tag: plugin" rel="tag">plugin</a>&nbsp;
+        <!--a href="/tag/#%E5%8D%8F%E7%A8%8B" title="Tag: 协程" rel="tag">协程</a-->
+        <a href="/cn/tag/#协程" title="Tag: 协程" rel="tag">协程</a>&nbsp;
     
-        <!--a href="/tag/#scripts" title="Tag: scripts" rel="tag">scripts</a-->
-        <a href="/cn/tag/#scripts" title="Tag: scripts" rel="tag">scripts</a>
+        <!--a href="/tag/#%E5%88%87%E6%8D%A2" title="Tag: 切换" rel="tag">切换</a-->
+        <a href="/cn/tag/#切换" title="Tag: 切换" rel="tag">切换</a>&nbsp;
+    
+        <!--a href="/tag/#%E8%B0%83%E5%BA%A6%E5%99%A8" title="Tag: 调度器" rel="tag">调度器</a-->
+        <a href="/cn/tag/#调度器" title="Tag: 调度器" rel="tag">调度器</a>
     
   
 
@@ -335,76 +338,161 @@
         </div>
         <hr>
         <article itemscope itemtype="http://schema.org/BlogPosting">
-        <p>xmake里面的lua脚本加载插件，可以让你方便调试和编写一些自定义的lua脚本，这个时候xmake就是一个纯lua的加载引擎。。</p>
+        <p>tbox的协程实现，是stackfull模式的，需要指定独立堆栈和协程函数，目前暂时还不能像golang那样实现堆栈的动态增长，之后会对其进行支持。</p>
 
-<p>例如，我想写个简单的<code class="highlighter-rouge">hello xmake!</code>的lua脚本，可以自己建个 <code class="highlighter-rouge">hello.lua</code> 文件，编写如下脚本：</p>
+<p>目前提供下面一些功能特性：</p>
 
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code>    <span class="k">function</span> <span class="nf">main</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">"hello xmake!"</span><span class="p">)</span>
-    <span class="k">end</span>
+<div class="highlighter-rouge"><pre class="highlight"><code>1. 提供yield切换调度支持，这个是必须的哈
+2. 提供suspend(挂起)/resume(恢复)协程接口，不同于yield的是，被suspend后，如果不显示调用resume恢复它，是永远不会被调度到的
+3. 提供sleep等待接口支持
+4. 提供io调度支持，支持socket等io等待（内部使用epoll, poll, kqueue, select, poll等接口调度）
+5. 原生支持stream，socket，http等模块的协程支持，可与线程进行无缝切换
+6. 提供channel同道，进行协程间交互通信
+7. 提供lock，semaphore等接口
 </code></pre>
 </div>
 
-<p><code class="highlighter-rouge">main</code>是入口函数，就跟平常写c类似，然后加载执行下这个lua脚本就行了：</p>
+<p>这里主要讲讲，基础的切换调度如何使用。。</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>        xmake lua /home/xxx/hello.lua
-    or  xmake l /tmp/hello.lua
+<h4 id="yield">yield切换</h4>
+
+<p>这个的使用非常简单，直接上代码吧，嘿嘿。。</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">switchfunc</span><span class="p">(</span><span class="n">tb_cpointer_t</span> <span class="n">priv</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// 获取传入的参数
+</span>    <span class="n">tb_size_t</span> <span class="n">count</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_size_t</span><span class="p">)</span><span class="n">priv</span><span class="p">;</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">count</span><span class="o">--</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// 打印当前协程id
+</span>        <span class="n">tb_trace_i</span><span class="p">(</span><span class="s">"[coroutine: %p]: %lu"</span><span class="p">,</span> <span class="n">tb_coroutine_self</span><span class="p">(),</span> <span class="n">count</span><span class="p">);</span>
+
+        <span class="c1">// 让出当前协程，进行切换
+</span>        <span class="n">tb_coroutine_yield</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="n">tb_int_t</span> <span class="nf">main</span><span class="p">(</span><span class="n">tb_int_t</span> <span class="n">argc</span><span class="p">,</span> <span class="n">tb_char_t</span><span class="o">**</span> <span class="n">argv</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// 初始化tbox
+</span>    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">tb_init</span><span class="p">(</span><span class="n">tb_null</span><span class="p">,</span> <span class="n">tb_null</span><span class="p">))</span> <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+
+    <span class="c1">// 初始化一个调度器实例
+</span>    <span class="n">tb_co_scheduler_ref_t</span> <span class="n">scheduler</span> <span class="o">=</span> <span class="n">tb_co_scheduler_init</span><span class="p">();</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">scheduler</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// 开启一个协程，传递switchfunc切换函数和参数10，最后一个参数指定栈大小，传0使用默认值
+</span>        <span class="n">tb_coroutine_start</span><span class="p">(</span><span class="n">scheduler</span><span class="p">,</span> <span class="n">switchfunc</span><span class="p">,</span> <span class="p">(</span><span class="n">tb_cpointer_t</span><span class="p">)</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+
+        <span class="c1">// 开启协程，使用指定的栈大小：8192
+</span>        <span class="n">tb_coroutine_start</span><span class="p">(</span><span class="n">scheduler</span><span class="p">,</span> <span class="n">switchfunc</span><span class="p">,</span> <span class="p">(</span><span class="n">tb_cpointer_t</span><span class="p">)</span><span class="mi">10</span><span class="p">,</span> <span class="mi">8192</span><span class="p">);</span>
+
+        <span class="cm">/* 运行调用，开始运行里面的所有协程
+         *
+         * 第二个参数指定是否启用独占模式，这个稍后细讲
+         */</span>
+        <span class="n">tb_co_scheduler_loop</span><span class="p">(</span><span class="n">scheduler</span><span class="p">,</span> <span class="n">tb_true</span><span class="p">);</span>
+
+        <span class="c1">// 退出调度器
+</span>        <span class="n">tb_co_scheduler_exit</span><span class="p">(</span><span class="n">scheduler</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// 退出tbox
+</span>    <span class="n">tb_exit</span><span class="p">();</span>
+<span class="p">}</span>
 </code></pre>
 </div>
 
-<p>下面在来个稍微高级点的，我要传递参数进来，可以这么写：</p>
+<p>所有协程执行完后，就会从loop调用处返回，当然在协程函数内部也是可以嵌套开启新协程的</p>
 
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code>    <span class="k">function</span> <span class="nf">main</span><span class="p">(</span><span class="n">argv</span><span class="p">)</span>
-        <span class="c1">-- 打印所有参数值</span>
-        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">value</span> <span class="k">in</span> <span class="nb">ipairs</span><span class="p">(</span><span class="n">argv</span><span class="p">)</span> <span class="k">do</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-        <span class="k">end</span>
+<p>这个时候第一个参数就不需要显示指定scheduler了，传<code class="highlighter-rouge">tb_null</code>表示在当前调度器环境中开新协程，例如：</p>
 
-        <span class="c1">-- 或者可以直接dump所有</span>
-        <span class="n">table</span><span class="p">.</span><span class="n">dump</span><span class="p">(</span><span class="n">argv</span><span class="p">)</span>
-    <span class="k">end</span>
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">switchfunc2</span><span class="p">(</span><span class="n">tb_cpointer_t</span> <span class="n">priv</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// ..
+</span><span class="p">}</span>
+<span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">switchfunc</span><span class="p">(</span><span class="n">tb_cpointer_t</span> <span class="n">priv</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// 在当前协程函数内，开启一个新协程    
+</span>    <span class="n">tb_coroutine_start</span><span class="p">(</span><span class="n">tb_null</span><span class="p">,</span> <span class="n">switchfunc2</span><span class="p">,</span> <span class="n">tb_null</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+
+    <span class="c1">// 获取传入的参数
+</span>    <span class="n">tb_size_t</span> <span class="n">count</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_size_t</span><span class="p">)</span><span class="n">priv</span><span class="p">;</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">count</span><span class="o">--</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// 让出当前协程，进行切换
+</span>        <span class="n">tb_coroutine_yield</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
 </code></pre>
 </div>
 
-<p>然后我们执行下，试试：</p>
+<h4 id="section">独占模式</h4>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    xmake lua /tmp/hello.lua hello xmake
+<p>上面的代码中提到的独占模式，需要特殊说明下，一般情况下，传<code class="highlighter-rouge">tb_false</code>到loop()中，不启用此模式是最为稳妥的。</p>
+
+<p>因为这样每个scheduler对应的线程都会在Tls中维护自己的scheduler引用，使得协程中所有操作，都回去访问当前线程tls对应的独立scheduler，互不干涉。</p>
+
+<p>这个在存在多个scheduler的情况，尤为重要，当时这样多少会有些tls操作上的性能损耗，像server端一般只有一个scheduler的情况下，就没必要放到独立tls中去了</p>
+
+<p>可以传入tb_true启用独占模式，告诉tb_co_scheduler_loop()，我当前不需要tls维护，只需要一个全局scheduler变量来维护就行了</p>
+
+<p>这样的话，性能会提升一些，因此在只有一个scheduler存在的情况下，启用独占效率会高些。。</p>
+
+<h4 id="sleep">sleep等待</h4>
+
+<p>tbox的<code class="highlighter-rouge">tb_sleep</code>和<code class="highlighter-rouge">tb_msleep()</code>接口，是可以原生支持协程的，在协程外就是线程等待，在协程内就是协程等待。</p>
+
+<p>当然也可以直接使用协程的接口：<code class="highlighter-rouge">tb_coroutine_sleep()</code></p>
+
+<p>例如：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">sleepfunc</span><span class="p">(</span><span class="n">tb_cpointer_t</span> <span class="n">priv</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">while</span> <span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// 等待10ms，切换到其他协程，直到10ms后才会切换回来继续执行
+</span>        <span class="n">tb_msleep</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
 </code></pre>
 </div>
 
-<p>简单吧，当然除了lua内置的大部分模块，例如：<code class="highlighter-rouge">os, string, table, ...</code> 等等，xmake的lua加载器还提供其他更丰富的模块类库
-可以通过 <code class="highlighter-rouge">import</code> 导入后使用，所有导入的模块支持跟插件开发中使用的类库是一样的，具体类库的使用，请参考：<a href="/cn/2016/07/07/plugin-modules/">插件开发之类库使用</a></p>
+<h4 id="resumesuspend">resume/suspend接口</h4>
 
-<p>下面我主要介绍下，<code class="highlighter-rouge">xmake lua</code>插件提供的一些内置shell脚本，这些脚本是linux下的一些shell工具子集，用于实现跨平台执行，例如：</p>
+<p>挂起域恢复，跟yield的区别就是，被suspend挂起的协程，默认是不会被切换调度回来的，除非执行resume恢复它。</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    xmake lua cat
-    xmake lua cp
-    xmake lua <span class="nb">echo
-    </span>xmake lua mv
-    xmake lua rm
-    xmake lua rmdir
-    xmake lua mkdir
+<p>因此这两个接口是成对使用的，像sleep，lock和semaphore的内部实现，也是基于此套接口。</p>
+
+<p>这两个接口还有个功能，就是可以在两个协程间，更加快速方便的传递一些参数数据，进行交互，而不需要channel支持。。</p>
+
+<p>例如：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">resumefunc</span><span class="p">(</span><span class="n">tb_cpointer_t</span> <span class="n">priv</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// 获取suspend协程引用 
+</span>    <span class="n">tb_coroutine_ref_t</span> <span class="n">coroutine</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_coroutine_ref_t</span><span class="p">)</span><span class="n">priv</span><span class="p">;</span>
+
+    <span class="cm">/* 恢复suspend协程，传递参数"hello suspend!"给suspend()作为其返回值
+     *
+     * retval为suspend()中传入的参数："hello resume!"
+     */</span>
+    <span class="n">tb_char_t</span> <span class="k">const</span><span class="o">*</span> <span class="n">retval</span> <span class="o">=</span> <span class="n">tb_coroutine_resume</span><span class="p">(</span><span class="n">coroutine</span><span class="p">,</span> <span class="s">"hello suspend!"</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">suspendfunc</span><span class="p">(</span><span class="n">tb_cpointer_t</span> <span class="n">priv</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// 开启一个恢复协程，传入当前协程引用
+</span>    <span class="n">tb_coroutine_start</span><span class="p">(</span><span class="n">tb_null</span><span class="p">,</span> <span class="n">resumefunc</span><span class="p">,</span> <span class="n">tb_coroutine_self</span><span class="p">(),</span> <span class="mi">0</span><span class="p">);</span>
+
+    <span class="cm">/* 挂起当前协程，传递参数"hello resume!"给resume()作为其返回值
+     *
+     * retval为resume()中传入的参数："hello suspend!"
+     */</span>
+    <span class="n">tb_char_t</span> <span class="k">const</span><span class="o">*</span> <span class="n">retval</span> <span class="o">=</span> <span class="n">tb_coroutine_suspend</span><span class="p">(</span><span class="s">"hello resume!"</span><span class="p">);</span>
+<span class="p">}</span>
 </code></pre>
 </div>
 
-<p>现在提供的工具不是很多，但是以后可以慢慢扩充，扩展起来还是很方便的，只需要把对应脚本：<code class="highlighter-rouge">cat.lua</code> 放到 <code class="highlighter-rouge">xmake lua</code>插件目录的 scripts 目录下就行了。。</p>
-
-<p>例如我想要跨平台运行 cat 命令，可以这么执行：</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>        xmake lua cat /tmp/a
-    or  xmake l cat c:<span class="se">\\</span>a.txt
-</code></pre>
-</div>
-
-<p>等以后工具扩充的越来越多，相当于在各个平台下，有了一套完善的linux的shell工具，方便日常开发使用</p>
-
-<p>如果你想要看下xmake当前版本支持了哪些内置的shell工具，可以执行：</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>        xmake lua -l
-    or  xmake lua --list
-</code></pre>
-</div>
-
+<p>当然，如果不需要交互数据，那么只需要传<code class="highlighter-rouge">tb_null</code>就行了。。</p>
 
         </article>
         <hr>
@@ -737,141 +825,12 @@
             
                 
                     
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-            
-        
-            
-            
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-            
-        
-            
-        
-            
-            
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-            
-        
-            
-            
-            
-                
-                    
                         
                         <h2 id="similar_posts">相关文章</h2>
                         <ul>
                         
                         <li class="relatedPost">
-                            <a href="/cn/2016/10/26/api-scope/">xmake 描述语法和作用域详解
+                            <a href="/cn/2016/10/28/coroutine-context/">协程分析之context上下文切换
                             
                             </a>
                         </li>
@@ -883,36 +842,11 @@
                 
                     
                 
-            
-                
-                    
-                
-                    
-                
                     
                 
             
                 
                     
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-            
-        
-            
-            
-            
                 
                     
                 
@@ -928,12 +862,6 @@
                 
                     
                 
-            
-                
-                    
-                
-                    
-                
                     
                 
             
@@ -944,36 +872,11 @@
                 
                     
                 
-            
-            
-        
-            
-            
-            
-                
-                    
-                
-                    
-                
                     
                 
             
                 
                     
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
                 
                     
                 
@@ -996,6 +899,27 @@
                 
                     
                 
+                    
+                
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/10/28/benchbox-coroutine/">benchbox新增协程库性能基准测试
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
             
                 
                     
@@ -1004,15 +928,21 @@
                 
                     
                 
-            
-                
-                    
-                
-                    
-                
                     
                 
             
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
                 
                     
                 
@@ -1033,12 +963,6 @@
                 
                     
                 
-            
-                
-                    
-                
-                    
-                
                     
                 
             
@@ -1049,7 +973,239 @@
                 
                     
                 
+                    
+                
             
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/09/30/atomic-operation/">聊聊原子操作那些事
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/09/28/thread-local/">线程局部存储tls的使用
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/09/18/database-usage/">tbox中数据库的使用
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/09/18/custom-printf/">使用printf定制化打印对象
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
             
         
         
@@ -1065,15 +1221,7 @@
 
         
         
-        
-
-        
-
-        
-
-        
-        
-        <p><strong>上一篇</strong> <a href="/cn/2016/07/06/update-v2.0.2/">xmake v2.0.2 更新!</a></p>
+        <p><strong>上一篇</strong> <a href="/cn/2016/10/28/coroutine-context/">协程分析之context上下文切换</a></p>
         
     </div>
 
@@ -1084,8 +1232,691 @@
         
 
         
+
         
-        <p><strong>下一篇</strong> <a href="/cn/2016/07/07/plugin-modules/">xmake插件开发之类库使用</a></p>
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
         
     </div>
 </div>
@@ -1095,7 +1926,7 @@
         
 
 <!-- 多说评论框 start -->
-<div class="ds-thread" data-thread-key="http://www.tboox.org/cn/2016/07/07/plugin-lua/" data-title="插件使用之加载自定义lua脚本" data-url="http://www.tboox.org/cn/2016/07/07/plugin-lua/"></div>
+<div class="ds-thread" data-thread-key="http://www.tboox.org/cn/2016/10/29/coroutine-switch/" data-title="tbox协程使用之切换与等待" data-url="http://www.tboox.org/cn/2016/10/29/coroutine-switch/"></div>
 <!-- 多说评论框 end -->
 <!-- 多说公共JS代码 start (一个网页只需插入一次) -->
 <script type="text/javascript">
