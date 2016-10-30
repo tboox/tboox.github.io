@@ -74,7 +74,7 @@ libfiber(acl):      10000000 switches in 709 ms, 14104372 switches per second
 golang:             10000000 switches in 2434 ms, 4108463 switches per second
 ```
 
-## 协程channel测试报告
+## 协程channel测试报告（无buffer）
 
 #### Run
 
@@ -113,3 +113,43 @@ libfiber(acl):      10000000 passes in 4452 ms, 2246181 passes per second
 golang:             10000000 passes in 5343 ms, 1871607 passes per second
 ```
 
+
+## 协程channel测试报告（buffer大小：10000）
+
+
+#### Run 
+
+```bash
+$ xmake coroutine -n channel 10000
+```
+
+#### Macosx (x86_64)
+
+```
+tbox:               10000000 passes in 404 ms, 24752475 passes per second
+libmill:            10000000 passes in 4401 ms, 2272210 passes per second
+libtask:            10000000 passes in 2785 ms, 3590664 passes per second
+golang:             10000000 passes in 1135 ms, 8810572 passes per second
+```
+
+#### ArchLinux (i386) + VirtualBox 
+
+```
+tbox:               10000000 passes in 212 ms, 47169811 passes per second
+libmill:            10000000 passes in 3272 ms, 3056234 passes per second
+libtask:            10000000 passes in 1624 ms, 6157635 passes per second
+libgo(boost):       10000000 passes in 1720 ms, 5813953 passes per second
+libfiber(acl):      10000000 passes in 1779 ms, 5621135 passes per second
+golang:             10000000 passes in 768 ms, 13020833 passes per second
+```
+
+#### LinuxMint (x86_64) + VirtaulBox
+
+```
+tbox:               10000000 passes in 293 ms, 34129692 passes per second
+libmill:            10000000 passes in 1135 ms, 8810572 passes per second
+libtask:            10000000 passes in 1528 ms, 6544502 passes per second
+libgo(boost):       10000000 passes in 1362 ms, 7342143 passes per second
+libfiber(acl):      10000000 passes in 1510 ms, 6622516 passes per second
+golang:             10000000 passes in 782 ms, 12787723 passes per second
+```
