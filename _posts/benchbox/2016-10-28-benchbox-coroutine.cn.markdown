@@ -49,29 +49,29 @@ golang:             10000000 switches in 1558 ms, 6418485 switches per second
 #### ArchLinux (i386) + VirtualBox 
 
 ```
-tbox:                   10000000 switches in 154 ms, 64935064 switches per second
-boost:                  10000000 switches in 485 ms, 20618556 switches per second
-libmill:                10000000 switches in 689 ms, 14513788 switches per second
-libtask:                10000000 switches in 4798 ms, 2084201 switches per second
-libgo(boost):           10000000 switches in 1418 ms, 7052186 switches per second
-libco:                  10000000 switches in 774 ms, 12919896 switches per second
-coroutine(cloudwu):     10000000 switches in 4983 ms, 2006823 switches per second
-libfiber(acl):          10000000 switches in 863 ms, 11587485 switches per second
-golang:                 10000000 switches in 1239 ms, 8071025 switches per second
+tbox:               10000000 switches in 154 ms, 64935064 switches per second
+boost:              10000000 switches in 485 ms, 20618556 switches per second
+libmill:            10000000 switches in 689 ms, 14513788 switches per second
+libtask:            10000000 switches in 4798 ms, 2084201 switches per second
+libgo(boost):       10000000 switches in 1418 ms, 7052186 switches per second
+libco:              10000000 switches in 774 ms, 12919896 switches per second
+coroutine(cloudwu): 10000000 switches in 4983 ms, 2006823 switches per second
+libfiber(acl):      10000000 switches in 863 ms, 11587485 switches per second
+golang:             10000000 switches in 1239 ms, 8071025 switches per second
 ```
 
 #### LinuxMint (x86_64) + VirtaulBox
 
 ```
-tbox:                   10000000 switches in 187 ms, 53475935 switches per second
-boost:                  10000000 switches in 199 ms, 50251256 switches per second
-libmill:                10000000 switches in 145 ms, 68965517 switches per second
-libtask:                10000000 switches in 5280 ms, 1893939 switches per second
-libgo(boost):           10000000 switches in 1086 ms, 9208103 switches per second
-libco:                  10000000 switches in 687 ms, 14556040 switches per second
-coroutine(cloudwu):     10000000 switches in 5181 ms, 1930129 switches per second
-libfiber(acl):          10000000 switches in 342 ms, 29239766 switches per second
-golang:                 10000000 switches in 1200 ms, 8333333 switches per second
+tbox:               10000000 switches in 187 ms, 53475935 switches per second
+boost:              10000000 switches in 199 ms, 50251256 switches per second
+libmill:            10000000 switches in 145 ms, 68965517 switches per second
+libtask:            10000000 switches in 5280 ms, 1893939 switches per second
+libgo(boost):       10000000 switches in 1086 ms, 9208103 switches per second
+libco:              10000000 switches in 687 ms, 14556040 switches per second
+coroutine(cloudwu): 10000000 switches in 5181 ms, 1930129 switches per second
+libfiber(acl):      10000000 switches in 342 ms, 29239766 switches per second
+golang:             10000000 switches in 1200 ms, 8333333 switches per second
 ```
 
 ## 协程切换测试报告(1000个协程)
