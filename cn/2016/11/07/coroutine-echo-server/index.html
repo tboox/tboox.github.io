@@ -1,0 +1,2008 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+    <title>协程使用之服务器实例</title>
+    <meta name="description" content="tbox内部的所有io操作都是原生支持协程的，可以在线程和协程间任意切换，内置基于轮询的io调度器（epoll, kqueue等，后续还会支持iocp）.我们在socket操作的时候，只需要像平常顺序编程那样操作就可以实现异步并发收发数据。这里先给个简答的文件服务器的例子，可参考下，代码非常简单：文件接收服务器这...">
+
+    
+    <meta name="keywords" content="tbox,协程,服务器,tboox" /> 
+
+    <!-- qq oauth -->
+    <meta property="qc:admins" content="5211601217706727767255" />
+
+    <! --icon -->
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" sizes="192x192" href="/static/img/nice-highres.png" />
+	<link rel="apple-touch-icon-precomposed" href="/static/img/apple-touch-icon-57x57-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="72x72" href="/static/img/apple-touch-icon-72x72-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="114x114" href="/static/img/apple-touch-icon-114x114-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/static/img/apple-touch-icon-144x144-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="180x180" href="/static/img/retinahd_icon.png" />
+	<meta name="msapplication-TileImage" content="/static/img/retinahd_icon.png" />
+	
+    <link rel="stylesheet" href=" /css/fontawesome/css/font-awesome.min.css ">
+    <link rel="stylesheet" href=" /css/main.css ">
+    <link rel="canonical" href="http://www.tboox.org/cn/2016/11/07/coroutine-echo-server/">
+    <link rel="alternate" type="application/rss+xml" title="TBOOX Open Source Project" href="http://www.tboox.org/feed.xml ">
+    <link rel="alternate" hreflang="en" href="http://www.tboox.org/" />
+    <link rel="alternate" hreflang="zh-Hans" href="http://www.tboox.org/cn/" />
+
+
+    <script>
+    // 百度统计代码
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?162f1cd478898a0686b0b5d5115e2af2";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+
+
+</head>
+
+
+  <body>
+
+    <header id="top">
+    <div class="wrapper">
+        <a href="/cn" class="brand">TBOOX</a>
+        <button id="headerMenu" class="menu"><i class="fa fa-bars"></i></button>
+        <nav id="headerNav">
+            <ul>
+                <li>
+                    
+                    <a href="/">
+                    
+                        <i class="fa fa-home"></i>English
+                    </a>
+                </li>
+
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/project/">
+                            
+                        
+                            <i class="fa fa-bookmark"></i>项目
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/archive/">
+                            
+                        
+                            <i class="fa fa-archive"></i>归档
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/category/">
+                            
+                        
+                            <i class="fa fa-th-list"></i>分类
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/tag/">
+                            
+                        
+                            <i class="fa fa-tags"></i>标记
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/book/">
+                            
+                        
+                            <i class="fa fa-book"></i>书柜
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/forum">
+                            
+                        
+                            <i class="fa fa-forumbee"></i>社区
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/donation/">
+                            
+                        
+                            <i class="fa fa-heart"></i>捐助
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/about/">
+                            
+                        
+                            <i class="fa fa-user"></i>关于
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            </ul>
+        </nav>
+    </div>
+</header>
+
+
+        <div class="page clearfix" post>
+    <div class="left">
+        <h1>协程使用之服务器实例</h1>
+        <div class="label">
+
+            <div class="label-card">
+                <i class="fa fa-calendar"></i>2016-11-07
+            </div>
+
+            <div class="label-card">
+                
+            </div>
+
+            <div class="label-card">
+                
+            </div>
+
+            <div class="label-card">
+            
+
+
+<!-- <span class="point">•</span> -->
+<span class="categories">
+  <i class="fa fa-th-list"></i>
+  
+    
+        <a href="/category/#tbox" title="Category: tbox" rel="category">tbox</a>
+    
+  
+
+  <!-- <span class="point">•</span> -->
+</span>
+
+
+            </div>
+
+            <div class="label-card">
+            
+<!-- <span class="point">•</span> -->
+<span class="pageTag">
+  <i class="fa fa-tags"></i>
+  
+    
+        <!--a href="/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a-->
+        <a href="/cn/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a>&nbsp;
+    
+        <!--a href="/tag/#%E5%8D%8F%E7%A8%8B" title="Tag: 协程" rel="tag">协程</a-->
+        <a href="/cn/tag/#协程" title="Tag: 协程" rel="tag">协程</a>&nbsp;
+    
+        <!--a href="/tag/#%E6%9C%8D%E5%8A%A1%E5%99%A8" title="Tag: 服务器" rel="tag">服务器</a-->
+        <a href="/cn/tag/#服务器" title="Tag: 服务器" rel="tag">服务器</a>
+    
+  
+
+</span>
+
+            </div>
+
+        </div>
+        <hr>
+        <article itemscope itemtype="http://schema.org/BlogPosting">
+        <p>tbox内部的所有io操作都是原生支持协程的，可以在线程和协程间任意切换，内置基于轮询的io调度器（epoll, kqueue等，后续还会支持iocp）.</p>
+
+<p>我们在socket操作的时候，只需要像平常顺序编程那样操作就可以实现异步并发收发数据。</p>
+
+<p>这里先给个简答的文件服务器的例子，可参考下，代码非常简单：</p>
+
+<h4 id="section">文件接收服务器</h4>
+
+<p>这个文件服务器的功能很简单，就是不停的接收连接，然后开新协程，进行文件传输。</p>
+
+<p>通过协程，从原始socket写起，也只需要不到100行代码，就可以实现一个高并发的文件服务器。</p>
+
+<p>此处用到了<code class="highlighter-rouge">tb_socket_sendf</code>直接对文件句柄操作，发送到socket，内部使用sendfile实现，不需要再上层开buffer读文件发送，因此效率会有明显提升。</p>
+
+<p>而<code class="highlighter-rouge">tb_socket_wait</code>内部会去将被等待的socket加入poll池，进行等待调度，直到事件到来才会继续执行。</p>
+
+<p>并且协程的io调度器内部做了优化，不会去频繁得从轮询池里面添加删除socket，内部对epoll_ctl等操作会有个缓存，因此效率还是非常高的。</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">tb_demo_coroutine_client</span><span class="p">(</span><span class="n">tb_cpointer_t</span> <span class="n">priv</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// check
+</span>    <span class="n">tb_socket_ref_t</span> <span class="n">sock</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_socket_ref_t</span><span class="p">)</span><span class="n">priv</span><span class="p">;</span>
+    <span class="n">tb_assert_and_check_return</span><span class="p">(</span><span class="n">sock</span><span class="p">);</span>
+
+    <span class="c1">// trace
+</span>    <span class="n">tb_trace_d</span><span class="p">(</span><span class="s">"[%p]: sending %s .."</span><span class="p">,</span> <span class="n">sock</span><span class="p">,</span> <span class="n">g_filepath</span><span class="p">);</span>
+
+    <span class="c1">// init file
+</span>    <span class="n">tb_file_ref_t</span> <span class="n">file</span> <span class="o">=</span> <span class="n">tb_file_init</span><span class="p">(</span><span class="n">g_filepath</span><span class="p">,</span> <span class="n">TB_FILE_MODE_RO</span> <span class="o">|</span> <span class="n">TB_FILE_MODE_BINARY</span><span class="p">);</span>
+    <span class="n">tb_assert_and_check_return</span><span class="p">(</span><span class="n">file</span><span class="p">);</span>
+
+    <span class="c1">// send data
+</span>    <span class="n">tb_hize_t</span> <span class="n">send</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="n">tb_hize_t</span> <span class="n">size</span> <span class="o">=</span> <span class="n">tb_file_size</span><span class="p">(</span><span class="n">file</span><span class="p">);</span>
+    <span class="n">tb_long_t</span> <span class="n">wait</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="n">tb_hong_t</span> <span class="n">time</span> <span class="o">=</span> <span class="n">tb_mclock</span><span class="p">();</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">send</span> <span class="o">&lt;</span> <span class="n">size</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// 直接发送文件，利用sendfile优化文件传输
+</span>        <span class="n">tb_hong_t</span> <span class="n">real</span> <span class="o">=</span> <span class="n">tb_socket_sendf</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">send</span><span class="p">,</span> <span class="n">size</span> <span class="o">-</span> <span class="n">send</span><span class="p">);</span>
+
+        <span class="c1">// trace
+</span>        <span class="n">tb_trace_d</span><span class="p">(</span><span class="s">"[%p]: send: %ld"</span><span class="p">,</span> <span class="n">sock</span><span class="p">,</span> <span class="n">real</span><span class="p">);</span>
+
+        <span class="c1">// has data?
+</span>        <span class="k">if</span> <span class="p">(</span><span class="n">real</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">send</span> <span class="o">+=</span> <span class="n">real</span><span class="p">;</span>
+            <span class="n">wait</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="c1">// no data? wait it
+</span>        <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">real</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">wait</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="c1">// 如果在协程模式下，会把socket添加到io调度器中，进行自动调度
+</span>            <span class="n">wait</span> <span class="o">=</span> <span class="n">tb_socket_wait</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="n">TB_SOCKET_EVENT_SEND</span><span class="p">,</span> <span class="n">TB_DEMO_TIMEOUT</span><span class="p">);</span>
+            <span class="n">tb_assert_and_check_break</span><span class="p">(</span><span class="n">wait</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="c1">// failed or end?
+</span>        <span class="k">else</span> <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c1">// trace
+</span>    <span class="n">tb_trace_i</span><span class="p">(</span><span class="s">"[%p]: send: %lld bytes %lld ms"</span><span class="p">,</span> <span class="n">sock</span><span class="p">,</span> <span class="n">send</span><span class="p">,</span> <span class="n">tb_mclock</span><span class="p">()</span> <span class="o">-</span> <span class="n">time</span><span class="p">);</span>
+
+    <span class="c1">// exit file
+</span>    <span class="n">tb_file_exit</span><span class="p">(</span><span class="n">file</span><span class="p">);</span>
+
+    <span class="c1">// exit socket
+</span>    <span class="n">tb_socket_exit</span><span class="p">(</span><span class="n">sock</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">tb_demo_coroutine_listen</span><span class="p">(</span><span class="n">tb_cpointer_t</span> <span class="n">priv</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// done
+</span>    <span class="n">tb_socket_ref_t</span> <span class="n">sock</span> <span class="o">=</span> <span class="n">tb_null</span><span class="p">;</span>
+    <span class="k">do</span>
+    <span class="p">{</span>
+        <span class="c1">// init socket
+</span>        <span class="n">sock</span> <span class="o">=</span> <span class="n">tb_socket_init</span><span class="p">(</span><span class="n">TB_SOCKET_TYPE_TCP</span><span class="p">,</span> <span class="n">TB_IPADDR_FAMILY_IPV4</span><span class="p">);</span>
+        <span class="n">tb_assert_and_check_break</span><span class="p">(</span><span class="n">sock</span><span class="p">);</span>
+
+        <span class="c1">// bind socket
+</span>        <span class="n">tb_ipaddr_t</span> <span class="n">addr</span><span class="p">;</span>
+        <span class="n">tb_ipaddr_set</span><span class="p">(</span><span class="o">&amp;</span><span class="n">addr</span><span class="p">,</span> <span class="n">tb_null</span><span class="p">,</span> <span class="n">TB_DEMO_PORT</span><span class="p">,</span> <span class="n">TB_IPADDR_FAMILY_IPV4</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">tb_socket_bind</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">addr</span><span class="p">))</span> <span class="k">break</span><span class="p">;</span>
+
+        <span class="c1">// listen socket
+</span>        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">tb_socket_listen</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="mi">1000</span><span class="p">))</span> <span class="k">break</span><span class="p">;</span>
+
+        <span class="c1">// trace
+</span>        <span class="n">tb_trace_i</span><span class="p">(</span><span class="s">"listening .."</span><span class="p">);</span>
+
+        <span class="c1">// 此处也会进入协程io调度，等待accept事件
+</span>        <span class="k">while</span> <span class="p">(</span><span class="n">tb_socket_wait</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="n">TB_SOCKET_EVENT_ACPT</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="c1">// accept client sockets
+</span>            <span class="n">tb_size_t</span>       <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+            <span class="n">tb_socket_ref_t</span> <span class="n">client</span> <span class="o">=</span> <span class="n">tb_null</span><span class="p">;</span>
+            <span class="k">while</span> <span class="p">((</span><span class="n">client</span> <span class="o">=</span> <span class="n">tb_socket_accept</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="n">tb_null</span><span class="p">)))</span>
+            <span class="p">{</span>
+                <span class="c1">// start client connection
+</span>                <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">tb_coroutine_start</span><span class="p">(</span><span class="n">tb_null</span><span class="p">,</span> <span class="n">tb_demo_coroutine_client</span><span class="p">,</span> <span class="n">client</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="k">break</span><span class="p">;</span>
+                <span class="n">count</span><span class="o">++</span><span class="p">;</span>
+            <span class="p">}</span>
+
+            <span class="c1">// trace
+</span>            <span class="n">tb_trace_i</span><span class="p">(</span><span class="s">"listened %lu"</span><span class="p">,</span> <span class="n">count</span><span class="p">);</span>
+        <span class="p">}</span>
+
+    <span class="p">}</span> <span class="k">while</span> <span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+
+    <span class="c1">// exit socket
+</span>    <span class="k">if</span> <span class="p">(</span><span class="n">sock</span><span class="p">)</span> <span class="n">tb_socket_exit</span><span class="p">(</span><span class="n">sock</span><span class="p">);</span>
+    <span class="n">sock</span> <span class="o">=</span> <span class="n">tb_null</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="n">tb_int_t</span> <span class="nf">main</span><span class="p">(</span><span class="n">tb_int_t</span> <span class="n">argc</span><span class="p">,</span> <span class="n">tb_char_t</span><span class="o">**</span> <span class="n">argv</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// check
+</span>    <span class="n">tb_assert_and_check_return_val</span><span class="p">(</span><span class="n">argc</span> <span class="o">==</span> <span class="mi">2</span> <span class="o">&amp;&amp;</span> <span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+
+    <span class="c1">// the file path
+</span>    <span class="n">tb_char_t</span> <span class="k">const</span><span class="o">*</span> <span class="n">filepath</span> <span class="o">=</span> <span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+    <span class="n">tb_assert_and_check_return_val</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+
+    <span class="c1">// save the file path
+</span>    <span class="n">tb_strlcpy</span><span class="p">(</span><span class="n">g_filepath</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">g_filepath</span><span class="p">));</span>
+
+    <span class="c1">// init scheduler
+</span>    <span class="n">tb_co_scheduler_ref_t</span> <span class="n">scheduler</span> <span class="o">=</span> <span class="n">tb_co_scheduler_init</span><span class="p">();</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">scheduler</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// start listening
+</span>        <span class="n">tb_coroutine_start</span><span class="p">(</span><span class="n">scheduler</span><span class="p">,</span> <span class="n">tb_demo_coroutine_listen</span><span class="p">,</span> <span class="n">tb_null</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+
+        <span class="c1">// run scheduler
+</span>        <span class="n">tb_co_scheduler_loop</span><span class="p">(</span><span class="n">scheduler</span><span class="p">,</span> <span class="n">tb_true</span><span class="p">);</span>
+
+        <span class="c1">// exit scheduler
+</span>        <span class="n">tb_co_scheduler_exit</span><span class="p">(</span><span class="n">scheduler</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<h4 id="http">http服务器例子</h4>
+
+<p>这个例子，可以直接参考tbox的demo源码，这里就不贴了，基本上跟上面的代码差不多，非常精简。。</p>
+
+<p>目前，tbox并没有提供更进一步的http等服务器开发上的封装，因为tbox的定位主要是轻量级跨平台基础库，因此会尽量保持精简（也为此移除了老的asio实现，功能部分重叠），只提供最基础的跨平台操作，不会涉及太多应用层的封装。</p>
+
+<p>另外一个原因，就是协程的实现已经使得服务器开发非常的简单，一般写个精简的http服务器也就几百行代码，因此tbox仅在demo实例代码里面提供了一个精简实现。</p>
+
+<p>有兴趣的同学，可以看下：<a href="https://github.com/waruqi/tbox/blob/master/src/demo/coroutine/http_server.c">http_server</a></p>
+
+<p>虽然这个例子很精简，但是如果只是做做简单的http服务器实现，这个实现完全足够使用了，而且性能还是很不错的。。</p>
+
+<p>后续有时间的话，我会基于tbox单独写个服务器框架。。</p>
+
+        </article>
+        <hr>
+
+        
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+        
+
+        
+        
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <h2 id="similar_posts">相关文章</h2>
+                        <ul>
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/10/30/update-v1.6.0/">tbox v1.6.0 发布，提供跨平台协程支持!
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/10/29/coroutine-switch/">tbox协程使用之切换与等待
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/10/28/coroutine-context/">协程分析之context上下文切换
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/10/28/benchbox-coroutine/">benchbox新增协程库性能基准测试
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+        
+            </ul>
+        
+
+        <div class="post-recent">
+    <div class="pre">
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        <p><strong>上一篇</strong> <a href="/cn/2016/10/30/update-v2.0.5/">xmake v2.0.5 发布!</a></p>
+        
+    </div>
+
+    <div class="nex">
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+    </div>
+</div>
+
+
+        <h2 id="comments">评论</h2>
+        
+
+<!-- 多说评论框 start -->
+<div class="ds-thread" data-thread-key="http://www.tboox.org/cn/2016/11/07/coroutine-echo-server/" data-title="协程使用之服务器实例" data-url="http://www.tboox.org/cn/2016/11/07/coroutine-echo-server/"></div>
+<!-- 多说评论框 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"tboox"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- 多说公共JS代码 end -->
+<!-- 多说公共JS代码 end -->
+
+
+
+
+
+
+
+
+    </div>
+    <button class="anchor"><i class="fa fa-anchor"></i></button>
+    <div class="right">
+        <div class="wrap">
+
+            <!-- Content -->
+            <div class="side content">
+                <div>
+                    内容
+                </div>
+                <ul id="content-side" class="content-ul">
+                    <li><a href="#english">English</a></li>
+                    <li><a href="#similar_posts">相关文章</a></li>
+                    <li><a href="#comments">评论</a></li>
+                </ul>
+            </div>
+            
+            <br>
+            <div class="side">
+                <div>
+                    <i class="fa fa-external-link"></i>
+                    链接
+                </div>
+                <ul class="content-ul">
+                  <li><a href="http://github.com/waruqi/tbox">tbox</a></li>
+                  <li><a href="http://www.xmake.io">xmake</a></li>
+                  <li><a href="https://github.com/waruqi">github</a></li>
+                </ul>
+            </div> 
+
+            <!-- google ads -->
+            
+
+            <!-- baidu ads -->
+            
+
+        </div>
+    </div>
+</div>
+<script>
+/**
+ * target _blank
+ */
+(function() {
+    var aTags = document.querySelectorAll('article a:not([id])')
+    for (var i = 0; i < aTags.length; i++) {
+        aTags[i].setAttribute('target', '_blank')
+    }
+}());
+</script>
+<script src="/js/pageContent.js " charset="utf-8"></script>
+
+<!-- baidu ads -->
+
+<script type="text/javascript">
+    var cpro_id = "u2777558";
+</script>
+<script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/f.js"></script>
+
+
+
+<script type="text/javascript">
+    function isPC(){    
+        var userAgentInfo = navigator.userAgent;  
+        var Agents = new Array("Android", "iPhone", "SymbianOS", "Windows Phone", "iPad", "iPod");    
+        var flag = true;    
+        for (var v = 0; v < Agents.length; v++) {    
+            if (userAgentInfo.indexOf(Agents[v]) > 0) { flag = false; break; }    
+        }    
+        return flag;    
+    }  
+    var cpro_id = !isPC()? "u2777570" : "";
+</script>
+<script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/cm.js"></script>
+
+
+
+    <footer class="site-footer">
+    <div class="wrapper">
+        <p class="description">
+             Copyright (c) 2016 tboox.org 
+        </p>
+        <p class="contact">
+            
+            <a href="https://github.com/waruqi" title="GitHub"><i class="fa fa-github" aria-hidden="true"></i></a> 
+             
+            
+            <a href="mailto:waruqi@gmail.com" title="email"><i class="fa fa-envelope-o" aria-hidden="true"></i></a> 
+            
+            
+            <a href="https://twitter.com/waruqi" title="Twitter"><i class="fa fa-twitter" aria-hidden="true"></i></a> 
+            
+            <a href="/feed.xml" title="feed"><i class="fa fa-feed" aria-hidden="true"></i></a> 
+        </p>
+        <p class="power">
+            <span>
+                Site powered by <a href="https://jekyllrb.com/">Jekyll</a> & <a href="https://github.com/Gaohaoyang">HyG</a>.
+            </span>
+            <span>
+                <a href="http://www.miitbeian.gov.cn/">沪ICP备16031914号</a>.
+                <a href="http://www.beian.gov.cn/">沪公网安备31011702000303号</a>.
+            </span>
+        </p>
+    </div>
+</footer>
+
+    <div class="back-to-top">
+    <a href="#top" class="scroll">
+        <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    </a>
+</div>
+
+    <script src=" /js/main.js " charset="utf-8"></script>
+    <script src=" /js/scroll.min.js " charset="utf-8"></script>
+  </body>
+
+</html>
