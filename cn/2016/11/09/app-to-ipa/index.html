@@ -7,11 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta http-equiv="Cache-Control" content="no-siteapp" />
 
-    <title>头文件自动依赖检测和构建</title>
-    <meta name="description" content="为了进一步提升构建效率，减少没必要的重建，xmake新增了对头文件的依赖检测，以及自动构建仅仅需要重新编译的源文件，提升编译速度，并且完全支持windows、linux、macosx等大部分平台。。由于检测过程本身也会有一些性能损耗，因此xmake对此进行了深度优化，实现极速依赖检测：      对依赖头文件进行...">
+    <title>xmake 新增ios app2ipa插件</title>
+    <meta name="description" content="最近在做ios app的企业测试包，需要频繁打包分发给测试，因此将编译完的.app打包成ipa单独分发出去，这里调研下几种打包方案：  直接通过iTunes来打包  调用zip写个打包脚本  使用第三方脚本和工具为了方便日常ios app打包程ipa，觉得可以把这个脚本放到xmake中去，作为一个小插件提供，也是...">
 
     
-    <meta name="keywords" content="xmake,头文件依赖,增量编译,tboox" /> 
+    <meta name="keywords" content="xmake,插件,ios,tboox" /> 
 
     <!-- qq oauth -->
     <meta property="qc:admins" content="5211601217706727767255" />
@@ -28,7 +28,7 @@
 	
     <link rel="stylesheet" href=" /css/fontawesome/css/font-awesome.min.css ">
     <link rel="stylesheet" href=" /css/main.css ">
-    <link rel="canonical" href="http://www.tboox.org/cn/2016/07/12/includes-check/">
+    <link rel="canonical" href="http://www.tboox.org/cn/2016/11/09/app-to-ipa/">
     <link rel="alternate" type="application/rss+xml" title="TBOOX Open Source Project" href="http://www.tboox.org/feed.xml ">
     <link rel="alternate" hreflang="en" href="http://www.tboox.org/" />
     <link rel="alternate" hreflang="zh-Hans" href="http://www.tboox.org/cn/" />
@@ -278,11 +278,11 @@
 
         <div class="page clearfix" post>
     <div class="left">
-        <h1>头文件自动依赖检测和构建</h1>
+        <h1>xmake 新增ios app2ipa插件</h1>
         <div class="label">
 
             <div class="label-card">
-                <i class="fa fa-calendar"></i>2016-07-12
+                <i class="fa fa-calendar"></i>2016-11-09
             </div>
 
             <div class="label-card">
@@ -322,11 +322,11 @@
         <!--a href="/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a-->
         <a href="/cn/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a>&nbsp;
     
-        <!--a href="/tag/#%E5%A4%B4%E6%96%87%E4%BB%B6%E4%BE%9D%E8%B5%96" title="Tag: 头文件依赖" rel="tag">头文件依赖</a-->
-        <a href="/cn/tag/#头文件依赖" title="Tag: 头文件依赖" rel="tag">头文件依赖</a>&nbsp;
+        <!--a href="/tag/#%E6%8F%92%E4%BB%B6" title="Tag: 插件" rel="tag">插件</a-->
+        <a href="/cn/tag/#插件" title="Tag: 插件" rel="tag">插件</a>&nbsp;
     
-        <!--a href="/tag/#%E5%A2%9E%E9%87%8F%E7%BC%96%E8%AF%91" title="Tag: 增量编译" rel="tag">增量编译</a-->
-        <a href="/cn/tag/#增量编译" title="Tag: 增量编译" rel="tag">增量编译</a>
+        <!--a href="/tag/#ios" title="Tag: ios" rel="tag">ios</a-->
+        <a href="/cn/tag/#ios" title="Tag: ios" rel="tag">ios</a>
     
   
 
@@ -337,51 +337,27 @@
         </div>
         <hr>
         <article itemscope itemtype="http://schema.org/BlogPosting">
-        <p>为了进一步提升构建效率，减少没必要的重建，xmake新增了对头文件的依赖检测，以及自动构建仅仅需要重新编译的源文件，提升编译速度，并且完全支持windows、linux、macosx等大部分平台。。</p>
+        <p>最近在做ios app的企业测试包，需要频繁打包分发给测试，因此将编译完的.app打包成ipa单独分发出去，这里调研下几种打包方案：</p>
 
-<p>由于检测过程本身也会有一些性能损耗，因此xmake对此进行了深度优化，实现极速依赖检测：</p>
+<ol>
+  <li>直接通过iTunes来打包</li>
+  <li>调用zip写个打包脚本</li>
+  <li>使用第三方脚本和工具</li>
+</ol>
 
-<ul>
-  <li>
-    <p>对依赖头文件进行过滤，如果是系统头文件，非自身项目的第三方头文件，自动忽略，这些头文件基本上不会再开发项目的时候，经常变动，所以没必要去每次检测他们，如果真有变动，手动重建下就行了</p>
-  </li>
-  <li>
-    <p>针对每个头文件的检测结果进行缓存，直接应用到下一个源文件上，减少重复检测的次数</p>
-  </li>
-  <li>
-    <p>其他一些细节优化</p>
-  </li>
-</ul>
+<p>为了方便日常ios app打包程ipa，觉得可以把这个脚本放到xmake中去，作为一个小插件提供，也是个不错的方式。</p>
 
-<p>验证效果：</p>
+<p>因此顺手在xmake里面加了这么一个ipa to app的小插件，进行快速打包，使用方式如下：</p>
 
-<p>就拿tbox为例，我手动修改了下 tbox 中的正则头文件：<code class="highlighter-rouge">regex.h</code></p>
-
-<p>然后编译（注：不是执行重建哦，那个是 <code class="highlighter-rouge">xmake -r</code>）</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    <span class="nv">$xmake</span>
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake app2ipa --icon<span class="o">=</span>Icon.png /xxx/xxx.app
 </code></pre>
 </div>
 
-<p>编译结果：</p>
+<p>icon参数指定的是app的主图标，用作iTunesArtwork，目前还不能自动设置，需要手动指定哦。。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>    [00%]: ccache compiling.release src/tbox/tbox.c
-    [15%]: ccache compiling.release src/tbox/memory/impl/prefix.c
-    [36%]: ccache compiling.release src/tbox/regex/regex.c
-    [50%]: archiving.release libtbox.a
-    ...
-</code></pre>
-</div>
+<p>后面只需要传入需要打包的xxx.app的路径就可以了，默认ipa会载同目录下生成/xxx/xxx.ipa，也可以通过<code class="highlighter-rouge">--ipa/-o</code>指定输出路径。</p>
 
-<p>仅仅只编译了其中三个include了用到regex.h的源文件。</p>
-
-<p>当然如果你修改了依赖的第三方库的头文件，最好还是手动重建下：</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>       <span class="nv">$xmake</span> -r
-    or <span class="nv">$xmake</span> --rebuild
-</code></pre>
-</div>
-
+<p>注：这只是个小工具，目前还不支持自动修改签名，有兴趣的同学，可以提pr上来，加上这个功能哦。</p>
 
         </article>
         <hr>
@@ -737,78 +713,40 @@
             
                 
                     
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
                         
                         <h2 id="similar_posts">相关文章</h2>
                         <ul>
-                        
-                        <li class="relatedPost">
-                            <a href="/cn/2016/11/09/app-to-ipa/">xmake 新增ios app2ipa插件
-                            
-                            </a>
-                        </li>
-                        
-                        
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-            
-        
-            
-            
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-            
-        
-            
-        
-            
-            
-            
-                
-                    
                         
                         <li class="relatedPost">
                             <a href="/cn/2016/10/30/update-v2.0.5/">xmake v2.0.5 发布!
@@ -951,6 +889,51 @@
         
             
         
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
         
             </ul>
         
@@ -964,15 +947,7 @@
 
         
         
-        
-
-        
-
-        
-
-        
-        
-        <p><strong>上一篇</strong> <a href="/cn/2016/07/07/plugin-modules/">xmake插件开发之类库使用</a></p>
+        <p><strong>上一篇</strong> <a href="/cn/2016/11/07/coroutine-echo-server/">协程使用之服务器实例</a></p>
         
     </div>
 
@@ -983,8 +958,733 @@
         
 
         
+
         
-        <p><strong>下一篇</strong> <a href="/cn/2016/07/14/plugin-print-colors/">插件开发之色彩高亮显示</a></p>
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
         
     </div>
 </div>
@@ -994,7 +1694,7 @@
         
 
 <!-- 多说评论框 start -->
-<div class="ds-thread" data-thread-key="http://www.tboox.org/cn/2016/07/12/includes-check/" data-title="头文件自动依赖检测和构建" data-url="http://www.tboox.org/cn/2016/07/12/includes-check/"></div>
+<div class="ds-thread" data-thread-key="http://www.tboox.org/cn/2016/11/09/app-to-ipa/" data-title="xmake 新增ios app2ipa插件" data-url="http://www.tboox.org/cn/2016/11/09/app-to-ipa/"></div>
 <!-- 多说评论框 end -->
 <!-- 多说公共JS代码 start (一个网页只需插入一次) -->
 <script type="text/javascript">
