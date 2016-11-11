@@ -27,12 +27,22 @@ If you would like to support the development of these projects, welcome to donat
 
 ## Supporters
 
-### TBOX
+### tbox
+
+2016.08.05 
+
+* [蔡克伦](https://github.com/caikelun)：¥1
 
 2016.01.29
 
 * [Evgeny Kulikov](mailto:xak@list.ru): $2
 * 建忠：¥20.16
+
+### xmake
+
+2016.11.10 
+
+* [lc-soft](https://github.com/lc-soft): ¥10
 
 ### vm86
 

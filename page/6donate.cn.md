@@ -26,7 +26,7 @@ TBOOX的所有项目都是属于个人开源项目，它的发展需要您的帮
 
 ## 支持者
 
-### TBOX
+### tbox
 
 2016.08.05 
 
@@ -36,6 +36,12 @@ TBOOX的所有项目都是属于个人开源项目，它的发展需要您的帮
 
 * [Evgeny Kulikov](mailto:xak@list.ru): $2
 * 建忠：¥20.16
+
+### xmake
+
+2016.11.10 
+
+* [lc-soft](https://github.com/lc-soft): ¥10
 
 ### vm86
 
