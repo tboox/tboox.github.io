@@ -1,0 +1,2437 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+    <title>记boost协程切换bug发现和分析</title>
+    <meta name="description" content="在分析了各大开源协程库实现后，最终选择参考boost.context的汇编实现，来写tbox的切换内核。在这过程中，我对boost各个架构平台下的context切换，都进行了分析和测试。在macosx i386和mips平台上实现协程切换时，发现boost那套汇编实现是有问题的，如果放到tbox切换demo上运行...">
+
+    
+    <meta name="keywords" content="tbox,协程,context,boost,tboox" /> 
+
+    <!-- qq oauth -->
+    <meta property="qc:admins" content="5211601217706727767255" />
+
+    <! --icon -->
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" sizes="192x192" href="/static/img/nice-highres.png" />
+	<link rel="apple-touch-icon-precomposed" href="/static/img/apple-touch-icon-57x57-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="72x72" href="/static/img/apple-touch-icon-72x72-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="114x114" href="/static/img/apple-touch-icon-114x114-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/static/img/apple-touch-icon-144x144-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="180x180" href="/static/img/retinahd_icon.png" />
+	<meta name="msapplication-TileImage" content="/static/img/retinahd_icon.png" />
+	
+    <link rel="stylesheet" href=" /css/fontawesome/css/font-awesome.min.css ">
+    <link rel="stylesheet" href=" /css/main.css ">
+    <link rel="canonical" href="http://www.tboox.org/cn/2016/11/13/boost-context-bug/">
+    <link rel="alternate" type="application/rss+xml" title="TBOOX Open Source Project" href="http://www.tboox.org/feed.xml ">
+    <link rel="alternate" hreflang="en" href="http://www.tboox.org/" />
+    <link rel="alternate" hreflang="zh-Hans" href="http://www.tboox.org/cn/" />
+
+
+    <script>
+    // 百度统计代码
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?162f1cd478898a0686b0b5d5115e2af2";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+
+
+</head>
+
+
+  <body>
+
+    <header id="top">
+    <div class="wrapper">
+        <a href="/cn" class="brand">TBOOX</a>
+        <button id="headerMenu" class="menu"><i class="fa fa-bars"></i></button>
+        <nav id="headerNav">
+            <ul>
+                <li>
+                    
+                    <a href="/">
+                    
+                        <i class="fa fa-home"></i>English
+                    </a>
+                </li>
+
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/project/">
+                            
+                        
+                            <i class="fa fa-bookmark"></i>项目
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/archive/">
+                            
+                        
+                            <i class="fa fa-archive"></i>归档
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/category/">
+                            
+                        
+                            <i class="fa fa-th-list"></i>分类
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/tag/">
+                            
+                        
+                            <i class="fa fa-tags"></i>标记
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/book/">
+                            
+                        
+                            <i class="fa fa-book"></i>书柜
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/forum">
+                            
+                        
+                            <i class="fa fa-forumbee"></i>社区
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/donation/">
+                            
+                        
+                            <i class="fa fa-heart"></i>捐助
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/about/">
+                            
+                        
+                            <i class="fa fa-user"></i>关于
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            </ul>
+        </nav>
+    </div>
+</header>
+
+
+        <div class="page clearfix" post>
+    <div class="left">
+        <h1>记boost协程切换bug发现和分析</h1>
+        <div class="label">
+
+            <div class="label-card">
+                <i class="fa fa-calendar"></i>2016-11-13
+            </div>
+
+            <div class="label-card">
+                
+            </div>
+
+            <div class="label-card">
+                
+            </div>
+
+            <div class="label-card">
+            
+
+
+<!-- <span class="point">•</span> -->
+<span class="categories">
+  <i class="fa fa-th-list"></i>
+  
+    
+        <a href="/category/#tbox" title="Category: tbox" rel="category">tbox</a>
+    
+  
+
+  <!-- <span class="point">•</span> -->
+</span>
+
+
+            </div>
+
+            <div class="label-card">
+            
+<!-- <span class="point">•</span> -->
+<span class="pageTag">
+  <i class="fa fa-tags"></i>
+  
+    
+        <!--a href="/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a-->
+        <a href="/cn/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a>&nbsp;
+    
+        <!--a href="/tag/#%E5%8D%8F%E7%A8%8B" title="Tag: 协程" rel="tag">协程</a-->
+        <a href="/cn/tag/#协程" title="Tag: 协程" rel="tag">协程</a>&nbsp;
+    
+        <!--a href="/tag/#context" title="Tag: context" rel="tag">context</a-->
+        <a href="/cn/tag/#context" title="Tag: context" rel="tag">context</a>&nbsp;
+    
+        <!--a href="/tag/#boost" title="Tag: boost" rel="tag">boost</a-->
+        <a href="/cn/tag/#boost" title="Tag: boost" rel="tag">boost</a>
+    
+  
+
+</span>
+
+            </div>
+
+        </div>
+        <hr>
+        <article itemscope itemtype="http://schema.org/BlogPosting">
+        <p>在分析了各大开源协程库实现后，最终选择参考boost.context的汇编实现，来写<a href="https://github.com/waruqi/tbox">tbox</a>的切换内核。</p>
+
+<p>在这过程中，我对boost各个架构平台下的context切换，都进行了分析和测试。</p>
+
+<p>在macosx i386和mips平台上实现协程切换时，发现boost那套汇编实现是有问题的，如果放到<a href="https://github.com/waruqi/tbox">tbox</a>切换demo上运行，会直接挂掉。</p>
+
+<p>在分析这两个架构上，boost.context切换实现问题，这边先贴下<a href="https://github.com/waruqi/tbox">tbox</a>上的context切换demo，方便之后的讲解：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">func1</span><span class="p">(</span><span class="n">tb_context_from_t</span> <span class="n">from</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// check
+</span>    <span class="n">tb_context_ref_t</span><span class="o">*</span> <span class="n">contexts</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_context_ref_t</span><span class="o">*</span><span class="p">)</span><span class="n">from</span><span class="p">.</span><span class="n">priv</span><span class="p">;</span>
+    <span class="n">tb_assert_and_check_return</span><span class="p">(</span><span class="n">contexts</span><span class="p">);</span>
+
+    <span class="c1">// 先保存下主函数入口context，方便之后切换回去
+</span>    <span class="n">contexts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">from</span><span class="p">.</span><span class="n">context</span><span class="p">;</span>
+
+    <span class="c1">// 初始化切换到func2
+</span>    <span class="n">from</span><span class="p">.</span><span class="n">context</span> <span class="o">=</span> <span class="n">contexts</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+
+    <span class="c1">// loop
+</span>    <span class="n">tb_size_t</span> <span class="n">count</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">count</span><span class="o">--</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// trace
+</span>        <span class="n">tb_trace_i</span><span class="p">(</span><span class="s">"func1: %lu"</span><span class="p">,</span> <span class="n">count</span><span class="p">);</span>
+
+        <span class="c1">// 切换到func2，返回后更新from中的context地址
+</span>        <span class="n">from</span> <span class="o">=</span> <span class="n">tb_context_jump</span><span class="p">(</span><span class="n">from</span><span class="p">.</span><span class="n">context</span><span class="p">,</span> <span class="n">contexts</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// 切换回主入口函数
+</span>    <span class="n">tb_context_jump</span><span class="p">(</span><span class="n">contexts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tb_null</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">func2</span><span class="p">(</span><span class="n">tb_context_from_t</span> <span class="n">from</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// check
+</span>    <span class="n">tb_context_ref_t</span><span class="o">*</span> <span class="n">contexts</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_context_ref_t</span><span class="o">*</span><span class="p">)</span><span class="n">from</span><span class="p">.</span><span class="n">priv</span><span class="p">;</span>
+    <span class="n">tb_assert_and_check_return</span><span class="p">(</span><span class="n">contexts</span><span class="p">);</span>
+
+    <span class="c1">// loop
+</span>    <span class="n">tb_size_t</span> <span class="n">count</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">count</span><span class="o">--</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// trace
+</span>        <span class="n">tb_trace_i</span><span class="p">(</span><span class="s">"func2: %lu"</span><span class="p">,</span> <span class="n">count</span><span class="p">);</span>
+
+        <span class="c1">// 切换到func1，返回后更新from中的context地址
+</span>        <span class="n">from</span> <span class="o">=</span> <span class="n">tb_context_jump</span><span class="p">(</span><span class="n">from</span><span class="p">.</span><span class="n">context</span><span class="p">,</span> <span class="n">contexts</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// 切换回主入口函数
+</span>    <span class="n">tb_context_jump</span><span class="p">(</span><span class="n">contexts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tb_null</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">test</span><span class="p">()</span>
+<span class="p">{</span> 
+    <span class="c1">// 定义全局堆栈
+</span>    <span class="k">static</span> <span class="n">tb_context_ref_t</span> <span class="n">contexts</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+    <span class="k">static</span> <span class="n">tb_byte_t</span>        <span class="n">stacks1</span><span class="p">[</span><span class="mi">8192</span><span class="p">];</span>
+    <span class="k">static</span> <span class="n">tb_byte_t</span>        <span class="n">stacks2</span><span class="p">[</span><span class="mi">8192</span><span class="p">];</span>
+
+    <span class="c1">// 生成两个context上下文，绑定对应函数和堆栈
+</span>    <span class="n">contexts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">tb_context_make</span><span class="p">(</span><span class="n">stacks1</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">stacks1</span><span class="p">),</span> <span class="n">func1</span><span class="p">);</span>
+    <span class="n">contexts</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">tb_context_make</span><span class="p">(</span><span class="n">stacks2</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">stacks2</span><span class="p">),</span> <span class="n">func2</span><span class="p">);</span>
+
+    <span class="c1">// 切换到func1并传递私有参数：context数组
+</span>    <span class="n">tb_context_jump</span><span class="p">(</span><span class="n">contexts</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">contexts</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>这里为了测试context切换，直接使用的底层切换接口<code class="highlighter-rouge">tb_context_make</code>和<code class="highlighter-rouge">tb_context_jump</code>，所以代码使用上，比较原始。</p>
+
+<p>这两个接口相当于boost的<code class="highlighter-rouge">make_fcontext</code>和<code class="highlighter-rouge">jump_fcontext</code>，当然实际应用中，<a href="https://github.com/waruqi/tbox">tbox</a>的协程库提供了更上层的封装，并不会直接使用这两个接口。</p>
+
+<p>这个demo很简单，就是创建两个context，来回切换，最后结束返回到主函数。</p>
+
+<p>然后再直接尝试使用boost的实现时，出现了两个不同现象的crash</p>
+
+<ol>
+  <li>macosx i386下，从func2切换回到func1时发生了崩溃</li>
+  <li>mips32下，在执行完10次来回切换后，切回主函数是，发生了崩溃</li>
+</ol>
+
+<h4 id="macosx-i386">macosx i386下的问题分析</h4>
+
+<p>我们先来分析下macosx i386的这个问题，由于之前<a href="https://github.com/waruqi/tbox">tbox</a>已经参考了boost的linux i386下的实现，完成了上下文切换，是能正常运行的。</p>
+
+<p>因此，可以在这两个平台下做下对比，结果发现，boost几乎是直接照搬了linux下那套实现，那么问题来了，为甚了linux下ok，macosx上就有问题呢。</p>
+
+<p>大体可以猜到，应该是调用栈布局的不同导致的问题，因此我们看下macosx上的boost jump实现：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>.text
+.globl _jump_fcontext
+.align 2
+_jump_fcontext:
+    pushl  %ebp  /* save EBP */
+    pushl  %ebx  /* save EBX */
+    pushl  %esi  /* save ESI */
+    pushl  %edi  /* save EDI */
+
+    /* store fcontext_t in ECX */
+    movl  %esp, %ecx
+
+    /* first arg of jump_fcontext() == context jumping to */
+    movl  0x18(%esp), %eax
+
+    /* second arg of jump_fcontext() == data to be transferred */
+    movl  0x1c(%esp), %edx
+
+    /* restore ESP (pointing to context-data) from EAX */
+    movl  %eax, %esp
+
+    /* address of returned transport_t */
+    movl 0x14(%esp), %eax
+    /* return parent fcontext_t */
+    movl  %ecx, (%eax)
+    /* return data */
+    movl %edx, 0x4(%eax)
+
+    popl  %edi  /* restore EDI */
+    popl  %esi  /* restore ESI */
+    popl  %ebx  /* restore EBX */
+    popl  %ebp  /* restore EBP */
+
+    /* jump to context */
+    ret $4
+</code></pre>
+</div>
+
+<p><code class="highlighter-rouge">jump_fcontext</code>的参数原型是：<code class="highlighter-rouge">struct(context, data) = jump_fcontext(context, data)</code>，跟<a href="https://github.com/waruqi/tbox">tbox</a>的<code class="highlighter-rouge">tb_context_jump</code>差不多</p>
+
+<p>都是传入一个struct，相当于传入了两个参数，一个context，一个data，返回结果也是一个类似struct</p>
+
+<p>而从上面的代码中可以看到，从esp + 0x18处取了第一个参数context，esp + 0x1c取得是第二个参数data，换算到_jump_fcontext的入口处</p>
+
+<p>可以确定出_jump_fcontext入口处大体的栈布局：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>esp + 12: data参数
+esp + 8:  context参数
+esp + 4:  ??
+esp    :  _jump_fcontext的返回地址
+</code></pre>
+</div>
+
+<p>按照i386的调用栈布局，函数入口处第一个参数，应该是通过 esp + 4 访问的，那为什么context参数却是在esp + 8处呢，esp + 4指向的内容又是什么？</p>
+
+<p>我们可以看下，_jump_fcontext调用处的汇编伪代码：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>pushl data
+pushl context 
+pushl hidden 
+call _jump_fcontext
+addl $12, %esp
+</code></pre>
+</div>
+<p>其实编译器在调用_jump_fcontext处，实际压入了三个参数，这个esp + 4指向的hidden数据，这个是_jump_fcontext返回的struct数据的栈空间地址</p>
+
+<p>用于在_jump_fcontext内部，设置返回struct(context, data)的数据，也就是：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>/* address of returned transport_t */
+movl 0x14(%esp), %eax
+/* return parent fcontext_t */
+movl %ecx, (%eax)
+/* return data */
+movl %edx, 0x4(%eax)
+</code></pre>
+</div>
+
+<p>说白了，linux i386上返回struct数据，是通过传入一个指向栈空间的变量指针，作为隐藏的第一个参数，用于设置struct数据返回。</p>
+
+<p>而boost在macosx i386上，也直接照搬了这种布局来实现，那macosx上是否真的也是这么做的呢？</p>
+
+<p>我们来写个测试程序验证下：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="k">static</span> <span class="n">tb_context_from_t</span> <span class="nf">test</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="n">tb_context_from_t</span> <span class="n">from</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+    <span class="k">return</span> <span class="n">from</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>反汇编后的结果如下：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>__text:00051BD0 _test           proc near               
+__text:00051BD0
+__text:00051BD0 var_10          = dword ptr -10h
+__text:00051BD0 var_C           = dword ptr -0Ch
+__text:00051BD0 var_8           = dword ptr -8
+__text:00051BD0 var_4           = dword ptr -4
+__text:00051BD0
+__text:00051BD0                 push    ebp
+__text:00051BD1                 mov     ebp, esp
+__text:00051BD3                 sub     esp, 10h
+__text:00051BD6                 mov     [ebp+var_C], 0
+__text:00051BDD                 mov     [ebp+var_10], 0
+__text:00051BE4                 mov     [ebp+var_4], 0
+__text:00051BEB                 mov     [ebp+var_8], 0
+__text:00051BF2                 mov     eax, [ebp+var_8]
+__text:00051BF5                 mov     edx, [ebp+var_4]
+__text:00051BF8                 add     esp, 10h
+__text:00051BFB                 pop     ebp
+__text:00051BFC                 retn
+__text:00051BFC _test           endp
+</code></pre>
+</div>
+
+<p>可以看到，实际上并没有像linux上那样通过一个struct指针来返回，而是直接将struct(context, data)，通过 eax, edx 进行返回。</p>
+
+<p>到这里，我们大概可以猜到，macosx上，对这种小的struct结构体返回做了优化，直接放置在了eax，edx中，而我们的from结构体只有两个pointer，正好满足这种方式。</p>
+
+<p>因此，为了修复macosx上的问题，<a href="https://github.com/waruqi/tbox">tbox</a>在实现上，对栈布局做了调整，并且做了些额外的优化：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>1. 调整jump实现，改用eax，edx直接返回from结构体
+2. 由于不再像linux那样通过保留一个额外的栈空间返回struct，可以把linux那种跳板实现去掉，改为直接jump到实际位置（提升切换效率）
+</code></pre>
+</div>
+
+<h4 id="mips32">mips32下的问题分析</h4>
+
+<p>mips下这个问题，我之前也是调试了很久，在每次切换完成后，打算切换回主函数时，就会发生crash，也就是下面这个位置：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">func1</span><span class="p">(</span><span class="n">tb_context_from_t</span> <span class="n">from</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// check
+</span>    <span class="n">tb_context_ref_t</span><span class="o">*</span> <span class="n">contexts</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_context_ref_t</span><span class="o">*</span><span class="p">)</span><span class="n">from</span><span class="p">.</span><span class="n">priv</span><span class="p">;</span>
+    <span class="n">tb_assert_and_check_return</span><span class="p">(</span><span class="n">contexts</span><span class="p">);</span>
+
+    <span class="c1">// 先保存下主函数入口context，方便之后切换回去
+</span>    <span class="n">contexts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">from</span><span class="p">.</span><span class="n">context</span><span class="p">;</span>
+
+    <span class="c1">// 初始化切换到func2
+</span>    <span class="n">from</span><span class="p">.</span><span class="n">context</span> <span class="o">=</span> <span class="n">contexts</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+
+    <span class="c1">// loop
+</span>    <span class="n">tb_size_t</span> <span class="n">count</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">count</span><span class="o">--</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// trace
+</span>        <span class="n">tb_trace_i</span><span class="p">(</span><span class="s">"func1: %lu"</span><span class="p">,</span> <span class="n">count</span><span class="p">);</span>
+
+        <span class="c1">// 切换到func2，返回后更新from中的context地址
+</span>        <span class="n">from</span> <span class="o">=</span> <span class="n">tb_context_jump</span><span class="p">(</span><span class="n">from</span><span class="p">.</span><span class="n">context</span><span class="p">,</span> <span class="n">contexts</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// 切换回主入口函数
+</span>    <span class="n">tb_context_jump</span><span class="p">(</span><span class="n">contexts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tb_null</span><span class="p">);</span>   <span class="o">&lt;-----</span>  <span class="err">此处发生崩溃</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>我们先来初步分析下，既然之前的来回切换都是ok的，只有在最后这个切换发生问题，那么可以确定jump的大体实现应该还是ok的</p>
+
+<p>可能是传入jump的参数不对导致的问题，最有可能的是 contexts[0] 指向的主函数上下文地址已经不对了。</p>
+
+<p>通过printf确认，确实值不对了，那么在func1入口处这个contexts[0]，是否正确呢，我又继续printf了下，居然还是不对。 = =</p>
+
+<p>然后，我又继续打印<code class="highlighter-rouge">contexts[0], contexts[1], contexts[2]</code>这三个在func1入口处的值，发现只有contexts[2]是对的</p>
+
+<p>前两处都不对了，而且值得注意的是，这两个的值，正好是from.context和from.data的值。</p>
+
+<p>由此，可以得出一个初步结论：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>1. contexts这块buffer的前两处数据，在jump切换到func1的时候被自动改写了
+2. 而且改写后的数据值，正好是from里面的context和data
+</code></pre>
+</div>
+
+<p>说白了，也就是发生越界了。。</p>
+
+<p>那什么情况下, contexts指向的数据会发生越界呢，可以先看下contexts的定义：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">test</span><span class="p">()</span>
+<span class="p">{</span> 
+    <span class="c1">// 定义全局堆栈
+</span>    <span class="k">static</span> <span class="n">tb_context_ref_t</span> <span class="n">contexts</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+    <span class="k">static</span> <span class="n">tb_byte_t</span>        <span class="n">stacks1</span><span class="p">[</span><span class="mi">8192</span><span class="p">];</span>
+    <span class="k">static</span> <span class="n">tb_byte_t</span>        <span class="n">stacks2</span><span class="p">[</span><span class="mi">8192</span><span class="p">];</span>
+
+    <span class="c1">// 生成两个context上下文，绑定对应函数和堆栈
+</span>    <span class="n">contexts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">tb_context_make</span><span class="p">(</span><span class="n">stacks1</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">stacks1</span><span class="p">),</span> <span class="n">func1</span><span class="p">);</span>
+    <span class="n">contexts</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">tb_context_make</span><span class="p">(</span><span class="n">stacks2</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">stacks2</span><span class="p">),</span> <span class="n">func2</span><span class="p">);</span>
+
+    <span class="c1">// 切换到func1并传递私有参数：context数组
+</span>    <span class="n">tb_context_jump</span><span class="p">(</span><span class="n">contexts</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">contexts</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>contexts[3]的数据定义，正好在stacks1的上面，而stacks1是作为func1的堆栈传入的，也就是说，如果func1的堆栈发生上溢，就会擦掉contexts里面的数据。</p>
+
+<p>我们接着来看下，boost的实现，看看是否有地方会发生这种情况：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>.text
+.globl make_fcontext
+.align 2
+.type make_fcontext,@function
+.ent make_fcontext
+make_fcontext:
+#ifdef __PIC__
+.set    noreorder
+.cpload $t9
+.set    reorder
+#endif
+    # first arg of make_fcontext() == top address of context-stack
+    move $v0, $a0
+
+    # shift address in A0 to lower 16 byte boundary
+    move $v1, $v0
+    li $v0, -16 # 0xfffffffffffffff0
+    and $v0, $v1, $v0
+
+    # reserve space for context-data on context-stack
+    # including 48 byte of shadow space (sp % 16 == 0)
+    addiu $v0, $v0, -112
+
+    # third arg of make_fcontext() == address of context-function
+    sw  $a2, 44($v0)
+    # save global pointer in context-data
+    sw  $gp, 48($v0)
+
+    # compute address of returned transfer_t
+    addiu $t0, $v0, 52
+    sw  $t0, 36($v0)
+
+    # compute abs address of label finish
+    la  $t9, finish
+    # save address of finish as return-address for context-function
+    # will be entered after context-function returns
+    sw  $t9, 40($v0)
+
+    jr  $ra # return pointer to context-data
+
+finish:
+    lw $gp, 0($sp)
+    # allocate stack space (contains shadow space for subroutines)
+    addiu  $sp, $sp, -32
+    # save return address
+    sw  $ra, 28($sp)
+
+    # restore GP (global pointer)
+#    move  $gp, $s1
+    # exit code is zero
+    move  $a0, $zero
+    # address of exit
+    lw  $t9, %call16(_exit)($gp)
+    # exit application
+    jalr  $t9
+.end make_fcontext
+.size make_fcontext, .-make_fcontext
+
+.text
+.globl jump_fcontext
+.align 2
+.type jump_fcontext,@function
+.ent jump_fcontext
+jump_fcontext:
+    # reserve space on stack
+    addiu $sp, $sp, -112
+
+    sw  $s0, ($sp)  # save S0
+    sw  $s1, 4($sp)  # save S1
+    sw  $s2, 8($sp)  # save S2
+    sw  $s3, 12($sp)  # save S3
+    sw  $s4, 16($sp)  # save S4
+    sw  $s5, 20($sp)  # save S5
+    sw  $s6, 24($sp)  # save S6
+    sw  $s7, 28($sp)  # save S7
+    sw  $fp, 32($sp)  # save FP
+    sw  $a0, 36($sp)  # save hidden, address of returned transfer_t
+    sw  $ra, 40($sp)  # save RA
+    sw  $ra, 44($sp)  # save RA as PC
+
+    # store SP (pointing to context-data) in A0
+    move  $a0, $sp
+
+    # restore SP (pointing to context-data) from A1
+    move  $sp, $a1
+
+    lw  $s0, ($sp)  # restore S0
+    lw  $s1, 4($sp)  # restore S1
+    lw  $s2, 8($sp)  # restore S2
+    lw  $s3, 12($sp)  # restore S3
+    lw  $s4, 16($sp)  # restore S4
+    lw  $s5, 20($sp)  # restore S5
+    lw  $s6, 24($sp)  # restore S6
+    lw  $s7, 28($sp)  # restore S7
+    lw  $fp, 32($sp)  # restore FP
+    lw  $t0, 36($sp)  # restore hidden, address of returned transfer_t
+    lw  $ra, 40($sp)  # restore RA
+
+    # load PC
+    lw  $t9, 44($sp)
+
+    # adjust stack
+    addiu $sp, $sp, 112
+    
+    # return transfer_t from jump
+    sw  $a0, ($t0)  # fctx of transfer_t
+    sw  $a1, 4($t0) # data of transfer_t
+    # pass transfer_t as first arg in context function
+    # A0 == fctx, A1 == data
+    move  $a1, $a2 
+
+    # jump to context
+    jr  $t9
+.end jump_fcontext
+.size jump_fcontext, .-jump_fcontext
+</code></pre>
+</div>
+
+<p>可以看到，boost在make_fcontext的时候，先对传入的栈顶做了16字节的对齐，然后保留了112字节的空间，用于保存寄存器数据。</p>
+
+<p>然后再jump切换到新context的时候，恢复了新context所需的寄存器，并把新的sp指针+112，把保留的栈空间给pop了。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>也就是说，在第一次切换到实际func1函数入口时，这个时候的栈指针指向栈顶的，再往上，已经没有多少空间了（也就只有为了16字节对齐，有可能保留的少部分空间）。
+
+换一句话说，如果传入的stack1的栈顶本身就是16字节对齐的，那么func1的入口处sp指向的就是stack1的栈顶
+
+如果在func1的入口处，有超过stack1栈顶范围的写操作，就有可能会擦掉contexts的数据，因为contexts紧靠着stack1的栈顶位置。
+</code></pre>
+</div>
+
+<p>那是否会出现这种情况，我们通过反汇编func1的入口处代码，实际看下：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>.text:00453F04 func1:     
+.text:00453F04
+.text:00453F04 var_30          = -0x30
+.text:00453F04 var_2C          = -0x2C
+.text:00453F04 var_28          = -0x28
+.text:00453F04 var_20          = -0x20
+.text:00453F04 var_18          = -0x18
+.text:00453F04 var_14          = -0x14
+.text:00453F04 var_10          = -0x10
+.text:00453F04 var_8           = -8
+.text:00453F04 var_4           = -4
+.text:00453F04 arg_0           =  0
+.text:00453F04 arg_4           =  4
+.text:00453F04
+.text:00453F04                 addiu   $sp, -0x40
+.text:00453F08                 sw      $ra, 0x40+var_4($sp)
+.text:00453F0C                 sw      $fp, 0x40+var_8($sp)
+.text:00453F10                 move    $fp, $sp
+.text:00453F14                 la      $gp, unk_5706A0
+.text:00453F1C                 sw      $gp, 0x40+var_20($sp)
+.text:00453F20                 sw      $a0, 0x40+arg_0($fp)    &lt;------------ 此处发生越界，改写了contexts[0] = from.context
+.text:00453F24                 sw      $a1, 0x40+arg_4($fp)    &lt;------------ 此处发生越界，改写了contexts[1] = from.data
+.text:00453F28                 lw      $v0, 0x40+arg_4($fp)
+.text:00453F2C                 sw      $v0, 0x40+var_14($fp)
+.text:00453F30                 lw      $v0, 0x40+var_14($fp)
+.text:00453F34                 sltu    $v0, $zero, $v0
+.text:00453F38                 andi    $v0, 0xFF
+.text:00453F3C                 move    $v1, $v0
+</code></pre>
+</div>
+
+<p>可以看到，确实发生了越界行为，那为什么在函数内部，还会去写当前栈帧外的数据呢，这个要从mips的调用栈布局上说起了。</p>
+
+<p>简单来说，mips在调用某个函数时，会把a0-a3作为参数寄存器，其他参数放置在堆栈中，但是与其他架构有点不同的是：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>mips还会去为a0-a3这前四个参数，保留栈空间
+</code></pre>
+</div>
+
+<p>调用栈如下：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code> ------------
+| other args |
+|------------|
+|   a0-a3    | &lt;- 参数传递使用a0-a3，但是还是会为这四个参数保留栈空间出来
+|------------|
+|     ra     | &lt;- 返回地址
+|------------|
+| fp gp s0-7 | &lt;- 保存的一些其他寄存器
+|------------|
+|   locals   |
+ ------------
+</code></pre>
+</div>
+
+<p>而刚刚在func1内，就是回写了<code class="highlighter-rouge">a0-a3</code>处保留的栈空间，导致了越界，因为boost的实现在jump后，栈空间已经到栈顶了，空间不够了。。</p>
+
+<p>因此，为了修复这个问题，只需要在<code class="highlighter-rouge">make_fcontext</code>里面，多保留<code class="highlighter-rouge">a0-a3</code>这32字节的空间就行了，也就是：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>.globl make_fcontext
+
+    # reserve space for context-data on context-stack
+    # including 48 byte of shadow space (sp % 16 == 0)
+#    addiu $v0, $v0, -112
+    addiu $v0, $v0, -146
+</code></pre>
+</div>
+
+<p>而在<a href="https://github.com/waruqi/tbox">tbox</a>内，除了对此处的额外的栈空间保留，来修复此问题，还对栈数据进行了更加合理的分配利用，不再需要保留146这么多字节数</p>
+
+<p>只需要保留96字节，就够用了，节省了50个字节，如果同时存在1024个协程的话，相当于节省了50K的内存数据。</p>
+
+<p>并且boost的jump实现上，还有其他两处问题，<a href="https://github.com/waruqi/tbox">tbox</a>里面一并修复了：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>jump_fcontext:
+    # reserve space on stack
+    addiu $sp, $sp, -112
+
+    sw  $s0, ($sp)  # save S0
+    sw  $s1, 4($sp)  # save S1
+    sw  $s2, 8($sp)  # save S2
+    sw  $s3, 12($sp)  # save S3
+    sw  $s4, 16($sp)  # save S4
+    sw  $s5, 20($sp)  # save S5
+    sw  $s6, 24($sp)  # save S6
+    sw  $s7, 28($sp)  # save S7
+    sw  $fp, 32($sp)  # save FP
+    sw  $a0, 36($sp)  # save hidden, address of returned transfer_t
+    sw  $ra, 40($sp)  # save RA
+    sw  $ra, 44($sp)  # save RA as PC
+                      &lt;-------------------- 此处boost虽然为gp保留了48($sp)空间，但是确没去保存gp寄存器
+
+    # store SP (pointing to context-data) in A0
+    move  $a0, $sp
+
+    # restore SP (pointing to context-data) from A1
+    move  $sp, $a1
+
+    lw  $s0, ($sp)  # restore S0
+    lw  $s1, 4($sp)  # restore S1
+    lw  $s2, 8($sp)  # restore S2
+    lw  $s3, 12($sp)  # restore S3
+    lw  $s4, 16($sp)  # restore S4
+    lw  $s5, 20($sp)  # restore S5
+    lw  $s6, 24($sp)  # restore S6
+    lw  $s7, 28($sp)  # restore S7
+    lw  $fp, 32($sp)  # restore FP
+    lw  $t0, 36($sp)  # restore hidden, address of returned transfer_t
+    lw  $ra, 40($sp)  # restore RA
+                      &lt;-------------------- 此处boost也没去恢复gp寄存器
+
+    # load PC
+    lw  $t9, 44($sp)
+
+    # adjust stack
+    addiu $sp, $sp, 112
+    
+    # return transfer_t from jump
+    sw  $a0, ($t0)  # fctx of transfer_t
+    sw  $a1, 4($t0) # data of transfer_t  &lt;------------- 此处应该使用 a2 而不是 a1 
+    # pass transfer_t as first arg in context function
+    # A0 == fctx, A1 == data
+    move  $a1, $a2 
+
+    # jump to context
+    jr  $t9
+.end jump_fcontext
+</code></pre>
+</div>
+
+<p>最后说一下，本文是针对boost 1.62.0 版本做的分析，如有不对之处，欢迎指正哈。。</p>
+
+        </article>
+        <hr>
+
+        
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+        
+
+        
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <h2 id="similar_posts">相关文章</h2>
+                        <ul>
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/11/07/coroutine-echo-server/">协程使用之服务器实例
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/10/30/update-v1.6.0/">tbox v1.6.0 发布，提供跨平台协程支持!
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/10/29/coroutine-switch/">tbox协程使用之切换与等待
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/10/28/coroutine-context/">协程分析之context上下文切换
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+        
+            </ul>
+        
+
+        <div class="post-recent">
+    <div class="pre">
+
+        
+
+        
+
+        
+        
+        <p><strong>上一篇</strong> <a href="/cn/2016/11/09/app-to-ipa/">xmake 新增ios app2ipa插件</a></p>
+        
+    </div>
+
+    <div class="nex">
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+    </div>
+</div>
+
+
+        <h2 id="comments">评论</h2>
+        
+
+<!-- 多说评论框 start -->
+<div class="ds-thread" data-thread-key="http://www.tboox.org/cn/2016/11/13/boost-context-bug/" data-title="记boost协程切换bug发现和分析" data-url="http://www.tboox.org/cn/2016/11/13/boost-context-bug/"></div>
+<!-- 多说评论框 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"tboox"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- 多说公共JS代码 end -->
+<!-- 多说公共JS代码 end -->
+
+
+
+
+
+
+
+
+    </div>
+    <button class="anchor"><i class="fa fa-anchor"></i></button>
+    <div class="right">
+        <div class="wrap">
+
+            <!-- Content -->
+            <div class="side content">
+                <div>
+                    内容
+                </div>
+                <ul id="content-side" class="content-ul">
+                    <li><a href="#english">English</a></li>
+                    <li><a href="#similar_posts">相关文章</a></li>
+                    <li><a href="#comments">评论</a></li>
+                </ul>
+            </div>
+            
+            <br>
+            <div class="side">
+                <div>
+                    <i class="fa fa-external-link"></i>
+                    链接
+                </div>
+                <ul class="content-ul">
+                  <li><a href="http://github.com/waruqi/tbox">tbox</a></li>
+                  <li><a href="http://www.xmake.io">xmake</a></li>
+                  <li><a href="https://github.com/waruqi">github</a></li>
+                </ul>
+            </div> 
+
+            <!-- google ads -->
+            
+
+            <!-- baidu ads -->
+            
+
+        </div>
+    </div>
+</div>
+<script>
+/**
+ * target _blank
+ */
+(function() {
+    var aTags = document.querySelectorAll('article a:not([id])')
+    for (var i = 0; i < aTags.length; i++) {
+        aTags[i].setAttribute('target', '_blank')
+    }
+}());
+</script>
+<script src="/js/pageContent.js " charset="utf-8"></script>
+
+<!-- baidu ads -->
+
+<script type="text/javascript">
+    var cpro_id = "u2777558";
+</script>
+<script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/f.js"></script>
+
+
+
+<script type="text/javascript">
+    function isPC(){    
+        var userAgentInfo = navigator.userAgent;  
+        var Agents = new Array("Android", "iPhone", "SymbianOS", "Windows Phone", "iPad", "iPod");    
+        var flag = true;    
+        for (var v = 0; v < Agents.length; v++) {    
+            if (userAgentInfo.indexOf(Agents[v]) > 0) { flag = false; break; }    
+        }    
+        return flag;    
+    }  
+    var cpro_id = !isPC()? "u2777570" : "";
+</script>
+<script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/cm.js"></script>
+
+
+
+    <footer class="site-footer">
+    <div class="wrapper">
+        <p class="description">
+             Copyright (c) 2016 tboox.org 
+        </p>
+        <p class="contact">
+            
+            <a href="https://github.com/waruqi" title="GitHub"><i class="fa fa-github" aria-hidden="true"></i></a> 
+             
+            
+            <a href="mailto:waruqi@gmail.com" title="email"><i class="fa fa-envelope-o" aria-hidden="true"></i></a> 
+            
+            
+            <a href="https://twitter.com/waruqi" title="Twitter"><i class="fa fa-twitter" aria-hidden="true"></i></a> 
+            
+            <a href="/feed.xml" title="feed"><i class="fa fa-feed" aria-hidden="true"></i></a> 
+        </p>
+        <p class="power">
+            <span>
+                Site powered by <a href="https://jekyllrb.com/">Jekyll</a> & <a href="https://github.com/Gaohaoyang">HyG</a>.
+            </span>
+            <span>
+                <a href="http://www.miitbeian.gov.cn/">沪ICP备16031914号</a>.
+                <a href="http://www.beian.gov.cn/">沪公网安备31011702000303号</a>.
+            </span>
+        </p>
+    </div>
+</footer>
+
+    <div class="back-to-top">
+    <a href="#top" class="scroll">
+        <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    </a>
+</div>
+
+    <script src=" /js/main.js " charset="utf-8"></script>
+    <script src=" /js/scroll.min.js " charset="utf-8"></script>
+  </body>
+
+</html>
