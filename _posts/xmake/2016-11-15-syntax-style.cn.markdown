@@ -56,7 +56,7 @@ target
 另外，不仅对target，像option, task, template都是支持两种方式设置的，例如：
 
 ```lua
-- set-add风格
+-- set-add风格
 option("demo")
     set_default(true)
     set_showmenu(true)
@@ -77,7 +77,7 @@ option
 自定义的任务或者插件可以这么写：
 
 ```lua
-- set-add风格
+-- set-add风格
 task("hello")
 
     -- on run
