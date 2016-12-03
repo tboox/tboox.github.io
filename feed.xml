@@ -5,9 +5,381 @@
     <description>Focus on cross-platform development using c language</description>
     <link>http://www.tboox.org/</link>
     <atom:link href="http://www.tboox.org/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Thu, 17 Nov 2016 13:46:51 +0800</pubDate>
-    <lastBuildDate>Thu, 17 Nov 2016 13:46:51 +0800</lastBuildDate>
+    <pubDate>Sun, 04 Dec 2016 01:03:38 +0800</pubDate>
+    <lastBuildDate>Sun, 04 Dec 2016 01:03:38 +0800</lastBuildDate>
     <generator>Jekyll v3.1.0</generator>
+    
+      <item>
+        <title>tbox新增stackless协程支持</title>
+        <description>&lt;p&gt;&lt;a href=&quot;https://github.com/waruqi/tbox&quot;&gt;tbox&lt;/a&gt;之前提供的stackfull协程库，虽然切换效率已经非常高了，但是由于每个协程都需要维护一个独立的堆栈，
+内存空间利用率不是很高，在并发量非常大的时候，内存使用量会相当大。&lt;/p&gt;
+
+&lt;p&gt;之前考虑过采用stacksegment方式进行内存优化，实现动态增涨，但是这样对性能还是有一定的影响，暂时不去考虑了。&lt;/p&gt;
+
+&lt;p&gt;最近参考了下boost和protothreads的stackless协程实现，这种方式虽然易用性和灵活性上受到了很多限制，但是对切换效率和内存利用率的提升效果还是非常明显的。。&lt;/p&gt;
+
+&lt;p&gt;因此，我在tbox里面也加上了对stackless协程的支持，在切换原语上参考了protothreads的实现，接口封装上参考了boost的设计，使得更加可读易用&lt;/p&gt;
+
+&lt;p&gt;先晒段实际的接口使用代码：&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;tb_lo_coroutine_enter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;coroutine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;tb_lo_coroutine_yield&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;然后实测对比了下：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;* 切换性能在macosx上比tbox的stackfull版本提升了5-6倍，1000w次切换只需要40ms
+* 每个协程的内存占用也减少到了只有固定几十个bytes
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;那么既然stackless的效率提升这么明显，stackfull模式还需要吗？可以比较下两者的优劣：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;stackfull协程：易用性和灵活性非常高，但是内存使用过大&lt;/li&gt;
+  &lt;li&gt;stackless协程：切换效率和内存利用率很高，更加轻量，但是使用上限制较多&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;由于stackless的实现比较轻量，占用资源也不是很多，因此tbox默认放置到了micro微内核模式下，作为基础模块，提供股嵌入式平台使用&lt;/p&gt;
+
+&lt;p&gt;而一般情况下，如果对资源使用和切换性能要求不是非常苛刻的话，使用stackfull的方式会更加方便，代码也更易于维护&lt;/p&gt;
+
+&lt;p&gt;具体如何选择，可根据实际使用场景，自己选择哦。。&lt;/p&gt;
+
+&lt;h4 id=&quot;section&quot;&gt;切换&lt;/h4&gt;
+
+&lt;p&gt;下面给的tbox的stackless协程切换实例，直观感受下：&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_void_t&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;switchtask&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_lo_coroutine_ref_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;coroutine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_cpointer_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// check
+&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_size_t&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_size_t&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;// enter coroutine
+&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_lo_coroutine_enter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;coroutine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;// loop
+&lt;/span&gt;        &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;c1&quot;&gt;// trace
+&lt;/span&gt;            &lt;span class=&quot;n&quot;&gt;tb_trace_i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;[coroutine: %p]: %lu&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_lo_coroutine_self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+            &lt;span class=&quot;c1&quot;&gt;// yield
+&lt;/span&gt;            &lt;span class=&quot;n&quot;&gt;tb_lo_coroutine_yield&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_void_t&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// init scheduler
+&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_lo_scheduler_ref_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;scheduler&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_lo_scheduler_init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;scheduler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;// start coroutines
+&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;tb_size_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;counts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;tb_lo_coroutine_start&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;scheduler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;switchtask&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;counts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;tb_lo_coroutine_start&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;scheduler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;switchtask&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;counts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+        &lt;span class=&quot;c1&quot;&gt;// run scheduler
+&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;tb_lo_scheduler_loop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;scheduler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+        &lt;span class=&quot;c1&quot;&gt;// exit scheduler
+&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;tb_lo_scheduler_exit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;scheduler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;其实整体接口使用跟tbox的那套stackfull接口类似，并没有多少区别，但是相比stackfull还是有些限制的：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;1. 目前只能支持在根函数进行协程切换和等待，嵌套协程不支持
+2. 协程内部局部变量使用受限
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;对于限制1，我正在研究中，看看有没有好的实现方案，之前尝试过支持下，后来发现需要按栈结构分级保存每个入口的label地址，这样会占用更多内存，就放弃了。
+对于限制2，由于stackless协程函数是需要重入的，因此目前只能在enter()块外部定以一些状态不变的变量，enter()块内部不要使用局部变量&lt;/p&gt;
+
+&lt;p&gt;接口设计上，这边采用boost的模式：&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// enter coroutine
+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_lo_coroutine_enter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;coroutine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// yield
+&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_lo_coroutine_yield&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这样比起protothreads的那种begin()和end()，更加可读和精简，接口也少了一个。。&lt;/p&gt;
+
+&lt;h4 id=&quot;section-1&quot;&gt;参数传递&lt;/h4&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;tb_lo_coroutine_start&lt;/code&gt;的最后两个参数，专门用来传递关联每个协程的私有数据priv和释放接口free，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;__tb_xxxx_priv_t&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;tb_size_t&lt;/span&gt;   &lt;span class=&quot;n&quot;&gt;member&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;tb_size_t&lt;/span&gt;   &lt;span class=&quot;n&quot;&gt;others&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_xxxx_priv_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_void_t&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;tb_xxx_free&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_cpointer_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_free&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+ 
+&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_void_t&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;tb_xxxx_priv_t&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_malloc0_type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_xxxx_priv_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;member&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;tb_lo_coroutine_start&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;scheduler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;switchtask&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_xxx_free&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;上述例子，为协程分配一个私有的数据结构，用于数据状态的维护，解决不能操作局部变量的问题，但是这样写非常繁琐&lt;/p&gt;
+
+&lt;p&gt;tbox里面提供了一些辅助接口，用来简化这些流程：&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; 
+&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;__tb_xxxx_priv_t&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;tb_size_t&lt;/span&gt;   &lt;span class=&quot;n&quot;&gt;member&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;tb_size_t&lt;/span&gt;   &lt;span class=&quot;n&quot;&gt;others&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_xxxx_priv_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_void_t&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// start coroutine 
+&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_lo_coroutine_start&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;scheduler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;switchtask&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_lo_coroutine_pass1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_xxxx_priv_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;member&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这个跟之前的代码功能上是等价的，这里利用&lt;code class=&quot;highlighter-rouge&quot;&gt;tb_lo_coroutine_pass1&lt;/code&gt;宏接口，自动处理了之前的那些设置流程，
+用来快速关联一个私有数据块给新协程。&lt;/p&gt;
+
+&lt;h4 id=&quot;section-2&quot;&gt;挂起和恢复&lt;/h4&gt;
+
+&lt;p&gt;这个跟stackfull的接口用法上也是一样的：&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;tb_lo_coroutine_enter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;coroutine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// 挂起当前协程
+&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_lo_coroutine_suspend&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// 恢复指定协程（这个可以不在协程函数内部使用，其他地方也可以调用）
+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_lo_coroutine_resume&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;coroutine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;挂起和恢复跟yield的区别就是，yield后的协程，之后还会被切换回来，但是被挂起的协程，除非调用resume()恢复它，否则永远不会再被执行到。&lt;/p&gt;
+
+&lt;h4 id=&quot;section-3&quot;&gt;等待&lt;/h4&gt;
+
+&lt;p&gt;当然一般，我们不会直接使用suspend()和resume()接口，这两个比较原始，如果需要定时等待，可以使用：&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;tb_lo_coroutine_enter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;coroutine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// 等待1s
+&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_lo_coroutine_sleep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;来挂起当前协程1s，之后会自动恢复执行，如果要进行io等待，可以使用：&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_void_t&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;tb_demo_lo_coroutine_client&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_lo_coroutine_ref_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;coroutine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_cpointer_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// check
+&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_demo_lo_client_ref_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_demo_lo_client_ref_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;tb_assert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;// enter coroutine
+&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_lo_coroutine_enter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;coroutine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;// read data
+&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;sizeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;c1&quot;&gt;// read it
+&lt;/span&gt;            &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;real&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_socket_recv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_byte_t&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+            &lt;span class=&quot;c1&quot;&gt;// has data?
+&lt;/span&gt;            &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;real&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
+            &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;real&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;wait&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+            &lt;span class=&quot;c1&quot;&gt;// no data? wait it
+&lt;/span&gt;            &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;real&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;wait&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+                &lt;span class=&quot;c1&quot;&gt;// 等待socket数据
+&lt;/span&gt;                &lt;span class=&quot;n&quot;&gt;tb_lo_coroutine_waitio&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TB_SOCKET_EVENT_RECV&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TB_DEMO_TIMEOUT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+                &lt;span class=&quot;c1&quot;&gt;// 获取等到的io事件
+&lt;/span&gt;                &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;wait&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_lo_coroutine_events&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;tb_assert_and_check_break&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;wait&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+            &lt;span class=&quot;c1&quot;&gt;// failed or end?
+&lt;/span&gt;            &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;break&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+        &lt;span class=&quot;c1&quot;&gt;// trace
+&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;tb_trace_i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;echo: %s&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+        &lt;span class=&quot;c1&quot;&gt;// exit socket
+&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;tb_socket_exit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这个跟stackfull模式除了局部变量的区别，其他使用上几乎一样，也是同步模式，但是实际上tbox已经在底层把它放入了poller轮询器中进行等待&lt;/p&gt;
+
+&lt;p&gt;在没有数据，调用&lt;code class=&quot;highlighter-rouge&quot;&gt;tb_lo_coroutine_waitio&lt;/code&gt;进行socket等待事件后，tbox会自动启用stackless调度器内部的io调度器（默认是不启用的，延迟加载，减少无畏的资源浪费）&lt;/p&gt;
+
+&lt;p&gt;然后进行poll切换调度（内部根据不同平台使用epoll, kqueue, poll, 后续还会支持iocp）。&lt;/p&gt;
+
+&lt;p&gt;如果有事件到来，会将收到事件的所有协程恢复执行，当然也可以指定等待超时，超时返回或者强行kill中断掉。&lt;/p&gt;
+
+&lt;p&gt;tbox中内置了一个stackless版本的&lt;a href=&quot;https://github.com/waruqi/tbox/blob/master/src/demo/coroutine/stackless/http_server.c&quot;&gt;http_server&lt;/a&gt;，实现也是非常轻量，经测试效率还是非常高的，
+整体表现比stackfull的实现更好。&lt;/p&gt;
+
+&lt;p&gt;更多stackless接口使用demo，可以参考tbox的&lt;a href=&quot;https://github.com/waruqi/tbox/tree/master/src/demo/coroutine/stackless&quot;&gt;源码&lt;/a&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;section-4&quot;&gt;信号量和锁&lt;/h4&gt;
+
+&lt;p&gt;这个就简单讲讲了，使用跟stackfull的类似，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+&lt;span class=&quot;c1&quot;&gt;// the lock
+&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_lo_lock_t&lt;/span&gt;     &lt;span class=&quot;n&quot;&gt;g_lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// enter coroutine
+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_lo_coroutine_enter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;coroutine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// loop
+&lt;/span&gt;    &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;// enter lock
+&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;tb_lo_lock_enter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g_lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+        &lt;span class=&quot;c1&quot;&gt;// trace
+&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;tb_trace_i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;[coroutine: %p]: enter&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_lo_coroutine_self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;());&lt;/span&gt;
+
+        &lt;span class=&quot;c1&quot;&gt;// wait some time
+&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;tb_lo_coroutine_sleep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+        &lt;span class=&quot;c1&quot;&gt;// trace
+&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;tb_trace_i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;[coroutine: %p]: leave&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_lo_coroutine_self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;());&lt;/span&gt;
+
+        &lt;span class=&quot;c1&quot;&gt;// leave lock
+&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;tb_lo_lock_leave&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g_lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+ 
+&lt;span class=&quot;c1&quot;&gt;// init lock     
+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_lo_lock_init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g_lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// start coroutine 
+// ..
+&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// exit lock
+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_lo_lock_exit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g_lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这里只是举个例子，实际使用中尽量还是别这么直接用全局变量哦。。&lt;/p&gt;
+</description>
+        <pubDate>Sat, 03 Dec 2016 00:00:00 +0800</pubDate>
+        <link>http://www.tboox.org/cn/2016/12/03/stackless-coroutine/</link>
+        <guid isPermaLink="true">http://www.tboox.org/cn/2016/12/03/stackless-coroutine/</guid>
+        
+        <category>tbox</category>
+        
+        <category>stackless</category>
+        
+        <category>协程</category>
+        
+        
+        <category>tbox</category>
+        
+      </item>
+    
+      <item>
+        <title>tbox新增64K微内核编译模式</title>
+        <description>&lt;p&gt;为了进一步裁剪tbox，更好的适配嵌入式开发平台，tbox新增了&lt;code class=&quot;highlighter-rouge&quot;&gt;--micro=y&lt;/code&gt;的微模块编译选项&lt;/p&gt;
+
+&lt;p&gt;如果启用此编译选项，那么只会编译tbox里面较轻量的一些模块，是的编译后的库大小，尽量保证在64K左右。&lt;/p&gt;
+
+&lt;p&gt;先来讲讲一些跟库大小相关的编译选项：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;* `--smallest=y`: 最小编译模式，会禁用所有第三方依赖库，禁用所有扩展模块，启用最小化编译优化（库内部也会尽可能节省内存使用）
+* `--micro=y`: 专门针对嵌入式平台设计，仅编译最为轻量的一些模块（有可能会包含一些可选组件）
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;因此如果要编译最小tbox库，只需要执行下面的配置：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f --micro&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;y --smallest&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;y 
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;进行编译就行了，一般库大小会控制在64K左右，目前内置模块还不是很多，后续会进一步精简优化，使其在64K内包含更多使用的模块。&lt;/p&gt;
+
+&lt;p&gt;目前微内核编译模式支持的一些模块有：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;stackless线程库（比stackfull版本更加轻量，每个协程仅占用几十个bytes，切换效率也提升了5-6倍，macosx上1000w次切换只需要40ms）&lt;/li&gt;
+  &lt;li&gt;轻量libc库api支持（支持一些最长使用的接口）&lt;/li&gt;
+  &lt;li&gt;支持&lt;code class=&quot;highlighter-rouge&quot;&gt;list_entry&lt;/code&gt;/&lt;code class=&quot;highlighter-rouge&quot;&gt;single_list_entry&lt;/code&gt;单双链容器（比&lt;code class=&quot;highlighter-rouge&quot;&gt;list&lt;/code&gt;/&lt;code class=&quot;highlighter-rouge&quot;&gt;single_list&lt;/code&gt;更加轻量，外置式，不会维护对象内存）&lt;/li&gt;
+  &lt;li&gt;原始socket接口操作&lt;/li&gt;
+  &lt;li&gt;文件操作相关api&lt;/li&gt;
+  &lt;li&gt;dns地址解析、ipv4、ipv6等操作接口&lt;/li&gt;
+  &lt;li&gt;bits数据操作和解析&lt;/li&gt;
+  &lt;li&gt;提供系统内存、连续静态内存分配器（可以指定tbox所有内存仅在一块连续空间内分配，适用于内存资源有严格要求的场景）&lt;/li&gt;
+  &lt;li&gt;支持内存越界、泄漏检测&lt;/li&gt;
+  &lt;li&gt;线程相关基础接口&lt;/li&gt;
+  &lt;li&gt;提供单例、原子操作接口&lt;/li&gt;
+  &lt;li&gt;自旋锁支持&lt;/li&gt;
+  &lt;li&gt;跨平台&lt;code class=&quot;highlighter-rouge&quot;&gt;__tb_thread_local__&lt;/code&gt;线程局部存储支持&lt;/li&gt;
+  &lt;li&gt;trace打印接口&lt;/li&gt;
+  &lt;li&gt;迭代器支持（目前仅用于&lt;code class=&quot;highlighter-rouge&quot;&gt;list_entry&lt;/code&gt;/&lt;code class=&quot;highlighter-rouge&quot;&gt;single_list_entry&lt;/code&gt;）&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;关于micro编译的更多支持模块列表，见&lt;a href=&quot;https://github.com/waruqi/tbox/blob/master/src/tbox/micro.lua&quot;&gt;micro.lua&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;后续在保持库大小不增加的前提下，还会增加更多轻量级模块（例如：定时器、更多的容器和算法支持。。）&lt;/p&gt;
+</description>
+        <pubDate>Sat, 03 Dec 2016 00:00:00 +0800</pubDate>
+        <link>http://www.tboox.org/cn/2016/12/03/micro-core/</link>
+        <guid isPermaLink="true">http://www.tboox.org/cn/2016/12/03/micro-core/</guid>
+        
+        <category>tbox</category>
+        
+        <category>micro</category>
+        
+        <category>微内核</category>
+        
+        
+        <category>tbox</category>
+        
+      </item>
     
       <item>
         <title>Two Syntax Styles of xmake</title>
@@ -1220,181 +1592,6 @@ jump_fcontext:
         <category>coroutine</category>
         
         <category>version</category>
-        
-        
-        <category>tbox</category>
-        
-      </item>
-    
-      <item>
-        <title>tbox v1.6.0 发布，提供跨平台协程支持!</title>
-        <description>&lt;h3 id=&quot;section&quot;&gt;新特性&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;支持make进行直接编译（会去自动下载xmake进行构建）&lt;/li&gt;
-  &lt;li&gt;在平台库中，添加切换context上下文接口（参考boost.context实现原理进行重写，并对部分架构进行优化）&lt;/li&gt;
-  &lt;li&gt;新增跨平台协程模块（支持i386, x86_64, arm, arm64），提供更加易用的高性能并发编程模式&lt;/li&gt;
-  &lt;li&gt;新增基于协程的各种服务器开发实例（包括：简单轻量的http服务器，爬虫。。）&lt;/li&gt;
-  &lt;li&gt;新增poller轮询器接口，实现对epoll, poll, kqueue, select的封装，逐步取代老的aiop接口&lt;/li&gt;
-  &lt;li&gt;新增mbedtls ssl库接口支持，目前已支持：openssl, polarssl, mbedtls&lt;/li&gt;
-  &lt;li&gt;tbox所有stream, socket, http, dns, ssl 等io相关操作，原生支持协程模式，并且可以在线程和协程间随意切换&lt;/li&gt;
-  &lt;li&gt;为协程提供lock, semaphone, channel模块&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;section-1&quot;&gt;改进&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;优化和重构线程局部存储TLS模块&lt;/li&gt;
-  &lt;li&gt;修改部分线程接口&lt;/li&gt;
-  &lt;li&gt;asio模块被标记为废弃接口，下个版本将会被移除，逐步使用协程模式来实现异步io开发&lt;/li&gt;
-  &lt;li&gt;优化异常捕获接口&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;bugs&quot;&gt;Bugs修复&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;修复一些编译警告和错误&lt;/li&gt;
-  &lt;li&gt;修复一些线相关bug&lt;/li&gt;
-  &lt;li&gt;修复bplist中解析uid类型失败问题&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;section-2&quot;&gt;基准测试&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&quot;/cn/2016/10/28/benchbox-coroutine/&quot;&gt;测试报告&lt;/a&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;section-3&quot;&gt;项目源码&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://github.com/waruqi/tbox&quot;&gt;Github&lt;/a&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;section-4&quot;&gt;项目文档&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://github.com/waruqi/tbox/wiki&quot;&gt;Wiki&lt;/a&gt;&lt;/p&gt;
-</description>
-        <pubDate>Sun, 30 Oct 2016 00:00:00 +0800</pubDate>
-        <link>http://www.tboox.org/cn/2016/10/30/update-v1.6.0/</link>
-        <guid isPermaLink="true">http://www.tboox.org/cn/2016/10/30/update-v1.6.0/</guid>
-        
-        <category>tbox</category>
-        
-        <category>协程</category>
-        
-        <category>版本更新</category>
-        
-        
-        <category>tbox</category>
-        
-      </item>
-    
-      <item>
-        <title>Some examples for coroutine (tbox)</title>
-        <description>&lt;p&gt;tbox add a coroutine library with stackfull mode and provide the following features.&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;1. yield 
-2. suspend and resume
-3. sleep 
-4. io scheduler with (epoll, poll, kqueue, select, poll ..)
-5. supports stream, http and other all io modules of tbox
-6. channel
-7. lock
-8. semaphore
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;yield&quot;&gt;yield&lt;/h4&gt;
-
-&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_void_t&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;switchfunc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_cpointer_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;tb_size_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_size_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;c1&quot;&gt;// trace
-&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;tb_trace_i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;[coroutine: %p]: %lu&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_coroutine_self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;// yield
-&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;tb_coroutine_yield&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;tb_int_t&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_int_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;argc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_char_t&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;**&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;argv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;// init tbox
-&lt;/span&gt;    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-
-    &lt;span class=&quot;c1&quot;&gt;// init scheduler
-&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_co_scheduler_ref_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;scheduler&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_co_scheduler_init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;scheduler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;c1&quot;&gt;// start coroutine with the default stack size
-&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;tb_coroutine_start&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;scheduler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;switchfunc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_cpointer_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;// start coroutine with stack size (8192)
-&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;tb_coroutine_start&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;scheduler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;switchfunc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_cpointer_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;8192&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;// run scheduler loop
-&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;tb_co_scheduler_loop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;scheduler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;// exit scheduler
-&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;tb_co_scheduler_exit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;scheduler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-    &lt;span class=&quot;c1&quot;&gt;// exit tbox
-&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_exit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;sleep&quot;&gt;sleep&lt;/h4&gt;
-
-&lt;p&gt;We can uses tb_sleep(), tb_msleep() or tb_coroutine_sleep() to sleep some times.&lt;/p&gt;
-
-&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_void_t&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;sleepfunc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_cpointer_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;tb_msleep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;resume-and-suspend&quot;&gt;resume and suspend&lt;/h4&gt;
-
-&lt;p&gt;Unlike yield(), the suspended coroutine will never be scheduled until it is resumed.&lt;/p&gt;
-
-&lt;p&gt;And we can pass some private data without channel between resume() and suspend()&lt;/p&gt;
-
-&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_void_t&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;resumefunc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_cpointer_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;// get coroutine of suspendfunc() 
-&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_coroutine_ref_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;coroutine&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_coroutine_ref_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-
-    &lt;span class=&quot;c1&quot;&gt;// resume the given coroutine to pass &quot;hello suspend!&quot;
-&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_char_t&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;retval&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_coroutine_resume&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;coroutine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;hello suspend!&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-    &lt;span class=&quot;c1&quot;&gt;// retval is &quot;hello resume!&quot;
-&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_void_t&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;suspendfunc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_cpointer_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;priv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;// start coroutine of resumefunc()
-&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_coroutine_start&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tb_null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;resumefunc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_coroutine_self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-    &lt;span class=&quot;c1&quot;&gt;// suspend current coroutine and pass &quot;hello resume!&quot; to resumefunc()
-&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;tb_char_t&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;retval&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tb_coroutine_suspend&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;hello resume!&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-    &lt;span class=&quot;c1&quot;&gt;// retval is &quot;hello suspend!&quot;
-&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-</description>
-        <pubDate>Sat, 29 Oct 2016 00:00:00 +0800</pubDate>
-        <link>http://www.tboox.org/2016/10/29/coroutine-switch/</link>
-        <guid isPermaLink="true">http://www.tboox.org/2016/10/29/coroutine-switch/</guid>
-        
-        <category>tbox</category>
-        
-        <category>coroutine</category>
-        
-        <category>examples</category>
         
         
         <category>tbox</category>

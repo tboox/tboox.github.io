@@ -1,0 +1,2168 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+    <title>tbox新增stackless协程支持</title>
+    <meta name="description" content="tbox之前提供的stackfull协程库，虽然切换效率已经非常高了，但是由于每个协程都需要维护一个独立的堆栈，内存空间利用率不是很高，在并发量非常大的时候，内存使用量会相当大。之前考虑过采用stacksegment方式进行内存优化，实现动态增涨，但是这样对性能还是有一定的影响，暂时不去考虑了。最近参考了下boo...">
+
+    
+    <meta name="keywords" content="tbox,stackless,协程,tboox" /> 
+
+    <!-- qq oauth -->
+    <meta property="qc:admins" content="5211601217706727767255" />
+
+    <! --icon -->
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" sizes="192x192" href="/static/img/nice-highres.png" />
+	<link rel="apple-touch-icon-precomposed" href="/static/img/apple-touch-icon-57x57-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="72x72" href="/static/img/apple-touch-icon-72x72-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="114x114" href="/static/img/apple-touch-icon-114x114-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/static/img/apple-touch-icon-144x144-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="180x180" href="/static/img/retinahd_icon.png" />
+	<meta name="msapplication-TileImage" content="/static/img/retinahd_icon.png" />
+	
+    <link rel="stylesheet" href=" /css/fontawesome/css/font-awesome.min.css ">
+    <link rel="stylesheet" href=" /css/main.css ">
+    <link rel="canonical" href="http://www.tboox.org/cn/2016/12/03/stackless-coroutine/">
+    <link rel="alternate" type="application/rss+xml" title="TBOOX Open Source Project" href="http://www.tboox.org/feed.xml ">
+    <link rel="alternate" hreflang="en" href="http://www.tboox.org/" />
+    <link rel="alternate" hreflang="zh-Hans" href="http://www.tboox.org/cn/" />
+
+
+    <script>
+    // 百度统计代码
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?162f1cd478898a0686b0b5d5115e2af2";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+
+
+</head>
+
+
+  <body>
+
+    <header id="top">
+    <div class="wrapper">
+        <a href="/cn" class="brand">TBOOX</a>
+        <button id="headerMenu" class="menu"><i class="fa fa-bars"></i></button>
+        <nav id="headerNav">
+            <ul>
+                <li>
+                    
+                    <a href="/">
+                    
+                        <i class="fa fa-home"></i>English
+                    </a>
+                </li>
+
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/project/">
+                            
+                        
+                            <i class="fa fa-bookmark"></i>项目
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/archive/">
+                            
+                        
+                            <i class="fa fa-archive"></i>归档
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/category/">
+                            
+                        
+                            <i class="fa fa-th-list"></i>分类
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/tag/">
+                            
+                        
+                            <i class="fa fa-tags"></i>标记
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/book/">
+                            
+                        
+                            <i class="fa fa-book"></i>书柜
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/forum">
+                            
+                        
+                            <i class="fa fa-forumbee"></i>社区
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/donation/">
+                            
+                        
+                            <i class="fa fa-heart"></i>捐助
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/about/">
+                            
+                        
+                            <i class="fa fa-user"></i>关于
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            </ul>
+        </nav>
+    </div>
+</header>
+
+
+        <div class="page clearfix" post>
+    <div class="left">
+        <h1>tbox新增stackless协程支持</h1>
+        <div class="label">
+
+            <div class="label-card">
+                <i class="fa fa-calendar"></i>2016-12-03
+            </div>
+
+            <div class="label-card">
+                
+            </div>
+
+            <div class="label-card">
+                
+            </div>
+
+            <div class="label-card">
+            
+
+
+<!-- <span class="point">•</span> -->
+<span class="categories">
+  <i class="fa fa-th-list"></i>
+  
+    
+        <a href="/category/#tbox" title="Category: tbox" rel="category">tbox</a>
+    
+  
+
+  <!-- <span class="point">•</span> -->
+</span>
+
+
+            </div>
+
+            <div class="label-card">
+            
+<!-- <span class="point">•</span> -->
+<span class="pageTag">
+  <i class="fa fa-tags"></i>
+  
+    
+        <!--a href="/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a-->
+        <a href="/cn/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a>&nbsp;
+    
+        <!--a href="/tag/#stackless" title="Tag: stackless" rel="tag">stackless</a-->
+        <a href="/cn/tag/#stackless" title="Tag: stackless" rel="tag">stackless</a>&nbsp;
+    
+        <!--a href="/tag/#%E5%8D%8F%E7%A8%8B" title="Tag: 协程" rel="tag">协程</a-->
+        <a href="/cn/tag/#协程" title="Tag: 协程" rel="tag">协程</a>
+    
+  
+
+</span>
+
+            </div>
+
+        </div>
+        <hr>
+        <article itemscope itemtype="http://schema.org/BlogPosting">
+        <p><a href="https://github.com/waruqi/tbox">tbox</a>之前提供的stackfull协程库，虽然切换效率已经非常高了，但是由于每个协程都需要维护一个独立的堆栈，
+内存空间利用率不是很高，在并发量非常大的时候，内存使用量会相当大。</p>
+
+<p>之前考虑过采用stacksegment方式进行内存优化，实现动态增涨，但是这样对性能还是有一定的影响，暂时不去考虑了。</p>
+
+<p>最近参考了下boost和protothreads的stackless协程实现，这种方式虽然易用性和灵活性上受到了很多限制，但是对切换效率和内存利用率的提升效果还是非常明显的。。</p>
+
+<p>因此，我在tbox里面也加上了对stackless协程的支持，在切换原语上参考了protothreads的实现，接口封装上参考了boost的设计，使得更加可读易用</p>
+
+<p>先晒段实际的接口使用代码：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="n">tb_lo_coroutine_enter</span><span class="p">(</span><span class="n">coroutine</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">while</span> <span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">tb_lo_coroutine_yield</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>然后实测对比了下：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>* 切换性能在macosx上比tbox的stackfull版本提升了5-6倍，1000w次切换只需要40ms
+* 每个协程的内存占用也减少到了只有固定几十个bytes
+</code></pre>
+</div>
+
+<p>那么既然stackless的效率提升这么明显，stackfull模式还需要吗？可以比较下两者的优劣：</p>
+
+<ul>
+  <li>stackfull协程：易用性和灵活性非常高，但是内存使用过大</li>
+  <li>stackless协程：切换效率和内存利用率很高，更加轻量，但是使用上限制较多</li>
+</ul>
+
+<p>由于stackless的实现比较轻量，占用资源也不是很多，因此tbox默认放置到了micro微内核模式下，作为基础模块，提供股嵌入式平台使用</p>
+
+<p>而一般情况下，如果对资源使用和切换性能要求不是非常苛刻的话，使用stackfull的方式会更加方便，代码也更易于维护</p>
+
+<p>具体如何选择，可根据实际使用场景，自己选择哦。。</p>
+
+<h4 id="section">切换</h4>
+
+<p>下面给的tbox的stackless协程切换实例，直观感受下：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">switchtask</span><span class="p">(</span><span class="n">tb_lo_coroutine_ref_t</span> <span class="n">coroutine</span><span class="p">,</span> <span class="n">tb_cpointer_t</span> <span class="n">priv</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// check
+</span>    <span class="n">tb_size_t</span><span class="o">*</span> <span class="n">count</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_size_t</span><span class="o">*</span><span class="p">)</span><span class="n">priv</span><span class="p">;</span>
+
+    <span class="c1">// enter coroutine
+</span>    <span class="n">tb_lo_coroutine_enter</span><span class="p">(</span><span class="n">coroutine</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// loop
+</span>        <span class="k">while</span> <span class="p">((</span><span class="o">*</span><span class="n">count</span><span class="p">)</span><span class="o">--</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="c1">// trace
+</span>            <span class="n">tb_trace_i</span><span class="p">(</span><span class="s">"[coroutine: %p]: %lu"</span><span class="p">,</span> <span class="n">tb_lo_coroutine_self</span><span class="p">(),</span> <span class="o">*</span><span class="n">count</span><span class="p">);</span>
+
+            <span class="c1">// yield
+</span>            <span class="n">tb_lo_coroutine_yield</span><span class="p">();</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">test</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="c1">// init scheduler
+</span>    <span class="n">tb_lo_scheduler_ref_t</span> <span class="n">scheduler</span> <span class="o">=</span> <span class="n">tb_lo_scheduler_init</span><span class="p">();</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">scheduler</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// start coroutines
+</span>        <span class="n">tb_size_t</span> <span class="n">counts</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">};</span>
+        <span class="n">tb_lo_coroutine_start</span><span class="p">(</span><span class="n">scheduler</span><span class="p">,</span> <span class="n">switchtask</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">counts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tb_null</span><span class="p">);</span>
+        <span class="n">tb_lo_coroutine_start</span><span class="p">(</span><span class="n">scheduler</span><span class="p">,</span> <span class="n">switchtask</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">counts</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">tb_null</span><span class="p">);</span>
+
+        <span class="c1">// run scheduler
+</span>        <span class="n">tb_lo_scheduler_loop</span><span class="p">(</span><span class="n">scheduler</span><span class="p">);</span>
+
+        <span class="c1">// exit scheduler
+</span>        <span class="n">tb_lo_scheduler_exit</span><span class="p">(</span><span class="n">scheduler</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>其实整体接口使用跟tbox的那套stackfull接口类似，并没有多少区别，但是相比stackfull还是有些限制的：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>1. 目前只能支持在根函数进行协程切换和等待，嵌套协程不支持
+2. 协程内部局部变量使用受限
+</code></pre>
+</div>
+
+<p>对于限制1，我正在研究中，看看有没有好的实现方案，之前尝试过支持下，后来发现需要按栈结构分级保存每个入口的label地址，这样会占用更多内存，就放弃了。
+对于限制2，由于stackless协程函数是需要重入的，因此目前只能在enter()块外部定以一些状态不变的变量，enter()块内部不要使用局部变量</p>
+
+<p>接口设计上，这边采用boost的模式：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="c1">// enter coroutine
+</span><span class="n">tb_lo_coroutine_enter</span><span class="p">(</span><span class="n">coroutine</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// yield
+</span>    <span class="n">tb_lo_coroutine_yield</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>这样比起protothreads的那种begin()和end()，更加可读和精简，接口也少了一个。。</p>
+
+<h4 id="section-1">参数传递</h4>
+
+<p><code class="highlighter-rouge">tb_lo_coroutine_start</code>的最后两个参数，专门用来传递关联每个协程的私有数据priv和释放接口free，例如：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="k">typedef</span> <span class="k">struct</span> <span class="n">__tb_xxxx_priv_t</span>
+<span class="p">{</span>
+    <span class="n">tb_size_t</span>   <span class="n">member</span><span class="p">;</span>
+    <span class="n">tb_size_t</span>   <span class="n">others</span><span class="p">;</span>
+
+<span class="p">}</span><span class="n">tb_xxxx_priv_t</span><span class="p">;</span>
+
+<span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">tb_xxx_free</span><span class="p">(</span><span class="n">tb_cpointer_t</span> <span class="n">priv</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">priv</span><span class="p">)</span> <span class="n">tb_free</span><span class="p">(</span><span class="n">priv</span><span class="p">);</span>
+<span class="p">}</span>
+ 
+<span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">test</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="n">tb_xxxx_priv_t</span><span class="o">*</span> <span class="n">priv</span> <span class="o">=</span> <span class="n">tb_malloc0_type</span><span class="p">(</span><span class="n">tb_xxxx_priv_t</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">priv</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">priv</span><span class="o">-&gt;</span><span class="n">member</span> <span class="o">=</span> <span class="n">value</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="n">tb_lo_coroutine_start</span><span class="p">(</span><span class="n">scheduler</span><span class="p">,</span> <span class="n">switchtask</span><span class="p">,</span> <span class="n">priv</span><span class="p">,</span> <span class="n">tb_xxx_free</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>上述例子，为协程分配一个私有的数据结构，用于数据状态的维护，解决不能操作局部变量的问题，但是这样写非常繁琐</p>
+
+<p>tbox里面提供了一些辅助接口，用来简化这些流程：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code> 
+<span class="k">typedef</span> <span class="k">struct</span> <span class="n">__tb_xxxx_priv_t</span>
+<span class="p">{</span>
+    <span class="n">tb_size_t</span>   <span class="n">member</span><span class="p">;</span>
+    <span class="n">tb_size_t</span>   <span class="n">others</span><span class="p">;</span>
+
+<span class="p">}</span><span class="n">tb_xxxx_priv_t</span><span class="p">;</span>
+
+<span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">test</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="c1">// start coroutine 
+</span>    <span class="n">tb_lo_coroutine_start</span><span class="p">(</span><span class="n">scheduler</span><span class="p">,</span> <span class="n">switchtask</span><span class="p">,</span> <span class="n">tb_lo_coroutine_pass1</span><span class="p">(</span><span class="n">tb_xxxx_priv_t</span><span class="p">,</span> <span class="n">member</span><span class="p">,</span> <span class="n">value</span><span class="p">));</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>这个跟之前的代码功能上是等价的，这里利用<code class="highlighter-rouge">tb_lo_coroutine_pass1</code>宏接口，自动处理了之前的那些设置流程，
+用来快速关联一个私有数据块给新协程。</p>
+
+<h4 id="section-2">挂起和恢复</h4>
+
+<p>这个跟stackfull的接口用法上也是一样的：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="n">tb_lo_coroutine_enter</span><span class="p">(</span><span class="n">coroutine</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// 挂起当前协程
+</span>    <span class="n">tb_lo_coroutine_suspend</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="c1">// 恢复指定协程（这个可以不在协程函数内部使用，其他地方也可以调用）
+</span><span class="n">tb_lo_coroutine_resume</span><span class="p">(</span><span class="n">coroutine</span><span class="p">);</span>
+</code></pre>
+</div>
+
+<p>挂起和恢复跟yield的区别就是，yield后的协程，之后还会被切换回来，但是被挂起的协程，除非调用resume()恢复它，否则永远不会再被执行到。</p>
+
+<h4 id="section-3">等待</h4>
+
+<p>当然一般，我们不会直接使用suspend()和resume()接口，这两个比较原始，如果需要定时等待，可以使用：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="n">tb_lo_coroutine_enter</span><span class="p">(</span><span class="n">coroutine</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// 等待1s
+</span>    <span class="n">tb_lo_coroutine_sleep</span><span class="p">(</span><span class="mi">1000</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>来挂起当前协程1s，之后会自动恢复执行，如果要进行io等待，可以使用：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="k">static</span> <span class="n">tb_void_t</span> <span class="nf">tb_demo_lo_coroutine_client</span><span class="p">(</span><span class="n">tb_lo_coroutine_ref_t</span> <span class="n">coroutine</span><span class="p">,</span> <span class="n">tb_cpointer_t</span> <span class="n">priv</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// check
+</span>    <span class="n">tb_demo_lo_client_ref_t</span> <span class="n">client</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_demo_lo_client_ref_t</span><span class="p">)</span><span class="n">priv</span><span class="p">;</span>
+    <span class="n">tb_assert</span><span class="p">(</span><span class="n">client</span><span class="p">);</span>
+
+    <span class="c1">// enter coroutine
+</span>    <span class="n">tb_lo_coroutine_enter</span><span class="p">(</span><span class="n">coroutine</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// read data
+</span>        <span class="n">client</span><span class="o">-&gt;</span><span class="n">size</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">client</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>
+        <span class="k">while</span> <span class="p">(</span><span class="n">client</span><span class="o">-&gt;</span><span class="n">read</span> <span class="o">&lt;</span> <span class="n">client</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="c1">// read it
+</span>            <span class="n">client</span><span class="o">-&gt;</span><span class="n">real</span> <span class="o">=</span> <span class="n">tb_socket_recv</span><span class="p">(</span><span class="n">client</span><span class="o">-&gt;</span><span class="n">sock</span><span class="p">,</span> <span class="p">(</span><span class="n">tb_byte_t</span><span class="o">*</span><span class="p">)</span><span class="n">client</span><span class="o">-&gt;</span><span class="n">data</span> <span class="o">+</span> <span class="n">client</span><span class="o">-&gt;</span><span class="n">read</span><span class="p">,</span> <span class="n">client</span><span class="o">-&gt;</span><span class="n">size</span> <span class="o">-</span> <span class="n">client</span><span class="o">-&gt;</span><span class="n">read</span><span class="p">);</span>
+
+            <span class="c1">// has data?
+</span>            <span class="k">if</span> <span class="p">(</span><span class="n">client</span><span class="o">-&gt;</span><span class="n">real</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> 
+            <span class="p">{</span>
+                <span class="n">client</span><span class="o">-&gt;</span><span class="n">read</span> <span class="o">+=</span> <span class="n">client</span><span class="o">-&gt;</span><span class="n">real</span><span class="p">;</span>
+                <span class="n">client</span><span class="o">-&gt;</span><span class="n">wait</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+            <span class="p">}</span>
+            <span class="c1">// no data? wait it
+</span>            <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">client</span><span class="o">-&gt;</span><span class="n">real</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">client</span><span class="o">-&gt;</span><span class="n">wait</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="c1">// 等待socket数据
+</span>                <span class="n">tb_lo_coroutine_waitio</span><span class="p">(</span><span class="n">client</span><span class="o">-&gt;</span><span class="n">sock</span><span class="p">,</span> <span class="n">TB_SOCKET_EVENT_RECV</span><span class="p">,</span> <span class="n">TB_DEMO_TIMEOUT</span><span class="p">);</span>
+
+                <span class="c1">// 获取等到的io事件
+</span>                <span class="n">client</span><span class="o">-&gt;</span><span class="n">wait</span> <span class="o">=</span> <span class="n">tb_lo_coroutine_events</span><span class="p">();</span>
+                <span class="n">tb_assert_and_check_break</span><span class="p">(</span><span class="n">client</span><span class="o">-&gt;</span><span class="n">wait</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">);</span>
+            <span class="p">}</span>
+            <span class="c1">// failed or end?
+</span>            <span class="k">else</span> <span class="k">break</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="c1">// trace
+</span>        <span class="n">tb_trace_i</span><span class="p">(</span><span class="s">"echo: %s"</span><span class="p">,</span> <span class="n">client</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">);</span>
+
+        <span class="c1">// exit socket
+</span>        <span class="n">tb_socket_exit</span><span class="p">(</span><span class="n">client</span><span class="o">-&gt;</span><span class="n">sock</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>这个跟stackfull模式除了局部变量的区别，其他使用上几乎一样，也是同步模式，但是实际上tbox已经在底层把它放入了poller轮询器中进行等待</p>
+
+<p>在没有数据，调用<code class="highlighter-rouge">tb_lo_coroutine_waitio</code>进行socket等待事件后，tbox会自动启用stackless调度器内部的io调度器（默认是不启用的，延迟加载，减少无畏的资源浪费）</p>
+
+<p>然后进行poll切换调度（内部根据不同平台使用epoll, kqueue, poll, 后续还会支持iocp）。</p>
+
+<p>如果有事件到来，会将收到事件的所有协程恢复执行，当然也可以指定等待超时，超时返回或者强行kill中断掉。</p>
+
+<p>tbox中内置了一个stackless版本的<a href="https://github.com/waruqi/tbox/blob/master/src/demo/coroutine/stackless/http_server.c">http_server</a>，实现也是非常轻量，经测试效率还是非常高的，
+整体表现比stackfull的实现更好。</p>
+
+<p>更多stackless接口使用demo，可以参考tbox的<a href="https://github.com/waruqi/tbox/tree/master/src/demo/coroutine/stackless">源码</a></p>
+
+<h4 id="section-4">信号量和锁</h4>
+
+<p>这个就简单讲讲了，使用跟stackfull的类似，例如：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code>
+<span class="c1">// the lock
+</span><span class="k">static</span> <span class="n">tb_lo_lock_t</span>     <span class="n">g_lock</span><span class="p">;</span>
+
+<span class="c1">// enter coroutine
+</span><span class="n">tb_lo_coroutine_enter</span><span class="p">(</span><span class="n">coroutine</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// loop
+</span>    <span class="k">while</span> <span class="p">(</span><span class="n">lock</span><span class="o">-&gt;</span><span class="n">count</span><span class="o">--</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// enter lock
+</span>        <span class="n">tb_lo_lock_enter</span><span class="p">(</span><span class="o">&amp;</span><span class="n">g_lock</span><span class="p">);</span>
+
+        <span class="c1">// trace
+</span>        <span class="n">tb_trace_i</span><span class="p">(</span><span class="s">"[coroutine: %p]: enter"</span><span class="p">,</span> <span class="n">tb_lo_coroutine_self</span><span class="p">());</span>
+
+        <span class="c1">// wait some time
+</span>        <span class="n">tb_lo_coroutine_sleep</span><span class="p">(</span><span class="mi">1000</span><span class="p">);</span>
+
+        <span class="c1">// trace
+</span>        <span class="n">tb_trace_i</span><span class="p">(</span><span class="s">"[coroutine: %p]: leave"</span><span class="p">,</span> <span class="n">tb_lo_coroutine_self</span><span class="p">());</span>
+
+        <span class="c1">// leave lock
+</span>        <span class="n">tb_lo_lock_leave</span><span class="p">(</span><span class="o">&amp;</span><span class="n">g_lock</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+ 
+<span class="c1">// init lock     
+</span><span class="n">tb_lo_lock_init</span><span class="p">(</span><span class="o">&amp;</span><span class="n">g_lock</span><span class="p">);</span>
+
+<span class="c1">// start coroutine 
+// ..
+</span>
+<span class="c1">// exit lock
+</span><span class="n">tb_lo_lock_exit</span><span class="p">(</span><span class="o">&amp;</span><span class="n">g_lock</span><span class="p">);</span>
+</code></pre>
+</div>
+
+<p>这里只是举个例子，实际使用中尽量还是别这么直接用全局变量哦。。</p>
+
+        </article>
+        <hr>
+
+        
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+        
+
+        
+        
+            
+            
+            
+                
+                    
+                        
+                        <h2 id="similar_posts">相关文章</h2>
+                        <ul>
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/12/03/micro-core/">tbox新增64K微内核编译模式
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/11/13/boost-context-bug/">记boost协程切换bug发现和分析
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/11/07/coroutine-echo-server/">协程使用之服务器实例
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/10/30/update-v1.6.0/">tbox v1.6.0 发布，提供跨平台协程支持!
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+        
+            </ul>
+        
+
+        <div class="post-recent">
+    <div class="pre">
+
+        
+
+        
+
+        
+        
+        <p><strong>上一篇</strong> <a href="/cn/2016/12/03/micro-core/">tbox新增64K微内核编译模式</a></p>
+        
+    </div>
+
+    <div class="nex">
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+    </div>
+</div>
+
+
+        <h2 id="comments">评论</h2>
+        
+
+<!-- 多说评论框 start -->
+<div class="ds-thread" data-thread-key="http://www.tboox.org/cn/2016/12/03/stackless-coroutine/" data-title="tbox新增stackless协程支持" data-url="http://www.tboox.org/cn/2016/12/03/stackless-coroutine/"></div>
+<!-- 多说评论框 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"tboox"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- 多说公共JS代码 end -->
+<!-- 多说公共JS代码 end -->
+
+
+
+
+
+
+
+
+    </div>
+    <button class="anchor"><i class="fa fa-anchor"></i></button>
+    <div class="right">
+        <div class="wrap">
+
+            <!-- Content -->
+            <div class="side content">
+                <div>
+                    内容
+                </div>
+                <ul id="content-side" class="content-ul">
+                    <li><a href="#english">English</a></li>
+                    <li><a href="#similar_posts">相关文章</a></li>
+                    <li><a href="#comments">评论</a></li>
+                </ul>
+            </div>
+            
+            <br>
+            <div class="side">
+                <div>
+                    <i class="fa fa-external-link"></i>
+                    链接
+                </div>
+                <ul class="content-ul">
+                  <li><a href="http://github.com/waruqi/tbox">tbox</a></li>
+                  <li><a href="http://www.xmake.io">xmake</a></li>
+                  <li><a href="https://github.com/waruqi">github</a></li>
+                </ul>
+            </div> 
+
+            <!-- google ads -->
+            
+
+            <!-- baidu ads -->
+            
+
+        </div>
+    </div>
+</div>
+<script>
+/**
+ * target _blank
+ */
+(function() {
+    var aTags = document.querySelectorAll('article a:not([id])')
+    for (var i = 0; i < aTags.length; i++) {
+        aTags[i].setAttribute('target', '_blank')
+    }
+}());
+</script>
+<script src="/js/pageContent.js " charset="utf-8"></script>
+
+<!-- baidu ads -->
+
+<script type="text/javascript">
+    var cpro_id = "u2777558";
+</script>
+<script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/f.js"></script>
+
+
+
+<script type="text/javascript">
+    function isPC(){    
+        var userAgentInfo = navigator.userAgent;  
+        var Agents = new Array("Android", "iPhone", "SymbianOS", "Windows Phone", "iPad", "iPod");    
+        var flag = true;    
+        for (var v = 0; v < Agents.length; v++) {    
+            if (userAgentInfo.indexOf(Agents[v]) > 0) { flag = false; break; }    
+        }    
+        return flag;    
+    }  
+    var cpro_id = !isPC()? "u2777570" : "";
+</script>
+<script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/cm.js"></script>
+
+
+
+    <footer class="site-footer">
+    <div class="wrapper">
+        <p class="description">
+             Copyright (c) 2016 tboox.org 
+        </p>
+        <p class="contact">
+            
+            <a href="https://github.com/waruqi" title="GitHub"><i class="fa fa-github" aria-hidden="true"></i></a> 
+             
+            
+            <a href="mailto:waruqi@gmail.com" title="email"><i class="fa fa-envelope-o" aria-hidden="true"></i></a> 
+            
+            
+            <a href="https://twitter.com/waruqi" title="Twitter"><i class="fa fa-twitter" aria-hidden="true"></i></a> 
+            
+            <a href="/feed.xml" title="feed"><i class="fa fa-feed" aria-hidden="true"></i></a> 
+        </p>
+        <p class="power">
+            <span>
+                Site powered by <a href="https://jekyllrb.com/">Jekyll</a> & <a href="https://github.com/Gaohaoyang">HyG</a>.
+            </span>
+            <span>
+                <a href="http://www.miitbeian.gov.cn/">沪ICP备16031914号</a>.
+                <a href="http://www.beian.gov.cn/">沪公网安备31011702000303号</a>.
+            </span>
+        </p>
+    </div>
+</footer>
+
+    <div class="back-to-top">
+    <a href="#top" class="scroll">
+        <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    </a>
+</div>
+
+    <script src=" /js/main.js " charset="utf-8"></script>
+    <script src=" /js/scroll.min.js " charset="utf-8"></script>
+  </body>
+
+</html>
