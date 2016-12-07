@@ -85,7 +85,7 @@ static tb_void_t test()
         tb_lo_coroutine_start(scheduler, switchtask, &counts[1], tb_null);
 
         // run scheduler
-        tb_lo_scheduler_loop(scheduler);
+        tb_lo_scheduler_loop(scheduler, tb_true);
 
         // exit scheduler
         tb_lo_scheduler_exit(scheduler);
