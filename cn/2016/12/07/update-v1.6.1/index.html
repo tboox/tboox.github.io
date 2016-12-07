@@ -7,11 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta http-equiv="Cache-Control" content="no-siteapp" />
 
-    <title>tbox新增64K微内核编译模式</title>
-    <meta name="description" content="为了进一步裁剪tbox，更好的适配嵌入式开发平台，tbox新增了--micro=y的微模块编译选项如果启用此编译选项，那么只会编译tbox里面较轻量的一些模块，是的编译后的库大小，尽量保证在64K左右。先来讲讲一些跟库大小相关的编译选项：* `--smallest=y`: 最小编译模式，会禁用所有第三方依赖库，禁...">
+    <title>tbox v1.6.1 released, add stackless coroutine!</title>
+    <meta name="description" content="New features  Support coroutine context switch for mips  Add __tb_thread_local__ keyword macro  Add --micro=y|n option to compiling micro library (~64K) for ...">
 
     
-    <meta name="keywords" content="tbox,micro,微内核,tboox" /> 
+    <meta name="keywords" content="tbox,stackless,coroutine,version,tboox" /> 
 
     <!-- qq oauth -->
     <meta property="qc:admins" content="5211601217706727767255" />
@@ -28,7 +28,7 @@
 	
     <link rel="stylesheet" href=" /css/fontawesome/css/font-awesome.min.css ">
     <link rel="stylesheet" href=" /css/main.css ">
-    <link rel="canonical" href="http://www.tboox.org/2016/12/03/micro-core.cn%E7%9A%84%E5%89%AF%E6%9C%AC/">
+    <link rel="canonical" href="http://www.tboox.org/cn/2016/12/07/update-v1.6.1/">
     <link rel="alternate" type="application/rss+xml" title="TBOOX Open Source Project" href="http://www.tboox.org/feed.xml ">
     <link rel="alternate" hreflang="en" href="http://www.tboox.org/" />
     <link rel="alternate" hreflang="zh-Hans" href="http://www.tboox.org/cn/" />
@@ -280,11 +280,11 @@
 
         <div class="page clearfix" post>
     <div class="left">
-        <h1>tbox新增64K微内核编译模式</h1>
+        <h1>tbox v1.6.1 released, add stackless coroutine!</h1>
         <div class="label">
 
             <div class="label-card">
-                <i class="fa fa-calendar"></i>2016-12-03
+                <i class="fa fa-calendar"></i>2016-12-07
             </div>
 
             <div class="label-card">
@@ -324,11 +324,14 @@
         <!--a href="/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a-->
         <a href="/cn/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a>&nbsp;
     
-        <!--a href="/tag/#micro" title="Tag: micro" rel="tag">micro</a-->
-        <a href="/cn/tag/#micro" title="Tag: micro" rel="tag">micro</a>&nbsp;
+        <!--a href="/tag/#stackless" title="Tag: stackless" rel="tag">stackless</a-->
+        <a href="/cn/tag/#stackless" title="Tag: stackless" rel="tag">stackless</a>&nbsp;
     
-        <!--a href="/tag/#%E5%BE%AE%E5%86%85%E6%A0%B8" title="Tag: 微内核" rel="tag">微内核</a-->
-        <a href="/cn/tag/#微内核" title="Tag: 微内核" rel="tag">微内核</a>
+        <!--a href="/tag/#coroutine" title="Tag: coroutine" rel="tag">coroutine</a-->
+        <a href="/cn/tag/#coroutine" title="Tag: coroutine" rel="tag">coroutine</a>&nbsp;
+    
+        <!--a href="/tag/#version" title="Tag: version" rel="tag">version</a-->
+        <a href="/cn/tag/#version" title="Tag: version" rel="tag">version</a>
     
   
 
@@ -339,49 +342,25 @@
         </div>
         <hr>
         <article itemscope itemtype="http://schema.org/BlogPosting">
-        <p>为了进一步裁剪tbox，更好的适配嵌入式开发平台，tbox新增了<code class="highlighter-rouge">--micro=y</code>的微模块编译选项</p>
-
-<p>如果启用此编译选项，那么只会编译tbox里面较轻量的一些模块，是的编译后的库大小，尽量保证在64K左右。</p>
-
-<p>先来讲讲一些跟库大小相关的编译选项：</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>* `--smallest=y`: 最小编译模式，会禁用所有第三方依赖库，禁用所有扩展模块，启用最小化编译优化（库内部也会尽可能节省内存使用）
-* `--micro=y`: 专门针对嵌入式平台设计，仅编译最为轻量的一些模块（有可能会包含一些可选组件）
-</code></pre>
-</div>
-
-<p>因此如果要编译最小tbox库，只需要执行下面的配置：</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake f --micro<span class="o">=</span>y --smallest<span class="o">=</span>y 
-<span class="gp">$ </span>xmake
-</code></pre>
-</div>
-
-<p>进行编译就行了，一般库大小会控制在64K左右，目前内置模块还不是很多，后续会进一步精简优化，使其在64K内包含更多使用的模块。</p>
-
-<p>目前微内核编译模式支持的一些模块有：</p>
+        <h3 id="new-features">New features</h3>
 
 <ul>
-  <li>stackless线程库（比stackfull版本更加轻量，每个协程仅占用几十个bytes，切换效率也提升了5-6倍，macosx上1000w次切换只需要40ms）</li>
-  <li>轻量libc库api支持（支持一些最长使用的接口）</li>
-  <li>支持<code class="highlighter-rouge">list_entry</code>/<code class="highlighter-rouge">single_list_entry</code>单双链容器（比<code class="highlighter-rouge">list</code>/<code class="highlighter-rouge">single_list</code>更加轻量，外置式，不会维护对象内存）</li>
-  <li>原始socket接口操作</li>
-  <li>文件操作相关api</li>
-  <li>dns地址解析、ipv4、ipv6等操作接口</li>
-  <li>bits数据操作和解析</li>
-  <li>提供系统内存、连续静态内存分配器（可以指定tbox所有内存仅在一块连续空间内分配，适用于内存资源有严格要求的场景）</li>
-  <li>支持内存越界、泄漏检测</li>
-  <li>线程相关基础接口</li>
-  <li>提供单例、原子操作接口</li>
-  <li>自旋锁支持</li>
-  <li>跨平台<code class="highlighter-rouge">__tb_thread_local__</code>线程局部存储支持</li>
-  <li>trace打印接口</li>
-  <li>迭代器支持（目前仅用于<code class="highlighter-rouge">list_entry</code>/<code class="highlighter-rouge">single_list_entry</code>）</li>
+  <li>Support coroutine context switch for mips</li>
+  <li>Add <code class="highlighter-rouge">__tb_thread_local__</code> keyword macro</li>
+  <li>Add <code class="highlighter-rouge">--micro=y|n</code> option to compiling micro library (~64K) for the embed system</li>
+  <li>Add <code class="highlighter-rouge">tb_addrinfo_addr</code> and <code class="highlighter-rouge">tb_addrinfo_name</code> interfaces</li>
+  <li>Add stackless coroutine</li>
+  <li>Add semaphone and lock for the stackless coroutine</li>
 </ul>
 
-<p>关于micro编译的更多支持模块列表，见<a href="https://github.com/waruqi/tbox/blob/master/src/tbox/micro.lua">micro.lua</a></p>
+<h3 id="changes">Changes</h3>
 
-<p>后续在保持库大小不增加的前提下，还会增加更多轻量级模块（例如：定时器、更多的容器和算法支持。。）</p>
+<ul>
+  <li>Optimize io scheduler for coroutine, cache events for poller</li>
+  <li>Add c11 _Static_assert</li>
+  <li>Remove some deprecated interfaces for hash and platform</li>
+</ul>
+
 
         </article>
         <hr>
@@ -396,13 +375,17 @@
                     <ul>
                     
                     <li class="relatedPost">
-                        <a href="/2016/12/03/micro-core.cn%E7%9A%84%E5%89%AF%E6%9C%AC/">tbox新增64K微内核编译模式
+                        <a href="/2016/12/07/update-v1.6.1/">tbox v1.6.1更新，新增stackless协程支持
                         
                         </a>
                     </li>
                     
                     
                 
+            
+        
+            
+        
             
         
             
@@ -763,6 +746,8 @@
         
         
             
+        
+            
             
             
                 
@@ -770,6 +755,50 @@
                         
                         <h2 id="similar_posts">相关文章</h2>
                         <ul>
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/12/03/stackless-coroutine/">tbox新增stackless协程支持
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
                         
                         <li class="relatedPost">
                             <a href="/cn/2016/12/03/micro-core/">tbox新增64K微内核编译模式
@@ -784,15 +813,21 @@
                 
                     
                 
-            
-                
-                    
-                
-                    
-                
                     
                 
             
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
                 
                     
                 
@@ -815,7 +850,11 @@
                 
                     
                 
+                    
+                
             
+                
+                    
                 
                     
                 
@@ -845,12 +884,6 @@
                 
                     
                 
-            
-                
-                    
-                
-                    
-                
                     
                 
             
@@ -861,7 +894,21 @@
                 
                     
                 
+                    
+                
             
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
                 
                     
                 
@@ -882,15 +929,21 @@
                 
                     
                 
-            
-                
-                    
-                
-                    
-                
                     
                 
             
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
                 
                     
                 
@@ -920,12 +973,6 @@
                 
                     
                 
-            
-                
-                    
-                
-                    
-                
                     
                 
             
@@ -936,22 +983,11 @@
                 
                     
                 
-            
-            
-        
-            
-        
-            
-            
-            
-                
-                    
-                
-                    
-                
                     
                 
             
+                
+                    
                 
                     
                 
@@ -969,21 +1005,6 @@
             
                 
                     
-                        
-                        <li class="relatedPost">
-                            <a href="/cn/2016/10/30/update-v1.6.0/">tbox v1.6.0 发布，提供跨平台协程支持!
-                            
-                            </a>
-                        </li>
-                        
-                        
-                    
-                
-                    
-                
-                    
-                
-            
                 
                     
                 
@@ -992,6 +1013,8 @@
                     
                 
             
+                
+                    
                 
                     
                 
@@ -1015,7 +1038,7 @@
 
         
         
-        <p><strong>上一篇</strong> <a href="/cn/2016/12/03/micro-core/">tbox新增64K微内核编译模式</a></p>
+        <p><strong>上一篇</strong> <a href="/cn/2016/12/03/stackless-coroutine/">tbox新增stackless协程支持</a></p>
         
     </div>
 
@@ -1026,18 +1049,36 @@
         
 
         
+        
+        
+
+        
+
+        
+
+        
 
         
 
         
 
         
+        
+        
+
+        
 
         
 
         
 
+        
+
+        
+
+        
         
+        
 
         
 
@@ -1049,7 +1090,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1061,7 +1104,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1073,7 +1118,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1085,6 +1132,8 @@
 
         
 
+        
+        
         
 
         
@@ -1098,6 +1147,8 @@
         
 
         
+        
+        
 
         
 
@@ -1109,6 +1160,8 @@
 
         
 
+        
+        
         
 
         
@@ -1122,6 +1175,8 @@
         
 
         
+        
+        
 
         
 
@@ -1134,6 +1189,8 @@
         
 
         
+        
+        
 
         
 
@@ -1145,7 +1202,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1157,7 +1216,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1169,7 +1230,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1181,7 +1244,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1193,6 +1258,8 @@
 
         
 
+        
+        
         
 
         
@@ -1206,6 +1273,8 @@
         
 
         
+        
+        
 
         
 
@@ -1217,6 +1286,8 @@
 
         
 
+        
+        
         
 
         
@@ -1230,6 +1301,8 @@
         
 
         
+        
+        
 
         
 
@@ -1242,6 +1315,8 @@
         
 
         
+        
+        
 
         
 
@@ -1253,7 +1328,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1265,7 +1342,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1277,7 +1356,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1289,7 +1370,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1301,6 +1384,8 @@
 
         
 
+        
+        
         
 
         
@@ -1314,6 +1399,8 @@
         
 
         
+        
+        
 
         
 
@@ -1325,6 +1412,8 @@
 
         
 
+        
+        
         
 
         
@@ -1338,6 +1427,8 @@
         
 
         
+        
+        
 
         
 
@@ -1350,6 +1441,8 @@
         
 
         
+        
+        
 
         
 
@@ -1361,7 +1454,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1373,7 +1468,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1385,7 +1482,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1397,7 +1496,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1409,7 +1510,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1421,7 +1524,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1433,7 +1538,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1445,7 +1552,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1457,6 +1566,8 @@
 
         
 
+        
+        
         
 
         
@@ -1470,6 +1581,8 @@
         
 
         
+        
+        
 
         
 
@@ -1481,6 +1594,8 @@
 
         
 
+        
+        
         
 
         
@@ -1494,6 +1609,8 @@
         
 
         
+        
+        
 
         
 
@@ -1506,6 +1623,8 @@
         
 
         
+        
+        
 
         
 
@@ -1517,7 +1636,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1529,7 +1650,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1541,7 +1664,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1553,7 +1678,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1565,6 +1692,8 @@
 
         
 
+        
+        
         
 
         
@@ -1578,6 +1707,8 @@
         
 
         
+        
+        
 
         
 
@@ -1589,6 +1720,8 @@
 
         
 
+        
+        
         
 
         
@@ -1602,6 +1735,8 @@
         
 
         
+        
+        
 
         
 
@@ -1614,6 +1749,8 @@
         
 
         
+        
+        
 
         
 
@@ -1625,7 +1762,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1637,7 +1776,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1649,7 +1790,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1661,7 +1804,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1673,6 +1818,8 @@
 
         
 
+        
+        
         
 
         
@@ -1686,6 +1833,8 @@
         
 
         
+        
+        
 
         
 
@@ -1697,6 +1846,8 @@
 
         
 
+        
+        
         
 
         
@@ -1710,6 +1861,8 @@
         
 
         
+        
+        
 
         
 
@@ -1722,6 +1875,8 @@
         
 
         
+        
+        
 
         
 
@@ -1733,7 +1888,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1745,7 +1902,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1757,7 +1916,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1769,7 +1930,9 @@
 
         
 
+        
         
+        
 
         
 
@@ -1781,6 +1944,8 @@
 
         
 
+        
+        
         
 
         
@@ -1791,33 +1956,27 @@
         <h2 id="comments">评论</h2>
         
 
+<!-- 多说评论框 start -->
+<div class="ds-thread" data-thread-key="http://www.tboox.org/cn/2016/12/07/update-v1.6.1/" data-title="tbox v1.6.1 released, add stackless coroutine!" data-url="http://www.tboox.org/cn/2016/12/07/update-v1.6.1/"></div>
+<!-- 多说评论框 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"tboox"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- 多说公共JS代码 end -->
+<!-- 多说公共JS代码 end -->
 
 
 
 
-<div id="disqus_thread"></div>
-<script>
-    /**
-     * RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
-     * LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables
-     */
-
-    var disqus_config = function() {
-        this.page.url = 'http://www.tboox.org/2016/12/03/micro-core.cn%E7%9A%84%E5%89%AF%E6%9C%AC/'; // Replace PAGE_URL with your page's canonical URL variable
-        this.page.identifier = 'http://www.tboox.org/2016/12/03/micro-core.cn%E7%9A%84%E5%89%AF%E6%9C%AC/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
-    };
-
-    (function() { // DON'T EDIT BELOW THIS LINE
-        var d = document,
-            s = d.createElement('script');
-
-        s.src = '//zh-tboox.disqus.com/embed.js';
-
-        s.setAttribute('data-timestamp', +new Date());
-        (d.head || d.body).appendChild(s);
-    })();
-</script>
-<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
 
 
 
