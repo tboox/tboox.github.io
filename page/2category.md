@@ -101,7 +101,7 @@ icon: th-list
 <script type="text/javascript">
     var cpro_id = "{{site.baiduads_slide_id1}}";
 </script>
-<script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/f.js"></script>
+<script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
 {% endif %}
 
 {% if site.baiduads_slide_id2 %}
