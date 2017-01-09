@@ -1,6 +1,6 @@
 ---
 layout: post.cn
-title:  "xmake新增智能代码扫描编译模式"
+title:  "xmake新增智能代码扫描编译模式，无需手写任何make文件"
 tags: xmake lua makefile
 categories: xmake
 ---
@@ -535,6 +535,3 @@ jmemansi.c
 
 其中两个是没法编译过的，需要删掉后才行。。
 
-#### 后话
-
-目前这个特性，也是最近刚开发完，需要尝鲜的同学可以下载dev分支的最新代码，来体验哦。。
