@@ -20,28 +20,28 @@
         description: 'XMake is a make-like build utility based on lua.'
     },
     {
-        page_link: 'https://github.com/waruqi/tbox',
+        page_link: 'https://github.com/tboox/tbox',
         img_link: '/static/img/logo2.jpg',
         code_repo: 'tbox',
         title: 'tbox',
         description: 'TBox is a glib-like cross-platform C library that is simple to use yet powerful in nature.'
     },
     {
-        page_link: 'https://github.com/waruqi/gbox',
+        page_link: 'https://github.com/tboox/gbox',
         img_link: '/static/img/gbox/tiger.svg',
         code_repo: 'gbox',
         title: 'gbox',
         description: 'GBox is a cross-platform 2d graphic library in c language.'
     },
     {
-        page_link: 'https://github.com/waruqi/itrace',
+        page_link: 'https://github.com/tboox/itrace',
         img_link: '/static/img/itrace/itrace.png',
         code_repo: 'itrace',
         title: 'itrace',
         description: 'Trace objc method call for ios and mac.'
     },
     {
-        page_link: 'https://github.com/waruqi/hnr',
+        page_link: 'https://github.com/tboox/hnr',
         img_link: '/static/img/hnr/demo.png',
         code_repo: 'hnr',
         title: 'hnr',
@@ -55,14 +55,14 @@
         description: 'Demo: Build a simple project using xmake.'
     },
     {
-        page_link: 'https://github.com/waruqi/vm86',
+        page_link: 'https://github.com/tboox/vm86',
         img_link: '/static/img/vm86/idapro.png',
         code_repo: 'vm86',
         title: 'The x86 Script Instruction Virtual Machine',
         description: 'This is a very simple and lightweight x86 virtual machine which can load and run the assembly code from ida pro directly.'
     },
     {
-        page_link: 'https://github.com/waruqi/benchbox',
+        page_link: 'https://github.com/tboox/benchbox',
         img_link: '/static/img/benchbox/benchbox.jpg',
         code_repo: 'benchbox',
         title: 'The Benchmark Testing Box',
@@ -90,7 +90,7 @@ function contentInit(content) {
             '   <h3 class="demo-title">' +
             '       <a href="' + content[i].page_link + '">' + content[i].title + '</a>' +
             '   </h3>' +
-            '   <span class="demo-repostar"> <iframe src="https://ghbtns.com/github-btn.html?user=waruqi&repo=' + content[i].code_repo + '&type=star&count=true" frameborder="0" scrolling="0" width="170px" height="20px"></iframe></span>' +
+            '   <span class="demo-repostar"> <iframe src="https://ghbtns.com/github-btn.html?user=tboox&repo=' + content[i].code_repo + '&type=star&count=true" frameborder="0" scrolling="0" width="170px" height="20px"></iframe></span>' +
             '   <p>' + content[i].description +
             '   </p>' +
             '</div>'
