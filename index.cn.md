@@ -188,7 +188,7 @@ layout: default.cn
                 </ul>
             </div> 
 
-            <!-- weixin -->
+            <!-- weixin public -->
             <div class="side">
                 <div>
                     <i class="fa fa-external-link"></i>

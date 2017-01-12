@@ -24,6 +24,11 @@ icon: user
 
 <img src="/static/img/weixin_public.jpg" alt="weixin" width="256" height="256">
 
+## 技术交流群
+
+欢迎加入TBOOX开源工程QQ交流群
+
+<img src="/static/img/qqgroup.png" alt="qqgroup" width="256" height="284">
 
 ## 友情链接
 
