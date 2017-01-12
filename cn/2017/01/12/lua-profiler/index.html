@@ -1,0 +1,2318 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+    <title>利用debug库实现对lua的性能分析</title>
+    <meta name="description" content="之前在给xmake做构建的效率优化的时候，需要对lua脚本的api调用性能进行分析，分析出最耗时一些lua调用api，找出性能瓶颈，来针对性地进行优化，那么问题来了，如果对lua脚本像c程序那样进行profile呢？我们现在看下最后实现完的最终效果： 4.681,  98.84%,       1, anonym...">
+
+    
+    <meta name="keywords" content="xmake,lua,性能分析,tboox" /> 
+
+    <!-- qq oauth -->
+    <meta property="qc:admins" content="5211601217706727767255" />
+
+    <! --icon -->
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" sizes="192x192" href="/static/img/nice-highres.png" />
+	<link rel="apple-touch-icon-precomposed" href="/static/img/apple-touch-icon-57x57-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="72x72" href="/static/img/apple-touch-icon-72x72-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="114x114" href="/static/img/apple-touch-icon-114x114-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/static/img/apple-touch-icon-144x144-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="180x180" href="/static/img/retinahd_icon.png" />
+	<meta name="msapplication-TileImage" content="/static/img/retinahd_icon.png" />
+	
+    <link rel="stylesheet" href=" /css/fontawesome/css/font-awesome.min.css ">
+    <link rel="stylesheet" href=" /css/main.css ">
+    <link rel="canonical" href="http://www.tboox.org/cn/2017/01/12/lua-profiler/">
+    <link rel="alternate" type="application/rss+xml" title="TBOOX Open Source Project" href="http://www.tboox.org/feed.xml ">
+    <link rel="alternate" hreflang="en" href="http://www.tboox.org/" />
+    <link rel="alternate" hreflang="zh-Hans" href="http://www.tboox.org/cn/" />
+
+
+    <script>
+    // 百度统计代码
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?162f1cd478898a0686b0b5d5115e2af2";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+
+
+
+    <script type="text/javascript">
+    function isPC(){    
+        var userAgentInfo = navigator.userAgent;  
+        var Agents = new Array("Android", "iPhone", "SymbianOS", "Windows Phone", "iPad", "iPod");    
+        var flag = true;    
+        for (var v = 0; v < Agents.length; v++) {    
+            if (userAgentInfo.indexOf(Agents[v]) > 0) { flag = false; break; }    
+        }    
+        return flag;    
+    }  
+    </script>
+
+</head>
+
+
+  <body>
+
+    <header id="top">
+    <div class="wrapper">
+        <a href="/cn" class="brand">TBOOX</a>
+        <button id="headerMenu" class="menu"><i class="fa fa-bars"></i></button>
+        <nav id="headerNav">
+            <ul>
+                <li>
+                    
+                    <a href="/">
+                    
+                        <i class="fa fa-home"></i>English
+                    </a>
+                </li>
+
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/project/">
+                            
+                        
+                            <i class="fa fa-bookmark"></i>项目
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/archive/">
+                            
+                        
+                            <i class="fa fa-archive"></i>归档
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/category/">
+                            
+                        
+                            <i class="fa fa-th-list"></i>分类
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/tag/">
+                            
+                        
+                            <i class="fa fa-tags"></i>标记
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/book/">
+                            
+                        
+                            <i class="fa fa-book"></i>书柜
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/forum">
+                            
+                        
+                            <i class="fa fa-forumbee"></i>社区
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/donation/">
+                            
+                        
+                            <i class="fa fa-heart"></i>捐助
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/about/">
+                            
+                        
+                            <i class="fa fa-user"></i>关于
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            </ul>
+        </nav>
+    </div>
+</header>
+
+
+        <div class="page clearfix" post>
+    <div class="left">
+        <h1>利用debug库实现对lua的性能分析</h1>
+        <div class="label">
+
+            <div class="label-card">
+                <i class="fa fa-calendar"></i>2017-01-12
+            </div>
+
+            <div class="label-card">
+                
+            </div>
+
+            <div class="label-card">
+                
+            </div>
+
+            <div class="label-card">
+            
+
+
+<!-- <span class="point">•</span> -->
+<span class="categories">
+  <i class="fa fa-th-list"></i>
+  
+    
+        <a href="/category/#xmake" title="Category: xmake" rel="category">xmake</a>
+    
+  
+
+  <!-- <span class="point">•</span> -->
+</span>
+
+
+            </div>
+
+            <div class="label-card">
+            
+<!-- <span class="point">•</span> -->
+<span class="pageTag">
+  <i class="fa fa-tags"></i>
+  
+    
+        <!--a href="/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a-->
+        <a href="/cn/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a>&nbsp;
+    
+        <!--a href="/tag/#lua" title="Tag: lua" rel="tag">lua</a-->
+        <a href="/cn/tag/#lua" title="Tag: lua" rel="tag">lua</a>&nbsp;
+    
+        <!--a href="/tag/#%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90" title="Tag: 性能分析" rel="tag">性能分析</a-->
+        <a href="/cn/tag/#性能分析" title="Tag: 性能分析" rel="tag">性能分析</a>
+    
+  
+
+</span>
+
+            </div>
+
+        </div>
+        <hr>
+        <article itemscope itemtype="http://schema.org/BlogPosting">
+        <p>之前在给<a href="/cn/project">xmake</a>做构建的效率优化的时候，需要对lua脚本的api调用性能进行分析，分析出最耗时一些lua调用api，
+找出性能瓶颈，来针对性地进行优化，那么问题来了，如果对lua脚本像c程序那样进行profile呢？</p>
+
+<p>我们现在看下最后实现完的最终效果：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code> 4.681,  98.84%,       1, anonymous                     : actions/build/main.lua: 36
+ 3.314,  69.98%,       1, anonymous                     : actions/build/main.lua: 66
+ 3.314,  69.98%,       1, build                         : actions/build/builder.lua: 127
+ 3.298,  69.65%,       2, _build_target                 : actions/build/builder.lua: 41
+ 3.298,  69.65%,       2, script                        : actions/build/builder.lua: 30
+ 2.590,  54.70%,       2, buildall                      : actions/build/kinds/object.lua: 174
+ 2.239,  47.27%,     468, resume                        : core/sandbox/modules/coroutine.lua: 40
+ 2.226,  47.00%,     468, anonymous                     : actions/build/kinds/object.lua: 242
+ 2.073,  43.77%,       3, _build_target_and_deps        : actions/build/builder.lua: 64
+ 2.047,  43.22%,     468, _build                        : actions/build/kinds/object.lua: 79
+ 2.034,  42.96%,       1, build                         : actions/build/kinds/static.lua: 31
+ 1.190,  25.13%,       1, build                         : actions/build/kinds/binary.lua: 31
+ 0.806,  17.03%,       8, load                          : core/base/interpreter.lua: 527
+ 0.766,  16.18%,       2, run                           : core/project/task.lua: 393
+ 0.711,  15.01%,       1, anonymous                     : actions/config/main.lua: 132
+ 0.615,  12.99%,    2117, vformat                       : core/sandbox/modules/string.lua: 40
+ 0.593,  12.53%,      16, defaults                      : core/base/option.lua: 803
+ 0.593,  12.52%,       1, save                          : core/base/option.lua: 131
+ 0.475,  10.03%,       2, anonymous                     : /Users/ruki/projects/personal/tbox/xmake.lua: 0
+</code></pre>
+</div>
+
+<p>其中第一列为当前调用的耗时（单位：cpu时钟数），第二列为耗时占比，第三列为调用次数，然后是函数名和源代码位置。</p>
+
+<h4 id="debugsethook">debug.sethook简介</h4>
+
+<p>其实lua自带的debug就可以做到：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>debug库提供了一种hook的方式，可以通过注册一个handler函数，在lua脚本运行到某个调用时，会触发这个handler，
+获取到相应的执行信息，并且给你一个记录和数据维护的机会。
+</code></pre>
+</div>
+
+<p>它主要有四种事件会触发这个handler的调用：</p>
+
+<ol>
+  <li>当调用一个lua函数的时候，会触发call事件</li>
+  <li>当函数返回的时候，会触发一个return事件</li>
+  <li>当执行下一行代码的时候，会触发一个line事件</li>
+  <li>当运行指定数目的指令后，会触发count事件</li>
+</ol>
+
+<p>我们可以通过<code class="highlighter-rouge">debug.sethook</code>这个函数来注册一个hook的handler，他有三个参数：</p>
+
+<ol>
+  <li>handler的处理函数，hook事件触发后被调用</li>
+  <li>描述需要hook的事件类型，call、return和line事件分别对应：’c’, ‘r’, ‘l’，可以互相组合成一个字符串</li>
+  <li>获取count事件的频率（可选）</li>
+</ol>
+
+<p>如果需要</p>
+
+<p>要想关掉hooks，只需要不带参数地调用sethook即可。</p>
+
+<p>例如：</p>
+
+<p>最简单的trace，仅仅打印每条执行语句的行号：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="nb">debug.sethook</span><span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="s2">"l"</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>显示结果如下：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>line	136
+line	113
+line	76
+line	77
+line	113
+line	118
+</code></pre>
+</div>
+
+<p>我们也可以自定义一个handler，传入第一个参数，通过debug库的getinfo获取正在执行的代码文件路径：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="nb">debug.sethook</span><span class="p">(</span><span class="k">function</span> <span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="nb">debug.getinfo</span><span class="p">(</span><span class="mi">2</span><span class="p">).</span><span class="n">short_src</span> <span class="o">..</span> <span class="s2">":"</span> <span class="o">..</span> <span class="n">line</span><span class="p">)</span>
+<span class="k">end</span><span class="p">,</span> <span class="s2">"l"</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>显示结果如下：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>/usr/local/share/xmake/core/base/path.lua:46
+/usr/local/share/xmake/core/base/path.lua:47
+/usr/local/share/xmake/core/base/path.lua:56
+/usr/local/share/xmake/core/base/string.lua:32
+/usr/local/share/xmake/core/base/string.lua:33
+/usr/local/share/xmake/core/base/string.lua:34
+/usr/local/share/xmake/core/base/string.lua:35
+/usr/local/share/xmake/core/base/string.lua:36
+/usr/local/share/xmake/core/base/string.lua:38
+/usr/local/share/xmake/core/base/string.lua:33
+</code></pre>
+</div>
+
+<p>如果需要禁用之前的hook，只需要调用：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="nb">debug.sethook</span><span class="p">()</span>
+</code></pre>
+</div>
+
+<h4 id="profiler">profiler性能分析器的实现</h4>
+
+<p>实现一个profiler类，通过下面的方式进行记录：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code>
+<span class="c1">-- 开始记录</span>
+<span class="n">profiler</span><span class="p">.</span><span class="n">start</span><span class="p">()</span>
+
+<span class="c1">-- TODO</span>
+<span class="c1">-- ...</span>
+
+<span class="c1">-- 结束记录</span>
+<span class="n">profiler</span><span class="p">.</span><span class="n">stop</span><span class="p">()</span>
+</code></pre>
+</div>
+
+<p>相关实现代码如下：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="c1">-- start profiling</span>
+<span class="k">function</span> <span class="nf">profiler</span><span class="p">:</span><span class="n">start</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
+
+    <span class="c1">-- 初始化报告</span>
+    <span class="n">self</span><span class="p">.</span><span class="n">_REPORTS</span>           <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">self</span><span class="p">.</span><span class="n">_REPORTS_BY_TITLE</span>  <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1">-- 记录开始时间</span>
+    <span class="n">self</span><span class="p">.</span><span class="n">_STARTIME</span> <span class="o">=</span> <span class="nb">os.clock</span><span class="p">()</span>
+
+    <span class="c1">-- 开始hook，注册handler，记录call和return事件</span>
+    <span class="nb">debug.sethook</span><span class="p">(</span><span class="n">profiler</span><span class="p">.</span><span class="n">_profiling_handler</span><span class="p">,</span> <span class="s1">'cr'</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="k">end</span>
+
+<span class="c1">-- stop profiling</span>
+<span class="k">function</span> <span class="nf">profiler</span><span class="p">:</span><span class="n">stop</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
+
+    <span class="c1">-- 记录结束时间</span>
+    <span class="n">self</span><span class="p">.</span><span class="n">_STOPTIME</span> <span class="o">=</span> <span class="nb">os.clock</span><span class="p">()</span>
+
+    <span class="c1">-- 停止hook</span>
+    <span class="nb">debug.sethook</span><span class="p">()</span>
+
+    <span class="c1">-- 记录总耗时</span>
+    <span class="kd">local</span> <span class="n">totaltime</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="n">_STOPTIME</span> <span class="o">-</span> <span class="n">self</span><span class="p">.</span><span class="n">_STARTIME</span>
+
+    <span class="c1">-- 排序报告</span>
+    <span class="nb">table.sort</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">_REPORTS</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">a</span><span class="p">.</span><span class="n">totaltime</span> <span class="o">&gt;</span> <span class="n">b</span><span class="p">.</span><span class="n">totaltime</span>
+    <span class="k">end</span><span class="p">)</span>
+
+    <span class="c1">-- 格式化报告输出</span>
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">report</span> <span class="k">in</span> <span class="nb">ipairs</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">_REPORTS</span><span class="p">)</span> <span class="k">do</span>
+        
+        <span class="c1">-- calculate percent</span>
+        <span class="kd">local</span> <span class="n">percent</span> <span class="o">=</span> <span class="p">(</span><span class="n">report</span><span class="p">.</span><span class="n">totaltime</span> <span class="o">/</span> <span class="n">totaltime</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
+        <span class="k">if</span> <span class="n">percent</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="k">then</span>
+            <span class="k">break</span>
+        <span class="k">end</span>
+
+        <span class="c1">-- trace</span>
+        <span class="n">utils</span><span class="p">.</span><span class="n">print</span><span class="p">(</span><span class="s2">"%6.3f, %6.2f%%, %7d, %s"</span><span class="p">,</span> <span class="n">report</span><span class="p">.</span><span class="n">totaltime</span><span class="p">,</span> <span class="n">percent</span><span class="p">,</span> <span class="n">report</span><span class="p">.</span><span class="n">callcount</span><span class="p">,</span> <span class="n">report</span><span class="p">.</span><span class="n">title</span><span class="p">)</span>
+    <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+</div>
+
+<p>实现很简单，主要就是记录开始和结束时间，然后排序下最终的报表，进行格式化打印输出。</p>
+
+<p>其中，计时函数使用了<code class="highlighter-rouge">os.clock</code>接口，返回一个程序使用CPU时间的一个近似值，不是毫秒哦，我们这边仅仅是为了分析性能瓶颈。</p>
+
+<p>就算不获取精确毫秒数，也是可以的（其实用毫秒也没什么意义，这种debug.sethook的方式原本就不是很精确），只要通过耗时占比就可以分析。</p>
+
+<p>接下来，就是handler函数中，对call和return事件，进行分别处理，累计每个函数的调用总时间，调用总次数。</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="c1">-- profiling call</span>
+<span class="k">function</span> <span class="nf">profiler</span><span class="p">:</span><span class="n">_profiling_call</span><span class="p">(</span><span class="n">funcinfo</span><span class="p">)</span>
+
+    <span class="c1">-- 获取当前函数对应的报告，如果不存在则初始化下</span>
+    <span class="kd">local</span> <span class="n">report</span> <span class="o">=</span> <span class="n">self</span><span class="p">:</span><span class="n">_func_report</span><span class="p">(</span><span class="n">funcinfo</span><span class="p">)</span>
+    <span class="nb">assert</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
+
+    <span class="c1">-- 记录这个函数的起始调用事件</span>
+    <span class="n">report</span><span class="p">.</span><span class="n">calltime</span>    <span class="o">=</span> <span class="nb">os.clock</span><span class="p">()</span>
+
+    <span class="c1">-- 累加这个函数的调用次数</span>
+    <span class="n">report</span><span class="p">.</span><span class="n">callcount</span>   <span class="o">=</span> <span class="n">report</span><span class="p">.</span><span class="n">callcount</span> <span class="o">+</span> <span class="mi">1</span>
+
+<span class="k">end</span>
+
+<span class="c1">-- profiling return</span>
+<span class="k">function</span> <span class="nf">profiler</span><span class="p">:</span><span class="n">_profiling_return</span><span class="p">(</span><span class="n">funcinfo</span><span class="p">)</span>
+
+    <span class="c1">-- 记录这个函数的返回时间</span>
+    <span class="kd">local</span> <span class="n">stoptime</span> <span class="o">=</span> <span class="nb">os.clock</span><span class="p">()</span>
+
+    <span class="c1">-- 获取当前函数的报告</span>
+    <span class="kd">local</span> <span class="n">report</span> <span class="o">=</span> <span class="n">self</span><span class="p">:</span><span class="n">_func_report</span><span class="p">(</span><span class="n">funcinfo</span><span class="p">)</span>
+    <span class="nb">assert</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
+
+    <span class="c1">-- 计算和累加当前函数的调用总时间</span>
+    <span class="k">if</span> <span class="n">report</span><span class="p">.</span><span class="n">calltime</span> <span class="ow">and</span> <span class="n">report</span><span class="p">.</span><span class="n">calltime</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">then</span>
+		<span class="n">report</span><span class="p">.</span><span class="n">totaltime</span> <span class="o">=</span> <span class="n">report</span><span class="p">.</span><span class="n">totaltime</span> <span class="o">+</span> <span class="p">(</span><span class="n">stoptime</span> <span class="o">-</span> <span class="n">report</span><span class="p">.</span><span class="n">calltime</span><span class="p">)</span>
+        <span class="n">report</span><span class="p">.</span><span class="n">calltime</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1">-- the profiling handler</span>
+<span class="k">function</span> <span class="nc">profiler</span><span class="p">.</span><span class="nf">_profiling_handler</span><span class="p">(</span><span class="n">hooktype</span><span class="p">)</span>
+
+    <span class="c1">-- 获取当前函数信息</span>
+    <span class="kd">local</span> <span class="n">funcinfo</span> <span class="o">=</span> <span class="nb">debug.getinfo</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s1">'nS'</span><span class="p">)</span>
+
+    <span class="c1">-- 根据事件类型，分别处理 </span>
+    <span class="k">if</span> <span class="n">hooktype</span> <span class="o">==</span> <span class="s2">"call"</span> <span class="k">then</span>
+        <span class="n">profiler</span><span class="p">:</span><span class="n">_profiling_call</span><span class="p">(</span><span class="n">funcinfo</span><span class="p">)</span>
+    <span class="k">elseif</span> <span class="n">hooktype</span> <span class="o">==</span> <span class="s2">"return"</span> <span class="k">then</span>
+        <span class="n">profiler</span><span class="p">:</span><span class="n">_profiling_return</span><span class="p">(</span><span class="n">funcinfo</span><span class="p">)</span>
+    <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+</div>
+
+<p>简单吧，最后就是通过函数，获取指定的报告了，这个就不多说了，简单贴下代码吧：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code>
+<span class="c1">-- get the function title</span>
+<span class="k">function</span> <span class="nf">profiler</span><span class="p">:</span><span class="n">_func_title</span><span class="p">(</span><span class="n">funcinfo</span><span class="p">)</span>
+
+    <span class="c1">-- check</span>
+    <span class="nb">assert</span><span class="p">(</span><span class="n">funcinfo</span><span class="p">)</span>
+
+    <span class="c1">-- the function name</span>
+    <span class="kd">local</span> <span class="n">name</span> <span class="o">=</span> <span class="n">funcinfo</span><span class="p">.</span><span class="n">name</span> <span class="ow">or</span> <span class="s1">'anonymous'</span>
+
+    <span class="c1">-- the function line</span>
+    <span class="kd">local</span> <span class="n">line</span> <span class="o">=</span> <span class="nb">string.format</span><span class="p">(</span><span class="s2">"%d"</span><span class="p">,</span> <span class="n">funcinfo</span><span class="p">.</span><span class="n">linedefined</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1">-- the function source</span>
+    <span class="kd">local</span> <span class="n">source</span> <span class="o">=</span> <span class="n">funcinfo</span><span class="p">.</span><span class="n">short_src</span> <span class="ow">or</span> <span class="s1">'C_FUNC'</span>
+    <span class="k">if</span> <span class="n">os</span><span class="p">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">source</span><span class="p">)</span> <span class="k">then</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">path</span><span class="p">.</span><span class="n">relative</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">xmake</span><span class="p">.</span><span class="n">_PROGRAM_DIR</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="c1">-- make title</span>
+    <span class="k">return</span> <span class="nb">string.format</span><span class="p">(</span><span class="s2">"%-30s: %s: %s"</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
+<span class="k">end</span>
+
+<span class="c1">-- get the function report</span>
+<span class="k">function</span> <span class="nf">profiler</span><span class="p">:</span><span class="n">_func_report</span><span class="p">(</span><span class="n">funcinfo</span><span class="p">)</span>
+
+    <span class="c1">-- get the function title</span>
+    <span class="kd">local</span> <span class="n">title</span> <span class="o">=</span> <span class="n">self</span><span class="p">:</span><span class="n">_func_title</span><span class="p">(</span><span class="n">funcinfo</span><span class="p">)</span>
+
+    <span class="c1">-- get the function report</span>
+    <span class="kd">local</span> <span class="n">report</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="n">_REPORTS_BY_TITLE</span><span class="p">[</span><span class="n">title</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">report</span> <span class="k">then</span>
+        
+        <span class="c1">-- init report</span>
+        <span class="n">report</span> <span class="o">=</span> 
+        <span class="p">{</span>
+            <span class="n">title</span>       <span class="o">=</span> <span class="n">self</span><span class="p">:</span><span class="n">_func_title</span><span class="p">(</span><span class="n">funcinfo</span><span class="p">)</span>
+        <span class="p">,</span>   <span class="n">callcount</span>   <span class="o">=</span> <span class="mi">0</span>
+        <span class="p">,</span>   <span class="n">totaltime</span>   <span class="o">=</span> <span class="mi">0</span>
+        <span class="p">}</span>
+
+        <span class="c1">-- save it</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">_REPORTS_BY_TITLE</span><span class="p">[</span><span class="n">title</span><span class="p">]</span> <span class="o">=</span> <span class="n">report</span>
+        <span class="nb">table.insert</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">_REPORTS</span><span class="p">,</span> <span class="n">report</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="c1">-- ok?</span>
+    <span class="k">return</span> <span class="n">report</span>
+<span class="k">end</span>
+</code></pre>
+</div>
+
+<p>需要注意的是，通过debug.sethook的方式，进行hook计时本身也是有性能损耗的，因此不可能完全精确，如果改用c实现也许会好些。</p>
+
+<p>不过，对于平常的性能瓶颈分析，应该够用了。。</p>
+
+<h4 id="section">结语</h4>
+
+<p>这里只是一个简单的例子，稍微扩展下，还是可以实现lua脚本的api实时调用追踪（也就是trace）。</p>
+
+<p>完整代码，可以到xmake的源码中翻看：<a href="https://github.com/tboox/xmake/blob/master/xmake/core/base/profiler.lua">profiler代码</a></p>
+
+<p>里面除了性能分析，trace调用也有实现。</p>
+
+<p>最后，如果大家想快速体验下这个profiler的效果，可以直接运行xmake：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>xmake --profile
+</code></pre>
+</div>
+
+<p>这个<code class="highlighter-rouge">--profile</code>是给xmake调试分析的时候使用，一般也就我自己用用，发现某些xmake操作很慢，想要查找问题原因的时候，不需要改代码，只需要快速的加上这个参数，重跑下就行了。。</p>
+
+<p>顺带的提下，xmake另外两个调试相关的参数：</p>
+
+<ol>
+  <li><code class="highlighter-rouge">-v/--verbose</code>：显示详细输出信息，编译时还会显示详细警告信息。</li>
+  <li><code class="highlighter-rouge">--backtrace</code>：出错的时候，显示详细栈信息，用于快速issues反馈，辅助定位问题。</li>
+</ol>
+
+<p>lua的debug库还是非常强大的，有兴趣的同学可以进一步去挖掘debug的各种特性哦。</p>
+
+        </article>
+        <hr>
+
+        
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+        
+
+        
+        
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <h2 id="similar_posts">相关文章</h2>
+                        <ul>
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2017/01/07/build-without-makefile/">xmake新增智能代码扫描编译模式，无需手写任何make文件
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2016/12/14/try-catch/">使用lua实现try-catch异常捕获
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+        
+            </ul>
+        
+
+        <div class="post-recent">
+    <div class="pre">
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        <p><strong>上一篇</strong> <a href="/cn/2017/01/08/license-changed/">TBOOX更新License为Apache License 2.0</a></p>
+        
+    </div>
+
+    <div class="nex">
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+    </div>
+</div>
+
+
+        <h2 id="comments">评论</h2>
+        
+
+<!-- 多说评论框 start -->
+<div class="ds-thread" data-thread-key="http://www.tboox.org/cn/2017/01/12/lua-profiler/" data-title="利用debug库实现对lua的性能分析" data-url="http://www.tboox.org/cn/2017/01/12/lua-profiler/"></div>
+<!-- 多说评论框 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"tboox"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- 多说公共JS代码 end -->
+<!-- 多说公共JS代码 end -->
+
+
+
+
+
+
+
+
+    </div>
+    <button class="anchor"><i class="fa fa-anchor"></i></button>
+    <div class="right">
+        <div class="wrap">
+
+            <!-- Content -->
+            <div class="side content">
+                <div>
+                    内容
+                </div>
+                <ul id="content-side" class="content-ul">
+                    <li><a href="#english">English</a></li>
+                    <li><a href="#similar_posts">相关文章</a></li>
+                    <li><a href="#comments">评论</a></li>
+                </ul>
+            </div>
+            
+            <br>
+            <div class="side">
+                <div>
+                    <i class="fa fa-external-link"></i>
+                    链接
+                </div>
+                <ul class="content-ul">
+                  <li><a href="http://github.com/waruqi/tbox">tbox</a></li>
+                  <li><a href="http://www.xmake.io">xmake</a></li>
+                  <li><a href="https://github.com/waruqi">github</a></li>
+                </ul>
+            </div> 
+
+            <!-- qqgroup -->
+            <br>
+            <div class="side">
+                <div>
+                    <i class="fa fa-external-link"></i>
+                    技术交流群
+                </div>
+                <img src="/static/img/qqgroup.png" alt="qqgroup" width="256" height="284">
+            </div> 
+
+            <!-- google ads -->
+            
+
+            <!-- baidu ads -->
+            
+
+        </div>
+    </div>
+</div>
+<script>
+/**
+ * target _blank
+ */
+(function() {
+    var aTags = document.querySelectorAll('article a:not([id])')
+    for (var i = 0; i < aTags.length; i++) {
+        aTags[i].setAttribute('target', '_blank')
+    }
+}());
+</script>
+<script src="/js/pageContent.js " charset="utf-8"></script>
+
+
+
+    
+<!-- baidu ads -->
+
+<script type="text/javascript">
+    var cpro_id = isPC()? "u2872323" : "u2777570";
+</script>
+<script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
+
+
+
+<script type="text/javascript">
+    var cpro_id = isPC()? "u2872323" : "u2777570";
+</script>
+<script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/cm.js"></script>
+
+
+<footer class="site-footer">
+    <div class="wrapper">
+        <p class="description">
+             Copyright (c) 2016-2017 tboox.org 
+        </p>
+        <p class="contact">
+            
+            <a href="https://github.com/waruqi" title="GitHub"><i class="fa fa-github" aria-hidden="true"></i></a> 
+             
+            
+            <a href="mailto:waruqi@gmail.com" title="email"><i class="fa fa-envelope-o" aria-hidden="true"></i></a> 
+            
+            
+            <a href="https://twitter.com/waruqi" title="Twitter"><i class="fa fa-twitter" aria-hidden="true"></i></a> 
+            
+            <a href="/feed.xml" title="feed"><i class="fa fa-feed" aria-hidden="true"></i></a> 
+        </p>
+        <p class="power">
+            <span>
+                Site powered by <a href="https://jekyllrb.com/">Jekyll</a> & <a href="https://github.com/Gaohaoyang">HyG</a>.
+            </span>
+            <span>
+                <a href="http://www.miitbeian.gov.cn/">沪ICP备16031914号</a>.
+                <a href="http://www.beian.gov.cn/">沪公网安备31011702000303号</a>.
+            </span>
+        </p>
+    </div>
+</footer>
+
+    <div class="back-to-top">
+    <a href="#top" class="scroll">
+        <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    </a>
+</div>
+
+    <script src=" /js/main.js " charset="utf-8"></script>
+    <script src=" /js/scroll.min.js " charset="utf-8"></script>
+  </body>
+
+</html>
