@@ -20,28 +20,28 @@
         description: 'XMake是一个基于Lua的轻量级跨平台自动构建工具，支持在各种主流平台上构建项目'
     },
     {
-        page_link: 'https://github.com/waruqi/tbox',
+        page_link: 'https://github.com/tboox/tbox',
         img_link: '/static/img/logo2.jpg',
         code_repo: 'tbox',
         title: 'tbox',
         description: 'TBox是一个用c语言实现的跨平台开发库'
     },
     {
-        page_link: 'https://github.com/waruqi/gbox',
+        page_link: 'https://github.com/tboox/gbox',
         img_link: '/static/img/gbox/tiger.svg',
         code_repo: 'gbox',
         title: 'gbox',
         description: 'GBox是一个用c语言实现的跨平台的2d图形库渲染库'
     },
     {
-        page_link: 'https://github.com/waruqi/itrace',
+        page_link: 'https://github.com/tboox/itrace',
         img_link: '/static/img/itrace/itrace.png',
         code_repo: 'itrace',
         title: 'itrace',
         description: 'ios objc方法调用记录工具'
     },
     {
-        page_link: 'https://github.com/waruqi/hnr',
+        page_link: 'https://github.com/tboox/hnr',
         img_link: '/static/img/hnr/demo.png',
         code_repo: 'hnr',
         title: 'hnr',
@@ -55,14 +55,14 @@
         description: '演示: 使用xmake快速构建项目'
     },
     {
-        page_link: 'https://github.com/waruqi/vm86',
+        page_link: 'https://github.com/tboox/vm86',
         img_link: '/static/img/vm86/idapro.png',
         code_repo: 'vm86',
         title: 'x86汇编指令脚本虚拟机',
         description: '这是一个可以直接解释执行从ida pro里面提取出来的x86汇编代码的虚拟机'
     },
     {
-        page_link: 'https://github.com/waruqi/benchbox',
+        page_link: 'https://github.com/tboox/benchbox',
         img_link: '/static/img/benchbox/benchbox.jpg',
         code_repo: 'benchbox',
         title: '基准测试包',
@@ -90,7 +90,7 @@ function contentInit(content) {
             '   <h3 class="demo-title">' +
             '       <a href="' + content[i].page_link + '">' + content[i].title + '</a>' +
             '   </h3>' +
-            '   <span class="demo-repostar"> <iframe src="https://ghbtns.com/github-btn.html?user=waruqi&repo=' + content[i].code_repo + '&type=star&count=true" frameborder="0" scrolling="0" width="170px" height="20px"></iframe></span>' +
+            '   <span class="demo-repostar"> <iframe src="https://ghbtns.com/github-btn.html?user=tboox&repo=' + content[i].code_repo + '&type=star&count=true" frameborder="0" scrolling="0" width="170px" height="20px"></iframe></span>' +
             '   <p>' + content[i].description +
             '   </p>' +
             '</div>'
