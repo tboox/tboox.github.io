@@ -27,28 +27,13 @@ If you would like to support the development of these projects, welcome to donat
 
 ## Supporters
 
-### tbox
-
-2016.08.05 
-
-* [蔡克伦](https://github.com/caikelun)：¥1
-
-2016.01.29
-
-* [Evgeny Kulikov](mailto:xak@list.ru): $2
-* 建忠：¥20.16
-
-### xmake
-
-2016.11.10 
-
-* [lc-soft](https://github.com/lc-soft): ¥10
-
-### vm86
-
-2016.07.31
-
-* 清风闻仙醉：¥8.88
+|| 2017.01.14 || tboox || anonymous || wechat || ¥66 ||
+|| 2016.12.13 || tboox || anonymous || wechat || ¥5 ||
+|| 2016.11.10 || xmake || [lc-soft](https://github.com/lc-soft) || oschina || ¥10 ||
+|| 2016.08.05 || tbox || [蔡克伦](https://github.com/caikelun) || wechat || ¥1 ||
+|| 2016.07.31 || vm86 || 清风闻仙醉 || alipay || ¥8.88 ||
+|| 2016.01.29 || tbox || [Evgeny Kulikov](mailto:xak@list.ru) || paypal || $2 ||
+|| 2016.01.29 || tbox || 建忠 || alipay || ¥20.16 ||
 
 ## Comments
 

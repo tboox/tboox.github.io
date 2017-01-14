@@ -26,28 +26,13 @@ TBOOX的所有项目都是属于个人开源项目，它的发展需要您的帮
 
 ## 支持者
 
-### tbox
-
-2016.08.05 
-
-* [蔡克伦](https://github.com/caikelun)：¥1
-
-2016.01.29
-
-* [Evgeny Kulikov](mailto:xak@list.ru): $2
-* 建忠：¥20.16
-
-### xmake
-
-2016.11.10 
-
-* [lc-soft](https://github.com/lc-soft): ¥10
-
-### vm86
-
-2016.07.31
-
-* 清风闻仙醉：¥8.88
+|| 2017.01.14 || tboox || 匿名 || 微信 || ¥66 ||
+|| 2016.12.13 || tboox || 匿名 || 微信 || ¥5 ||
+|| 2016.11.10 || xmake || [lc-soft](https://github.com/lc-soft) || oschina || ¥10 ||
+|| 2016.08.05 || tbox || [蔡克伦](https://github.com/caikelun) || 微信 || ¥1 ||
+|| 2016.07.31 || vm86 || 清风闻仙醉 || 支付宝 || ¥8.88 ||
+|| 2016.01.29 || tbox || [Evgeny Kulikov](mailto:xak@list.ru) || paypal || $2 ||
+|| 2016.01.29 || tbox || 建忠 || 支付宝 || ¥20.16 ||
 
 ## 评论
 
