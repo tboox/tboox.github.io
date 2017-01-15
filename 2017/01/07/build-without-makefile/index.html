@@ -7,11 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta http-equiv="Cache-Control" content="no-siteapp" />
 
-    <title>xmake 描述语法和作用域详解</title>
-    <meta name="description" content="xmake的工程描述文件xmake.lua虽然基于lua语法，但是为了使得更加方便简洁得编写项目构建逻辑，xmake对其进行了一层封装，使得编写xmake.lua不会像些makefile那样繁琐基本上写个简单的工程构建描述，只需三行就能搞定，例如：target("test")    set_kind("binar...">
+    <title>Scan source codes and build project without makefile</title>
+    <meta name="description" content="We recently added a new feature for xmake:you need not write any make-like file (xmake.lua, makefile.am, cmakelist.txt, etc.) and also build it directly.It w...">
 
     
-    <meta name="keywords" content="xmake,api,工程描述,作用域,tboox" /> 
+    <meta name="keywords" content="xmake,lua,makefile,scanner,tboox" /> 
 
     <!-- qq oauth -->
     <meta property="qc:admins" content="5211601217706727767255" />
@@ -28,7 +28,7 @@
 	
     <link rel="stylesheet" href=" /css/fontawesome/css/font-awesome.min.css ">
     <link rel="stylesheet" href=" /css/main.css ">
-    <link rel="canonical" href="http://www.tboox.org/cn/2016/10/26/api-scope/">
+    <link rel="canonical" href="http://www.tboox.org/2017/01/07/build-without-makefile/">
     <link rel="alternate" type="application/rss+xml" title="TBOOX Open Source Project" href="http://www.tboox.org/feed.xml ">
     <link rel="alternate" hreflang="en" href="http://www.tboox.org/" />
     <link rel="alternate" hreflang="zh-Hans" href="http://www.tboox.org/cn/" />
@@ -324,11 +324,11 @@
 
         <div class="page clearfix" post>
     <div class="left">
-        <h1>xmake 描述语法和作用域详解</h1>
+        <h1>Scan source codes and build project without makefile</h1>
         <div class="label">
 
             <div class="label-card">
-                <i class="fa fa-calendar"></i>2016-10-26
+                <i class="fa fa-calendar"></i>2017-01-07
             </div>
 
             <div class="label-card">
@@ -368,14 +368,14 @@
         <!--a href="/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a-->
         <a href="/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a>&nbsp;
     
-        <!--a href="/tag/#api" title="Tag: api" rel="tag">api</a-->
-        <a href="/tag/#api" title="Tag: api" rel="tag">api</a>&nbsp;
+        <!--a href="/tag/#lua" title="Tag: lua" rel="tag">lua</a-->
+        <a href="/tag/#lua" title="Tag: lua" rel="tag">lua</a>&nbsp;
     
-        <!--a href="/tag/#%E5%B7%A5%E7%A8%8B%E6%8F%8F%E8%BF%B0" title="Tag: 工程描述" rel="tag">工程描述</a-->
-        <a href="/tag/#工程描述" title="Tag: 工程描述" rel="tag">工程描述</a>&nbsp;
+        <!--a href="/tag/#makefile" title="Tag: makefile" rel="tag">makefile</a-->
+        <a href="/tag/#makefile" title="Tag: makefile" rel="tag">makefile</a>&nbsp;
     
-        <!--a href="/tag/#%E4%BD%9C%E7%94%A8%E5%9F%9F" title="Tag: 作用域" rel="tag">作用域</a-->
-        <a href="/tag/#作用域" title="Tag: 作用域" rel="tag">作用域</a>
+        <!--a href="/tag/#scanner" title="Tag: scanner" rel="tag">scanner</a-->
+        <a href="/tag/#scanner" title="Tag: scanner" rel="tag">scanner</a>
     
   
 
@@ -386,284 +386,518 @@
         </div>
         <hr>
         <article itemscope itemtype="http://schema.org/BlogPosting">
-        <p>xmake的工程描述文件xmake.lua虽然基于lua语法，但是为了使得更加方便简洁得编写项目构建逻辑，xmake对其进行了一层封装，使得编写xmake.lua不会像些makefile那样繁琐</p>
+        <p>We recently added a new feature for xmake:</p>
 
-<p>基本上写个简单的工程构建描述，只需三行就能搞定，例如：</p>
-
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">target</span><span class="p">(</span><span class="s2">"test"</span><span class="p">)</span>
-    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"binary"</span><span class="p">)</span>
-    <span class="n">add_files</span><span class="p">(</span><span class="s2">"src/*.c"</span><span class="p">)</span>
+<div class="highlighter-rouge"><pre class="highlight"><code>you need not write any make-like file (xmake.lua, makefile.am, cmakelist.txt, etc.) and also build it directly.
 </code></pre>
 </div>
 
-<p>然后只需要执行编译并且运行它：</p>
+<p>It will scan all source files and generate xmake.lua automatically for building project.</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake run <span class="nb">test</span>
+<p>And xmake will detect ‘main’ function in source file in order to distinguish between static libraries and executable programs.</p>
+
+<p>(Currently, only projects with single-level directory are supported)</p>
+
+<h4 id="compile-open-source-libraries">Compile open source libraries</h4>
+
+<p>Although this approach has some limitations, but it is sufficient to complie and run some temporary codes for testing.</p>
+
+<p>For example, we downloaded a zlib-1.2.10 source and want to compile it.</p>
+
+<p>We only need to enter the zlib source directory and run the following command:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span><span class="nb">cd </span>zlib-1.2.10
+<span class="gp">$ </span>xmake
 </code></pre>
 </div>
 
-<p>这对于想要临时写些测试代码来讲，极大地提升了开发效率。。</p>
+<p>It’s done, the output results:</p>
 
-<h3 id="section">作用域与工程描述语法</h3>
-
-<p>xmake的描述语法是按作用域划分的，主要分为：</p>
-
-<ul>
-  <li>外部作用域</li>
-  <li>内部作用域</li>
-</ul>
-
-<p>那哪些属于外部，哪些又属于内部呢，看看下面的注释，就知道个大概了：</p>
-
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code>
-<span class="c1">-- 外部作用域</span>
-
-<span class="n">target</span><span class="p">(</span><span class="s2">"test"</span><span class="p">)</span>
-
-    <span class="c1">-- 外部作用域</span>
-    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"binary"</span><span class="p">)</span>
-    <span class="n">add_files</span><span class="p">(</span><span class="s2">"src/*.c"</span><span class="p">)</span>
-
-    <span class="n">on_run</span><span class="p">(</span><span class="k">function</span> <span class="p">()</span>
-        <span class="c1">-- 内部作用域</span>
-        <span class="k">end</span><span class="p">)</span>
-
-    <span class="n">after_package</span><span class="p">(</span><span class="k">function</span> <span class="p">()</span>
-        <span class="c1">-- 内部作用域</span>
-        <span class="k">end</span><span class="p">)</span>
-
-
-<span class="c1">-- 外部作用域</span>
-
-<span class="n">task</span><span class="p">(</span><span class="s2">"hello"</span><span class="p">)</span>
-
-    <span class="c1">-- 外部作用域</span>
-
-    <span class="n">on_run</span><span class="p">(</span><span class="k">function</span> <span class="p">()</span>
-        <span class="c1">-- 内部作用域</span>
-        <span class="k">end</span><span class="p">)</span>
+<div class="highlighter-rouge"><pre class="highlight"><code>xmake.lua not found, scanning files ..
+target(zlib-1.2): static
+    [+]: ./adler32.c
+    [+]: ./compress.c
+    [+]: ./crc32.c
+    [+]: ./deflate.c
+    [+]: ./gzclose.c
+    [+]: ./gzlib.c
+    [+]: ./gzread.c
+    [+]: ./gzwrite.c
+    [+]: ./infback.c
+    [+]: ./inffast.c
+    [+]: ./inflate.c
+    [+]: ./inftrees.c
+    [+]: ./trees.c
+    [+]: ./uncompr.c
+    [+]: ./zutil.c
+xmake.lua generated, scan ok!👌
+checking for the architecture ... x86_64
+checking for the Xcode SDK version for macosx ... 10.12
+checking for the target minimal version ... 10.12
+checking for the c compiler (cc) ... xcrun -sdk macosx clang
+checking for the c++ compiler (cxx) ... xcrun -sdk macosx clang
+checking for the objc compiler (mm) ... xcrun -sdk macosx clang
+checking for the objc++ compiler (mxx) ... xcrun -sdk macosx clang++
+checking for the swift compiler (sc) ... xcrun -sdk macosx swiftc
+checking for the assember (as) ... xcrun -sdk macosx clang
+checking for the linker (ld) ... xcrun -sdk macosx clang++
+checking for the static library archiver (ar) ... xcrun -sdk macosx ar
+checking for the static library extractor (ex) ... xcrun -sdk macosx ar
+checking for the shared library linker (sh) ... xcrun -sdk macosx clang++
+checking for the debugger (dd) ... xcrun -sdk macosx lldb
+checking for the golang compiler (go) ... go
+configure
+{
+    ex = "xcrun -sdk macosx ar"
+,   sh = "xcrun -sdk macosx clang++"
+,   host = "macosx"
+,   ar = "xcrun -sdk macosx ar"
+,   buildir = "build"
+,   as = "xcrun -sdk macosx clang"
+,   plat = "macosx"
+,   xcode_dir = "/Applications/Xcode.app"
+,   arch = "x86_64"
+,   mxx = "xcrun -sdk macosx clang++"
+,   go = "go"
+,   target_minver = "10.12"
+,   ccache = "ccache"
+,   mode = "release"
+,   clean = true
+,   cxx = "xcrun -sdk macosx clang"
+,   cc = "xcrun -sdk macosx clang"
+,   dd = "xcrun -sdk macosx lldb"
+,   kind = "static"
+,   ld = "xcrun -sdk macosx clang++"
+,   xcode_sdkver = "10.12"
+,   sc = "xcrun -sdk macosx swiftc"
+,   mm = "xcrun -sdk macosx clang"
+}
+configure ok!
+clean ok!
+[00%]: ccache compiling.release ./adler32.c
+[06%]: ccache compiling.release ./compress.c
+[13%]: ccache compiling.release ./crc32.c
+[20%]: ccache compiling.release ./deflate.c
+[26%]: ccache compiling.release ./gzclose.c
+[33%]: ccache compiling.release ./gzlib.c
+[40%]: ccache compiling.release ./gzread.c
+[46%]: ccache compiling.release ./gzwrite.c
+[53%]: ccache compiling.release ./infback.c
+[60%]: ccache compiling.release ./inffast.c
+[66%]: ccache compiling.release ./inflate.c
+[73%]: ccache compiling.release ./inftrees.c
+[80%]: ccache compiling.release ./trees.c
+[86%]: ccache compiling.release ./uncompr.c
+[93%]: ccache compiling.release ./zutil.c
+[100%]: archiving.release libzlib-1.2.a
+build ok!👌
 </code></pre>
 </div>
 
-<p>简单的说，就是在自定义脚本<code class="highlighter-rouge">function () end</code>之内的都属于内部作用域，也就是脚本作用域，其他地方都是都属于于外部作用域。。</p>
+<p>Xmake will scan the current directory to detect all source codes and it do not found main function.</p>
 
-<h4 id="section-1">外部作用域</h4>
+<p>So it should be static library project and we build it as a static library: libzlib-1.2.a</p>
 
-<p>对于大部分工程来说，并不需要很复杂的工程描述，也不需要自定义脚本支持，只需要简单的 <code class="highlighter-rouge">set_xxx</code> 或者 <code class="highlighter-rouge">add_xxx</code> 就能满足需求了</p>
+<p>We did not write any make-like files (xmake.lua, ..) and did not use the makefile of zlib project.</p>
 
-<p>那么根据二八定律，80%的情况下，我们只需要这么写：</p>
+<p>It is compiled directly and a xmake.lua file was generated which we can edit this xmake.lua to build more complicated project.</p>
 
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">target</span><span class="p">(</span><span class="s2">"test"</span><span class="p">)</span>
+<p>The content of the generated xmake.lua:</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="c1">-- define target</span>
+<span class="n">target</span><span class="p">(</span><span class="s2">"zlib-1.2"</span><span class="p">)</span>
+
+    <span class="c1">-- set kind</span>
     <span class="n">set_kind</span><span class="p">(</span><span class="s2">"static"</span><span class="p">)</span>
-    <span class="n">add_files</span><span class="p">(</span><span class="s2">"src/test/*.c"</span><span class="p">)</span>
 
-<span class="n">target</span><span class="p">(</span><span class="s2">"demo"</span><span class="p">)</span>
-    <span class="n">add_deps</span><span class="p">(</span><span class="s2">"test"</span><span class="p">)</span>
-    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"binary"</span><span class="p">)</span>
-    <span class="n">add_links</span><span class="p">(</span><span class="s2">"test"</span><span class="p">)</span>
-    <span class="n">add_files</span><span class="p">(</span><span class="s2">"src/demo/*.c"</span><span class="p">)</span>
+    <span class="c1">-- add files</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"./adler32.c"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"./compress.c"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"./crc32.c"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"./deflate.c"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"./gzclose.c"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"./gzlib.c"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"./gzread.c"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"./gzwrite.c"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"./infback.c"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"./inffast.c"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"./inflate.c"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"./inftrees.c"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"./trees.c"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"./uncompr.c"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"./zutil.c"</span><span class="p">)</span>
 </code></pre>
 </div>
 
-<p>不需要复杂的api调用，也不需要各种繁琐的变量定义，以及 <code class="highlighter-rouge">if</code> 判断 和 <code class="highlighter-rouge">for</code> 循环，要的就是简洁可读，一眼看过去，就算不懂lua语法也没关系</p>
+<h4 id="fastly-compile-and-run-testing-code">Fastly compile and run testing code</h4>
 
-<p>就当做简单的描述语法，看上去有点像函数调用而已，会点编程的基本一看就知道怎么配置。</p>
+<p>For example, I want to write a simple program in the main.c only to echo ‘hello world!’.</p>
 
-<p>为了做到简洁、安全，在这个作用域内，很多lua 内置api是不开放出来的，尤其是跟写文件、修改操作环境相关的，仅仅提供一些基本的只读接口，和逻辑操作</p>
+<p>If we use gcc to compile and run it, need run two commands:</p>
 
-<p>目前外部作用域开放的lua内置api有：</p>
-
-<ul>
-  <li>table</li>
-  <li>string</li>
-  <li>pairs</li>
-  <li>ipairs</li>
-  <li>print：修改版，提供格式化打印支持</li>
-  <li>os：仅提供只读接口，例如getenv等等</li>
-</ul>
-
-<p>当然虽然内置lua api提供不多，但xmake还提供了很多扩展api，像描述api就不多说，详细可参考：<a href="https://github.com/waruqi/xmake/wiki/%E5%B7%A5%E7%A8%8B%E6%8F%8F%E8%BF%B0api%E6%96%87%E6%A1%A3">工程描述api文档</a></p>
-
-<p>还有些辅助api，例如：</p>
-
-<ul>
-  <li>dirs：扫描获取当前指定路径中的所有目录</li>
-  <li>files：扫描获取当前指定路径中的所有文件</li>
-  <li>format: 格式化字符串，string.format的简写版本</li>
-</ul>
-
-<p>还有变量定义、逻辑操作也是可以使用的，毕竟是基于lua的，该有的基础语法，还是要有的，我们可以通过if来切换编译文件：</p>
-
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">target</span><span class="p">(</span><span class="s2">"test"</span><span class="p">)</span>
-    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"static"</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">is_plat</span><span class="p">(</span><span class="s2">"iphoneos"</span><span class="p">)</span> <span class="k">then</span>
-        <span class="n">add_files</span><span class="p">(</span><span class="s2">"src/test/ios/*.c"</span><span class="p">)</span>
-    <span class="k">else</span>
-        <span class="n">add_files</span><span class="p">(</span><span class="s2">"src/test/*.c"</span><span class="p">)</span>
-    <span class="k">end</span>
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>gcc ./main.c -o demo
+./demo
 </code></pre>
 </div>
 
-<p>我们也可以启用和禁用某个子工程target：</p>
+<p>If we use xmake to run it, only need run:</p>
 
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="k">if</span> <span class="n">is_arch</span><span class="p">(</span><span class="s2">"arm*"</span><span class="p">)</span> <span class="k">then</span>
-
-    <span class="n">target</span><span class="p">(</span><span class="s2">"test1"</span><span class="p">)</span>
-        <span class="n">set_kind</span><span class="p">(</span><span class="s2">"static"</span><span class="p">)</span>
-        <span class="n">add_files</span><span class="p">(</span><span class="s2">"src/*.c"</span><span class="p">)</span>
- 
-<span class="k">else</span>
-
-    <span class="n">target</span><span class="p">(</span><span class="s2">"test2"</span><span class="p">)</span>
-        <span class="n">set_kind</span><span class="p">(</span><span class="s2">"static"</span><span class="p">)</span>
-        <span class="n">add_files</span><span class="p">(</span><span class="s2">"src/*.c"</span><span class="p">)</span>
- 
-<span class="k">end</span>
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>xmake run
 </code></pre>
 </div>
 
-<p>需要注意的是，变量定义分全局变量和局部变量，局部变量只对当前xmake.lua有效，不影响子xmake.lua</p>
+<p>Or</p>
 
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code>
-<span class="c1">-- 局部变量，只对当前xmake.lua有效</span>
-<span class="kd">local</span> <span class="n">var1</span> <span class="o">=</span> <span class="mi">0</span>
-
-<span class="c1">-- 全局变量，影响所有之后 add_subfiles(), add_subdirs() 包含的子 xmake.lua </span>
-<span class="n">var2</span> <span class="o">=</span> <span class="mi">1</span>
-
-<span class="n">add_subdirs</span><span class="p">(</span><span class="s2">"src"</span><span class="p">)</span>
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>xmake r
 </code></pre>
 </div>
 
-<h4 id="section-2">内部作用域</h4>
+<p>It’s done, the output results is:</p>
 
-<p>也称插件、脚本作用域，提供更加复杂、灵活的脚本支持，一般用于编写一些自定义脚本、插件开发、自定义task任务、自定义模块等等</p>
-
-<p>一般通过 <code class="highlighter-rouge">function () end</code> 包含，并且被传入到 <code class="highlighter-rouge">on_xxx</code>, <code class="highlighter-rouge">before_xxx</code>和<code class="highlighter-rouge">after_xxx</code>接口内的，都属于自作用域。</p>
-
-<p>例如：</p>
-
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code>
-<span class="c1">-- 自定义脚本</span>
-<span class="n">target</span><span class="p">(</span><span class="s2">"hello"</span><span class="p">)</span>
-    <span class="n">after_build</span><span class="p">(</span><span class="k">function</span> <span class="p">()</span>
-        <span class="c1">-- 内部作用域</span>
-        <span class="k">end</span><span class="p">)</span>
-
-<span class="c1">-- 自定义任务、插件</span>
-<span class="n">task</span><span class="p">(</span><span class="s2">"hello"</span><span class="p">)</span>
-    <span class="n">on_run</span><span class="p">(</span><span class="k">function</span> <span class="p">()</span>
-        <span class="c1">-- 内部作用域</span>
-        <span class="k">end</span><span class="p">)</span>
+<div class="highlighter-rouge"><pre class="highlight"><code>hello world!
 </code></pre>
 </div>
 
-<p>在此作用域中，不仅可以使用大部分lua的api，还可以使用很多xmake提供的扩展模块，所有扩展模块，通过<code class="highlighter-rouge">import</code>来导入</p>
+<p>If we have a lot of code files, need also run only one command:</p>
 
-<p>具体可参考：<a href="/cn/2016/06/09/api-import/">插件开发之import类库</a></p>
-
-<p>这里我们给个简单的例子，在编译完成后，对ios目标程序进行ldid签名：</p>
-
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">target</span><span class="p">(</span><span class="s2">"iosdemo"</span><span class="p">)</span>
-
-    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"binary"</span><span class="p">)</span>
-    <span class="n">add_files</span><span class="p">(</span><span class="s2">"*.m"</span><span class="p">)</span>
-    <span class="n">after_build</span><span class="p">(</span> <span class="k">function</span> <span class="p">(</span><span class="n">target</span><span class="p">)</span> 
-
-        <span class="c1">-- 执行签名，如果失败，自动中断，给出高亮错误信息</span>
-        <span class="n">os</span><span class="p">.</span><span class="n">run</span><span class="p">(</span><span class="s2">"ldid -S$(projectdir)/entitlements.plist %s"</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span><span class="n">targetfile</span><span class="p">())</span>
-    <span class="k">end</span><span class="p">)</span>
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>xmake run
 </code></pre>
 </div>
 
-<p>需要注意的是，在内部作用域中，所有的调用都是启用异常捕获机制的，如果运行出错，会自动中断xmake，并给出错误提示信息</p>
+<p>It’s so easy and convenient.</p>
 
-<p>因此，脚本写起来，不需要繁琐的<code class="highlighter-rouge">if retval then</code> 判断，脚本逻辑更加一目了然</p>
+<h4 id="multi-language-support">Multi-language support</h4>
 
-<h4 id="section-3">接口作用域</h4>
+<p>This feature of code detection and real-time compilation not only supports c / c ++, also supports objc / swift 
+and it will support golang in future.</p>
 
-<p>在外部作用域中的所有描述api设置，本身也是有作用域之分的，在不同地方调用，影响范围也不相同，例如：</p>
+<p>For example, we downloaded a ios open source framework code ‘fmdb’:</p>
 
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code>
-<span class="c1">-- 全局根作用域，影响所有target，包括 add_subdirs() 中的子工程target设置</span>
-<span class="n">add_defines</span><span class="p">(</span><span class="s2">"DEBUG"</span><span class="p">)</span>
-
-<span class="c1">-- 定义或者进入demo目标作用域（支持多次进入来追加设置）</span>
-<span class="n">target</span><span class="p">(</span><span class="s2">"demo"</span><span class="p">)</span>
-    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"shared"</span><span class="p">)</span>
-    <span class="n">add_files</span><span class="p">(</span><span class="s2">"src/*.c"</span><span class="p">)</span>
-
-    <span class="c1">-- 当前target作用域，仅仅影响当前target</span>
-    <span class="n">add_defines</span><span class="p">(</span><span class="s2">"DEBUG2"</span><span class="p">)</span>
-
-<span class="c1">-- 选项设置，仅支持局部设置，不受全局api设置所影响</span>
-<span class="n">option</span><span class="p">(</span><span class="s2">"test"</span><span class="p">)</span>
-    
-    <span class="c1">-- 当前选项的局部作用域</span>
-    <span class="n">set_default</span><span class="p">(</span><span class="kc">false</span><span class="p">)</span>
-
-<span class="c1">-- 其他target设置，-DDEBUG 也会被设置上</span>
-<span class="n">target</span><span class="p">(</span><span class="s2">"demo2"</span><span class="p">)</span>
-    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"binary"</span><span class="p">)</span>
-    <span class="n">add_files</span><span class="p">(</span><span class="s2">"src/*.c"</span><span class="p">)</span>
-    
-
-<span class="c1">-- 重新进入demo目标作用域</span>
-<span class="n">target</span><span class="p">(</span><span class="s2">"demo"</span><span class="p">)</span>
-
-    <span class="c1">-- 追加宏定义，只对当前demo目标有效</span>
-    <span class="n">add_defines</span><span class="p">(</span><span class="s2">"DEBUG3"</span><span class="p">)</span>
-
+<div class="highlighter-rouge"><pre class="highlight"><code>.
+├── FMDB.h
+├── FMDatabase.h
+├── FMDatabase.m
+├── FMDatabaseAdditions.h
+├── FMDatabaseAdditions.m
+├── FMDatabasePool.h
+├── FMDatabasePool.m
+├── FMDatabaseQueue.h
+├── FMDatabaseQueue.m
+├── FMResultSet.h
+└── FMResultSet.m
 </code></pre>
 </div>
 
-<p>xmake里面还有些全局api，仅提供全局作用域支持，例如：</p>
+<p>There are no any make-like files in it’s project directory.</p>
 
-<ul>
-  <li>add_subfiles()</li>
-  <li>add_subdirs()</li>
-  <li>add_packagedirs()</li>
-</ul>
+<p>We uses xmake to build it directly as a ios static library:</p>
 
-<p>等等，这些调用不要放置在 target 或者 option 的局部作用域之间，虽然没什么实际区别，但是会影响可读性，容易被误导</p>
-
-<p>使用方式，如下：</p>
-
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">target</span><span class="p">(</span><span class="s2">"xxxx"</span><span class="p">)</span>
-    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"binary"</span><span class="p">)</span>
-    <span class="n">add_files</span><span class="p">(</span><span class="s2">"*.c"</span><span class="p">)</span>
-
-<span class="c1">-- 包含子模块文件</span>
-<span class="n">add_subdirs</span><span class="p">(</span><span class="s2">"src"</span><span class="p">)</span>
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake f -p iphoneos; xmake
 </code></pre>
 </div>
 
-<h4 id="section-4">作用域缩进</h4>
+<p>The output results are:</p>
 
-<p>xmake.lua里面缩进，只是个编写规范，用于更加清楚的区分，当前的设置 是针对 那个作用域的，虽然就算不缩进，也一样ok，但是可读性上 并不是很好。。</p>
-
-<p>例如：</p>
-
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">target</span><span class="p">(</span><span class="s2">"xxxx"</span><span class="p">)</span>
-    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"binary"</span><span class="p">)</span>
-    <span class="n">add_files</span><span class="p">(</span><span class="s2">"*.c"</span><span class="p">)</span>
+<div class="highlighter-rouge"><pre class="highlight"><code>xmake.lua not found, scanning files ..
+target(FMDB): static
+    [+]: ./FMDatabase.m
+    [+]: ./FMDatabaseAdditions.m
+    [+]: ./FMDatabasePool.m
+    [+]: ./FMDatabaseQueue.m
+    [+]: ./FMResultSet.m
+xmake.lua generated, scan ok!👌
+checking for the architecture ... armv7
+checking for the Xcode SDK version for iphoneos ... 10.1
+checking for the target minimal version ... 10.1
+checking for the c compiler (cc) ... xcrun -sdk iphoneos clang
+checking for the c++ compiler (cxx) ... xcrun -sdk iphoneos clang
+checking for the objc compiler (mm) ... xcrun -sdk iphoneos clang
+checking for the objc++ compiler (mxx) ... xcrun -sdk iphoneos clang++
+checking for the assember (as) ... gas-preprocessor.pl xcrun -sdk iphoneos clang
+checking for the linker (ld) ... xcrun -sdk iphoneos clang++
+checking for the static library archiver (ar) ... xcrun -sdk iphoneos ar
+checking for the static library extractor (ex) ... xcrun -sdk iphoneos ar
+checking for the shared library linker (sh) ... xcrun -sdk iphoneos clang++
+checking for the swift compiler (sc) ... xcrun -sdk iphoneos swiftc
+configure
+{
+    ex = "xcrun -sdk iphoneos ar"
+,   ccache = "ccache"
+,   host = "macosx"
+,   ar = "xcrun -sdk iphoneos ar"
+,   buildir = "build"
+,   as = "/usr/local/share/xmake/tools/utils/gas-preprocessor.pl xcrun -sdk iphoneos clang"
+,   arch = "armv7"
+,   mxx = "xcrun -sdk iphoneos clang++"
+,   cxx = "xcrun -sdk iphoneos clang"
+,   target_minver = "10.1"
+,   xcode_dir = "/Applications/Xcode.app"
+,   clean = true
+,   sh = "xcrun -sdk iphoneos clang++"
+,   cc = "xcrun -sdk iphoneos clang"
+,   ld = "xcrun -sdk iphoneos clang++"
+,   mode = "release"
+,   kind = "static"
+,   plat = "iphoneos"
+,   xcode_sdkver = "10.1"
+,   sc = "xcrun -sdk iphoneos swiftc"
+,   mm = "xcrun -sdk iphoneos clang"
+}
+configure ok!
+clean ok!
+[00%]: ccache compiling.release ./FMDatabase.m
+[20%]: ccache compiling.release ./FMDatabaseAdditions.m
+[40%]: ccache compiling.release ./FMDatabasePool.m
+[60%]: ccache compiling.release ./FMDatabaseQueue.m
+[80%]: ccache compiling.release ./FMResultSet.m
+[100%]: archiving.release libFMDB.a
+build ok!👌
 </code></pre>
 </div>
 
-<p>和</p>
+<h4 id="compile-multiple-executables-at-the-same-time">Compile multiple executables at the same time</h4>
 
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">target</span><span class="p">(</span><span class="s2">"xxxx"</span><span class="p">)</span>
-<span class="n">set_kind</span><span class="p">(</span><span class="s2">"binary"</span><span class="p">)</span>
-<span class="n">add_files</span><span class="p">(</span><span class="s2">"*.c"</span><span class="p">)</span>
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span><span class="nb">cd </span>jpeg-6b
+<span class="gp">$ </span>xmake
 </code></pre>
 </div>
 
-<p>上述两种方式，效果上都是一样的，但是理解上，第一种更加直观，一看就知道 add_files 仅仅只是针对 target 设置的，并不是全局设置</p>
+<p>The output results are:</p>
 
-<p>因此，适当的进行缩进，有助于更好的维护xmake.lua</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>xmake.lua not found, scanning files ..
+target(jpeg-6b): static
+    [+]: ./cdjpeg.c
+    [+]: ./example.c
+    [+]: ./jcapimin.c
+    [+]: ./jcapistd.c
+    [+]: ./jccoefct.c
+    [+]: ./jccolor.c
+    [+]: ./jcdctmgr.c
+    [+]: ./jchuff.c
+    [+]: ./jcinit.c
+    [+]: ./jcmainct.c
+    [+]: ./jcmarker.c
+    [+]: ./jcmaster.c
+    [+]: ./jcomapi.c
+    [+]: ./jcparam.c
+    [+]: ./jcphuff.c
+    [+]: ./jcprepct.c
+    [+]: ./jcsample.c
+    [+]: ./jctrans.c
+    [+]: ./jdapimin.c
+    [+]: ./jdapistd.c
+    [+]: ./jdatadst.c
+    [+]: ./jdatasrc.c
+    [+]: ./jdcoefct.c
+    [+]: ./jdcolor.c
+    [+]: ./jddctmgr.c
+    [+]: ./jdhuff.c
+    [+]: ./jdinput.c
+    [+]: ./jdmainct.c
+    [+]: ./jdmarker.c
+    [+]: ./jdmaster.c
+    [+]: ./jdmerge.c
+    [+]: ./jdphuff.c
+    [+]: ./jdpostct.c
+    [+]: ./jdsample.c
+    [+]: ./jdtrans.c
+    [+]: ./jerror.c
+    [+]: ./jfdctflt.c
+    [+]: ./jfdctfst.c
+    [+]: ./jfdctint.c
+    [+]: ./jidctflt.c
+    [+]: ./jidctfst.c
+    [+]: ./jidctint.c
+    [+]: ./jidctred.c
+    [+]: ./jmemansi.c
+    [+]: ./jmemmgr.c
+    [+]: ./jmemname.c
+    [+]: ./jmemnobs.c
+    [+]: ./jquant1.c
+    [+]: ./jquant2.c
+    [+]: ./jutils.c
+    [+]: ./rdbmp.c
+    [+]: ./rdcolmap.c
+    [+]: ./rdgif.c
+    [+]: ./rdppm.c
+    [+]: ./rdrle.c
+    [+]: ./rdswitch.c
+    [+]: ./rdtarga.c
+    [+]: ./transupp.c
+    [+]: ./wrbmp.c
+    [+]: ./wrgif.c
+    [+]: ./wrppm.c
+    [+]: ./wrrle.c
+    [+]: ./wrtarga.c
+target(ansi2knr): binary
+    [+]: ./ansi2knr.c
+target(cjpeg): binary
+    [+]: ./cjpeg.c
+target(ckconfig): binary
+    [+]: ./ckconfig.c
+target(djpeg): binary
+    [+]: ./djpeg.c
+target(jpegtran): binary
+    [+]: ./jpegtran.c
+target(rdjpgcom): binary
+    [+]: ./rdjpgcom.c
+target(wrjpgcom): binary
+    [+]: ./wrjpgcom.c
+xmake.lua generated, scan ok!👌
+checking for the architecture ... x86_64
+checking for the Xcode SDK version for macosx ... 10.12
+checking for the target minimal version ... 10.12
+checking for the c compiler (cc) ... xcrun -sdk macosx clang
+checking for the c++ compiler (cxx) ... xcrun -sdk macosx clang
+checking for the objc compiler (mm) ... xcrun -sdk macosx clang
+checking for the objc++ compiler (mxx) ... xcrun -sdk macosx clang++
+checking for the swift compiler (sc) ... xcrun -sdk macosx swiftc
+checking for the assember (as) ... xcrun -sdk macosx clang
+checking for the linker (ld) ... xcrun -sdk macosx clang++
+checking for the static library archiver (ar) ... xcrun -sdk macosx ar
+checking for the static library extractor (ex) ... xcrun -sdk macosx ar
+checking for the shared library linker (sh) ... xcrun -sdk macosx clang++
+checking for the debugger (dd) ... xcrun -sdk macosx lldb
+checking for the golang compiler (go) ... go
+configure
+{
+    ex = "xcrun -sdk macosx ar"
+,   sh = "xcrun -sdk macosx clang++"
+,   host = "macosx"
+,   ar = "xcrun -sdk macosx ar"
+,   buildir = "build"
+,   as = "xcrun -sdk macosx clang"
+,   plat = "macosx"
+,   xcode_dir = "/Applications/Xcode.app"
+,   arch = "x86_64"
+,   mxx = "xcrun -sdk macosx clang++"
+,   go = "go"
+,   target_minver = "10.12"
+,   ccache = "ccache"
+,   mode = "release"
+,   clean = true
+,   cxx = "xcrun -sdk macosx clang"
+,   cc = "xcrun -sdk macosx clang"
+,   dd = "xcrun -sdk macosx lldb"
+,   kind = "static"
+,   ld = "xcrun -sdk macosx clang++"
+,   xcode_sdkver = "10.12"
+,   sc = "xcrun -sdk macosx swiftc"
+,   mm = "xcrun -sdk macosx clang"
+}
+configure ok!
+clean ok!
+[00%]: ccache compiling.release ./cdjpeg.c
+[00%]: ccache compiling.release ./example.c
+[00%]: ccache compiling.release ./jcapimin.c
+[00%]: ccache compiling.release ./jcapistd.c
+[00%]: ccache compiling.release ./jccoefct.c
+[00%]: ccache compiling.release ./jccolor.c
+[01%]: ccache compiling.release ./jcdctmgr.c
+[01%]: ccache compiling.release ./jchuff.c
+[01%]: ccache compiling.release ./jcinit.c
+[01%]: ccache compiling.release ./jcmainct.c
+[01%]: ccache compiling.release ./jcmarker.c
+[02%]: ccache compiling.release ./jcmaster.c
+[02%]: ccache compiling.release ./jcomapi.c
+[02%]: ccache compiling.release ./jcparam.c
+[02%]: ccache compiling.release ./jcphuff.c
+[02%]: ccache compiling.release ./jcprepct.c
+[03%]: ccache compiling.release ./jcsample.c
+[03%]: ccache compiling.release ./jctrans.c
+[03%]: ccache compiling.release ./jdapimin.c
+[03%]: ccache compiling.release ./jdapistd.c
+[03%]: ccache compiling.release ./jdatadst.c
+[04%]: ccache compiling.release ./jdatasrc.c
+[04%]: ccache compiling.release ./jdcoefct.c
+[04%]: ccache compiling.release ./jdcolor.c
+[04%]: ccache compiling.release ./jddctmgr.c
+[04%]: ccache compiling.release ./jdhuff.c
+[05%]: ccache compiling.release ./jdinput.c
+[05%]: ccache compiling.release ./jdmainct.c
+[05%]: ccache compiling.release ./jdmarker.c
+[05%]: ccache compiling.release ./jdmaster.c
+[05%]: ccache compiling.release ./jdmerge.c
+[06%]: ccache compiling.release ./jdphuff.c
+[06%]: ccache compiling.release ./jdpostct.c
+[06%]: ccache compiling.release ./jdsample.c
+[06%]: ccache compiling.release ./jdtrans.c
+[06%]: ccache compiling.release ./jerror.c
+[07%]: ccache compiling.release ./jfdctflt.c
+[07%]: ccache compiling.release ./jfdctfst.c
+[07%]: ccache compiling.release ./jfdctint.c
+[07%]: ccache compiling.release ./jidctflt.c
+[07%]: ccache compiling.release ./jidctfst.c
+[08%]: ccache compiling.release ./jidctint.c
+[08%]: ccache compiling.release ./jidctred.c
+[08%]: ccache compiling.release ./jmemansi.c
+[08%]: ccache compiling.release ./jmemmgr.c
+[08%]: ccache compiling.release ./jmemname.c
+[09%]: ccache compiling.release ./jmemnobs.c
+[09%]: ccache compiling.release ./jquant1.c
+[09%]: ccache compiling.release ./jquant2.c
+[09%]: ccache compiling.release ./jutils.c
+[09%]: ccache compiling.release ./rdbmp.c
+[10%]: ccache compiling.release ./rdcolmap.c
+[10%]: ccache compiling.release ./rdgif.c
+[10%]: ccache compiling.release ./rdppm.c
+[10%]: ccache compiling.release ./rdrle.c
+[10%]: ccache compiling.release ./rdswitch.c
+[11%]: ccache compiling.release ./rdtarga.c
+[11%]: ccache compiling.release ./transupp.c
+[11%]: ccache compiling.release ./wrbmp.c
+[11%]: ccache compiling.release ./wrgif.c
+[11%]: ccache compiling.release ./wrppm.c
+[12%]: ccache compiling.release ./wrrle.c
+[12%]: ccache compiling.release ./wrtarga.c
+[12%]: archiving.release libjpeg-6b.a
+[12%]: ccache compiling.release ./wrjpgcom.c
+[25%]: linking.release wrjpgcom
+[25%]: ccache compiling.release ./ansi2knr.c
+[37%]: linking.release ansi2knr
+[37%]: ccache compiling.release ./jpegtran.c
+[50%]: linking.release jpegtran
+[50%]: ccache compiling.release ./djpeg.c
+[62%]: linking.release djpeg
+[62%]: ccache compiling.release ./ckconfig.c
+[75%]: linking.release ckconfig
+[75%]: ccache compiling.release ./rdjpgcom.c
+[87%]: linking.release rdjpgcom
+[87%]: ccache compiling.release ./cjpeg.c
+[100%]: linking.release cjpeg
+build ok!👌
+</code></pre>
+</div>
 
-<p>最后附上，<a href="https://github.com/waruqi/tbox">tbox</a>的<a href="https://github.com/waruqi/tbox/blob/master/xmake.lua">xmake.lua</a>和<a href="https://github.com/waruqi/tbox/blob/master/src/tbox/xmake.lua">src/tbox/xmake.lua</a>描述，仅供参考。。</p>
+<p>In addition to a static library, we also compiled some other executable programs.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>target(ansi2knr): binary
+    [+]: ./ansi2knr.c
+target(cjpeg): binary
+    [+]: ./cjpeg.c
+target(ckconfig): binary
+    [+]: ./ckconfig.c
+target(djpeg): binary
+    [+]: ./djpeg.c
+target(jpegtran): binary
+    [+]: ./jpegtran.c
+target(rdjpgcom): binary
+    [+]: ./rdjpgcom.c
+target(wrjpgcom): binary
+    [+]: ./wrjpgcom.c
+</code></pre>
+</div>
+
+<h4 id="manual-configuration">Manual configuration</h4>
+
+<p>we need add them before compiling if the source code requires some special compiler options</p>
+
+<p>For example:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake f --cxflags<span class="o">=</span><span class="s2">""</span> --ldflags<span class="o">=</span><span class="s2">""</span> --includedirs<span class="o">=</span><span class="s2">""</span> --linkdirs<span class="o">=</span><span class="s2">""</span>; xmake
+</code></pre>
+</div>
+
 
         </article>
         <hr>
@@ -687,106 +921,12 @@
             
             
                 
-            
-        
-            
-            
-                
-            
-        
-            
-            
-                
-            
-        
-            
-        
-            
-            
-                
-            
-        
-            
-            
-                
-            
-        
-            
-        
-            
-            
-                
-            
-        
-            
-            
-                
-            
-        
-            
-        
-            
-            
-                
-            
-        
-            
-            
-                
-            
-        
-            
-            
-                
-            
-        
-            
-            
-                
-            
-        
-            
-        
-            
-            
-                
-            
-        
-            
-        
-            
-            
-                
-            
-        
-            
-        
-            
-            
-                
-            
-        
-            
-            
-                
-            
-        
-            
-        
-            
-            
-                
-            
-        
-            
-            
-                
                     
                     <h2 id="chinese">中文</h2>
                     <ul>
                     
                     <li class="relatedPost">
-                        <a href="/cn/2016/10/26/api-scope/">xmake 描述语法和作用域详解
+                        <a href="/cn/2017/01/07/build-without-makefile/">xmake新增智能代码扫描编译模式，无需手写任何make文件
                         
                         </a>
                     </li>
@@ -825,6 +965,100 @@
             
         
             
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
         
             
             
@@ -1307,63 +1541,6 @@
             
         
             
-            
-            
-                
-                    
-                        
-                        <h2 id="similar_posts">Similar Posts</h2>
-                        <ul>
-                        
-                        <li class="relatedPost">
-                            <a href="/2017/01/07/build-without-makefile/">Scan source codes and build project without makefile
-                            
-                            </a>
-                        </li>
-                        
-                        
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-                    
-                
-            
-            
-        
-            
         
             
         
@@ -1418,8 +1595,41 @@
         
             
         
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
         
-            </ul>
         
 
         <div class="post-recent">
@@ -1447,7 +1657,15 @@
 
         
         
-        <p><strong>Prev Post</strong> <a href="/2016/09/18/database-usage/">Access sql database using tbox</a></p>
+        
+
+        
+
+        
+
+        
+        
+        <p><strong>Prev Post</strong> <a href="/2016/12/07/update-v1.6.1/">tbox v1.6.1 released, add stackless coroutine!</a></p>
         
     </div>
 
@@ -1467,7 +1685,7 @@
 
         
         
-        <p><strong>Next Post</strong> <a href="/2016/10/28/benchbox-coroutine/">The benchmark reports of coroutine</a></p>
+        <p><strong>Next Post</strong> <a href="/2017/01/08/license-changed/">Change License to Apache License 2.0</a></p>
         
     </div>
 </div>
@@ -1476,27 +1694,33 @@
         <h2 id="comments">Comments</h2>
         
 
-<!-- 多说评论框 start -->
-<div class="ds-thread" data-thread-key="http://www.tboox.org/cn/2016/10/26/api-scope/" data-title="xmake 描述语法和作用域详解" data-url="http://www.tboox.org/cn/2016/10/26/api-scope/"></div>
-<!-- 多说评论框 end -->
-<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
-<script type="text/javascript">
-var duoshuoQuery = {short_name:"tboox"};
-	(function() {
-		var ds = document.createElement('script');
-		ds.type = 'text/javascript';ds.async = true;
-		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
-		ds.charset = 'UTF-8';
-		(document.getElementsByTagName('head')[0] 
-		 || document.getElementsByTagName('body')[0]).appendChild(ds);
-	})();
-	</script>
-<!-- 多说公共JS代码 end -->
-<!-- 多说公共JS代码 end -->
 
 
 
 
+<div id="disqus_thread"></div>
+<script>
+    /**
+     * RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+     * LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables
+     */
+
+    var disqus_config = function() {
+        this.page.url = 'http://www.tboox.org/2017/01/07/build-without-makefile/'; // Replace PAGE_URL with your page's canonical URL variable
+        this.page.identifier = 'http://www.tboox.org/2017/01/07/build-without-makefile/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+    };
+
+    (function() { // DON'T EDIT BELOW THIS LINE
+        var d = document,
+            s = d.createElement('script');
+
+        s.src = '//zh-tboox.disqus.com/embed.js';
+
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
 
 
 
