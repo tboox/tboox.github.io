@@ -181,6 +181,25 @@ layout: default
                 </ul>
             </div> 
 
+            <!-- weixin public -->
+            <div class="side">
+                <div>
+                    <i class="fa fa-external-link"></i>
+                    Weixin Public
+                </div>
+                <img src="/static/img/weixin_public.jpg" alt="weixin" width="256" height="256">
+            </div> 
+ 
+            <!-- qqgroup -->
+            <br>
+            <div class="side">
+                <div>
+                    <i class="fa fa-external-link"></i>
+                    QQ Group
+                </div>
+                <img src="/static/img/qqgroup.png" alt="qqgroup" width="256" height="284">
+            </div> 
+
             {% if site.adsbygoogle_client %}
             <div class="side">
                 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>

@@ -196,6 +196,16 @@ layout: default.cn
                 </div>
                 <img src="/static/img/weixin_public.jpg" alt="weixin" width="256" height="256">
             </div> 
+ 
+            <!-- qqgroup -->
+            <br>
+            <div class="side">
+                <div>
+                    <i class="fa fa-external-link"></i>
+                    技术交流群（QQ）
+                </div>
+                <img src="/static/img/qqgroup.png" alt="qqgroup" width="256" height="284">
+            </div> 
 
             {% if site.adsbygoogle_client %}
             <div class="side">
