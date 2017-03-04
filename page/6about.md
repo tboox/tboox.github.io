@@ -14,7 +14,7 @@ icon: user
 * Github: [https://github.com/waruqi](https://github.com/waruqi)
 * Twitter: [https://twitter.com/waruqi](https://twitter.com/waruqi)
 * Bearychat: [https://tboox.bearychat.com](https://tboox.bearychat.com)
-* Gitter：[![Join the chat at https://gitter.im/waruqi/tboox](https://badges.gitter.im/waruqi/tboox.svg)](https://gitter.im/waruqi/tboox?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+* Gitter：[![Join the chat at https://gitter.im/tboox/tboox](https://badges.gitter.im/tboox/tboox.svg)](https://gitter.im/tboox/tboox?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## Links
 
