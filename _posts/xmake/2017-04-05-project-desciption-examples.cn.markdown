@@ -1,6 +1,6 @@
 ---
 layout: post.cn
-title:  "xmake工程描述实例"
+title:  "使用xmake优雅地描述工程"
 tags: xmake lua 工程描述 
 categories: xmake
 ---
