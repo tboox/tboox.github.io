@@ -804,6 +804,59 @@
 
 <p>不过<code class="highlighter-rouge">vformat</code>支持字符串参数格式化，更加强大，所以应用场景不同。</p>
 
+<h4 id="section-9">目标依赖实现属性继承</h4>
+
+<p>2.1.4之前的版本，<a href="http://xmake.io/#/zh/manual?id=targetadd_deps">target.add_deps</a>仅用于添加依赖，修改编译顺序：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">target</span><span class="p">(</span><span class="s2">"test1"</span><span class="p">)</span>
+    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"static"</span><span class="p">)</span>
+    <span class="n">set_files</span><span class="p">(</span><span class="s2">"*.c"</span><span class="p">)</span>
+
+<span class="n">target</span><span class="p">(</span><span class="s2">"test2"</span><span class="p">)</span>
+    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"static"</span><span class="p">)</span>
+    <span class="n">set_files</span><span class="p">(</span><span class="s2">"*.c"</span><span class="p">)</span>
+
+<span class="n">target</span><span class="p">(</span><span class="s2">"demo"</span><span class="p">)</span>
+    <span class="n">add_deps</span><span class="p">(</span><span class="s2">"test1"</span><span class="p">,</span> <span class="s2">"test2"</span><span class="p">)</span>
+    <span class="n">add_links</span><span class="p">(</span><span class="s2">"test1"</span><span class="p">,</span> <span class="s2">"test2"</span><span class="p">)</span>
+    <span class="n">add_linkdirs</span><span class="p">(</span><span class="s2">"test1dir"</span><span class="p">,</span> <span class="s2">"test2dir"</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>2.1.5版本后，target还会自动继承依赖目标中的配置和属性，不再需要额外调用<code class="highlighter-rouge">add_links</code>, <code class="highlighter-rouge">add_includedirs</code>和<code class="highlighter-rouge">add_linkdirs</code>等接口去关联依赖目标了，上述代码可简化为：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">target</span><span class="p">(</span><span class="s2">"test1"</span><span class="p">)</span>
+    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"static"</span><span class="p">)</span>
+    <span class="n">set_files</span><span class="p">(</span><span class="s2">"*.c"</span><span class="p">)</span>
+
+<span class="n">target</span><span class="p">(</span><span class="s2">"test2"</span><span class="p">)</span>
+    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"static"</span><span class="p">)</span>
+    <span class="n">set_files</span><span class="p">(</span><span class="s2">"*.c"</span><span class="p">)</span>
+
+<span class="n">target</span><span class="p">(</span><span class="s2">"demo"</span><span class="p">)</span>
+    <span class="n">add_deps</span><span class="p">(</span><span class="s2">"test1"</span><span class="p">,</span> <span class="s2">"test2"</span><span class="p">)</span> <span class="c1">-- 会自动链接依赖目标</span>
+</code></pre>
+</div>
+
+<p>并且继承关系是支持级联的，例如：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">target</span><span class="p">(</span><span class="s2">"library1"</span><span class="p">)</span>
+    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"static"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"*.c"</span><span class="p">)</span>
+    <span class="n">add_headers</span><span class="p">(</span><span class="s2">"inc1/*.h"</span><span class="p">)</span>
+
+<span class="n">target</span><span class="p">(</span><span class="s2">"library2"</span><span class="p">)</span>
+    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"static"</span><span class="p">)</span>
+    <span class="n">add_deps</span><span class="p">(</span><span class="s2">"library1"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"*.c"</span><span class="p">)</span>
+    <span class="n">add_headers</span><span class="p">(</span><span class="s2">"inc2/*.h"</span><span class="p">)</span>
+
+<span class="n">target</span><span class="p">(</span><span class="s2">"test"</span><span class="p">)</span>
+    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"binary"</span><span class="p">)</span>
+    <span class="n">add_deps</span><span class="p">(</span><span class="s2">"library2"</span><span class="p">)</span>
+</code></pre>
+</div>
+
 <h4 id="root">更加安全的root权限编译</h4>
 
 <p>由于xmake提供强大的自定义模块和脚本支持，并且内置安装、卸载等action，如果<code class="highlighter-rouge">xmake.lua</code>里面的脚本描述不当，容易导致覆写系统文件，因此新版本对此作了改进：</p>
@@ -816,7 +869,7 @@
 
 <p>具体详情见：<a href="https://github.com/tboox/xmake/pull/113">pull#113</a></p>
 
-<h4 id="section-9">新增大量扩展模块</h4>
+<h4 id="section-10">新增大量扩展模块</h4>
 
 <ul>
   <li>文件下载</li>
