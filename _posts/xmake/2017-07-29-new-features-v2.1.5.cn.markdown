@@ -453,6 +453,59 @@ local s = vformat("$(shell echo hello)")
 
 不过`vformat`支持字符串参数格式化，更加强大，所以应用场景不同。
 
+#### 目标依赖实现属性继承
+
+2.1.4之前的版本，[target.add_deps](http://xmake.io/#/zh/manual?id=targetadd_deps)仅用于添加依赖，修改编译顺序：
+
+```lua
+target("test1")
+    set_kind("static")
+    set_files("*.c")
+
+target("test2")
+    set_kind("static")
+    set_files("*.c")
+
+target("demo")
+    add_deps("test1", "test2")
+    add_links("test1", "test2")
+    add_linkdirs("test1dir", "test2dir")
+```
+
+2.1.5版本后，target还会自动继承依赖目标中的配置和属性，不再需要额外调用`add_links`, `add_includedirs`和`add_linkdirs`等接口去关联依赖目标了，上述代码可简化为：
+
+```lua
+target("test1")
+    set_kind("static")
+    set_files("*.c")
+
+target("test2")
+    set_kind("static")
+    set_files("*.c")
+
+target("demo")
+    add_deps("test1", "test2") -- 会自动链接依赖目标
+```
+
+并且继承关系是支持级联的，例如：
+
+```lua
+target("library1")
+    set_kind("static")
+    add_files("*.c")
+    add_headers("inc1/*.h")
+
+target("library2")
+    set_kind("static")
+    add_deps("library1")
+    add_files("*.c")
+    add_headers("inc2/*.h")
+
+target("test")
+    set_kind("binary")
+    add_deps("library2")
+```
+
 #### 更加安全的root权限编译
 
 由于xmake提供强大的自定义模块和脚本支持，并且内置安装、卸载等action，如果`xmake.lua`里面的脚本描述不当，容易导致覆写系统文件，因此新版本对此作了改进：
