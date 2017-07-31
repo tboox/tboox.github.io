@@ -1,0 +1,2487 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+    <title>不同编译器对预编译头文件的处理</title>
+    <meta name="description" content="最近为了给xmake实现预编译头文件的支持，研究了下各大主流编译器处理预编译头的机制以及之间的一些差异。现在的大部分c/c++编译器都是支持预编译头的，例如：gcc，clang，msvc等，用于优化c++代码的编译速度，毕竟c++的头文件如果包含了模板定义的话，编译速度是很慢的，如果能够吧大部分通用的头文件放置在...">
+
+    
+    <meta name="keywords" content="xmake,lua,预编译头文件,c++编译加速,优化编译,跨平台,tboox" /> 
+
+    <!-- qq oauth -->
+    <meta property="qc:admins" content="5211601217706727767255" />
+
+    <! --icon -->
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" sizes="192x192" href="/static/img/nice-highres.png" />
+	<link rel="apple-touch-icon-precomposed" href="/static/img/apple-touch-icon-57x57-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="72x72" href="/static/img/apple-touch-icon-72x72-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="114x114" href="/static/img/apple-touch-icon-114x114-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/static/img/apple-touch-icon-144x144-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="180x180" href="/static/img/retinahd_icon.png" />
+	<meta name="msapplication-TileImage" content="/static/img/retinahd_icon.png" />
+	
+    <link rel="stylesheet" href=" /css/fontawesome/css/font-awesome.min.css ">
+    <link rel="stylesheet" href=" /css/main.css ">
+    <link rel="canonical" href="http://www.tboox.org/cn/2017/07/31/precompiled-header/">
+    <link rel="alternate" type="application/rss+xml" title="TBOOX Open Source Project" href="http://www.tboox.org/feed.xml ">
+    <link rel="alternate" hreflang="en" href="http://www.tboox.org/" />
+    <link rel="alternate" hreflang="zh-Hans" href="http://www.tboox.org/cn/" />
+
+
+    <script>
+    // 百度统计代码
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?162f1cd478898a0686b0b5d5115e2af2";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+
+
+
+    <script type="text/javascript">
+    function isPC(){    
+        var userAgentInfo = navigator.userAgent;  
+        var Agents = new Array("Android", "iPhone", "SymbianOS", "Windows Phone", "iPad", "iPod");    
+        var flag = true;    
+        for (var v = 0; v < Agents.length; v++) {    
+            if (userAgentInfo.indexOf(Agents[v]) > 0) { flag = false; break; }    
+        }    
+        return flag;    
+    }  
+    </script>
+
+</head>
+
+
+  <body>
+
+    <header id="top">
+    <div class="wrapper">
+        <a href="/cn" class="brand">TBOOX</a>
+        <button id="headerMenu" class="menu"><i class="fa fa-bars"></i></button>
+        <nav id="headerNav">
+            <ul>
+                <li>
+                    
+                    <a href="/">
+                    
+                        <i class="fa fa-home"></i>English
+                    </a>
+                </li>
+
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/project/">
+                            
+                        
+                            <i class="fa fa-bookmark"></i>项目
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/archive/">
+                            
+                        
+                            <i class="fa fa-archive"></i>归档
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/category/">
+                            
+                        
+                            <i class="fa fa-th-list"></i>分类
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/tag/">
+                            
+                        
+                            <i class="fa fa-tags"></i>标记
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="https://github.com/tboox/community/issues">
+                            
+                        
+                            <i class="fa fa-forumbee"></i>社区
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/donation/">
+                            
+                        
+                            <i class="fa fa-heart"></i>捐助
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/about/">
+                            
+                        
+                            <i class="fa fa-user"></i>关于
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            </ul>
+        </nav>
+    </div>
+</header>
+
+
+        <div class="page clearfix" post>
+    <div class="left">
+        <h1>不同编译器对预编译头文件的处理</h1>
+        <div class="label">
+
+            <div class="label-card">
+                <i class="fa fa-calendar"></i>2017-07-31
+            </div>
+
+            <div class="label-card">
+                
+            </div>
+
+            <div class="label-card">
+                
+            </div>
+
+            <div class="label-card">
+            
+
+
+<!-- <span class="point">•</span> -->
+<span class="categories">
+  <i class="fa fa-th-list"></i>
+  
+    
+        <a href="/category/#xmake" title="Category: xmake" rel="category">xmake</a>
+    
+  
+
+  <!-- <span class="point">•</span> -->
+</span>
+
+
+            </div>
+
+            <div class="label-card">
+            
+<!-- <span class="point">•</span> -->
+<span class="pageTag">
+  <i class="fa fa-tags"></i>
+  
+    
+        <!--a href="/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a-->
+        <a href="/cn/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a>&nbsp;
+    
+        <!--a href="/tag/#lua" title="Tag: lua" rel="tag">lua</a-->
+        <a href="/cn/tag/#lua" title="Tag: lua" rel="tag">lua</a>&nbsp;
+    
+        <!--a href="/tag/#%E9%A2%84%E7%BC%96%E8%AF%91%E5%A4%B4%E6%96%87%E4%BB%B6" title="Tag: 预编译头文件" rel="tag">预编译头文件</a-->
+        <a href="/cn/tag/#预编译头文件" title="Tag: 预编译头文件" rel="tag">预编译头文件</a>&nbsp;
+    
+        <!--a href="/tag/#c%2B%2B%E7%BC%96%E8%AF%91%E5%8A%A0%E9%80%9F" title="Tag: c++编译加速" rel="tag">c++编译加速</a-->
+        <a href="/cn/tag/#c++编译加速" title="Tag: c++编译加速" rel="tag">c++编译加速</a>&nbsp;
+    
+        <!--a href="/tag/#%E4%BC%98%E5%8C%96%E7%BC%96%E8%AF%91" title="Tag: 优化编译" rel="tag">优化编译</a-->
+        <a href="/cn/tag/#优化编译" title="Tag: 优化编译" rel="tag">优化编译</a>&nbsp;
+    
+        <!--a href="/tag/#%E8%B7%A8%E5%B9%B3%E5%8F%B0" title="Tag: 跨平台" rel="tag">跨平台</a-->
+        <a href="/cn/tag/#跨平台" title="Tag: 跨平台" rel="tag">跨平台</a>
+    
+  
+
+</span>
+
+            </div>
+
+        </div>
+        <hr>
+        <article itemscope itemtype="http://schema.org/BlogPosting">
+        <p>最近为了给<a href="http://xmake.io">xmake</a>实现预编译头文件的支持，研究了下各大主流编译器处理预编译头的机制以及之间的一些差异。</p>
+
+<p>现在的大部分c/c++编译器都是支持预编译头的，例如：gcc，clang，msvc等，用于优化c++代码的编译速度，毕竟c++的头文件如果包含了模板定义的话，编译速度是很慢的，
+如果能够吧大部分通用的头文件放置在一个<code class="highlighter-rouge">header.h</code>中，在其他源码编译之前预先对其进行编译，之后的代码都能重用这部分预编译头，就可以极大程度上减少频繁的头文件冗余编译。</p>
+
+<p>但是不同编译器对它的支持力度和处理方式，还是有很大差异的，并不是非常通用，在xmake中封装成统一的接口和使用方式，还是费了很大的功夫才搞定。</p>
+
+<h4 id="msvc">msvc的预编译头处理</h4>
+
+<p>预编译头在msvc的项目中很常见，经常会看到类似<code class="highlighter-rouge">stdafx.cpp</code>, <code class="highlighter-rouge">stdafx.h</code>的文件，就是用于此目的，而msvc编译器是通过编译<code class="highlighter-rouge">stdafx.cpp</code>来生成预编译头文件<code class="highlighter-rouge">stdafx.pch</code>的。</p>
+
+<p>创建预编译头的命令行如下：</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>cl.exe -c -Yc -Fpstdafx.pch -Fostdafx.obj stdafx.cpp
+</code></pre>
+</div>
+
+<p>其中，<code class="highlighter-rouge">-Yc</code>就是创建预编译头<code class="highlighter-rouge">stdafx.pch</code>的意思，通过<code class="highlighter-rouge">-Fp</code>来指定<code class="highlighter-rouge">*.pch</code>的输出文件路径，用<code class="highlighter-rouge">-Fo</code>指定编译<code class="highlighter-rouge">stdafx.cpp</code>生成对象文件。</p>
+
+<p>其他源码是如何使用这个<code class="highlighter-rouge">stdafx.pch</code>的呢，通过将<code class="highlighter-rouge">stdafx.h</code>传入<code class="highlighter-rouge">-Yu</code>来告诉编译器，编译当前代码，忽略<code class="highlighter-rouge">#include "stdafx.h"</code>，直接使用已经编译好的<code class="highlighter-rouge">stdafx.pch</code>文件。</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>cl.exe -c -Yustdafx.h -Fpstdafx.pch -Fotest.obj test.cpp
+</code></pre>
+</div>
+
+<p>最后链接的时候，需要把：<code class="highlighter-rouge">stdafx.obj</code>, <code class="highlighter-rouge">test.obj</code>都连接上才行，这个也是和gcc, clang编译器不同的地方。</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>link.exe -out:test test.obj stdafx.obj
+</code></pre>
+</div>
+
+<p>注：一定要吧<code class="highlighter-rouge">stdafx.obj</code>也链接上哦，虽然<code class="highlighter-rouge">stdafx.cpp</code>仅用于生成<code class="highlighter-rouge">stdafx.pch</code>，但是对象文件也是需要。</p>
+
+<p>还有个跟gcc, clang有区别的地方是，msvc的<code class="highlighter-rouge">-Yu</code>指定<code class="highlighter-rouge">stdafx.h</code>必须是<code class="highlighter-rouge">#include "stdafx.h"</code>中的头文件名字，不是文件路径哦。</p>
+
+<h4 id="clang">clang的预编译头文件处理</h4>
+
+<p>个人感觉clang的预编译头文件支持方式最为友好，也最为简单。</p>
+
+<p>相比于msvc，不需要<code class="highlighter-rouge">stdafx.cpp</code>，只需要一个头文件<code class="highlighter-rouge">stdafx.h</code>就可以生成pch文件。
+相比于gcc，可以灵活控制pch文件的路径，更加灵活。</p>
+
+<p>编译头文件生成pch文件：</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>clang -c -o stdafx.pch stdafx.h
+</code></pre>
+</div>
+
+<p>使用预编译头文件：</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>clang -c -include stdafx.h -include-pch stdafx.pch -o test.o test.cpp
+</code></pre>
+</div>
+
+<p>其中<code class="highlighter-rouge">-include stdafx.h</code>用于忽略编译<code class="highlighter-rouge">test.cpp</code>中的<code class="highlighter-rouge">#include "stdafx.h"</code>，通过<code class="highlighter-rouge">-include-pch</code>使用预先编译好的<code class="highlighter-rouge">stdafx.pch</code>。</p>
+
+<p>并且这里指定的<code class="highlighter-rouge">stdafx.h</code>和<code class="highlighter-rouge">stdafx.pch</code>不仅可以是在includedir搜索路径下的文件，也可以指定全路径文件名，非常灵活，例如：</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>clang -c -include inc/stdafx.h -include-pch out/stdafx.pch -o test.o test.cpp
+</code></pre>
+</div>
+
+<h4 id="gcc">gcc的预编译头文件处理</h4>
+
+<p>gcc的预编译头处理方式基本上跟clang的类似，唯一的区别就是：它不支持<code class="highlighter-rouge">-include-pch</code>参数，因此不能所以指定使用的<code class="highlighter-rouge">stdafx.pch</code>文件路径。</p>
+
+<p>它有自己的搜索规则：</p>
+
+<ol>
+  <li>从<code class="highlighter-rouge">stdafx.h</code>所在目录中，查找<code class="highlighter-rouge">stdafx.h.pch</code>文件是否存在</li>
+  <li>从<code class="highlighter-rouge">-I</code>的头文件搜索路径找查找<code class="highlighter-rouge">stdafx.h.pch</code></li>
+</ol>
+
+<p>编译头文件生成pch文件：</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>gcc -c -o stdafx.pch stdafx.h
+</code></pre>
+</div>
+
+<p>使用预编译头文件：</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>gcc -c -include stdafx.h -o test.o test.cpp
+</code></pre>
+</div>
+
+<p>为了让上述代码正常编译，<code class="highlighter-rouge">stdafx.h.pch</code>必须放置在<code class="highlighter-rouge">stdafx.h</code>的相同目录下，这样编译才能找到，目前我还没有找到可以所以指定输出目录的方法。</p>
+
+<h4 id="section">其他注意点</h4>
+
+<p>gcc、clang对于<code class="highlighter-rouge">*.h</code>的头文件编译，默认是作为c预编译头来使用的，这跟c++的pch是不一样的，无法给c++的代码使用，如果要生成c++可用的pch文件，必须要告诉编译器，如何去编译<code class="highlighter-rouge">stdafx.h</code>。</p>
+
+<p>这个可以通过<code class="highlighter-rouge">-x c++-header</code>参数来解决：</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>gcc -c -x c++-header -o stdafx.pch stdafx.h
+</code></pre>
+</div>
+
+<p>当然也可以通过修改后缀名来解决：</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>gcc -c -o stdafx.pch stdafx.hpp
+</code></pre>
+</div>
+
+<h4 id="xmake">xmake对预编译头文件的支持</h4>
+
+<p>xmake支持通过预编译头文件去加速<code class="highlighter-rouge">c/c++</code>程序编译，目前支持的编译器有：gcc, clang和msvc。</p>
+
+<p>使用方式如下：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">target</span><span class="p">(</span><span class="s2">"test"</span><span class="p">)</span>
+    <span class="n">set_precompiled_header</span><span class="p">(</span><span class="s2">"header.h"</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>通常情况下，设置c头文件的预编译，这需要加上这个配置即可，如果是对c++头文件的预编译，改成：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">target</span><span class="p">(</span><span class="s2">"test"</span><span class="p">)</span>
+    <span class="n">set_precompiled_header</span><span class="p">(</span><span class="s2">"header.hpp"</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>其中的参数指定的是需要预编译的头文件路径，相对于当前<code class="highlighter-rouge">xmake.lua</code>所在的目录。</p>
+
+<p>如果只是调用xmake命令行进行直接编译，那么上面的设置足够了，并且已经对各个编译器进行支持，但是有些情况下，上面的设置还不能满足需求：</p>
+
+<ol>
+  <li>如果要使用<code class="highlighter-rouge">xmake project</code>工程插件生成vs工程文件，那么还缺少一个类似<code class="highlighter-rouge">stdafx.cpp</code>的文件（上面的设置在msvc编译的时候会自动生成一个临时的，但是对IDE工程不友好）。</li>
+  <li>如果gcc/clang下，<code class="highlighter-rouge">header.h</code>想作为c++的预编译头文件就不支持了，除非改成<code class="highlighter-rouge">header.hpp</code>（默认会当做c头文件进行预编译）。</li>
+</ol>
+
+<p>因此为了更加地通用跨平台，可以在工程里面创建一个类似vc中<code class="highlighter-rouge">stdafx.cpp</code>的源文件：<code class="highlighter-rouge">header.cpp</code>。</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">target</span><span class="p">(</span><span class="s2">"test"</span><span class="p">)</span>
+    <span class="n">set_precompiled_header</span><span class="p">(</span><span class="s2">"header.h"</span><span class="p">,</span> <span class="s2">"header.cpp"</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p><code class="highlighter-rouge">header.cpp</code>的内容如下：</p>
+
+<div class="language-cpp highlighter-rouge"><pre class="highlight"><code><span class="cp">#include "header.h"
+</span></code></pre>
+</div>
+
+<p>上面的设置，就可以很好地处理各种情况下的预编译处理，追加的<code class="highlighter-rouge">header.cpp</code>也告诉了xmake：<code class="highlighter-rouge">header.h</code>是作为c++来预编译的。</p>
+
+<p>相对于经典的vc工程中的<code class="highlighter-rouge">stdafx.cpp</code>和<code class="highlighter-rouge">stdafx.h</code>，也能完美支持：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">target</span><span class="p">(</span><span class="s2">"test"</span><span class="p">)</span>
+    <span class="n">set_precompiled_header</span><span class="p">(</span><span class="s2">"stdafx.h"</span><span class="p">,</span> <span class="s2">"stdafx.cpp"</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>更多使用说明见：<a href="http://xmake.io/#/zh/manual?id=targetset_precompiled_header">target.set_precompiled_header</a></p>
+
+<h4 id="section-1">参考资料</h4>
+
+<p><a href="http://itscompiling.eu/2017/01/12/precompiled-headers-cpp-compilation">Speed up C++ compilation, part 1: precompiled headers</a></p>
+
+        </article>
+        <hr>
+
+        
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+        
+
+        
+        
+            
+            
+            
+                
+                    
+                        
+                        <h2 id="similar_posts">相关文章</h2>
+                        <ul>
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2017/07/29/new-features-v2.1.5/">xmake v2.1.5版本新特性介绍
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2017/05/10/update-v2.1.4/">xmake v2.1.4版本更新，增加交互式命令执行(REPL)
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2017/04/05/project-desciption-examples/">使用xmake优雅地描述工程
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2017/04/02/update-v2.1.3/">xmake v2.1.3版本更新，修复安全和稳定性问题
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2017/03/30/safer-install-and-uninstall/">xmake改进权限问题，提升操作安全性
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2017/03/23/update-v2.1.2/">xmake v2.1.2版本更新，增强vs工程支持
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+        
+            </ul>
+        
+
+        <div class="post-recent">
+    <div class="pre">
+
+        
+
+        
+
+        
+        
+        <p><strong>上一篇</strong> <a href="/cn/2017/07/29/new-features-v2.1.5/">xmake v2.1.5版本新特性介绍</a></p>
+        
+    </div>
+
+    <div class="nex">
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+    </div>
+</div>
+
+
+        <h2 id="comments">评论</h2>
+        
+
+<div id="SOHUCS" ></div> 
+<script type="text/javascript"> 
+(function(){ 
+var appid = 'cysUk4sMC'; 
+var conf = 'prod_a1ee57b8c7df5085908e9e798786ee03'; 
+var width = window.innerWidth || document.documentElement.clientWidth; 
+if (width < 960) { 
+window.document.write('<script id="changyan_mobile_js" charset="utf-8" type="text/javascript" src="https://changyan.sohu.com/upload/mobile/wap-js/changyan_mobile.js?client_id=' + appid + '&conf=' + conf + '"><\/script>'); } else { var loadJs=function(d,a){var c=document.getElementsByTagName("head")[0]||document.head||document.documentElement;var b=document.createElement("script");b.setAttribute("type","text/javascript");b.setAttribute("charset","UTF-8");b.setAttribute("src",d);if(typeof a==="function"){if(window.attachEvent){b.onreadystatechange=function(){var e=b.readyState;if(e==="loaded"||e==="complete"){b.onreadystatechange=null;a()}}}else{b.onload=a}}c.appendChild(b)};loadJs("https://changyan.sohu.com/upload/changyan.js",function(){window.changyan.api.config({appid:appid,conf:conf})}); } })(); </script>
+
+
+
+
+
+
+
+
+    </div>
+    <button class="anchor"><i class="fa fa-anchor"></i></button>
+    <div class="right">
+        <div class="wrap">
+
+            <!-- Content -->
+            <div class="side content">
+                <div>
+                    内容
+                </div>
+                <ul id="content-side" class="content-ul">
+                    <li><a href="#english">English</a></li>
+                    <li><a href="#similar_posts">相关文章</a></li>
+                    <li><a href="#comments">评论</a></li>
+                </ul>
+            </div>
+            
+            <br>
+            <div class="side">
+                <div>
+                    <i class="fa fa-external-link"></i>
+                    链接
+                </div>
+                <ul class="content-ul">
+                  <li><a href="http://github.com/waruqi/tbox">tbox</a></li>
+                  <li><a href="http://www.xmake.io">xmake</a></li>
+                  <li><a href="https://github.com/waruqi">github</a></li>
+                </ul>
+            </div> 
+
+            <!-- qqgroup -->
+            <br>
+            <div class="side">
+                <div>
+                    <i class="fa fa-external-link"></i>
+                    技术交流群（QQ）
+                </div>
+                <img src="/static/img/qqgroup.png" alt="qqgroup" width="256" height="284">
+            </div> 
+
+            <!-- google ads -->
+            
+
+            <!-- baidu ads -->
+            
+
+        </div>
+    </div>
+</div>
+<script>
+/**
+ * target _blank
+ */
+(function() {
+    var aTags = document.querySelectorAll('article a:not([id])')
+    for (var i = 0; i < aTags.length; i++) {
+        aTags[i].setAttribute('target', '_blank')
+    }
+}());
+</script>
+<script src="/js/pageContent.js " charset="utf-8"></script>
+
+
+
+    <!-- baidu ads -->
+
+<script type="text/javascript">
+    var cpro_id = isPC()? "u2872323" : "";
+</script>
+<script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
+
+
+
+
+<footer class="site-footer">
+    <div class="wrapper">
+        <p class="description">
+             Copyright (c) 2016-2017 tboox.org 
+        </p>
+        <p class="contact">
+            
+            <a href="https://github.com/waruqi" title="GitHub"><i class="fa fa-github" aria-hidden="true"></i></a> 
+             
+            
+            <a href="mailto:waruqi@gmail.com" title="email"><i class="fa fa-envelope-o" aria-hidden="true"></i></a> 
+            
+            
+            <a href="https://twitter.com/waruqi" title="Twitter"><i class="fa fa-twitter" aria-hidden="true"></i></a> 
+            
+            <a href="/feed.xml" title="feed"><i class="fa fa-feed" aria-hidden="true"></i></a> 
+        </p>
+        <p class="power">
+            <span>
+                Site powered by <a href="https://jekyllrb.com/">Jekyll</a> & <a href="https://github.com/Gaohaoyang">HyG</a>.
+            </span>
+            <span>
+                <a href="http://www.miitbeian.gov.cn/">沪ICP备16031914号</a>.
+                <a href="http://www.beian.gov.cn/">沪公网安备31011702000303号</a>.
+            </span>
+        </p>
+    </div>
+</footer>
+
+    <div class="back-to-top">
+    <a href="#top" class="scroll">
+        <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    </a>
+</div>
+
+    <script src=" /js/main.js " charset="utf-8"></script>
+    <script src=" /js/scroll.min.js " charset="utf-8"></script>
+  </body>
+
+</html>

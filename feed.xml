@@ -5,9 +5,190 @@
     <description>Focus on cross-platform development using c language</description>
     <link>http://www.tboox.org/</link>
     <atom:link href="http://www.tboox.org/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Mon, 31 Jul 2017 08:56:01 +0800</pubDate>
-    <lastBuildDate>Mon, 31 Jul 2017 08:56:01 +0800</lastBuildDate>
+    <pubDate>Mon, 31 Jul 2017 22:13:57 +0800</pubDate>
+    <lastBuildDate>Mon, 31 Jul 2017 22:13:57 +0800</lastBuildDate>
     <generator>Jekyll v3.1.0</generator>
+    
+      <item>
+        <title>不同编译器对预编译头文件的处理</title>
+        <description>&lt;p&gt;最近为了给&lt;a href=&quot;http://xmake.io&quot;&gt;xmake&lt;/a&gt;实现预编译头文件的支持，研究了下各大主流编译器处理预编译头的机制以及之间的一些差异。&lt;/p&gt;
+
+&lt;p&gt;现在的大部分c/c++编译器都是支持预编译头的，例如：gcc，clang，msvc等，用于优化c++代码的编译速度，毕竟c++的头文件如果包含了模板定义的话，编译速度是很慢的，
+如果能够吧大部分通用的头文件放置在一个&lt;code class=&quot;highlighter-rouge&quot;&gt;header.h&lt;/code&gt;中，在其他源码编译之前预先对其进行编译，之后的代码都能重用这部分预编译头，就可以极大程度上减少频繁的头文件冗余编译。&lt;/p&gt;
+
+&lt;p&gt;但是不同编译器对它的支持力度和处理方式，还是有很大差异的，并不是非常通用，在xmake中封装成统一的接口和使用方式，还是费了很大的功夫才搞定。&lt;/p&gt;
+
+&lt;h4 id=&quot;msvc&quot;&gt;msvc的预编译头处理&lt;/h4&gt;
+
+&lt;p&gt;预编译头在msvc的项目中很常见，经常会看到类似&lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.cpp&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.h&lt;/code&gt;的文件，就是用于此目的，而msvc编译器是通过编译&lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.cpp&lt;/code&gt;来生成预编译头文件&lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.pch&lt;/code&gt;的。&lt;/p&gt;
+
+&lt;p&gt;创建预编译头的命令行如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;cl.exe -c -Yc -Fpstdafx.pch -Fostdafx.obj stdafx.cpp
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;其中，&lt;code class=&quot;highlighter-rouge&quot;&gt;-Yc&lt;/code&gt;就是创建预编译头&lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.pch&lt;/code&gt;的意思，通过&lt;code class=&quot;highlighter-rouge&quot;&gt;-Fp&lt;/code&gt;来指定&lt;code class=&quot;highlighter-rouge&quot;&gt;*.pch&lt;/code&gt;的输出文件路径，用&lt;code class=&quot;highlighter-rouge&quot;&gt;-Fo&lt;/code&gt;指定编译&lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.cpp&lt;/code&gt;生成对象文件。&lt;/p&gt;
+
+&lt;p&gt;其他源码是如何使用这个&lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.pch&lt;/code&gt;的呢，通过将&lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.h&lt;/code&gt;传入&lt;code class=&quot;highlighter-rouge&quot;&gt;-Yu&lt;/code&gt;来告诉编译器，编译当前代码，忽略&lt;code class=&quot;highlighter-rouge&quot;&gt;#include &quot;stdafx.h&quot;&lt;/code&gt;，直接使用已经编译好的&lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.pch&lt;/code&gt;文件。&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;cl.exe -c -Yustdafx.h -Fpstdafx.pch -Fotest.obj test.cpp
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;最后链接的时候，需要把：&lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.obj&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;test.obj&lt;/code&gt;都连接上才行，这个也是和gcc, clang编译器不同的地方。&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;link.exe -out:test test.obj stdafx.obj
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;注：一定要吧&lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.obj&lt;/code&gt;也链接上哦，虽然&lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.cpp&lt;/code&gt;仅用于生成&lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.pch&lt;/code&gt;，但是对象文件也是需要。&lt;/p&gt;
+
+&lt;p&gt;还有个跟gcc, clang有区别的地方是，msvc的&lt;code class=&quot;highlighter-rouge&quot;&gt;-Yu&lt;/code&gt;指定&lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.h&lt;/code&gt;必须是&lt;code class=&quot;highlighter-rouge&quot;&gt;#include &quot;stdafx.h&quot;&lt;/code&gt;中的头文件名字，不是文件路径哦。&lt;/p&gt;
+
+&lt;h4 id=&quot;clang&quot;&gt;clang的预编译头文件处理&lt;/h4&gt;
+
+&lt;p&gt;个人感觉clang的预编译头文件支持方式最为友好，也最为简单。&lt;/p&gt;
+
+&lt;p&gt;相比于msvc，不需要&lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.cpp&lt;/code&gt;，只需要一个头文件&lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.h&lt;/code&gt;就可以生成pch文件。
+相比于gcc，可以灵活控制pch文件的路径，更加灵活。&lt;/p&gt;
+
+&lt;p&gt;编译头文件生成pch文件：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;clang -c -o stdafx.pch stdafx.h
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;使用预编译头文件：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;clang -c -include stdafx.h -include-pch stdafx.pch -o test.o test.cpp
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;其中&lt;code class=&quot;highlighter-rouge&quot;&gt;-include stdafx.h&lt;/code&gt;用于忽略编译&lt;code class=&quot;highlighter-rouge&quot;&gt;test.cpp&lt;/code&gt;中的&lt;code class=&quot;highlighter-rouge&quot;&gt;#include &quot;stdafx.h&quot;&lt;/code&gt;，通过&lt;code class=&quot;highlighter-rouge&quot;&gt;-include-pch&lt;/code&gt;使用预先编译好的&lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.pch&lt;/code&gt;。&lt;/p&gt;
+
+&lt;p&gt;并且这里指定的&lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.h&lt;/code&gt;和&lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.pch&lt;/code&gt;不仅可以是在includedir搜索路径下的文件，也可以指定全路径文件名，非常灵活，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;clang -c -include inc/stdafx.h -include-pch out/stdafx.pch -o test.o test.cpp
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;gcc&quot;&gt;gcc的预编译头文件处理&lt;/h4&gt;
+
+&lt;p&gt;gcc的预编译头处理方式基本上跟clang的类似，唯一的区别就是：它不支持&lt;code class=&quot;highlighter-rouge&quot;&gt;-include-pch&lt;/code&gt;参数，因此不能所以指定使用的&lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.pch&lt;/code&gt;文件路径。&lt;/p&gt;
+
+&lt;p&gt;它有自己的搜索规则：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;从&lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.h&lt;/code&gt;所在目录中，查找&lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.h.pch&lt;/code&gt;文件是否存在&lt;/li&gt;
+  &lt;li&gt;从&lt;code class=&quot;highlighter-rouge&quot;&gt;-I&lt;/code&gt;的头文件搜索路径找查找&lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.h.pch&lt;/code&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;编译头文件生成pch文件：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;gcc -c -o stdafx.pch stdafx.h
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;使用预编译头文件：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;gcc -c -include stdafx.h -o test.o test.cpp
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;为了让上述代码正常编译，&lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.h.pch&lt;/code&gt;必须放置在&lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.h&lt;/code&gt;的相同目录下，这样编译才能找到，目前我还没有找到可以所以指定输出目录的方法。&lt;/p&gt;
+
+&lt;h4 id=&quot;section&quot;&gt;其他注意点&lt;/h4&gt;
+
+&lt;p&gt;gcc、clang对于&lt;code class=&quot;highlighter-rouge&quot;&gt;*.h&lt;/code&gt;的头文件编译，默认是作为c预编译头来使用的，这跟c++的pch是不一样的，无法给c++的代码使用，如果要生成c++可用的pch文件，必须要告诉编译器，如何去编译&lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.h&lt;/code&gt;。&lt;/p&gt;
+
+&lt;p&gt;这个可以通过&lt;code class=&quot;highlighter-rouge&quot;&gt;-x c++-header&lt;/code&gt;参数来解决：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;gcc -c -x c++-header -o stdafx.pch stdafx.h
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;当然也可以通过修改后缀名来解决：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;gcc -c -o stdafx.pch stdafx.hpp
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;xmake&quot;&gt;xmake对预编译头文件的支持&lt;/h4&gt;
+
+&lt;p&gt;xmake支持通过预编译头文件去加速&lt;code class=&quot;highlighter-rouge&quot;&gt;c/c++&lt;/code&gt;程序编译，目前支持的编译器有：gcc, clang和msvc。&lt;/p&gt;
+
+&lt;p&gt;使用方式如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_precompiled_header&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;header.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;通常情况下，设置c头文件的预编译，这需要加上这个配置即可，如果是对c++头文件的预编译，改成：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_precompiled_header&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;header.hpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;其中的参数指定的是需要预编译的头文件路径，相对于当前&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake.lua&lt;/code&gt;所在的目录。&lt;/p&gt;
+
+&lt;p&gt;如果只是调用xmake命令行进行直接编译，那么上面的设置足够了，并且已经对各个编译器进行支持，但是有些情况下，上面的设置还不能满足需求：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;如果要使用&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake project&lt;/code&gt;工程插件生成vs工程文件，那么还缺少一个类似&lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.cpp&lt;/code&gt;的文件（上面的设置在msvc编译的时候会自动生成一个临时的，但是对IDE工程不友好）。&lt;/li&gt;
+  &lt;li&gt;如果gcc/clang下，&lt;code class=&quot;highlighter-rouge&quot;&gt;header.h&lt;/code&gt;想作为c++的预编译头文件就不支持了，除非改成&lt;code class=&quot;highlighter-rouge&quot;&gt;header.hpp&lt;/code&gt;（默认会当做c头文件进行预编译）。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;因此为了更加地通用跨平台，可以在工程里面创建一个类似vc中&lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.cpp&lt;/code&gt;的源文件：&lt;code class=&quot;highlighter-rouge&quot;&gt;header.cpp&lt;/code&gt;。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_precompiled_header&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;header.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;header.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;header.cpp&lt;/code&gt;的内容如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-cpp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;cp&quot;&gt;#include &quot;header.h&quot;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;上面的设置，就可以很好地处理各种情况下的预编译处理，追加的&lt;code class=&quot;highlighter-rouge&quot;&gt;header.cpp&lt;/code&gt;也告诉了xmake：&lt;code class=&quot;highlighter-rouge&quot;&gt;header.h&lt;/code&gt;是作为c++来预编译的。&lt;/p&gt;
+
+&lt;p&gt;相对于经典的vc工程中的&lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.cpp&lt;/code&gt;和&lt;code class=&quot;highlighter-rouge&quot;&gt;stdafx.h&lt;/code&gt;，也能完美支持：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_precompiled_header&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;stdafx.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;stdafx.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;更多使用说明见：&lt;a href=&quot;http://xmake.io/#/zh/manual?id=targetset_precompiled_header&quot;&gt;target.set_precompiled_header&lt;/a&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;section-1&quot;&gt;参考资料&lt;/h4&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://itscompiling.eu/2017/01/12/precompiled-headers-cpp-compilation&quot;&gt;Speed up C++ compilation, part 1: precompiled headers&lt;/a&gt;&lt;/p&gt;
+</description>
+        <pubDate>Mon, 31 Jul 2017 00:00:00 +0800</pubDate>
+        <link>http://www.tboox.org/cn/2017/07/31/precompiled-header/</link>
+        <guid isPermaLink="true">http://www.tboox.org/cn/2017/07/31/precompiled-header/</guid>
+        
+        <category>xmake</category>
+        
+        <category>lua</category>
+        
+        <category>预编译头文件</category>
+        
+        <category>c++编译加速</category>
+        
+        <category>优化编译</category>
+        
+        <category>跨平台</category>
+        
+        
+        <category>xmake</category>
+        
+      </item>
     
       <item>
         <title>xmake v2.1.5版本新特性介绍</title>
@@ -2134,70 +2315,6 @@ so that any developer can quickly pick it up and enjoy the productivity boost wh
         <category>版本</category>
         
         <category>vs201x</category>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>xmake v2.1.1 released, support golang, dlang and rust languages</title>
-        <description>&lt;h3 id=&quot;new-features&quot;&gt;New features&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Add &lt;code class=&quot;highlighter-rouge&quot;&gt;--links&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;--linkdirs&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;--includedirs&lt;/code&gt; configure arguments&lt;/li&gt;
-  &lt;li&gt;Add app2ipa plugin&lt;/li&gt;
-  &lt;li&gt;Add dictionary syntax style for &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake.lua&lt;/code&gt;&lt;/li&gt;
-  &lt;li&gt;Provide smart scanning and building mode without &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake.lua&lt;/code&gt;&lt;/li&gt;
-  &lt;li&gt;Add &lt;code class=&quot;highlighter-rouge&quot;&gt;set_xmakever&lt;/code&gt; api for &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake.lua&lt;/code&gt;&lt;/li&gt;
-  &lt;li&gt;Add &lt;code class=&quot;highlighter-rouge&quot;&gt;add_frameworks&lt;/code&gt; api for &lt;code class=&quot;highlighter-rouge&quot;&gt;objc&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;swift&lt;/code&gt;&lt;/li&gt;
-  &lt;li&gt;Support multi-languages extension and add &lt;code class=&quot;highlighter-rouge&quot;&gt;golang&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;dlang&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;rust&lt;/code&gt; language&lt;/li&gt;
-  &lt;li&gt;Add optional &lt;code class=&quot;highlighter-rouge&quot;&gt;target_end&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;option_end&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;task_end&lt;/code&gt; apis for scope&lt;/li&gt;
-  &lt;li&gt;Add &lt;code class=&quot;highlighter-rouge&quot;&gt;golang&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;dlang&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;rust&lt;/code&gt; project templates&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;changes&quot;&gt;Changes&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Support vs2017 for the project plugin&lt;/li&gt;
-  &lt;li&gt;Improve gcc error and warning tips&lt;/li&gt;
-  &lt;li&gt;Improve lanuage module&lt;/li&gt;
-  &lt;li&gt;Improve print interface, support lua print and format output&lt;/li&gt;
-  &lt;li&gt;Automatically scan project files and generate it for building if xmake.lua not exists&lt;/li&gt;
-  &lt;li&gt;Modify license to Apache License 2.0&lt;/li&gt;
-  &lt;li&gt;Remove some binary tools&lt;/li&gt;
-  &lt;li&gt;Remove install.bat script and provide nsis install package&lt;/li&gt;
-  &lt;li&gt;Rewrite &lt;a href=&quot;http://www.xmake.io/#/home/&quot;&gt;documents&lt;/a&gt; using &lt;a href=&quot;https://github.com/egoist/docute&quot;&gt;docute&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;Improve &lt;code class=&quot;highlighter-rouge&quot;&gt;os.run&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;os.exec&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;os.cp&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;os.mv&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;os.rm&lt;/code&gt; interfaces and support wildcard pattern&lt;/li&gt;
-  &lt;li&gt;Optimize the output info and add &lt;code class=&quot;highlighter-rouge&quot;&gt;-q|--quiet&lt;/code&gt; option&lt;/li&gt;
-  &lt;li&gt;Improve makefile generator, uses $(XX) variables for tools and flags&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;bugs-fixed&quot;&gt;Bugs fixed&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/waruqi/xmake/issues/41&quot;&gt;#41&lt;/a&gt;: Fix checker bug for windows&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/waruqi/xmake/issues/43&quot;&gt;#43&lt;/a&gt;: Avoid to generate unnecessary .xmake directory&lt;/li&gt;
-  &lt;li&gt;Add c++ stl search directories for android&lt;/li&gt;
-  &lt;li&gt;Fix compile error for rhel 5.10&lt;/li&gt;
-  &lt;li&gt;Fix &lt;code class=&quot;highlighter-rouge&quot;&gt;os.iorun&lt;/code&gt; bug&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-        <pubDate>Sat, 04 Mar 2017 00:00:00 +0800</pubDate>
-        <link>http://www.tboox.org/2017/03/04/update-v2.1.1/</link>
-        <guid isPermaLink="true">http://www.tboox.org/2017/03/04/update-v2.1.1/</guid>
-        
-        <category>xmake</category>
-        
-        <category>lua</category>
-        
-        <category>version</category>
-        
-        <category>golang</category>
-        
-        <category>rust</category>
-        
-        <category>dlang</category>
         
         
         <category>xmake</category>
