@@ -429,78 +429,7 @@
 
 <p>目前正在努力开发中，尽情期待。。</p>
 
-<h4 id="section-1">新增查找工具接口</h4>
-
-<p><a href="http://xmake.io/#/zh/manual?id=detect-find_tool">lib.detect.find_tool</a>接口用于查找可执行程序，比<a href="http://xmake.io/#/zh/manual?id=detect-find_program">lib.detect.find_program</a>更加的高级，功能也更加强大，它对可执行程序进行了封装，提供了工具这个概念：</p>
-
-<ul>
-  <li>toolname: 工具名，可执行程序的简称，用于标示某个工具，例如：<code class="highlighter-rouge">gcc</code>, <code class="highlighter-rouge">clang</code>等</li>
-  <li>program: 可执行程序命令，例如：<code class="highlighter-rouge">xcrun -sdk macosx clang</code></li>
-</ul>
-
-<p><code class="highlighter-rouge">lib.detect.find_program</code>只能通过传入的原始program命令或路径，去判断该程序是否存在。
-而<code class="highlighter-rouge">find_tool</code>则可以通过更加一致的toolname去查找工具，并且返回对应的program完整命令路径，例如：</p>
-
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">import</span><span class="p">(</span><span class="s2">"lib.detect.find_tool"</span><span class="p">)</span>
-
-<span class="kd">local</span> <span class="n">tool</span> <span class="o">=</span> <span class="n">find_tool</span><span class="p">(</span><span class="s2">"clang"</span><span class="p">)</span>
-</code></pre>
-</div>
-
-<p>我们也可以指定<code class="highlighter-rouge"><span class="p">{</span><span class="err">version</span><span class="w"> </span><span class="err">=</span><span class="w"> </span><span class="err">true</span><span class="p">}</span></code>参数去获取工具的版本，并且指定一个自定义的搜索路径，也支持内建变量和自定义脚本哦：</p>
-
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="kd">local</span> <span class="n">tool</span> <span class="o">=</span> <span class="n">find_tool</span><span class="p">(</span><span class="s2">"clang"</span><span class="p">,</span> <span class="p">{</span><span class="n">check</span> <span class="o">=</span> <span class="s2">"--help"</span><span class="p">})</span> 
-<span class="kd">local</span> <span class="n">tool</span> <span class="o">=</span> <span class="n">find_tool</span><span class="p">(</span><span class="s2">"clang"</span><span class="p">,</span> <span class="p">{</span><span class="n">check</span> <span class="o">=</span> <span class="k">function</span> <span class="p">(</span><span class="n">tool</span><span class="p">)</span> <span class="n">os</span><span class="p">.</span><span class="n">run</span><span class="p">(</span><span class="s2">"%s -h"</span><span class="p">,</span> <span class="n">tool</span><span class="p">)</span> <span class="k">end</span><span class="p">})</span>
-<span class="kd">local</span> <span class="n">tool</span> <span class="o">=</span> <span class="n">find_tool</span><span class="p">(</span><span class="s2">"clang"</span><span class="p">,</span> <span class="p">{</span><span class="n">version</span> <span class="o">=</span> <span class="kc">true</span><span class="p">,</span> <span class="p">{</span><span class="n">pathes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"/usr/bin"</span><span class="p">,</span> <span class="s2">"/usr/local/bin"</span><span class="p">,</span> <span class="s2">"$(env PATH)"</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="k">return</span> <span class="s2">"/usr/xxx/bin"</span> <span class="k">end</span><span class="p">}})</span>
-</code></pre>
-</div>
-
-<p>最后总结下，<code class="highlighter-rouge">find_tool</code>的查找流程：</p>
-
-<ol>
-  <li>优先通过<code class="highlighter-rouge"><span class="p">{</span><span class="err">program</span><span class="w"> </span><span class="err">=</span><span class="w"> </span><span class="nt">"xxx"</span><span class="err">}</span></code>的参数来尝试运行和检测。</li>
-  <li>如果在<code class="highlighter-rouge">xmake/modules/detect/tools</code>下存在<code class="highlighter-rouge">detect.tools.find_xxx</code>脚本，则调用此脚本进行更加精准的检测。</li>
-  <li>尝试从<code class="highlighter-rouge">/usr/bin</code>，<code class="highlighter-rouge">/usr/local/bin</code>等系统目录进行检测。</li>
-</ol>
-
-<p>我们也可以在工程<code class="highlighter-rouge">xmake.lua</code>中<code class="highlighter-rouge">add_moduledirs</code>指定的模块目录中，添加自定义查找脚本，来改进检测机制：</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>projectdir
-  - xmake/modules
-    - detect/tools/find_xxx.lua
-</code></pre>
-</div>
-
-<h4 id="xmake-lua">更加强大的xmake lua插件</h4>
-
-<p>2.1.4版本的时候，此插件就已经支持REPL(read-eval-print)，实现交互式运行来方便测试模块：</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake lua
-<span class="gp">&gt; </span>1 + 2
-3
-
-<span class="gp">&gt; </span>a <span class="o">=</span> 1
-<span class="gp">&gt; </span>a
-1
-
-<span class="gp">&gt; </span><span class="k">for </span>_, v <span class="k">in </span>pairs<span class="o">({</span>1, 2, 3<span class="o">})</span> <span class="k">do</span>
-<span class="gp">&gt;&gt; </span>print<span class="o">(</span>v<span class="o">)</span>
-<span class="gp">&gt;&gt; </span>end
-1
-2
-3
-</code></pre>
-</div>
-
-<p>现在可以通过一行命令，更加快速地测试模块接口：</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake lua lib.detect.find_package openssl
-</code></pre>
-</div>
-
-<p>返回结果如下：<code class="highlighter-rouge"><span class="p">{</span><span class="err">links</span><span class="w"> </span><span class="err">=</span><span class="w"> </span><span class="err">{</span><span class="nt">"ssl"</span><span class="err">,</span><span class="w"> </span><span class="nt">"crypto"</span><span class="err">,</span><span class="w"> </span><span class="nt">"z"</span><span class="err">},</span><span class="w"> </span><span class="err">linkdirs</span><span class="w"> </span><span class="err">=</span><span class="w"> </span><span class="p">{</span><span class="nt">"/usr/local/lib"</span><span class="err">},</span><span class="w"> </span><span class="err">includedirs</span><span class="w"> </span><span class="err">=</span><span class="w"> </span><span class="p">{</span><span class="nt">"/usr/local/include"</span><span class="err">}}</span></code></p>
-
-<h4 id="section-2">模块的自定义扩展</h4>
+<h4 id="section-1">模块的自定义扩展</h4>
 
 <p>我们可以通过在工程的<code class="highlighter-rouge">xmake.lua</code>文件的开头指定下扩展modules的目录：</p>
 
@@ -529,7 +458,7 @@
   <li>从参数中指定的pathes路径和一些已知的系统路径<code class="highlighter-rouge">/usr/lib</code>, <code class="highlighter-rouge">/usr/include</code>中进行查找</li>
 </ol>
 
-<h4 id="section-3">快速判断编译器特性检测支持</h4>
+<h4 id="section-2">快速判断编译器特性检测支持</h4>
 
 <p>通过<code class="highlighter-rouge">core.tool.compiler</code>模块的<a href="http://xmake.io/#/zh/manual?id=compiler-has_features">compiler.has_features</a>接口，在<code class="highlighter-rouge">xmake.lua</code>中预先判断当前编译期支持的语言特性，实现条件编译。</p>
 
@@ -631,7 +560,36 @@
 
 <p>上面那个调用，会去同时检测types, includes和funcs是否都满足，如果通过返回true。</p>
 
-<h4 id="section-4">预编译头文件支持</h4>
+<h4 id="xmake-lua">更加强大的xmake lua插件</h4>
+
+<p>2.1.4版本的时候，此插件就已经支持REPL(read-eval-print)，实现交互式运行来方便测试模块：</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake lua
+<span class="gp">&gt; </span>1 + 2
+3
+
+<span class="gp">&gt; </span>a <span class="o">=</span> 1
+<span class="gp">&gt; </span>a
+1
+
+<span class="gp">&gt; </span><span class="k">for </span>_, v <span class="k">in </span>pairs<span class="o">({</span>1, 2, 3<span class="o">})</span> <span class="k">do</span>
+<span class="gp">&gt;&gt; </span>print<span class="o">(</span>v<span class="o">)</span>
+<span class="gp">&gt;&gt; </span>end
+1
+2
+3
+</code></pre>
+</div>
+
+<p>现在可以通过一行命令，更加快速地测试模块接口：</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake lua lib.detect.find_package openssl
+</code></pre>
+</div>
+
+<p>返回结果如下：<code class="highlighter-rouge"><span class="p">{</span><span class="err">links</span><span class="w"> </span><span class="err">=</span><span class="w"> </span><span class="err">{</span><span class="nt">"ssl"</span><span class="err">,</span><span class="w"> </span><span class="nt">"crypto"</span><span class="err">,</span><span class="w"> </span><span class="nt">"z"</span><span class="err">},</span><span class="w"> </span><span class="err">linkdirs</span><span class="w"> </span><span class="err">=</span><span class="w"> </span><span class="p">{</span><span class="nt">"/usr/local/lib"</span><span class="err">},</span><span class="w"> </span><span class="err">includedirs</span><span class="w"> </span><span class="err">=</span><span class="w"> </span><span class="p">{</span><span class="nt">"/usr/local/include"</span><span class="err">}}</span></code></p>
+
+<h4 id="section-3">预编译头文件支持</h4>
 
 <p>xmake新增通过预编译头文件去加速<code class="highlighter-rouge">c/c++</code>程序编译，目前支持的编译器有：gcc, clang和msvc。</p>
 
@@ -702,7 +660,7 @@
 
 <p>一般用于跟IDE、编辑器插件、静态分析工具进行集成，对于<code class="highlighter-rouge">compile_commands</code>的详细说明见：<a href="#https://clang.llvm.org/docs/JSONCompilationDatabase.html">JSONCompilationDatabase</a></p>
 
-<h4 id="section-5">自定义选项检测脚本</h4>
+<h4 id="section-4">自定义选项检测脚本</h4>
 
 <p>在选项检测之前，动态增加一些配置条件：</p>
 
@@ -740,7 +698,7 @@
 </code></pre>
 </div>
 
-<h4 id="section-6">自定义目标加载脚本</h4>
+<h4 id="section-5">自定义目标加载脚本</h4>
 
 <p>在target初始化加载的时候，将会执行<a href="http://xmake.io/#/zh/manual?id=targeton_load">on_load</a>，在里面可以做一些动态的目标配置，实现更灵活的目标描述定义，例如：</p>
 
@@ -755,7 +713,7 @@
 
 <p>可以在<code class="highlighter-rouge">on_load</code>里面，通过<code class="highlighter-rouge">target:set</code>, <code class="highlighter-rouge">target:add</code> 来动态添加各种target属性。</p>
 
-<h4 id="section-7">目标自定义构建脚本支持分平台架构</h4>
+<h4 id="section-6">目标自定义构建脚本支持分平台架构</h4>
 
 <p>通过设置<code class="highlighter-rouge">平台|架构</code>参数，控制自定义脚本的执行条件，实现在不同平台、架构下，调用不同的脚本进行构建：</p>
 
@@ -786,7 +744,7 @@
 
 <p>并不能对不同架构、平台分别处理。</p>
 
-<h4 id="section-8">获取内置变量的值</h4>
+<h4 id="section-7">获取内置变量的值</h4>
 
 <p><a href="http://xmake.io/#/zh/manual?id=%E5%86%85%E7%BD%AE%E5%8F%98%E9%87%8F">内置变量</a>可以通过此接口直接获取，而不需要再加<code class="highlighter-rouge">$()</code>的包裹，使用更加简单，例如：</p>
 
@@ -804,7 +762,7 @@
 
 <p>不过<code class="highlighter-rouge">vformat</code>支持字符串参数格式化，更加强大，所以应用场景不同。</p>
 
-<h4 id="section-9">目标依赖实现属性继承</h4>
+<h4 id="section-8">目标依赖实现属性继承</h4>
 
 <p>2.1.4之前的版本，<a href="http://xmake.io/#/zh/manual?id=targetadd_deps">target.add_deps</a>仅用于添加依赖，修改编译顺序：</p>
 
@@ -857,6 +815,48 @@
 </code></pre>
 </div>
 
+<h4 id="section-9">新增查找工具接口</h4>
+
+<p><a href="http://xmake.io/#/zh/manual?id=detect-find_tool">lib.detect.find_tool</a>接口用于查找可执行程序，比<a href="http://xmake.io/#/zh/manual?id=detect-find_program">lib.detect.find_program</a>更加的高级，功能也更加强大，它对可执行程序进行了封装，提供了工具这个概念：</p>
+
+<ul>
+  <li>toolname: 工具名，可执行程序的简称，用于标示某个工具，例如：<code class="highlighter-rouge">gcc</code>, <code class="highlighter-rouge">clang</code>等</li>
+  <li>program: 可执行程序命令，例如：<code class="highlighter-rouge">xcrun -sdk macosx clang</code></li>
+</ul>
+
+<p><code class="highlighter-rouge">lib.detect.find_program</code>只能通过传入的原始program命令或路径，去判断该程序是否存在。
+而<code class="highlighter-rouge">find_tool</code>则可以通过更加一致的toolname去查找工具，并且返回对应的program完整命令路径，例如：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">import</span><span class="p">(</span><span class="s2">"lib.detect.find_tool"</span><span class="p">)</span>
+
+<span class="kd">local</span> <span class="n">tool</span> <span class="o">=</span> <span class="n">find_tool</span><span class="p">(</span><span class="s2">"clang"</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>我们也可以指定<code class="highlighter-rouge"><span class="p">{</span><span class="err">version</span><span class="w"> </span><span class="err">=</span><span class="w"> </span><span class="err">true</span><span class="p">}</span></code>参数去获取工具的版本，并且指定一个自定义的搜索路径，也支持内建变量和自定义脚本哦：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="kd">local</span> <span class="n">tool</span> <span class="o">=</span> <span class="n">find_tool</span><span class="p">(</span><span class="s2">"clang"</span><span class="p">,</span> <span class="p">{</span><span class="n">check</span> <span class="o">=</span> <span class="s2">"--help"</span><span class="p">})</span> 
+<span class="kd">local</span> <span class="n">tool</span> <span class="o">=</span> <span class="n">find_tool</span><span class="p">(</span><span class="s2">"clang"</span><span class="p">,</span> <span class="p">{</span><span class="n">check</span> <span class="o">=</span> <span class="k">function</span> <span class="p">(</span><span class="n">tool</span><span class="p">)</span> <span class="n">os</span><span class="p">.</span><span class="n">run</span><span class="p">(</span><span class="s2">"%s -h"</span><span class="p">,</span> <span class="n">tool</span><span class="p">)</span> <span class="k">end</span><span class="p">})</span>
+<span class="kd">local</span> <span class="n">tool</span> <span class="o">=</span> <span class="n">find_tool</span><span class="p">(</span><span class="s2">"clang"</span><span class="p">,</span> <span class="p">{</span><span class="n">version</span> <span class="o">=</span> <span class="kc">true</span><span class="p">,</span> <span class="p">{</span><span class="n">pathes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"/usr/bin"</span><span class="p">,</span> <span class="s2">"/usr/local/bin"</span><span class="p">,</span> <span class="s2">"$(env PATH)"</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="k">return</span> <span class="s2">"/usr/xxx/bin"</span> <span class="k">end</span><span class="p">}})</span>
+</code></pre>
+</div>
+
+<p>最后总结下，<code class="highlighter-rouge">find_tool</code>的查找流程：</p>
+
+<ol>
+  <li>优先通过<code class="highlighter-rouge"><span class="p">{</span><span class="err">program</span><span class="w"> </span><span class="err">=</span><span class="w"> </span><span class="nt">"xxx"</span><span class="err">}</span></code>的参数来尝试运行和检测。</li>
+  <li>如果在<code class="highlighter-rouge">xmake/modules/detect/tools</code>下存在<code class="highlighter-rouge">detect.tools.find_xxx</code>脚本，则调用此脚本进行更加精准的检测。</li>
+  <li>尝试从<code class="highlighter-rouge">/usr/bin</code>，<code class="highlighter-rouge">/usr/local/bin</code>等系统目录进行检测。</li>
+</ol>
+
+<p>我们也可以在工程<code class="highlighter-rouge">xmake.lua</code>中<code class="highlighter-rouge">add_moduledirs</code>指定的模块目录中，添加自定义查找脚本，来改进检测机制：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>projectdir
+  - xmake/modules
+    - detect/tools/find_xxx.lua
+</code></pre>
+</div>
+
 <h4 id="root">更加安全的root权限编译</h4>
 
 <p>由于xmake提供强大的自定义模块和脚本支持，并且内置安装、卸载等action，如果<code class="highlighter-rouge">xmake.lua</code>里面的脚本描述不当，容易导致覆写系统文件，因此新版本对此作了改进：</p>
@@ -868,6 +868,11 @@
 </ol>
 
 <p>具体详情见：<a href="https://github.com/tboox/xmake/pull/113">pull#113</a></p>
+
+<h4 id="api">API接口改进</h4>
+
+<p>使用<a href="http://xmake.io/#/zh/manual?id=includes">includes</a>替代老的<a href="http://xmake.io/#/zh/manual?id=add_subdirs">add_subdirs</a>和<a href="http://xmake.io/#/zh/manual?id=add_subfiles">add_subfiles</a>接口。
+使用<a href="http://xmake.io/#/zh/manual?id=targetset_config_header">set_config_header</a>替代老的<a href="http://xmake.io/#/zh/manual?id=targetset_config_h">set_config_h</a>和<a href="http://xmake.io/#/zh/manual?id=targetset_config_h_prefix">set_config_h_prefix</a>接口。</p>
 
 <h4 id="section-10">新增大量扩展模块</h4>
 
