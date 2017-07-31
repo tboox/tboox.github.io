@@ -83,75 +83,6 @@ target("test")
 
 
 
-
-
-#### 新增查找工具接口
-
-[lib.detect.find_tool](http://xmake.io/#/zh/manual?id=detect-find_tool)接口用于查找可执行程序，比[lib.detect.find_program](http://xmake.io/#/zh/manual?id=detect-find_program)更加的高级，功能也更加强大，它对可执行程序进行了封装，提供了工具这个概念：
-
-* toolname: 工具名，可执行程序的简称，用于标示某个工具，例如：`gcc`, `clang`等
-* program: 可执行程序命令，例如：`xcrun -sdk macosx clang`
-
-`lib.detect.find_program`只能通过传入的原始program命令或路径，去判断该程序是否存在。
-而`find_tool`则可以通过更加一致的toolname去查找工具，并且返回对应的program完整命令路径，例如：
-
-```lua
-import("lib.detect.find_tool")
-
-local tool = find_tool("clang")
-```
-
-我们也可以指定`{version = true}`参数去获取工具的版本，并且指定一个自定义的搜索路径，也支持内建变量和自定义脚本哦： 
-
-```lua
-local tool = find_tool("clang", {check = "--help"}) 
-local tool = find_tool("clang", {check = function (tool) os.run("%s -h", tool) end})
-local tool = find_tool("clang", {version = true, {pathes = {"/usr/bin", "/usr/local/bin", "$(env PATH)", function () return "/usr/xxx/bin" end}})
-```
-
-最后总结下，`find_tool`的查找流程：
-
-1. 优先通过`{program = "xxx"}`的参数来尝试运行和检测。
-2. 如果在`xmake/modules/detect/tools`下存在`detect.tools.find_xxx`脚本，则调用此脚本进行更加精准的检测。
-3. 尝试从`/usr/bin`，`/usr/local/bin`等系统目录进行检测。
-
-我们也可以在工程`xmake.lua`中`add_moduledirs`指定的模块目录中，添加自定义查找脚本，来改进检测机制：
-
-```
-projectdir
-  - xmake/modules
-    - detect/tools/find_xxx.lua
-```
-
-#### 更加强大的xmake lua插件
-
-2.1.4版本的时候，此插件就已经支持REPL(read-eval-print)，实现交互式运行来方便测试模块：
-
-```bash
-$ xmake lua
-> 1 + 2
-3
-
-> a = 1
-> a
-1
-
-> for _, v in pairs({1, 2, 3}) do
->> print(v)
->> end
-1
-2
-3
-```
-
-现在可以通过一行命令，更加快速地测试模块接口：
-
-```bash
-$ xmake lua lib.detect.find_package openssl
-```
-
-返回结果如下：`{links = {"ssl", "crypto", "z"}, linkdirs = {"/usr/local/lib"}, includedirs = {"/usr/local/include"}}`
-
 #### 模块的自定义扩展
 
 我们可以通过在工程的`xmake.lua`文件的开头指定下扩展modules的目录：
@@ -281,6 +212,35 @@ local ok = check_cxsnippets({}, {types = {"wchar_t", "char*"}, includes = "stdio
 ```
 
 上面那个调用，会去同时检测types, includes和funcs是否都满足，如果通过返回true。
+
+#### 更加强大的xmake lua插件
+
+2.1.4版本的时候，此插件就已经支持REPL(read-eval-print)，实现交互式运行来方便测试模块：
+
+```bash
+$ xmake lua
+> 1 + 2
+3
+
+> a = 1
+> a
+1
+
+> for _, v in pairs({1, 2, 3}) do
+>> print(v)
+>> end
+1
+2
+3
+```
+
+现在可以通过一行命令，更加快速地测试模块接口：
+
+```bash
+$ xmake lua lib.detect.find_package openssl
+```
+
+返回结果如下：`{links = {"ssl", "crypto", "z"}, linkdirs = {"/usr/local/lib"}, includedirs = {"/usr/local/include"}}`
 
 #### 预编译头文件支持
 
@@ -506,6 +466,44 @@ target("test")
     add_deps("library2")
 ```
 
+#### 新增查找工具接口
+
+[lib.detect.find_tool](http://xmake.io/#/zh/manual?id=detect-find_tool)接口用于查找可执行程序，比[lib.detect.find_program](http://xmake.io/#/zh/manual?id=detect-find_program)更加的高级，功能也更加强大，它对可执行程序进行了封装，提供了工具这个概念：
+
+* toolname: 工具名，可执行程序的简称，用于标示某个工具，例如：`gcc`, `clang`等
+* program: 可执行程序命令，例如：`xcrun -sdk macosx clang`
+
+`lib.detect.find_program`只能通过传入的原始program命令或路径，去判断该程序是否存在。
+而`find_tool`则可以通过更加一致的toolname去查找工具，并且返回对应的program完整命令路径，例如：
+
+```lua
+import("lib.detect.find_tool")
+
+local tool = find_tool("clang")
+```
+
+我们也可以指定`{version = true}`参数去获取工具的版本，并且指定一个自定义的搜索路径，也支持内建变量和自定义脚本哦： 
+
+```lua
+local tool = find_tool("clang", {check = "--help"}) 
+local tool = find_tool("clang", {check = function (tool) os.run("%s -h", tool) end})
+local tool = find_tool("clang", {version = true, {pathes = {"/usr/bin", "/usr/local/bin", "$(env PATH)", function () return "/usr/xxx/bin" end}})
+```
+
+最后总结下，`find_tool`的查找流程：
+
+1. 优先通过`{program = "xxx"}`的参数来尝试运行和检测。
+2. 如果在`xmake/modules/detect/tools`下存在`detect.tools.find_xxx`脚本，则调用此脚本进行更加精准的检测。
+3. 尝试从`/usr/bin`，`/usr/local/bin`等系统目录进行检测。
+
+我们也可以在工程`xmake.lua`中`add_moduledirs`指定的模块目录中，添加自定义查找脚本，来改进检测机制：
+
+```
+projectdir
+  - xmake/modules
+    - detect/tools/find_xxx.lua
+```
+
 #### 更加安全的root权限编译
 
 由于xmake提供强大的自定义模块和脚本支持，并且内置安装、卸载等action，如果`xmake.lua`里面的脚本描述不当，容易导致覆写系统文件，因此新版本对此作了改进：
@@ -515,6 +513,11 @@ target("test")
 3. 如果当期工程目录是root用户权限，则同2。
 
 具体详情见：[pull#113](https://github.com/tboox/xmake/pull/113)
+
+#### API接口改进
+
+使用[includes](http://xmake.io/#/zh/manual?id=includes)替代老的[add_subdirs](http://xmake.io/#/zh/manual?id=add_subdirs)和[add_subfiles](http://xmake.io/#/zh/manual?id=add_subfiles)接口。
+使用[set_config_header](http://xmake.io/#/zh/manual?id=targetset_config_header)替代老的[set_config_h](http://xmake.io/#/zh/manual?id=targetset_config_h)和[set_config_h_prefix](http://xmake.io/#/zh/manual?id=targetset_config_h_prefix)接口。
 
 #### 新增大量扩展模块
 
