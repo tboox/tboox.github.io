@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "some new features of xmake v2.1.5"
+title:  "Some new features of xmake v2.1.5"
 tags: xmake lua cmake detect compiler features
 categories: xmake
 ---
