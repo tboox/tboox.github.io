@@ -115,50 +115,21 @@ $ gcc -c -o stdafx.pch stdafx.hpp
 
 xmake支持通过预编译头文件去加速`c/c++`程序编译，目前支持的编译器有：gcc, clang和msvc。
 
-使用方式如下：
+对于c预编译头文件的使用方式如下：
 
 ```lua
 target("test")
-    set_precompiled_header("header.h")
+    set_pcheader("header.h")
 ```
 
-通常情况下，设置c头文件的预编译，这需要加上这个配置即可，如果是对c++头文件的预编译，改成：
+如果是对c++头文件的预编译，改成：
 
 ```lua
 target("test")
-    set_precompiled_header("header.hpp")
+    set_pcxxheader("header.h")
 ```
 
-其中的参数指定的是需要预编译的头文件路径，相对于当前`xmake.lua`所在的目录。
-
-如果只是调用xmake命令行进行直接编译，那么上面的设置足够了，并且已经对各个编译器进行支持，但是有些情况下，上面的设置还不能满足需求：
-
-1. 如果要使用`xmake project`工程插件生成vs工程文件，那么还缺少一个类似`stdafx.cpp`的文件（上面的设置在msvc编译的时候会自动生成一个临时的，但是对IDE工程不友好）。
-2. 如果gcc/clang下，`header.h`想作为c++的预编译头文件就不支持了，除非改成`header.hpp`（默认会当做c头文件进行预编译）。
-
-因此为了更加地通用跨平台，可以在工程里面创建一个类似vc中`stdafx.cpp`的源文件：`header.cpp`。
-
-```lua
-target("test")
-    set_precompiled_header("header.h", "header.cpp")
-```
-
-`header.cpp`的内容如下：
-
-```cpp
-#include "header.h"
-```
-
-上面的设置，就可以很好地处理各种情况下的预编译处理，追加的`header.cpp`也告诉了xmake：`header.h`是作为c++来预编译的。
-
-相对于经典的vc工程中的`stdafx.cpp`和`stdafx.h`，也能完美支持：
-
-```lua
-target("test")
-    set_precompiled_header("stdafx.h", "stdafx.cpp")
-```
-
-更多使用说明见：[target.set_precompiled_header](http://xmake.io/#/zh/manual?id=targetset_precompiled_header)
+更多使用说明见：[target.set_pcheader](http://xmake.io/#/zh/manual?id=targetset_pcheader)
 
 #### 参考资料
 
