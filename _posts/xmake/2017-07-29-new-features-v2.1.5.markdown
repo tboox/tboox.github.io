@@ -204,33 +204,20 @@ The results: `{links = {"ssl", "crypto", "z"}, linkdirs = {"/usr/local/lib"}, in
 
 #### Precompiled header File Support
 
-We can add a precompiled header file to speed up the c++ program compile, currently supported compilers are: gcc, clang and msvc.
+We can add a precompiled header file to speed up the c/c++ program compile, currently supported compilers are: gcc, clang and msvc.
 
 Set c precompiled header:
 
 ```lua
 target("test")
-    set_precompiled_header("header.h")
+    set_pcheader("header.h")
 ```
 
 Set c++ precompiled header:
 
 ```lua
 target("test")
-    set_precompiled_header("header.hpp")
-```
-
-Or add a optional `header.cpp` to hint xmake: `header.h` is a c++ precompiled header and it is more friendly to vc project.
-
-```lua
-target("test")
-    set_precompiled_header("header.h", "header.cpp")
-```
-
-The content of `header.cpp`:
-
-```cpp
-#include "header.h"
+    set_pcxxheader("header.h")
 ```
 
 #### Generate compiler_commands.json
