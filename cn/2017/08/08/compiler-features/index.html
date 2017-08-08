@@ -7,11 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta http-equiv="Cache-Control" content="no-siteapp" />
 
-    <title>内存池架构</title>
-    <meta name="description" content="TBOX的内存管理模型，参考了linux kernel的内存管理机制，并在其基础上做了一些改进和优化。内存整体架构large_pool整个内存分配的最底层，都是基于large_pool的大块内存分配池，类似于linux的基于page的分配管理，不过有所不同的是，large_pool并没有像linux那样使用bud...">
+    <title>使用xmake检测编译器特性支持</title>
+    <meta name="description" content="如果我们要写跨平台的c/c++代码，很多时候需要处理由于不同编译器对c/c++各个标准支持力度不同导致的兼容性问题，一般通常的解决办法是：自己在代码中通过宏去判断各个编译器的版本、内置宏、标准库宏、__has_feature等来检测处理。自己如果在代码中按上述的方式检测，会很繁琐，尤其是像c++这种存在大量语法特...">
 
     
-    <meta name="keywords" content="tbox,内存池,算法,tboox" /> 
+    <meta name="keywords" content="xmake,lua,cmake,编译器特性检测,tboox" /> 
 
     <!-- qq oauth -->
     <meta property="qc:admins" content="5211601217706727767255" />
@@ -28,7 +28,7 @@
 	
     <link rel="stylesheet" href=" /css/fontawesome/css/font-awesome.min.css ">
     <link rel="stylesheet" href=" /css/main.css ">
-    <link rel="canonical" href="http://www.tboox.org/cn/2016/02/04/memory-pool/">
+    <link rel="canonical" href="http://www.tboox.org/cn/2017/08/08/compiler-features/">
     <link rel="alternate" type="application/rss+xml" title="TBOOX Open Source Project" href="http://www.tboox.org/feed.xml ">
     <link rel="alternate" hreflang="en" href="http://www.tboox.org/" />
     <link rel="alternate" hreflang="zh-Hans" href="http://www.tboox.org/cn/" />
@@ -287,11 +287,11 @@
 
         <div class="page clearfix" post>
     <div class="left">
-        <h1>内存池架构</h1>
+        <h1>使用xmake检测编译器特性支持</h1>
         <div class="label">
 
             <div class="label-card">
-                <i class="fa fa-calendar"></i>2016-02-04
+                <i class="fa fa-calendar"></i>2017-08-08
             </div>
 
             <div class="label-card">
@@ -311,7 +311,7 @@
   <i class="fa fa-th-list"></i>
   
     
-        <a href="/category/#tbox" title="Category: tbox" rel="category">tbox</a>
+        <a href="/category/#xmake" title="Category: xmake" rel="category">xmake</a>
     
   
 
@@ -328,14 +328,17 @@
   <i class="fa fa-tags"></i>
   
     
-        <!--a href="/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a-->
-        <a href="/cn/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a>&nbsp;
+        <!--a href="/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a-->
+        <a href="/cn/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a>&nbsp;
     
-        <!--a href="/tag/#%E5%86%85%E5%AD%98%E6%B1%A0" title="Tag: 内存池" rel="tag">内存池</a-->
-        <a href="/cn/tag/#内存池" title="Tag: 内存池" rel="tag">内存池</a>&nbsp;
+        <!--a href="/tag/#lua" title="Tag: lua" rel="tag">lua</a-->
+        <a href="/cn/tag/#lua" title="Tag: lua" rel="tag">lua</a>&nbsp;
     
-        <!--a href="/tag/#%E7%AE%97%E6%B3%95" title="Tag: 算法" rel="tag">算法</a-->
-        <a href="/cn/tag/#算法" title="Tag: 算法" rel="tag">算法</a>
+        <!--a href="/tag/#cmake" title="Tag: cmake" rel="tag">cmake</a-->
+        <a href="/cn/tag/#cmake" title="Tag: cmake" rel="tag">cmake</a>&nbsp;
+    
+        <!--a href="/tag/#%E7%BC%96%E8%AF%91%E5%99%A8%E7%89%B9%E6%80%A7%E6%A3%80%E6%B5%8B" title="Tag: 编译器特性检测" rel="tag">编译器特性检测</a-->
+        <a href="/cn/tag/#编译器特性检测" title="Tag: 编译器特性检测" rel="tag">编译器特性检测</a>
     
   
 
@@ -346,277 +349,115 @@
         </div>
         <hr>
         <article itemscope itemtype="http://schema.org/BlogPosting">
-        <p>TBOX的内存管理模型，参考了linux kernel的内存管理机制，并在其基础上做了一些改进和优化。</p>
+        <p>如果我们要写跨平台的c/c++代码，很多时候需要处理由于不同编译器对c/c++各个标准支持力度不同导致的兼容性问题，一般通常的解决办法是：自己在代码中通过宏去判断各个编译器的版本、内置宏、标准库宏、<code class="highlighter-rouge">__has_feature</code>等来检测处理。</p>
 
-<h2 id="section">内存整体架构</h2>
+<p>自己如果在代码中按上述的方式检测，会很繁琐，尤其是像c++这种存在大量语法特性，如果一一检测过来，工作量是非常大的。</p>
 
-<p><img src="/static/img/tbox/memorypool.png" alt="内存池架构" /></p>
+<h4 id="section">通过构建工具预先检测编译特性</h4>
 
-<h2 id="largepool">large_pool</h2>
-<p>整个内存分配的最底层，都是基于large_pool的大块内存分配池，类似于linux的基于page的分配管理，不过有所不同的是，large_pool并没有像linux那样使用buddy算法进行(2^N)*page进行分配，这样如果需要2.1m的内存，需要分配4m的内存块，这样力度太大，非常浪费。</p>
+<p>另外比较省事的方式，就是依赖构建工具提前做好检测，然后把检测结果作为宏添加到编译中去，这样代码只需要判断对应的特性宏是否存在，就可以进行处理了。</p>
 
-<p>因此large_pool内部采用N*page的基于page_size为最小粒度进行分配，因此每次分配顶多浪费不到一页的空间。</p>
+<p>在cmake中就有类似的检测机制，非常强大，因此xmake也对其进行了支持，提供更加灵活强大的编译器特性预先检测支持:</p>
 
-<p>而且如果需要的内存不到整页，剩下的内存也会一并返回给上层，如果上层需要（比如small_pool），可以充分利用这多余的部分内存空间，使得内存利用率达到最优化。</p>
-
-<p>而且根据tb_init实际传入的参数需求，large_pool有两种模式：</p>
-
-<ol>
-  <li>直接使用系统内存分配接口将进行大块内存的分配，并用双链维护，这种比较简单，就不多说了。</li>
-  <li>在一大块连续内存上进行统一管理，实现内存分配。</li>
-</ol>
-
-<p>具体使用哪种方式，根据应用需求，一般的应用只需要使用方式1就行了，这个时候tb_init传tb_null就行了，如果是嵌入式应用，需要管理有限的一块内存空间，这个时候可以使用方式2， tb_init传入指定内存空间地址和大小。</p>
-
-<p>这里就主要看下方式2的large_pool的内存结构（假设页大小是4KB）：</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>     --------------------------------------------------------------------------
-    |                                     data                                 |
-     --------------------------------------------------------------------------
-                                         |
-     --------------------------------------------------------------------------
-    | head | 4KB | 16KB | 8KB | 128KB | ... | 32KB |       ...       |  4KB*N  |
-     --------------------------------------------------------------------------
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">target</span><span class="p">(</span><span class="s2">"test"</span><span class="p">)</span>
+    <span class="n">on_load</span><span class="p">(</span><span class="k">function</span> <span class="p">(</span><span class="n">target</span><span class="p">)</span>
+        <span class="n">import</span><span class="p">(</span><span class="s2">"core.tool.compiler"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">compiler</span><span class="p">.</span><span class="n">has_features</span><span class="p">(</span><span class="s2">"cxx_constexpr"</span><span class="p">)</span> <span class="k">then</span>
+            <span class="n">target</span><span class="p">:</span><span class="n">add</span><span class="p">(</span><span class="s2">"defines"</span><span class="p">,</span> <span class="s2">"HAS_CXX_CONSTEXPR=1"</span><span class="p">)</span>
+        <span class="k">end</span>
+    <span class="k">end</span><span class="p">)</span>
 </code></pre>
 </div>
 
-<p>由于large_pool主要用于大块分配，而超小块的分配在上层small_pool中已经被分流掉了，所以这个应用中，large_pool不会太过频繁的分配，所以碎片量不会太大，为了进一步减少碎片的产生，在free时候都会对下一个邻近的空闲块进行合并。而malloc在分配当前空闲块空间不够的情况下，也会尝试对下一个邻近空闲块进行合并。</p>
+<p>通过<code class="highlighter-rouge">core.tool.compiler</code>模块的<a href="http://xmake.io/#/zh/manual?id=compiler-has_features">compiler.has_features</a>接口，在<code class="highlighter-rouge">xmake.lua</code>中预先判断当前编译期支持的语言特性，实现条件编译。</p>
 
-<p>由于每个内存块都是邻近挨着的，也没用双链维护，没有内存块，都有个块头，合并过程仅仅只是改动内存块头部的size字段，这样的合并不会影响效率。</p>
+<p>此处也是参考了cmake的设计，具体详情见：<a href="https://github.com/tboox/xmake/issues/83">issues#83</a>。</p>
 
-<p>由于没像buddy算法那样，用双链维护空闲内存，虽然节省了链表维护的空间和时间，但是每次分配内存都要顺序遍历所有块，来查找空闲的内存，这样的效率实在太低了，为了解决这个问题，large_pool内部针对不同级别的块，进行了预测，每次free或者malloc的时候，如果都会把当前和邻近的空闲快，缓存到对应级别的预测池里面去，具体的分级如下：</p>
+<p>上述代码，在加载target的时候，判断当前编译器是否支持c++的常量表达式语法特性，如果支持则添加宏定义：<code class="highlighter-rouge">HAS_CXX_CONSTEXPR=1</code>。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>     --------------------------------------
-    | &gt;0KB :      4KB       | &gt; 0*page     | 
-    |-----------------------|--------------
-    | &gt;4KB :      8KB       | &gt; 1*page     | 
-    |-----------------------|--------------
-    | &gt;8KB :    12-16KB     | &gt; 2*page     | 
-    |-----------------------|--------------
-    | &gt;16KB :   20-32KB     | &gt; 4*page     | 
-    |-----------------------|--------------
-    | &gt;32KB :   36-64KB     | &gt; 8*page     | 
-    |-----------------------|--------------
-    | &gt;64KB :   68-128KB    | &gt; 16*page    | 
-    |-----------------------|--------------
-    | &gt;128KB :  132-256KB   | &gt; 32*page    | 
-    |-----------------------|--------------
-    | &gt;256KB :  260-512KB   | &gt; 64*page    | 
-    |-----------------------|--------------
-    | &gt;512KB :  516-1024KB  | &gt; 128*page   | 
-    |-----------------------|--------------
-    | &gt;1024KB : 1028-...KB  | &gt; 256*page   | 
-     --------------------------------------
+<p>我们也可以在判断时候，追加一些参数控制编译选项，例如上述特性需要<code class="highlighter-rouge">c++11</code>支持，我们可以启用它：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="k">if</span> <span class="n">compiler</span><span class="p">.</span><span class="n">has_features</span><span class="p">({</span><span class="s2">"c_static_assert"</span><span class="p">,</span> <span class="s2">"cxx_constexpr"</span><span class="p">},</span> <span class="p">{</span><span class="n">languages</span> <span class="o">=</span> <span class="s2">"cxx11"</span><span class="p">})</span> <span class="k">then</span>
+    <span class="c1">-- ok</span>
+<span class="k">end</span>
 </code></pre>
 </div>
 
-<p>由于通常不会分配太大块的内存，因此只要能够预测1m内存，就足够，而对于&gt;1m的内存，这里也单独加了一个预测，来应对偶尔的超大块分配，并且使得整体分配流程更加的统一。</p>
+<p>通过上面的代码可以看到，此接口是可以同时检测多个特性的，返回值为实际支持的特性列表。</p>
 
-<p>如果当前级别的预测块不存在，则会到下一级别的预测块中查找，如果都找不到，才回去遍历整个内存池。</p>
+<p>如果之前对这个target已经设置了<code class="highlighter-rouge">c++11</code>，那么我们也可以传入target对象，继承target的所有设置，甚至指定一些其他扩展编译配置：</p>
 
-<p>实际测试下，每个块的预测成功基本都在95%以上，也就说大部分情况下，分配效率都是维持在O(1)级别的。</p>
-
-<h2 id="smallpool">small_pool</h2>
-
-<p>小块内存分配池</p>
-
-<p>在上层每次调用malloc进行内存分配的时候，回去判断需要多大的内存，如果这个内存超过或者等于一页，则会直接从large_pool进行分配，如果小于一页，则会优先通过small_pool进行分配，small_pool针对小块的内存进行了高速缓存，并优化了空间管理和分配效率。</p>
-
-<p>由于程序大部分情况下，都在使用小块内存，因此small_pool对内存的分配做了很大的分流，使得large_pool承受的压力减小，碎片量减少很多，而small_pool内部由于都是由fixed_pool来对固定大小的内存进行管理，是不会存在外部碎片的。而小块内存的粒度本身就很小，所以内部碎片量也相当少。</p>
-
-<p>small_pool中的fixed_pool，就像是linux kernel中的slub，在small_pool中总共有12级别的fixed_pool，每个级别分别管理一种固定大小的内存块，具体级别如下：</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>     --------------------------------------
-    |    fixed pool: 16B    |  1-16B       | 
-    |--------------------------------------|
-    |    fixed pool: 32B    |  17-32B      |  
-    |--------------------------------------|
-    |    fixed pool: 64B    |  33-64B      | 
-    |--------------------------------------|
-    |    fixed pool: 96B*   |  65-96B*     | 
-    |--------------------------------------|
-    |    fixed pool: 128B   |  97-128B     |  
-    |--------------------------------------|
-    |    fixed pool: 192B*  |  129-192B*   |  
-    |--------------------------------------|
-    |    fixed pool: 256B   |  193-256B    |  
-    |--------------------------------------|
-    |    fixed pool: 384B*  |  257-384B*   |  
-    |--------------------------------------|
-    |    fixed pool: 512B   |  385-512B    |  
-    |--------------------------------------|
-    |    fixed pool: 1024B  |  513-1024B   |  
-    |--------------------------------------|
-    |    fixed pool: 2048B  |  1025-2048B  |  
-    |--------------------------------------|
-    |    fixed pool: 3072B* |  2049-3072B* |  
-     -------------------------------------- 
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="k">if</span> <span class="n">compiler</span><span class="p">.</span><span class="n">has_features</span><span class="p">(</span><span class="s2">"cxx_constexpr"</span><span class="p">,</span> <span class="p">{</span><span class="n">target</span> <span class="o">=</span> <span class="n">target</span><span class="p">,</span> <span class="n">defines</span> <span class="o">=</span> <span class="s2">".."</span><span class="p">,</span> <span class="n">includedirs</span> <span class="o">=</span> <span class="s2">".."</span><span class="p">})</span> <span class="k">then</span>
+    <span class="c1">-- ok</span>
+<span class="k">end</span>
 </code></pre>
 </div>
 
-<p>其中 96B, 192B，384B，3072B并不是按2的整数幂大小，这么做主要是为了更加有效的利用小块内存的空间减少内部碎片。</p>
+<h4 id="section-1">批量编译器特性检测</h4>
 
-<h2 id="fixedpool">fixed_pool</h2>
+<p>c++的语言特性非常多，这个时候我们可以通过脚本实现快速的批量检测：</p>
 
-<p>顾名思义，fixed_pool就是用来管理固定大小的内存分配的，相当于linux中slub，而fixed_pool中又由多个slot组成，每个slot负责一块连续的内存空间，管理部分内存块的管理，类似linux中的slab， 每个slot由双链维护，并且参考linux的管理机制，分为三种slot管理方式：</p>
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">target</span><span class="p">(</span><span class="s2">"test"</span><span class="p">)</span>
 
-<ol>
-  <li>当前正在分配的slot</li>
-  <li>部分空闲slots链表</li>
-  <li>完全full的slots链表</li>
-</ol>
-
-<p>具体结构如下：</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>    current:
-         --------------
-        |              |
-     --------------    |
-    |     slot     |&lt;--
-    |--------------|
-    ||||||||||||||||  
-    |--------------| 
-    |              | 
-    |--------------| 
-    |              | 
-    |--------------| 
-    ||||||||||||||||  
-    |--------------| 
-    |||||||||||||||| 
-    |--------------| 
-    |              | 
-     --------------  
-
-    partial:
-
-     --------------       --------------               --------------
-    |     slot     | &lt;=&gt; |     slot     | &lt;=&gt; ... &lt;=&gt; |     slot     |
-    |--------------|     |--------------|             |--------------|
-    ||||||||||||||||     |              |             |              |
-    |--------------|     |--------------|             |--------------|
-    |              |     ||||||||||||||||             |              |
-    |--------------|     |--------------|             |--------------|
-    |              |     ||||||||||||||||             ||||||||||||||||
-    |--------------|     |--------------|             |--------------|
-    ||||||||||||||||     ||||||||||||||||             |              |
-    |--------------|     |--------------|             |--------------|
-    ||||||||||||||||     |              |             |              |
-    |--------------|     |--------------|             |--------------|
-    |              |     |              |             ||||||||||||||||
-    --------------       --------------               --------------
-
-    full:
-
-     --------------       --------------               --------------
-    |     slot     | &lt;=&gt; |     slot     | &lt;=&gt; ... &lt;=&gt; |     slot     |
-    |--------------|     |--------------|             |--------------|
-    ||||||||||||||||     ||||||||||||||||             ||||||||||||||||
-    |--------------|     |--------------|             |--------------|
-    ||||||||||||||||     ||||||||||||||||             ||||||||||||||||
-    |--------------|     |--------------|             |--------------|
-    ||||||||||||||||     ||||||||||||||||             ||||||||||||||||
-    |--------------|     |--------------|             |--------------|
-    ||||||||||||||||     ||||||||||||||||             ||||||||||||||||
-    |--------------|     |--------------|             |--------------|
-    ||||||||||||||||     ||||||||||||||||             ||||||||||||||||
-    |--------------|     |--------------|             |--------------|
-    ||||||||||||||||     ||||||||||||||||             ||||||||||||||||
-     --------------       --------------               --------------
+    <span class="n">on_load</span><span class="p">(</span><span class="k">function</span> <span class="p">(</span><span class="n">target</span><span class="p">)</span>
+        <span class="n">import</span><span class="p">(</span><span class="s2">"core.tool.compiler"</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">feature</span><span class="p">,</span> <span class="n">_</span> <span class="k">in</span> <span class="nb">pairs</span><span class="p">(</span><span class="n">compiler</span><span class="p">.</span><span class="n">features</span><span class="p">(</span><span class="s2">"cxx"</span><span class="p">,</span> <span class="p">{</span><span class="n">target</span> <span class="o">=</span> <span class="n">target</span><span class="p">}))</span> <span class="k">do</span> <span class="c1">-- 传入target在检测特性时继承target的所有编译配置</span>
+            <span class="n">target</span><span class="p">:</span><span class="n">add</span><span class="p">(</span><span class="s2">"defines"</span><span class="p">,</span> <span class="s2">"has_feature_"</span> <span class="o">..</span> <span class="n">feature</span><span class="p">)</span>
+        <span class="k">end</span>
+    <span class="k">end</span><span class="p">)</span>
 </code></pre>
 </div>
 
-<p><strong>具体的分配算法</strong></p>
+<p>上述代码，会在加载target的时候，把当前编译器对c++的所有支持特性，都添加到target的宏定义中进行编译，例如：<code class="highlighter-rouge">-Dhas_feature_cxx_constexpr</code>。
+我们只需要在代码中，通过判断对应的特性宏是否存在就行了:</p>
 
-<ol>
-  <li>如果当前slot中还有空闲的块，优先从当前slot进行分配</li>
-  <li>如果当前slot中没有空闲块，则把这个slot放到full链表中去</li>
-  <li>从部分空闲slot链表中，挑一个空闲的slot进行分配，并把它设为当前分配状态。</li>
-</ol>
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="cp">#ifdef has_feature_cxx_constexpr
+</span>    <span class="c1">// TODO
+</span><span class="cp">#endif
+</span></code></pre>
+</div>
 
-<p><strong>具体的释放算法</strong></p>
+<p>目前支持的所有c/c++编译器特性列表，见：<a href="http://xmake.io/#/zh/manual?id=compiler-features">compiler.features</a></p>
 
-<ol>
-  <li>释放后如果这个slot完全空闲了，并且不是正在分配的slot，则把整个slot释放掉，这样既可以保证有一个可以分配的slot之外，还极大的降低了内存使用，也避免某些情况下频繁的释放分配slot。</li>
-  <li>如果释放的slot属于full链表并且变为了部分空闲，则把这个slot移到部分空闲slot链表中去。</li>
-</ol>
+<h4 id="section-2">更加底层的检测接口</h4>
 
-<p><strong>额外要提一下的是</strong>：</p>
+<p>如果我们要指定获取具体哪个编译器的特性支持，则需要更加底层的接口支持了，例如：</p>
 
-<p>large_pool每次分配一块空间给一个slot的时候，残留下来的部分剩余空间(&lt;1*page)， 也能直接返回给slot，让slot充分利用这部分数据，这样可以可以切分出更多地内存块。</p>
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">import</span><span class="p">(</span><span class="s2">"lib.detect.has_features"</span><span class="p">)</span>
 
-<p>例如：</p>
-
-<p>fixed_pool每次增长一个包含256个32B内存块的slot（需要8192B大小+16B内部数据维护大小），其实在用large_pool分配的时候，需要8208B的大小，由于需要按页对齐（4KB），实际分配确占用了<code class="highlighter-rouge">8192+4096: 12288B</code>的大小的空间。</p>
-
-<p>但是large_pool支持把所有空间数据一并返回给上层，这样slot其实获取到了一个12288B大小的内存，并且也知道其实际大小为：12288B，因此实际切分了<code class="highlighter-rouge">(12288-(32B的slot内部维护数据))/32</code>也就是383个内存块。</p>
-
-<p>多维护了127个内存块，充分把large_pool的内部碎片也利用上了，进一步增加了内存利用率。</p>
-
-<h2 id="fixedpoolslot">fixed_pool中的slot</h2>
-
-<p>虽然类比与linux中的slab，但是其数据结构确跟slab不太一样，它并没有像slab那样，对每个空闲小块都用链表维护，而是直接用位段来维护是否空闲的信息，这样更加节省内存，而且通过优化算法，其分配效率和slab几乎一样。</p>
-
-<p>在fixed_pool的slot的头部，专门有一小块独立的数据，用于维护每个小块的空闲信息，每个块只暂用一比特位的信息，来判断这个块是否空闲，由于没有内存块都是固定大小的，所以比特位的位置定位，完全可以通过索引计算得到。</p>
-
-<p>而且每次释放和分配，都会去缓存一个双字大小的位信息端，来预测下一次的分配，由于是双字大小，总共有32个比特位，所以每次缓存，最多可以预测邻近32个内存块。因此大部分情况下，预测成功率一直都是&gt;98%的，分配效率都维持在O(1)，比起large_pool的预测率还高很多，所以small_pool对large_pool的分流，还在一定程度上，进一步提高了内存分配效率。</p>
-
-<p>而就算很倒霉，没预测成功，slot的顺序遍历来查找空闲快的算法，也相当高效，完全是高度优化的，下面就详细描述下。</p>
-
-<h3 id="slot">slot的顺序遍历分配算法优化</h3>
-
-<p>我们这里主要用到了gcc的几个内置函数：</p>
-
-<ol>
-  <li>__builtin_clz：计算32位整数前导0的个数</li>
-  <li>__builtin_ctz：计算32位整数后置0的个数</li>
-  <li>__builtin_clzll：计算64位整数前导0的个数</li>
-  <li>__builtin_ctzll：计算64位整数后置0的个数</li>
-</ol>
-
-<p>其实这四个类似，我们这里就拿第一说明好了，为什么要使用__builtin_clz呢？其实就是为了在一个32位端里面，快速查找某个空闲位的索引，这样就能快速定位某个空闲块的位置了。</p>
-
-<p>比如有一个32位的位段信息整数：x，计算对应空闲位0的索引，主需要：<code class="highlighter-rouge">__builtin_clz(~x)</code></p>
-
-<p>简单吧，由于__builtin_clz这些内置函数，gcc用汇编针对不同平台高度优化过的，计算起来相当的快，那如果不是gcc的编译器怎么办呢？</p>
-
-<p>没关系，我们可以自己用c实现个优化版本的，当然完全可以汇编继续优化，这里就先给个c的实现：</p>
-
-<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="k">static</span> <span class="n">__tb_inline__</span> <span class="n">tb_size_t</span> <span class="nf">tb_bits_cl0_u32_be_inline</span><span class="p">(</span><span class="n">tb_uint32_t</span> <span class="n">x</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="c1">// check
-</span>        <span class="n">tb_check_return_val</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">32</span><span class="p">);</span>
-
-        <span class="c1">// done
-</span>        <span class="n">tb_size_t</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">31</span><span class="p">;</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">x</span> <span class="o">&amp;</span> <span class="mh">0xffff0000</span><span class="p">)</span> <span class="p">{</span> <span class="n">n</span> <span class="o">-=</span> <span class="mi">16</span><span class="p">;</span>  <span class="n">x</span> <span class="o">&gt;&gt;=</span> <span class="mi">16</span><span class="p">;</span>   <span class="p">}</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">x</span> <span class="o">&amp;</span> <span class="mh">0xff00</span><span class="p">)</span>     <span class="p">{</span> <span class="n">n</span> <span class="o">-=</span> <span class="mi">8</span><span class="p">;</span>   <span class="n">x</span> <span class="o">&gt;&gt;=</span> <span class="mi">8</span><span class="p">;</span>    <span class="p">}</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">x</span> <span class="o">&amp;</span> <span class="mh">0xf0</span><span class="p">)</span>       <span class="p">{</span> <span class="n">n</span> <span class="o">-=</span> <span class="mi">4</span><span class="p">;</span>   <span class="n">x</span> <span class="o">&gt;&gt;=</span> <span class="mi">4</span><span class="p">;</span>    <span class="p">}</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">x</span> <span class="o">&amp;</span> <span class="mh">0xc</span><span class="p">)</span>        <span class="p">{</span> <span class="n">n</span> <span class="o">-=</span> <span class="mi">2</span><span class="p">;</span>   <span class="n">x</span> <span class="o">&gt;&gt;=</span> <span class="mi">2</span><span class="p">;</span>    <span class="p">}</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">x</span> <span class="o">&amp;</span> <span class="mh">0x2</span><span class="p">)</span>        <span class="p">{</span> <span class="n">n</span><span class="o">--</span><span class="p">;</span>                  <span class="p">}</span>
-        <span class="k">return</span> <span class="n">n</span><span class="p">;</span>
-    <span class="p">}</span>
+<span class="kd">local</span> <span class="n">features</span> <span class="o">=</span> <span class="n">has_features</span><span class="p">(</span><span class="s2">"clang"</span><span class="p">,</span> <span class="s2">"cxx_constexpr"</span><span class="p">)</span>
+<span class="kd">local</span> <span class="n">features</span> <span class="o">=</span> <span class="n">has_features</span><span class="p">(</span><span class="s2">"clang"</span><span class="p">,</span> <span class="p">{</span><span class="s2">"cxx_constexpr"</span><span class="p">,</span> <span class="s2">"c_static_assert"</span><span class="p">},</span> <span class="p">{</span><span class="n">flags</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"-g"</span><span class="p">,</span> <span class="s2">"-O0"</span><span class="p">},</span> <span class="n">program</span> <span class="o">=</span> <span class="s2">"xcrun -sdk macosx clang"</span><span class="p">})</span>
+<span class="kd">local</span> <span class="n">features</span> <span class="o">=</span> <span class="n">has_features</span><span class="p">(</span><span class="s2">"clang"</span><span class="p">,</span> <span class="p">{</span><span class="s2">"cxx_constexpr"</span><span class="p">,</span> <span class="s2">"c_static_assert"</span><span class="p">},</span> <span class="p">{</span><span class="n">flags</span> <span class="o">=</span> <span class="s2">"-g"</span><span class="p">})</span>
 </code></pre>
 </div>
 
-<p>说白了，就是每次对半开，来减少判断次数，比起每次一位一位的枚举遍历，这种已经是相当高效了，更何况还有__builtin_clz呢。</p>
+<p><a href="http://xmake.io/#/zh/manual?id=detect-has_features">lib.detect.has_features</a>属于探测模块的接口，可以指定需要检测的工具名，例如这里通过传入clang，只对clang编译器进行检测。</p>
 
-<p><strong>接下来就看下具体的遍历过程：</strong></p>
+<p>当然此接口，还可以检测其他非编译器的工具特性，更加的通用。</p>
 
-<ol>
-  <li>按4/8字节对齐位段的起始地址</li>
-  <li>每次按4/8字节遍历位段数据，遍历过程利用cpu cache的大小，针对性的做循环展开，来优化性能。</li>
-  <li>通过判断 !(x + 1) 来快速过滤 0xffffffff 这些已经满了的位段，进一步提高遍历效率。</li>
-  <li>如果某个位段不是0xffffffff，则通过__builtin_clz(~x)计算实际的空闲块索引，并进行实际的分配。</li>
-  <li>最后如果这个的32位的位段没有被分配满，可以把它进行缓存，来为下次分配做预测。</li>
-</ol>
+<h4 id="cc">通过自定义c/c++代码片段来检测特性</h4>
 
-<h2 id="stringpool">string_pool</h2>
+<p>对于一些复杂的编译器特性，连<a href="http://xmake.io/#/zh/manual?id=compiler-has_features">compiler.has_features</a>都无法检测到的时候，可以通过自定义代码片段尝试编译来检测它。</p>
 
-<p>讲到这，TBOX的内存池管理模型，基本算是大概讲完了，这里就简单提下string_pool，即：字符串池</p>
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">import</span><span class="p">(</span><span class="s2">"lib.detect.check_cxsnippets"</span><span class="p">)</span>
 
-<p>string_pool主要针对上层应用而言的，针对某些频繁使用小型字符串，并且重复率很高的模块，就可以通过string_pool进行优化，进一步减少内存使用，string_pool内部通过引用计数+哈希表维护，针对相同的字符串只保存一份。</p>
+<span class="kd">local</span> <span class="n">ok</span> <span class="o">=</span> <span class="n">check_cxsnippets</span><span class="p">(</span><span class="s2">"constexpr int f(int x) { return x ? x+f(x-1) : 0; } constexpr int x = f(5); static_assert(x == 15);"</span><span class="p">,</span> <span class="p">{</span><span class="n">sourcekind</span> <span class="o">=</span> <span class="s2">"cxx"</span><span class="p">,</span> <span class="n">languages</span> <span class="o">=</span> <span class="s2">"cxx11"</span><span class="p">})</span>
+</code></pre>
+</div>
 
-<p>例如可以用于cookies中字符串维护、http中header部分的字符串维护等等。。</p>
+<p>上述代码通过自定义一个constexpr的测试代码，去检测c++11的constexpr支持。</p>
+
+<p>此接口是<a href="http://xmake.io/#/zh/manual?id=detect-has_cfuncs">detect.has_cfuncs</a>, <a href="http://xmake.io/#/zh/manual?id=detect-has_cincludes">detect.has_cincludes</a>和<a href="http://xmake.io/#/zh/manual?id=detect-has_ctypes">detect.has_ctypes</a>等接口的通用版本，也更加底层。</p>
+
+<p>因此我们可以用它来检测：types, functions, includes 还有 links，或者是组合起来一起检测。</p>
+
+<p>第一个参数为代码片段列表，一般用于一些自定义特性的检测，如果为空，则可以仅仅检测可选参数中条件，例如：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="kd">local</span> <span class="n">ok</span> <span class="o">=</span> <span class="n">check_cxsnippets</span><span class="p">({</span><span class="s2">"void test() {}"</span><span class="p">,</span> <span class="s2">"void test2() {}"</span><span class="p">},</span> <span class="p">{</span><span class="n">types</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"wchar_t"</span><span class="p">,</span> <span class="s2">"char*"</span><span class="p">},</span> <span class="n">includes</span> <span class="o">=</span> <span class="s2">"stdio.h"</span><span class="p">,</span> <span class="n">funcs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"sigsetjmp"</span><span class="p">,</span> <span class="s2">"sigsetjmp((void*)0, 0)"</span><span class="p">}})</span>
+</code></pre>
+</div>
+
+<p>上面那个调用，会去同时检测types, includes和funcs是否都满足，如果通过返回true。</p>
 
 
         </article>
@@ -1080,18 +921,26 @@
         
         
             
+        
             
             
-                
-                    
-                
-                    
-                
-                    
-                
             
                 
                     
+                        
+                        <h2 id="similar_posts">相关文章</h2>
+                        <ul>
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2017/08/05/update-v2.1.5/">xmake v2.1.5版本正式发布，大量新特性更新
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
                 
                     
                 
@@ -1105,7 +954,125 @@
                 
                     
                 
+                    
+                
             
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2017/07/31/precompiled-header/">不同编译器对预编译头文件的处理
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
                 
                     
                 
@@ -1123,20 +1090,15 @@
             
                 
                     
-                
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2017/07/29/new-features-v2.1.5/">xmake v2.1.5版本新特性介绍
+                            
+                            </a>
+                        </li>
+                        
+                        
                     
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
                 
                     
                 
@@ -1152,36 +1114,11 @@
                 
                     
                 
-            
-                
-                    
-                
-                    
-                
                     
                 
             
                 
                     
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-            
-        
-            
-            
-            
                 
                     
                 
@@ -1197,12 +1134,6 @@
                 
                     
                 
-            
-                
-                    
-                
-                    
-                
                     
                 
             
@@ -1213,15 +1144,21 @@
                 
                     
                 
-            
-                
-                    
-                
-                    
-                
                     
                 
             
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
                 
                     
                 
@@ -1239,20 +1176,15 @@
             
                 
                     
-                
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2017/05/10/update-v2.1.4/">xmake v2.1.4版本更新，增加交互式命令执行(REPL)
+                            
+                            </a>
+                        </li>
+                        
+                        
                     
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
                 
                     
                 
@@ -1268,12 +1200,6 @@
                 
                     
                 
-            
-                
-                    
-                
-                    
-                
                     
                 
             
@@ -1284,7 +1210,45 @@
                 
                     
                 
+                    
+                
             
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2017/04/05/project-desciption-examples/">使用xmake优雅地描述工程
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
                 
                     
                 
@@ -1302,33 +1266,15 @@
             
                 
                     
-                
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2017/04/02/update-v2.1.3/">xmake v2.1.3版本更新，修复安全和稳定性问题
+                            
+                            </a>
+                        </li>
+                        
+                        
                     
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-            
-        
-            
-            
-            
                 
                     
                 
@@ -1344,7 +1290,11 @@
                 
                     
                 
+                    
+                
             
+                
+                    
                 
                     
                 
@@ -1355,8 +1305,8 @@
             
             
         
-            
         
+            </ul>
         
 
         <div class="post-recent">
@@ -1368,7 +1318,15 @@
 
         
         
-        <p><strong>上一篇</strong> <a href="/cn/2016/02/04/memory-check/">内存检测</a></p>
+        
+
+        
+
+        
+
+        
+        
+        <p><strong>上一篇</strong> <a href="/cn/2017/08/05/update-v2.1.5/">xmake v2.1.5版本正式发布，大量新特性更新</a></p>
         
     </div>
 
@@ -1379,8 +1337,949 @@
         
 
         
+
         
-        <p><strong>下一篇</strong> <a href="/cn/2016/02/04/platform-exception/">用c实现跨平台异常捕获机制</a></p>
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
         
     </div>
 </div>

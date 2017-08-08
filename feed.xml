@@ -5,9 +5,139 @@
     <description>Focus on cross-platform development using c language</description>
     <link>http://www.tboox.org/</link>
     <atom:link href="http://www.tboox.org/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Sun, 06 Aug 2017 00:13:27 +0800</pubDate>
-    <lastBuildDate>Sun, 06 Aug 2017 00:13:27 +0800</lastBuildDate>
+    <pubDate>Tue, 08 Aug 2017 09:48:00 +0800</pubDate>
+    <lastBuildDate>Tue, 08 Aug 2017 09:48:00 +0800</lastBuildDate>
     <generator>Jekyll v3.1.0</generator>
+    
+      <item>
+        <title>使用xmake检测编译器特性支持</title>
+        <description>&lt;p&gt;如果我们要写跨平台的c/c++代码，很多时候需要处理由于不同编译器对c/c++各个标准支持力度不同导致的兼容性问题，一般通常的解决办法是：自己在代码中通过宏去判断各个编译器的版本、内置宏、标准库宏、&lt;code class=&quot;highlighter-rouge&quot;&gt;__has_feature&lt;/code&gt;等来检测处理。&lt;/p&gt;
+
+&lt;p&gt;自己如果在代码中按上述的方式检测，会很繁琐，尤其是像c++这种存在大量语法特性，如果一一检测过来，工作量是非常大的。&lt;/p&gt;
+
+&lt;h4 id=&quot;section&quot;&gt;通过构建工具预先检测编译特性&lt;/h4&gt;
+
+&lt;p&gt;另外比较省事的方式，就是依赖构建工具提前做好检测，然后把检测结果作为宏添加到编译中去，这样代码只需要判断对应的特性宏是否存在，就可以进行处理了。&lt;/p&gt;
+
+&lt;p&gt;在cmake中就有类似的检测机制，非常强大，因此xmake也对其进行了支持，提供更加灵活强大的编译器特性预先检测支持:&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;on_load&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;core.tool.compiler&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;compiler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;has_features&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cxx_constexpr&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;defines&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;HAS_CXX_CONSTEXPR=1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;通过&lt;code class=&quot;highlighter-rouge&quot;&gt;core.tool.compiler&lt;/code&gt;模块的&lt;a href=&quot;http://xmake.io/#/zh/manual?id=compiler-has_features&quot;&gt;compiler.has_features&lt;/a&gt;接口，在&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake.lua&lt;/code&gt;中预先判断当前编译期支持的语言特性，实现条件编译。&lt;/p&gt;
+
+&lt;p&gt;此处也是参考了cmake的设计，具体详情见：&lt;a href=&quot;https://github.com/tboox/xmake/issues/83&quot;&gt;issues#83&lt;/a&gt;。&lt;/p&gt;
+
+&lt;p&gt;上述代码，在加载target的时候，判断当前编译器是否支持c++的常量表达式语法特性，如果支持则添加宏定义：&lt;code class=&quot;highlighter-rouge&quot;&gt;HAS_CXX_CONSTEXPR=1&lt;/code&gt;。&lt;/p&gt;
+
+&lt;p&gt;我们也可以在判断时候，追加一些参数控制编译选项，例如上述特性需要&lt;code class=&quot;highlighter-rouge&quot;&gt;c++11&lt;/code&gt;支持，我们可以启用它：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;compiler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;has_features&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;c_static_assert&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;cxx_constexpr&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;languages&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;cxx11&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;-- ok&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;通过上面的代码可以看到，此接口是可以同时检测多个特性的，返回值为实际支持的特性列表。&lt;/p&gt;
+
+&lt;p&gt;如果之前对这个target已经设置了&lt;code class=&quot;highlighter-rouge&quot;&gt;c++11&lt;/code&gt;，那么我们也可以传入target对象，继承target的所有设置，甚至指定一些其他扩展编译配置：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;compiler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;has_features&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cxx_constexpr&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;defines&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;..&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;includedirs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;..&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;-- ok&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;section-1&quot;&gt;批量编译器特性检测&lt;/h4&gt;
+
+&lt;p&gt;c++的语言特性非常多，这个时候我们可以通过脚本实现快速的批量检测：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;on_load&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;core.tool.compiler&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;feature&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;pairs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;compiler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;features&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cxx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}))&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;-- 传入target在检测特性时继承target的所有编译配置&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;defines&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;has_feature_&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;..&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;feature&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;上述代码，会在加载target的时候，把当前编译器对c++的所有支持特性，都添加到target的宏定义中进行编译，例如：&lt;code class=&quot;highlighter-rouge&quot;&gt;-Dhas_feature_cxx_constexpr&lt;/code&gt;。
+我们只需要在代码中，通过判断对应的特性宏是否存在就行了:&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;cp&quot;&gt;#ifdef has_feature_cxx_constexpr
+&lt;/span&gt;    &lt;span class=&quot;c1&quot;&gt;// TODO
+&lt;/span&gt;&lt;span class=&quot;cp&quot;&gt;#endif
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;目前支持的所有c/c++编译器特性列表，见：&lt;a href=&quot;http://xmake.io/#/zh/manual?id=compiler-features&quot;&gt;compiler.features&lt;/a&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;section-2&quot;&gt;更加底层的检测接口&lt;/h4&gt;
+
+&lt;p&gt;如果我们要指定获取具体哪个编译器的特性支持，则需要更加底层的接口支持了，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;lib.detect.has_features&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;features&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;has_features&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;clang&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;cxx_constexpr&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;features&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;has_features&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;clang&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cxx_constexpr&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;c_static_assert&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;flags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;-g&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;-O0&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;program&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;xcrun -sdk macosx clang&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;features&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;has_features&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;clang&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cxx_constexpr&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;c_static_assert&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;flags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;-g&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://xmake.io/#/zh/manual?id=detect-has_features&quot;&gt;lib.detect.has_features&lt;/a&gt;属于探测模块的接口，可以指定需要检测的工具名，例如这里通过传入clang，只对clang编译器进行检测。&lt;/p&gt;
+
+&lt;p&gt;当然此接口，还可以检测其他非编译器的工具特性，更加的通用。&lt;/p&gt;
+
+&lt;h4 id=&quot;cc&quot;&gt;通过自定义c/c++代码片段来检测特性&lt;/h4&gt;
+
+&lt;p&gt;对于一些复杂的编译器特性，连&lt;a href=&quot;http://xmake.io/#/zh/manual?id=compiler-has_features&quot;&gt;compiler.has_features&lt;/a&gt;都无法检测到的时候，可以通过自定义代码片段尝试编译来检测它。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;lib.detect.check_cxsnippets&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ok&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;check_cxsnippets&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;constexpr int f(int x) { return x ? x+f(x-1) : 0; } constexpr int x = f(5); static_assert(x == 15);&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sourcekind&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;cxx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;languages&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;cxx11&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;上述代码通过自定义一个constexpr的测试代码，去检测c++11的constexpr支持。&lt;/p&gt;
+
+&lt;p&gt;此接口是&lt;a href=&quot;http://xmake.io/#/zh/manual?id=detect-has_cfuncs&quot;&gt;detect.has_cfuncs&lt;/a&gt;, &lt;a href=&quot;http://xmake.io/#/zh/manual?id=detect-has_cincludes&quot;&gt;detect.has_cincludes&lt;/a&gt;和&lt;a href=&quot;http://xmake.io/#/zh/manual?id=detect-has_ctypes&quot;&gt;detect.has_ctypes&lt;/a&gt;等接口的通用版本，也更加底层。&lt;/p&gt;
+
+&lt;p&gt;因此我们可以用它来检测：types, functions, includes 还有 links，或者是组合起来一起检测。&lt;/p&gt;
+
+&lt;p&gt;第一个参数为代码片段列表，一般用于一些自定义特性的检测，如果为空，则可以仅仅检测可选参数中条件，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ok&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;check_cxsnippets&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;void test() {}&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;void test2() {}&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;types&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wchar_t&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;char*&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;includes&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;stdio.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;funcs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;sigsetjmp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;sigsetjmp((void*)0, 0)&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;上面那个调用，会去同时检测types, includes和funcs是否都满足，如果通过返回true。&lt;/p&gt;
+
+</description>
+        <pubDate>Tue, 08 Aug 2017 00:00:00 +0800</pubDate>
+        <link>http://www.tboox.org/cn/2017/08/08/compiler-features/</link>
+        <guid isPermaLink="true">http://www.tboox.org/cn/2017/08/08/compiler-features/</guid>
+        
+        <category>xmake</category>
+        
+        <category>lua</category>
+        
+        <category>cmake</category>
+        
+        <category>编译器特性检测</category>
+        
+        
+        <category>xmake</category>
+        
+      </item>
     
       <item>
         <title>xmake v2.1.5 released, lots of new feature updates</title>
@@ -2331,165 +2461,6 @@ so that any developer can quickly pick it up and enjoy the productivity boost wh
         <category>lua</category>
         
         <category>version</category>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>xmake v2.1.3版本更新，修复安全和稳定性问题</title>
-        <description>&lt;h3 id=&quot;section&quot;&gt;概述&lt;/h3&gt;
-
-&lt;p&gt;此次更新，主要修复xmake的一些稳定性问题，并且对安装和卸载提供更加安全的权限处理，相关更新细节见：&lt;a href=&quot;/cn/2017/03/30/safer-install-and-uninstall/&quot;&gt;改进权限问题，提升操作安全性&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/xmake/safer_installation.png&quot; alt=&quot;safer_installation&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;并且此版本还对用户使用上的体验进行了一些优化，例如：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;减少冗余检测和提示信息，提升检测效率&lt;/li&gt;
-  &lt;li&gt;在非xmake工程自动生成&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake.lua&lt;/code&gt;时提供更加友好的提示，避免误操作&lt;/li&gt;
-  &lt;li&gt;在任意工程子目录也可正常执行xmake操作，类似git&lt;/li&gt;
-  &lt;li&gt;提供更加安全友好的安装和卸载提示信息&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;详细更新信息，可参考下面的更新细节：&lt;/p&gt;
-
-&lt;h3 id=&quot;section-1&quot;&gt;新特性&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/tboox/xmake/pull/65&quot;&gt;#65&lt;/a&gt;: 为target添加&lt;code class=&quot;highlighter-rouge&quot;&gt;set_default&lt;/code&gt;接口用于修改默认的构建所有targets行为&lt;/li&gt;
-  &lt;li&gt;允许在工程子目录执行&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake&lt;/code&gt;命令进行构建，xmake会自动检测所在的工程根目录&lt;/li&gt;
-  &lt;li&gt;添加&lt;code class=&quot;highlighter-rouge&quot;&gt;add_rpathdirs&lt;/code&gt; api到target和option，支持动态库的自动加载运行&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;section-2&quot;&gt;改进&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/tboox/xmake/pull/61&quot;&gt;#61&lt;/a&gt;: 提供更加安全的&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake install&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake uninstall&lt;/code&gt;任务，更友好的处理root安装问题&lt;/li&gt;
-  &lt;li&gt;提供&lt;code class=&quot;highlighter-rouge&quot;&gt;rpm&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;deb&lt;/code&gt;和&lt;code class=&quot;highlighter-rouge&quot;&gt;osxpkg&lt;/code&gt;安装包&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/tboox/xmake/pull/63&quot;&gt;#63&lt;/a&gt;: 改进安装脚本，实现更加安全的构建和安装xmake&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/tboox/xmake/pull/61&quot;&gt;#61&lt;/a&gt;: 禁止在root权限下运行xmake命令，增强安全性&lt;/li&gt;
-  &lt;li&gt;改进工具链检测，通过延迟延迟检测提升整体检测效率&lt;/li&gt;
-  &lt;li&gt;当自动扫面生成&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake.lua&lt;/code&gt;时，添加更友好的用户提示，避免用户无操作&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;bugs&quot;&gt;Bugs修复&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;修复版本检测的错误提示信息&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/tboox/xmake/issues/60&quot;&gt;#60&lt;/a&gt;: 修复macosx和windows平台的xmake自举编译&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/tboox/xmake/issues/64&quot;&gt;#64&lt;/a&gt;: 修复构建android &lt;code class=&quot;highlighter-rouge&quot;&gt;armv8-a&lt;/code&gt;架构失败问题&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/tboox/xmake/issues/50&quot;&gt;#50&lt;/a&gt;: 修复构建android可执行程序，无法运行问题&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;section-3&quot;&gt;简介&lt;/h2&gt;
-
-&lt;p&gt;XMake是一个基于Lua的轻量级跨平台自动构建工具，支持在各种主流平台上构建项目&lt;/p&gt;
-
-&lt;p&gt;xmake的目标是开发者更加关注于项目本身开发，简化项目的描述和构建，并且提供平台无关性，使得一次编写，随处构建&lt;/p&gt;
-
-&lt;p&gt;它跟cmake、automake、premake有点类似，但是机制不同，它默认不会去生成IDE相关的工程文件，采用直接编译，并且更加的方便易用
-采用lua的工程描述语法更简洁直观，支持在大部分常用平台上进行构建，以及交叉编译&lt;/p&gt;
-
-&lt;p&gt;并且xmake提供了创建、配置、编译、打包、安装、卸载、运行等一些actions，使得开发和构建更加的方便和流程化。&lt;/p&gt;
-
-&lt;p&gt;不仅如此，它还提供了许多更加高级的特性，例如插件扩展、脚本宏记录、批量打包、自动文档生成等等。。&lt;/p&gt;
-
-&lt;p&gt;如果你想要了解更多，请参考：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;http://xmake.io/#/zh/&quot;&gt;在线文档&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/waruqi/xmake&quot;&gt;在线源码&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://www.xmake.io/cn&quot;&gt;项目主页&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;section-4&quot;&gt;简单的工程描述&lt;/h2&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;console&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h2 id=&quot;section-5&quot;&gt;构建工程&lt;/h2&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h2 id=&quot;section-6&quot;&gt;运行目标&lt;/h2&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake run console
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h2 id=&quot;section-7&quot;&gt;调试程序&lt;/h2&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake run -d console
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h2 id=&quot;section-8&quot;&gt;支持特性&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Tasks&lt;/li&gt;
-  &lt;li&gt;Macros&lt;/li&gt;
-  &lt;li&gt;Actions&lt;/li&gt;
-  &lt;li&gt;Options&lt;/li&gt;
-  &lt;li&gt;Plugins&lt;/li&gt;
-  &lt;li&gt;Templates&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;section-9&quot;&gt;支持平台&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Windows (x86, x64, amd64, x86_amd64)&lt;/li&gt;
-  &lt;li&gt;Macosx (i386, x86_64)&lt;/li&gt;
-  &lt;li&gt;Linux (i386, x86_64, cross-toolchains …)&lt;/li&gt;
-  &lt;li&gt;Android (armv5te, armv6, armv7-a, armv8-a, arm64-v8a)&lt;/li&gt;
-  &lt;li&gt;iPhoneOS (armv7, armv7s, arm64, i386, x86_64)&lt;/li&gt;
-  &lt;li&gt;WatchOS (armv7k, i386)&lt;/li&gt;
-  &lt;li&gt;Mingw (i386, x86_64)&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;section-10&quot;&gt;支持语言&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;C/C++&lt;/li&gt;
-  &lt;li&gt;Objc/Objc++&lt;/li&gt;
-  &lt;li&gt;Swift&lt;/li&gt;
-  &lt;li&gt;Assembly&lt;/li&gt;
-  &lt;li&gt;Golang&lt;/li&gt;
-  &lt;li&gt;Rust&lt;/li&gt;
-  &lt;li&gt;Dlang&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;section-11&quot;&gt;内置插件&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;宏记录脚本和回放插件&lt;/li&gt;
-  &lt;li&gt;加载自定义lua脚本插件&lt;/li&gt;
-  &lt;li&gt;生成IDE工程文件插件（makefile, vs2002 - vs2017, …）&lt;/li&gt;
-  &lt;li&gt;生成doxygen文档插件&lt;/li&gt;
-  &lt;li&gt;iOS app2ipa插件&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;section-12&quot;&gt;构建演示&lt;/h2&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://github.com/tboox/xmake&quot;&gt;&lt;img src=&quot;/static/img/xmake/build_demo.gif&quot; alt=&quot;build_demo&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
-
-</description>
-        <pubDate>Sun, 02 Apr 2017 00:00:00 +0800</pubDate>
-        <link>http://www.tboox.org/cn/2017/04/02/update-v2.1.3/</link>
-        <guid isPermaLink="true">http://www.tboox.org/cn/2017/04/02/update-v2.1.3/</guid>
-        
-        <category>xmake</category>
-        
-        <category>lua</category>
-        
-        <category>版本更新</category>
         
         
         <category>xmake</category>
