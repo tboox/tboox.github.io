@@ -48,7 +48,7 @@
         description: 'An off-line handwritten numeral recognition system.'
     },
     {
-        page_link: 'https://asciinema.org/a/79998',
+        page_link: 'https://asciinema.org/a/133693',
         img_link: '/static/img/xmake/videodemo.png',
         code_repo: 'xmake',
         title: 'xmake: demo',
