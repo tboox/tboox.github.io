@@ -28,6 +28,7 @@ TBOOX的所有项目都是属于个人开源项目，它的发展需要您的帮
 
 <a href="https://opencollective.com/xmake#backers" target="_blank"><img src="https://opencollective.com/xmake/backers.svg?width=890"></a>
 
+|| 2017.08.03 || tbox || 开枝 || 支付宝 || ¥20 ||
 || 2017.05.23 || tboox || 匿名 || 微信 || ¥10 ||
 || 2017.01.14 || tboox || 匿名 || 微信 || ¥66 ||
 || 2016.12.13 || tboox || 匿名 || 微信 || ¥5 ||
