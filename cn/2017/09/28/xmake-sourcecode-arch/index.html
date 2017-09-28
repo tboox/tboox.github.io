@@ -1,0 +1,2872 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+    <title>xmake 源码架构剖析</title>
+    <meta name="description" content="本文主要介绍下xmake的整体架构设计，以及源码结构的布局和模块划分。如果你想深度使用xmake，开发xmake插件、工程自定义脚本或者想为xmake贡献一些代码和特性，可以通过此本的介绍，对xmake项目整体有个大概的了解。，源码地址：Github顶层目录结构./xmake/├── actions    # 内...">
+
+    
+    <meta name="keywords" content="xmake,lua,源码,架构设计,tboox" /> 
+
+    <!-- qq oauth -->
+    <meta property="qc:admins" content="5211601217706727767255" />
+
+    <! --icon -->
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" sizes="192x192" href="/static/img/nice-highres.png" />
+	<link rel="apple-touch-icon-precomposed" href="/static/img/apple-touch-icon-57x57-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="72x72" href="/static/img/apple-touch-icon-72x72-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="114x114" href="/static/img/apple-touch-icon-114x114-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/static/img/apple-touch-icon-144x144-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="180x180" href="/static/img/retinahd_icon.png" />
+	<meta name="msapplication-TileImage" content="/static/img/retinahd_icon.png" />
+	
+    <link rel="stylesheet" href=" /css/fontawesome/css/font-awesome.min.css ">
+    <link rel="stylesheet" href=" /css/main.css ">
+    <link rel="canonical" href="http://www.tboox.org/cn/2017/09/28/xmake-sourcecode-arch/">
+    <link rel="alternate" type="application/rss+xml" title="TBOOX Open Source Project" href="http://www.tboox.org/feed.xml ">
+    <link rel="alternate" hreflang="en" href="http://www.tboox.org/" />
+    <link rel="alternate" hreflang="zh-Hans" href="http://www.tboox.org/cn/" />
+
+
+    <script>
+    // 百度统计代码
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?162f1cd478898a0686b0b5d5115e2af2";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+
+
+
+    <script type="text/javascript">
+    function isPC(){    
+        var userAgentInfo = navigator.userAgent;  
+        var Agents = new Array("Android", "iPhone", "SymbianOS", "Windows Phone", "iPad", "iPod");    
+        var flag = true;    
+        for (var v = 0; v < Agents.length; v++) {    
+            if (userAgentInfo.indexOf(Agents[v]) > 0) { flag = false; break; }    
+        }    
+        return flag;    
+    }  
+    </script>
+
+</head>
+
+
+  <body>
+
+    <header id="top">
+    <div class="wrapper">
+        <a href="/cn" class="brand">TBOOX</a>
+        <button id="headerMenu" class="menu"><i class="fa fa-bars"></i></button>
+        <nav id="headerNav">
+            <ul>
+                <li>
+                    
+                    <a href="/">
+                    
+                        <i class="fa fa-home"></i>English
+                    </a>
+                </li>
+
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/project/">
+                            
+                        
+                            <i class="fa fa-bookmark"></i>项目
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/archive/">
+                            
+                        
+                            <i class="fa fa-archive"></i>归档
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/category/">
+                            
+                        
+                            <i class="fa fa-th-list"></i>分类
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/tag/">
+                            
+                        
+                            <i class="fa fa-tags"></i>标记
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="https://github.com/tboox/community/issues">
+                            
+                        
+                            <i class="fa fa-forumbee"></i>社区
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/donation/">
+                            
+                        
+                            <i class="fa fa-heart"></i>捐助
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/about/">
+                            
+                        
+                            <i class="fa fa-user"></i>关于
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            </ul>
+        </nav>
+    </div>
+</header>
+
+
+        <div class="page clearfix" post>
+    <div class="left">
+        <h1>xmake 源码架构剖析</h1>
+        <div class="label">
+
+            <div class="label-card">
+                <i class="fa fa-calendar"></i>2017-09-28
+            </div>
+
+            <div class="label-card">
+                
+            </div>
+
+            <div class="label-card">
+                
+            </div>
+
+            <div class="label-card">
+            
+
+
+<!-- <span class="point">•</span> -->
+<span class="categories">
+  <i class="fa fa-th-list"></i>
+  
+    
+        <a href="/category/#xmake" title="Category: xmake" rel="category">xmake</a>
+    
+  
+
+  <!-- <span class="point">•</span> -->
+</span>
+
+
+            </div>
+
+            <div class="label-card">
+            
+<!-- <span class="point">•</span> -->
+<span class="pageTag">
+  <i class="fa fa-tags"></i>
+  
+    
+        <!--a href="/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a-->
+        <a href="/cn/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a>&nbsp;
+    
+        <!--a href="/tag/#lua" title="Tag: lua" rel="tag">lua</a-->
+        <a href="/cn/tag/#lua" title="Tag: lua" rel="tag">lua</a>&nbsp;
+    
+        <!--a href="/tag/#%E6%BA%90%E7%A0%81" title="Tag: 源码" rel="tag">源码</a-->
+        <a href="/cn/tag/#源码" title="Tag: 源码" rel="tag">源码</a>&nbsp;
+    
+        <!--a href="/tag/#%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1" title="Tag: 架构设计" rel="tag">架构设计</a-->
+        <a href="/cn/tag/#架构设计" title="Tag: 架构设计" rel="tag">架构设计</a>
+    
+  
+
+</span>
+
+            </div>
+
+        </div>
+        <hr>
+        <article itemscope itemtype="http://schema.org/BlogPosting">
+        <p>本文主要介绍下<a href="https://github.com/tboox/xmake">xmake</a>的整体架构设计，以及源码结构的布局和模块划分。
+如果你想深度使用xmake，开发xmake插件、工程自定义脚本或者想为xmake贡献一些代码和特性，可以通过此本的介绍，对xmake项目整体有个大概的了解。，</p>
+
+<p>源码地址：<a href="https://github.com/tboox/xmake">Github</a></p>
+
+<h2 id="section">顶层目录结构</h2>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>./xmake/
+├── actions    <span class="c"># 内建的一些基础task，用于基本的构建安装等操作</span>
+├── core       <span class="c"># xmake的核心模块，提供最底层的实现支持</span>
+├── languages  <span class="c"># 所有的语言相关特性支持和扩展，都在此目录下</span>
+├── modules    <span class="c"># 内置的扩展模块，可用`import`导入使用</span>
+├── packages   <span class="c"># 内置包目录，提供xmake所需的一些必须依赖包支持，例如：git等，其他第三方包放在独立xmake-repo下</span>
+├── platforms  <span class="c"># 平台支持目录，提供各个构建平台的配置信息和脚本</span>
+├── plugins    <span class="c"># 插件目录，提供一些内置的插件支持，例如：生成IDE工程，宏脚本等。。</span>
+├── scripts    <span class="c"># 放置一些杂七杂八的shell、perl等其他语言脚本，例如：gas-preprocessor.pl</span>
+└── templates  <span class="c"># 工程模板目录，提供一些`xmake create`创建工程所需的内置模板</span>
+</code></pre>
+</div>
+
+<h2 id="section-1">沙盒模式</h2>
+
+<p>为了简化<code class="highlighter-rouge">xmake.lua</code>中自己定义脚本、插件脚本以及扩展模块的开发，提供更高的安全性，xmake采用了沙盒的方式去加载他们，每个脚本都独立在一个单独的沙盒中，并且有独立的作用域支持。</p>
+
+<p>在xmake的整个目录结构中，除了<code class="highlighter-rouge">xmake/core</code>底层核心模块，其他的顶层目录全部放置在沙盒中加载运行，来简化代码开发，提高易用性和安全性。</p>
+
+<p>这样有什么好处呢？</p>
+
+<ul>
+  <li>上层模块的开发跟xmake的core代码完全隔离，不会干扰到xmake的底层核心模块，更加安全</li>
+  <li>作用域只提供当前模块所需api的最小子集支持</li>
+  <li>提供内置异常处理机制，以及api调用的返回值、传参有效性检测，代码出错后，会及时报出异常信息，并提供详细栈来定位问题</li>
+  <li>可通过<code class="highlighter-rouge">import("core.base.task")</code>的模块导入方式，提供更加方便高效的模块加载支持</li>
+  <li>通过异常机制，简化代码的编写，可以简化30%的代码量，以及错误判断</li>
+  <li>常用接口字符串参数，支持<code class="highlighter-rouge">$(val)</code>等内置变量的自动转换</li>
+</ul>
+
+<p>下面我们可以直观感受下<code class="highlighter-rouge">原生代码</code>和<code class="highlighter-rouge">沙盒代码</code>的区别：</p>
+
+<h4 id="section-2">导入和返回值判断的改进</h4>
+
+<p>原生代码：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="kd">local</span> <span class="n">test</span> <span class="o">=</span> <span class="nb">require</span><span class="p">(</span><span class="s2">"modules/test"</span><span class="p">)</span>
+
+<span class="kd">local</span> <span class="n">ok</span><span class="p">,</span> <span class="n">errors</span> <span class="o">=</span> <span class="n">test</span><span class="p">.</span><span class="n">run</span><span class="p">(</span><span class="s2">"arg1"</span><span class="p">,</span> <span class="s2">"arg2"</span><span class="p">)</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">ok</span> <span class="k">then</span>
+    <span class="n">os</span><span class="p">.</span><span class="n">raise</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span>
+<span class="k">end</span>
+</code></pre>
+</div>
+
+<p>沙盒代码：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">import</span><span class="p">(</span><span class="s2">"modules.test"</span><span class="p">)</span>
+
+<span class="n">test</span><span class="p">.</span><span class="n">run</span><span class="p">(</span><span class="s2">"arg1"</span><span class="p">,</span> <span class="s2">"arg2"</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>如果<code class="highlighter-rouge">test.run</code>运行出错，会自动中断，并显示出错信息。</p>
+
+<p>import的导入比lua原生的require更加的强大易用，支持很多高级特性：</p>
+
+<ul>
+  <li>多级多目录导入支持，模块的搜索目录可以有多个，也可以在<code class="highlighter-rouge">xmake.lua</code>中自己指定</li>
+  <li>通过指定父目录，批量加载所有模块，例如：<code class="highlighter-rouge">import("core")</code>会加载core目录下的所有模块，并且通过<code class="highlighter-rouge">core.xxx</code>来访问</li>
+  <li>支持模块继承导入</li>
+  <li>支持匿名导入和缓存优化</li>
+  <li>支持别名设置</li>
+  <li>通过下划线区分，仅导入公有接口</li>
+  <li>自动识别main函数，可直接调用，例如：<code class="highlighter-rouge">import("test")(args)</code>，会自动调用test模块中的main函数</li>
+  <li>支持<code class="highlighter-rouge">xmake lua</code>直接加载测试，例如：<code class="highlighter-rouge">xmake l lib.detect.find_package zlib</code></li>
+</ul>
+
+<h4 id="api">内置api的改进</h4>
+
+<p>原生代码：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="nb">print</span><span class="p">(</span><span class="s2">"hello xmake"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"hello"</span><span class="p">,</span> <span class="s2">"xmake"</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>沙盒代码：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="nb">print</span><span class="p">(</span><span class="s2">"hello xmake"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"hello"</span><span class="p">,</span> <span class="s2">"xmake"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"hello %s"</span><span class="p">,</span> <span class="s2">"xmake"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"hello $(var)"</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<h4 id="section-3">空参数的判断改进</h4>
+
+<p>原生代码：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="k">function</span> <span class="nf">test</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">array</span> <span class="o">~=</span> <span class="kc">nil</span> <span class="k">then</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">item</span> <span class="k">in</span> <span class="nb">ipairs</span><span class="p">(</span><span class="n">array</span><span class="p">)</span> <span class="k">do</span> 
+            <span class="c1">-- ...</span>
+        <span class="k">end</span>
+    <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+</div>
+
+<p>沙盒代码：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="k">function</span> <span class="nf">test</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">item</span> <span class="k">in</span> <span class="nb">ipairs</span><span class="p">(</span><span class="n">array</span><span class="p">)</span> <span class="k">do</span> 
+        <span class="c1">-- ...</span>
+    <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+</div>
+
+<h4 id="section-4">简化模块定义</h4>
+
+<p>原生代码：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="kd">local</span> <span class="n">module</span> <span class="o">=</span> <span class="n">module</span> <span class="ow">or</span> <span class="p">{}</span>
+
+<span class="k">function</span> <span class="nc">module</span><span class="p">.</span><span class="nf">test</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+    <span class="c1">-- ...</span>
+<span class="k">end</span>
+
+<span class="k">return</span> <span class="n">module</span>
+</code></pre>
+</div>
+
+<p>沙盒代码：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="k">function</span> <span class="nf">test</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+    <span class="c1">-- ...</span>
+<span class="k">end</span>
+</code></pre>
+</div>
+
+<h2 id="actions">Actions目录</h2>
+
+<p>这个目录下提供xmake日常所需的最基础命令，提供配置、编译、打包、安装、运行、调试、卸载等功能。</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>./xmake/actions/
+├── build       <span class="c"># 构建工程</span>
+├── clean       <span class="c"># 清理构建产生的文件</span>
+├── config      <span class="c"># 构建前的工程配置</span>
+├── create      <span class="c"># 根据模板创建工程</span>
+├── global      <span class="c"># 全局配置</span>
+├── install     <span class="c"># 安装构建好的目标文件到系统</span>
+├── package     <span class="c"># 打包当前平台下的构建文件</span>
+├── require     <span class="c"># 获取依赖包</span>
+├── run         <span class="c"># 运行、调试目标程序</span>
+└── uninstall   <span class="c"># 卸载安装到系统的目标文件</span>
+</code></pre>
+</div>
+
+<h2 id="modules">Modules目录</h2>
+
+<p>这个是扩展模块目录，提供了一些常用的模块，来扩展<code class="highlighter-rouge">xmake.lua</code>的自定义脚本，提供更多高级特性，例如：编译器特性检测、依赖包检测等。</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>./xmake/modules/
+├── core
+│   └── tools <span class="c"># 这个下面的模块，主要用于扩展xmake的编译工具链</span>
+│       ├── ar.lua
+│       ├── cl.lua
+│       ├── clang.lua
+│       ├── clangxx.lua
+│       ├── dmd.lua
+│       ├── gcc.lua
+│       ├── gccgo.lua
+│       ├── gdc.lua
+│       ├── go.lua
+│       ├── gxx.lua
+│       ├── ldc.lua
+│       ├── lib.lua
+│       ├── link.lua
+│       ├── ml.lua
+│       ├── ml64.lua
+│       ├── rc.lua
+│       ├── rustc.lua
+│       └── swiftc.lua
+├── detect
+│   ├── packages <span class="c"># 用于增强find_package接口的探测</span>
+│   │   ├── find_mbedtls.lua
+│   │   ├── find_mysql.lua
+│   │   ├── find_openssl.lua
+│   │   ├── find_pcre.lua
+│   │   ├── find_pcre2.lua
+│   │   └── find_zlib.lua
+│   ├── sdks <span class="c"># 用于查找一些编译sdk环境</span>
+│   │   ├── find_cross_toolchains.lua
+│   │   ├── find_ndk_sdkvers.lua
+│   │   ├── find_ndk_toolchains.lua
+│   │   ├── find_vstudio.lua
+│   │   ├── find_xcode_dir.lua
+│   │   └── find_xcode_sdkvers.lua
+│   └── tools <span class="c"># 用于增强可执行工具的查找、特性检测</span>
+│       ├── find_7z.lua
+│       ├── find_apt.lua
+│       ├── find_ar.lua
+│       ├── find_brew.lua
+│       ├── find_ccache.lua
+│       ├── find_cl.lua
+│       ├── find_clang.lua
+│       ├── find_clangxx.lua
+│       ├── find_curl.lua
+│       ├── find_dmd.lua
+│       ├── find_doxygen.lua
+│       ├── find_gcc.lua
+│       ├── find_gccgo.lua
+│       ├── find_gdb.lua
+│       ├── find_gdc.lua
+│       ├── find_git.lua
+│       ├── find_go.lua
+│       ├── find_gxx.lua
+│       ├── find_gzip.lua
+│       ├── find_ldc2.lua
+│       ├── find_lib.lua
+│       ├── find_link.lua
+│       ├── find_lipo.lua
+│       ├── find_lldb.lua
+│       ├── find_ml.lua
+│       ├── find_ml64.lua
+│       ├── find_ollydbg.lua
+│       ├── find_pacman.lua
+│       ├── find_ping.lua
+│       ├── find_pkg_config.lua
+│       ├── find_rc.lua
+│       ├── find_rustc.lua
+│       ├── find_sudo.lua
+│       ├── find_swiftc.lua
+│       ├── find_tar.lua
+│       ├── find_unzip.lua
+│       ├── find_vsjitdebugger.lua
+│       ├── find_wget.lua
+│       ├── find_windbg.lua
+│       ├── find_x64dbg.lua
+│       ├── find_yum.lua
+│       ├── find_zip.lua
+├── devel
+│   ├── debugger <span class="c"># 调试器支持</span>
+│   │   └── run.lua
+│   └── git <span class="c"># git模块的扩展封装</span>
+│       ├── branches.lua
+│       ├── checkout.lua
+│       ├── checkurl.lua
+│       ├── clean.lua
+│       ├── clone.lua
+│       ├── ls_remote.lua
+│       ├── pull.lua
+│       ├── refs.lua
+│       └── tags.lua
+├── lib
+│   └── detect <span class="c"># 这个模块，比较实用，用于各种编译器特性探测、语言类型和函数检测</span>
+│       ├── check_cxsnippets.lua
+│       ├── features.lua
+│       ├── find_tool.lua
+│       ├── find_toolname.lua
+│       ├── has_cfuncs.lua
+│       ├── has_cincludes.lua
+│       ├── has_ctypes.lua
+│       ├── has_cxxfuncs.lua
+│       ├── has_cxxincludes.lua
+│       ├── has_cxxtypes.lua
+│       ├── has_features.lua
+│       ├── has_flags.lua
+│       └── pkg_config.lua
+├── net <span class="c"># 网络模块</span>
+│   ├── fasturl.lua
+│   ├── http 
+│   │   └── download.lua <span class="c"># http下载模块，自动检测curl/wget并调用</span>
+│   └── ping.lua
+├── package
+│   └── manager <span class="c"># 系统第三方包管理工具的封装，提供一致性包安装</span>
+│       ├── apt
+│       │   └── install.lua
+│       ├── brew
+│       │   └── install.lua
+│       ├── install.lua
+│       ├── pacman
+│       │   └── install.lua
+│       └── yum
+│           └── install.lua
+├── privilege <span class="c"># 权限管理</span>
+│   └── sudo.lua
+└── utils
+    └── archive <span class="c"># 归档文件的压缩和解压，支持系统常用归档格式：zip/7z/gz/tar/bz2等，自动检测和适配解压工具</span>
+        └── extract.lua
+</code></pre>
+</div>
+
+<h2 id="plugins">Plugins目录</h2>
+
+<p>放置内置插件的目录，里面内置了一些常用插件，我们也可以自己扩展插件，或者从<a href="https://github.com/tboox/xmake-plugins">xmake-plugins</a>上面下载一些扩展插件。</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>./xmake/plugins/
+├── doxygen         <span class="c"># doxygen文档生成插件</span>
+├── hello           <span class="c"># xmake插件的一个demo</span>
+├── lua             <span class="c"># 加载和测试lua脚本、xmake的模块，例如：xmake l lib.detect.find_tool git</span>
+│   └── scripts 
+├── macro           <span class="c"># 宏记录插件，记录和回放所有执行过的xmake命令，一般用于批量构建和打包</span>
+│   └── macros
+├── project         <span class="c"># IDE工程文件生成插件，支持：vs200x, vs201x, makefile等工程文件</span>
+│   ├── clang
+│   ├── makefile
+│   └── vstudio
+└── repo            <span class="c"># 依赖包仓库管理</span>
+</code></pre>
+</div>
+
+<h2 id="platforms">Platforms目录</h2>
+
+<p>提供一些构建平台的配置和脚本处理，也可自行扩展自己的平台。</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>./xmake/platforms/
+├── android   <span class="c"># 基于android ndk的编译</span>
+├── cross     <span class="c"># 主要用于交叉编译 </span>
+├── iphoneos  <span class="c"># ios平台的编译，支持模拟器架构</span>
+├── linux     <span class="c"># linux平台，也支持linux环境的交叉编译工具链</span>
+├── macosx    <span class="c"># macosx的环境编译</span>
+├── mingw     <span class="c"># 基于mingw工具链的编译，支持windows/macosx/linux下的mingw</span>
+├── watchos   <span class="c"># apple watch 平台的编译</span>
+└── windows   <span class="c"># windows平台的编译，可直接在cmd终端下进行，不需要cygwin/msys支持</span>
+</code></pre>
+</div>
+
+<h2 id="languages">Languages目录</h2>
+
+<p>这个目录提供xmake编译指定的代码语言所需的一些配置信息和脚本处理，我们可以自己扩展这个目录，来提供其他语言编译的支持。</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>./xmake/languages/
+├── asm
+├── c++
+├── dlang
+├── golang
+├── msrc
+├── objc++
+├── rust
+└── swift
+</code></pre>
+</div>
+
+<h2 id="templates">Templates目录</h2>
+
+<p>这个目录主要提供<code class="highlighter-rouge">xmake create</code>创建空工程所需的一些内置工程模板。</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>./xmake/templates/
+├── c
+│   ├── console
+│   ├── console_tbox
+│   ├── shared_library
+│   ├── shared_library_tbox
+│   ├── static_library
+│   └── static_library_tbox
+├── c++
+│   ├── console
+│   ├── console_tbox
+│   ├── shared_library
+│   ├── shared_library_tbox
+│   ├── static_library
+│   └── static_library_tbox
+├── dlang
+│   ├── console
+│   ├── shared_library
+│   └── static_library
+├── go
+│   ├── console
+│   └── static_library
+├── objc
+│   └── console
+├── objc++
+│   └── console
+├── rust
+│   ├── console
+│   └── static_library
+└── swift
+    └── console
+</code></pre>
+</div>
+
+<h2 id="core">Core目录</h2>
+
+<p>core比较复杂，它是xmake最底层的支撑，提供了沙盒机制、解释器、工程处理、基础模块、插件加载的核心实现，里面的所有模块都不在沙盒里面，所以跟其他目录里面的模块是完全隔离的。</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>./xmake/core/
+├── _xmake_main.lua <span class="c"># xmake的脚本起始入口</span>
+├── base <span class="c"># 基础模块</span>
+│   ├── colors.lua <span class="c"># ${red}等色彩输出的基础支持</span>
+│   ├── coroutine.lua <span class="c"># 协程封装</span>
+│   ├── deprecated.lua
+│   ├── emoji.lua
+│   ├── filter.lua <span class="c"># $(val)变量的处理器</span>
+│   ├── global.lua
+│   ├── interpreter.lua <span class="c"># xmake.lua的解释器</span>
+│   ├── io.lua
+│   ├── option.lua <span class="c"># 命令行输入参数的解析和获取</span>
+│   ├── os.lua
+│   ├── path.lua
+│   ├── privilege.lua
+│   ├── process.lua
+│   ├── profiler.lua <span class="c"># 性能分析器</span>
+│   ├── string.lua
+│   ├── table.lua
+│   ├── task.lua <span class="c"># task任务、插件处理模块</span>
+│   └── utils.lua
+├── language <span class="c"># 代码语言模块，会去加载languages目录下的指定语言配置</span>
+│   ├── language.lua
+│   └── menu.lua
+├── main.lua <span class="c"># xmake的主入口</span>
+├── package <span class="c"># 包依赖支持</span>
+│   ├── package.lua
+│   └── repository.lua
+├── platform <span class="c"># 平台管理</span>
+│   ├── environment.lua
+│   ├── menu.lua
+│   └── platform.lua
+├── project <span class="c"># 工程管理相关的一些模块</span>
+│   ├── cache.lua <span class="c"># 工程缓存维护</span>
+│   ├── config.lua <span class="c"># 工程配置文件维护</span>
+│   ├── history.lua
+│   ├── option.lua <span class="c"># option对象的封装</span>
+│   ├── project.lua <span class="c"># 工程xmake.lua加载和解析</span>
+│   ├── target.lua <span class="c"># target对象的封装</span>
+│   └── template.lua <span class="c"># 工程模板的加载</span>
+├── sandbox <span class="c"># 沙盒模块</span>
+│   ├── modules <span class="c"># 这里面也提供了一些内置沙盒模块，跟modules目录下的模块的区别就是，这里的模块实现代码本身不基于沙盒，纯原生底层代码实现，可直接调用底层接口</span>
+│   │   ├── _g.lua <span class="c"># 这里的模块不需要import，可直接在沙盒脚本中使用</span>
+│   │   ├── assert.lua
+│   │   ├── catch.lua
+│   │   ├── coroutine.lua
+│   │   ├── cprint.lua
+│   │   ├── cprintf.lua
+│   │   ├── debug.lua
+│   │   ├── finally.lua
+│   │   ├── format.lua
+│   │   ├── hash.lua
+│   │   ├── ifelse.lua
+│   │   ├── import <span class="c"># 这里面也提供了一些import所需的内置沙盒模块，里面的实现代码，可直接调用core里面底层接口，并且做了异常捕获和返回值检测</span>
+│   │   │   ├── core
+│   │   │   │   ├── base
+│   │   │   │   │   ├── colors.lua
+│   │   │   │   │   ├── filter.lua
+│   │   │   │   │   ├── global.lua
+│   │   │   │   │   ├── option.lua
+│   │   │   │   │   ├── privilege.lua
+│   │   │   │   │   ├── semver.lua
+│   │   │   │   │   └── task.lua
+│   │   │   │   ├── language
+│   │   │   │   │   ├── language.lua
+│   │   │   │   │   └── menu.lua
+│   │   │   │   ├── package
+│   │   │   │   │   ├── package.lua
+│   │   │   │   │   └── repository.lua
+│   │   │   │   ├── platform
+│   │   │   │   │   ├── environment.lua
+│   │   │   │   │   ├── menu.lua
+│   │   │   │   │   └── platform.lua
+│   │   │   │   ├── project
+│   │   │   │   │   ├── cache.lua
+│   │   │   │   │   ├── config.lua
+│   │   │   │   │   ├── history.lua
+│   │   │   │   │   ├── menu.lua
+│   │   │   │   │   ├── project.lua
+│   │   │   │   │   ├── target.lua
+│   │   │   │   │   ├── task.lua
+│   │   │   │   │   └── template.lua
+│   │   │   │   ├── sandbox
+│   │   │   │   │   ├── module.lua
+│   │   │   │   │   └── sandbox.lua
+│   │   │   │   └── tool
+│   │   │   │       ├── compiler.lua
+│   │   │   │       ├── extractor.lua
+│   │   │   │       └── linker.lua
+│   │   │   └── lib
+│   │   │       └── detect <span class="c"># lib.detect.* 下的部分探测接口，跟modules下的那些类似</span>
+│   │   │           ├── cache.lua
+│   │   │           ├── find_directory.lua
+│   │   │           ├── find_file.lua
+│   │   │           ├── find_library.lua
+│   │   │           ├── find_package.lua
+│   │   │           ├── find_path.lua
+│   │   │           ├── find_program.lua
+│   │   │           └── find_programver.lua
+│   │   ├── import.lua <span class="c"># import接口实现</span>
+│   │   ├── inherit.lua
+│   │   ├── insert.lua
+│   │   ├── interpreter <span class="c"># xmake.lua上层描述域可直接调用的一些内置模块</span>
+│   │   │   ├── format.lua
+│   │   │   ├── getenv.lua
+│   │   │   ├── ifelse.lua
+│   │   │   ├── ipairs.lua
+│   │   │   ├── os.lua
+│   │   │   ├── pairs.lua
+│   │   │   ├── path.lua
+│   │   │   ├── print.lua
+│   │   │   ├── printf.lua
+│   │   │   ├── string.lua
+│   │   │   ├── table.lua
+│   │   │   ├── tonumber.lua
+│   │   │   ├── tostring.lua
+│   │   │   └── type.lua
+│   │   ├── io.lua <span class="c"># 这下面是一些不需要import的内置接口，部分接口做了些改进</span>
+│   │   ├── ipairs.lua
+│   │   ├── math.lua
+│   │   ├── os.lua
+│   │   ├── pairs.lua
+│   │   ├── path.lua
+│   │   ├── print.lua
+│   │   ├── printf.lua
+│   │   ├── process.lua
+│   │   ├── raise.lua
+│   │   ├── string.lua
+│   │   ├── table.lua
+│   │   ├── tonumber.lua
+│   │   ├── tostring.lua
+│   │   ├── try.lua
+│   │   ├── type.lua
+│   │   ├── unpack.lua
+│   │   ├── utils.lua
+│   │   ├── val.lua
+│   │   ├── vformat.lua
+│   │   ├── vprint.lua
+│   │   └── vprintf.lua
+│   └── sandbox.lua
+└── tool <span class="c"># 编译器、链接器等相关工具的封装模块，可通过`import("core.tool.compiler")`来使用</span>
+    ├── builder.lua
+    ├── compiler.lua
+    ├── extractor.lua
+    ├── linker.lua
+    └── tool.lua
+</code></pre>
+</div>
+
+        </article>
+        <hr>
+
+        
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+        
+
+        
+        
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <h2 id="similar_posts">相关文章</h2>
+                        <ul>
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2017/08/17/update-v2.1.6/">xmake v2.1.6版本正式发布，稳定性修复
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2017/08/10/config-files-options/">更细粒度的文件编译选项控制
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2017/08/08/compiler-features/">使用xmake检测编译器特性支持
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2017/08/05/update-v2.1.5/">xmake v2.1.5版本正式发布，大量新特性更新
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2017/07/31/precompiled-header/">不同编译器对预编译头文件的处理
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+        
+            </ul>
+        
+
+        <div class="post-recent">
+    <div class="pre">
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        <p><strong>上一篇</strong> <a href="/cn/2017/08/30/update-v1.6.2/">tbox v1.6.2 更新，修复一些稳定性问题</a></p>
+        
+    </div>
+
+    <div class="nex">
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+    </div>
+</div>
+
+
+        <h2 id="comments">评论</h2>
+        
+
+<div id="SOHUCS" ></div> 
+<script type="text/javascript"> 
+(function(){ 
+var appid = 'cysUk4sMC'; 
+var conf = 'prod_a1ee57b8c7df5085908e9e798786ee03'; 
+var width = window.innerWidth || document.documentElement.clientWidth; 
+if (width < 960) { 
+window.document.write('<script id="changyan_mobile_js" charset="utf-8" type="text/javascript" src="https://changyan.sohu.com/upload/mobile/wap-js/changyan_mobile.js?client_id=' + appid + '&conf=' + conf + '"><\/script>'); } else { var loadJs=function(d,a){var c=document.getElementsByTagName("head")[0]||document.head||document.documentElement;var b=document.createElement("script");b.setAttribute("type","text/javascript");b.setAttribute("charset","UTF-8");b.setAttribute("src",d);if(typeof a==="function"){if(window.attachEvent){b.onreadystatechange=function(){var e=b.readyState;if(e==="loaded"||e==="complete"){b.onreadystatechange=null;a()}}}else{b.onload=a}}c.appendChild(b)};loadJs("https://changyan.sohu.com/upload/changyan.js",function(){window.changyan.api.config({appid:appid,conf:conf})}); } })(); </script>
+
+
+
+
+
+
+
+
+    </div>
+    <button class="anchor"><i class="fa fa-anchor"></i></button>
+    <div class="right">
+        <div class="wrap">
+
+            <!-- Content -->
+            <div class="side content">
+                <div>
+                    内容
+                </div>
+                <ul id="content-side" class="content-ul">
+                    <li><a href="#english">English</a></li>
+                    <li><a href="#similar_posts">相关文章</a></li>
+                    <li><a href="#comments">评论</a></li>
+                </ul>
+            </div>
+            
+            <br>
+            <div class="side">
+                <div>
+                    <i class="fa fa-external-link"></i>
+                    链接
+                </div>
+                <ul class="content-ul">
+                  <li><a href="http://github.com/waruqi/tbox">tbox</a></li>
+                  <li><a href="http://www.xmake.io">xmake</a></li>
+                  <li><a href="https://github.com/waruqi">github</a></li>
+                </ul>
+            </div> 
+
+            <!-- qqgroup -->
+            <br>
+            <div class="side">
+                <div>
+                    <i class="fa fa-external-link"></i>
+                    技术交流群（QQ）
+                </div>
+                <img src="/static/img/qqgroup.png" alt="qqgroup" width="256" height="284">
+            </div> 
+
+            <!-- google ads -->
+            
+
+            <!-- baidu ads -->
+            
+
+        </div>
+    </div>
+</div>
+<script>
+/**
+ * target _blank
+ */
+(function() {
+    var aTags = document.querySelectorAll('article a:not([id])')
+    for (var i = 0; i < aTags.length; i++) {
+        aTags[i].setAttribute('target', '_blank')
+    }
+}());
+</script>
+<script src="/js/pageContent.js " charset="utf-8"></script>
+
+
+
+    <!-- baidu ads -->
+
+<script type="text/javascript">
+    var cpro_id = isPC()? "u2872323" : "";
+</script>
+<script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
+
+
+
+
+<footer class="site-footer">
+    <div class="wrapper">
+        <p class="description">
+             Copyright (c) 2016-2017 tboox.org 
+        </p>
+        <p class="contact">
+            
+            <a href="https://github.com/waruqi" title="GitHub"><i class="fa fa-github" aria-hidden="true"></i></a> 
+             
+            
+            <a href="mailto:waruqi@gmail.com" title="email"><i class="fa fa-envelope-o" aria-hidden="true"></i></a> 
+            
+            
+            <a href="https://twitter.com/waruqi" title="Twitter"><i class="fa fa-twitter" aria-hidden="true"></i></a> 
+            
+            <a href="/feed.xml" title="feed"><i class="fa fa-feed" aria-hidden="true"></i></a> 
+        </p>
+        <p class="power">
+            <span>
+                Site powered by <a href="https://jekyllrb.com/">Jekyll</a> & <a href="https://github.com/Gaohaoyang">HyG</a>.
+            </span>
+            <span>
+                <a href="http://www.miitbeian.gov.cn/">沪ICP备16031914号</a>.
+                <a href="http://www.beian.gov.cn/">沪公网安备31011702000303号</a>.
+            </span>
+        </p>
+    </div>
+</footer>
+
+    <div class="back-to-top">
+    <a href="#top" class="scroll">
+        <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    </a>
+</div>
+
+    <script src=" /js/main.js " charset="utf-8"></script>
+    <script src=" /js/scroll.min.js " charset="utf-8"></script>
+  </body>
+
+</html>
