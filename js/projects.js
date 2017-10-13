@@ -17,7 +17,7 @@
         img_link: '/static/img/xmake/xmake_site.png',
         code_repo: 'xmake',
         title: 'xmake',
-        description: 'XMake is a make-like build utility based on lua.'
+        description: 'XMake is a cross-platform build utility based on lua.'
     },
     {
         page_link: 'https://github.com/tboox/tbox',
@@ -62,11 +62,11 @@
         description: 'This is a very simple and lightweight x86 virtual machine which can load and run the assembly code from ida pro directly.'
     },
     {
-        page_link: 'https://github.com/tboox/benchbox',
-        img_link: '/static/img/benchbox/benchbox.jpg',
-        code_repo: 'benchbox',
-        title: 'The Benchmark Testing Box',
-        description: 'Benchbox is a benchmark testing utilities.'
+        page_link: 'https://github.com/tboox/xmake-vscode',
+        img_link: '/static/img/xmake/xmake-vscode.png',
+        code_repo: 'xmake-vscode',
+        title: 'A XMake integration in Visual Studio Code',
+        description: 'This is a xmake integration in vscode，provide fast cross-platform c/c++ development'
     }];
 
     contentInit(demoContent) //内容初始化
