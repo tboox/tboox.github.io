@@ -67,6 +67,13 @@
         code_repo: 'benchbox',
         title: '基准测试包',
         description: 'Benchbox是一个基准测试包，里面包含许多针对第三方库功能的性能基准测试和对比'
+    },
+    {
+        page_link: 'https://github.com/tboox/xmake-vscode',
+        img_link: '/static/img/xmake/xmake-vscode.png',
+        code_repo: 'xmake-vscode',
+        title: '一个集成xmake的vscode插件',
+        description: 'xmake-vscode是一个高度集成xmake的vscode插件，提供方便快速的xmake构建支持，实现高效c/c++跨平台开发'
     }];
 
     contentInit(demoContent) //内容初始化
