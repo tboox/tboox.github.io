@@ -720,7 +720,149 @@
 
 <p><img src="/static/img/xmake/xmake-vscode-completion.gif" width="60%" /></p>
 
-<h2 id="section-15">结语</h2>
+<h4 id="section-15">错误和警告输出解析</h4>
+
+<p>当编译出错或者出现警告信息的时候，xmake-vscode会自动提取解析编译器的错误信息，然后显示到vscode的问题列表中，并提供代码行的跳转支持。</p>
+
+<p><img src="/static/img/xmake/xmake-vscode-problem.gif" width="60%" /></p>
+
+<p>这里使用的是<code class="highlighter-rouge">vscode.languages.createDiagnosticCollection</code>来创建显示问题列表：</p>
+
+<div class="language-js highlighter-rouge"><pre class="highlight"><code><span class="kr">export</span> <span class="kr">class</span> <span class="nx">ProblemList</span> <span class="kr">implements</span> <span class="nx">vscode</span><span class="p">.</span><span class="nx">Disposable</span> <span class="p">{</span>
+
+    <span class="c1">// the diagnostic collection</span>
+    <span class="kr">private</span> <span class="nx">_diagnosticCollection</span><span class="err">:</span> <span class="nx">vscode</span><span class="p">.</span><span class="nx">DiagnosticCollection</span><span class="p">;</span>
+
+    <span class="c1">// the constructor</span>
+    <span class="nx">constructor</span><span class="p">()</span> <span class="p">{</span>
+
+        <span class="c1">// init diagnostic collection</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">_diagnosticCollection</span> <span class="o">=</span> <span class="nx">vscode</span><span class="p">.</span><span class="nx">languages</span><span class="p">.</span><span class="nx">createDiagnosticCollection</span><span class="p">(</span><span class="s2">"build"</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// dispose</span>
+    <span class="kr">public</span> <span class="nx">dispose</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">_diagnosticCollection</span><span class="p">.</span><span class="nx">dispose</span><span class="p">();</span>
+    <span class="p">}</span>
+
+    <span class="c1">// clear problems </span>
+    <span class="kr">public</span> <span class="nx">clear</span><span class="p">()</span> <span class="p">{</span>
+        
+        <span class="c1">// clear the previous problems first</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">_diagnosticCollection</span><span class="p">.</span><span class="nx">clear</span><span class="p">();</span>
+    <span class="p">}</span>
+
+    <span class="c1">// diagnose problems from the current logfile</span>
+    <span class="kr">public</span> <span class="nx">diagnose</span><span class="p">(</span><span class="nx">logfile</span><span class="err">:</span> <span class="nx">string</span><span class="p">)</span> <span class="p">{</span>
+        
+        <span class="c1">// clear the previous problems first</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">_diagnosticCollection</span><span class="p">.</span><span class="nx">clear</span><span class="p">();</span>
+
+        <span class="c1">// exists logfile?</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">logfile</span><span class="p">)</span> <span class="p">{</span>
+
+            <span class="kr">const</span> <span class="nx">isWin</span> <span class="o">=</span> <span class="nx">os</span><span class="p">.</span><span class="nx">platform</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"win32"</span><span class="p">;</span>
+            <span class="nx">fs</span><span class="p">.</span><span class="nx">readFile</span><span class="p">(</span><span class="nx">logfile</span><span class="p">,</span> <span class="nx">isWin</span><span class="p">?</span> <span class="kc">null</span> <span class="p">:</span> <span class="s2">"utf8"</span><span class="p">,</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">content</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+                    
+                <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">err</span> <span class="o">&amp;&amp;</span> <span class="nx">content</span><span class="p">)</span> <span class="p">{</span>
+                    
+                    <span class="c1">// 处理msvc输出的gbk编码文件</span>
+                    <span class="kd">let</span> <span class="nx">text</span> <span class="o">=</span> <span class="nx">content</span><span class="p">;</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="nx">isWin</span><span class="p">)</span> <span class="p">{</span>
+                        <span class="nx">text</span> <span class="o">=</span> <span class="nx">encoding</span><span class="p">.</span><span class="nx">convert</span><span class="p">(</span><span class="nx">content</span><span class="p">,</span> <span class="s2">"utf8"</span><span class="p">,</span> <span class="s2">"gbk"</span><span class="p">).</span><span class="nx">toString</span><span class="p">();</span>
+                    <span class="p">}</span>
+
+                    <span class="c1">// 用于解析gcc/clang的编译输出</span>
+                    <span class="kr">const</span> <span class="na">rOutputGcc</span><span class="p">:</span> <span class="nb">RegExp</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">RegExp</span><span class="p">(</span><span class="s2">"^(error: )?(.*?):([0-9]*):([0-9]*): (.*?): (.*)$"</span><span class="p">);</span>
+                    
+                    <span class="c1">// 用于解析msvc的编译输出</span>
+                    <span class="kr">const</span> <span class="na">rOutputMsvc</span><span class="p">:</span> <span class="nb">RegExp</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">RegExp</span><span class="p">(</span><span class="s2">"(.*?)\\(([0-9]*)\\): (.*?) .*?: (.*)"</span><span class="p">);</span>                    
+
+                    <span class="c1">// init diagnostics map</span>
+                    <span class="kd">let</span> <span class="na">diagnosticsMap</span><span class="p">:</span> <span class="nx">Map</span><span class="o">&lt;</span><span class="nx">string</span><span class="p">,</span> <span class="nx">vscode</span><span class="p">.</span><span class="nx">Diagnostic</span><span class="p">[]</span><span class="o">&gt;</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Map</span><span class="p">();</span>
+    
+                    <span class="c1">// 解析提取每行的错误信息</span>
+                    <span class="nx">text</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="s2">"\n"</span><span class="p">).</span><span class="nx">forEach</span><span class="p">(</span><span class="nx">textLine</span> <span class="o">=&gt;</span> <span class="p">{</span>
+                        <span class="k">if</span> <span class="p">(</span><span class="nx">textLine</span><span class="p">)</span> <span class="p">{</span>
+
+                            <span class="c1">// parse warning and error from the given text line</span>
+                            <span class="kd">let</span> <span class="na">matches</span><span class="p">:</span> <span class="nx">RegExpExecArray</span> <span class="o">=</span> <span class="nx">isWin</span><span class="p">?</span> <span class="nx">rOutputMsvc</span><span class="p">.</span><span class="nx">exec</span><span class="p">(</span><span class="nx">textLine</span><span class="p">)</span> <span class="p">:</span> <span class="nx">rOutputGcc</span><span class="p">.</span><span class="nx">exec</span><span class="p">(</span><span class="nx">textLine</span><span class="p">);</span>
+                            <span class="k">if</span> <span class="p">(</span><span class="nx">matches</span><span class="p">)</span> <span class="p">{</span> 
+
+                                <span class="c1">// 解析提示中代码行和文件位置</span>
+                                <span class="kd">let</span> <span class="nx">file</span> <span class="o">=</span> <span class="s2">""</span><span class="p">;</span>
+                                <span class="kd">let</span> <span class="nx">line</span> <span class="o">=</span> <span class="s2">"0"</span><span class="p">;</span>
+                                <span class="kd">let</span> <span class="nx">column</span> <span class="o">=</span> <span class="s2">"0"</span><span class="p">;</span>
+                                <span class="kd">let</span> <span class="nx">kind</span> <span class="o">=</span> <span class="s2">"error"</span><span class="p">;</span>
+                                <span class="kd">let</span> <span class="nx">message</span> <span class="o">=</span> <span class="s2">""</span><span class="p">;</span>
+                                <span class="k">if</span> <span class="p">(</span><span class="nx">isWin</span><span class="p">)</span> <span class="p">{</span>
+
+                                    <span class="nx">file</span> <span class="o">=</span> <span class="nx">matches</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">trim</span><span class="p">();</span>
+                                    <span class="nx">line</span> <span class="o">=</span> <span class="nx">matches</span><span class="p">[</span><span class="mi">2</span><span class="p">].</span><span class="nx">trim</span><span class="p">();</span>
+                                    <span class="nx">kind</span> <span class="o">=</span> <span class="nx">matches</span><span class="p">[</span><span class="mi">3</span><span class="p">].</span><span class="nx">toLocaleLowerCase</span><span class="p">().</span><span class="nx">trim</span><span class="p">();</span>
+                                    <span class="nx">message</span> <span class="o">=</span> <span class="nx">matches</span><span class="p">[</span><span class="mi">4</span><span class="p">].</span><span class="nx">trim</span><span class="p">();</span>
+
+                                <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+
+                                    <span class="nx">file</span> <span class="o">=</span> <span class="nx">matches</span><span class="p">[</span><span class="mi">2</span><span class="p">].</span><span class="nx">trim</span><span class="p">();</span>
+                                    <span class="nx">line</span> <span class="o">=</span> <span class="nx">matches</span><span class="p">[</span><span class="mi">3</span><span class="p">].</span><span class="nx">trim</span><span class="p">();</span>
+                                    <span class="nx">column</span> <span class="o">=</span> <span class="nx">matches</span><span class="p">[</span><span class="mi">4</span><span class="p">].</span><span class="nx">trim</span><span class="p">();</span>
+                                    <span class="nx">kind</span> <span class="o">=</span> <span class="nx">matches</span><span class="p">[</span><span class="mi">5</span><span class="p">].</span><span class="nx">toLocaleLowerCase</span><span class="p">().</span><span class="nx">trim</span><span class="p">();</span>
+                                    <span class="nx">message</span> <span class="o">=</span> <span class="nx">matches</span><span class="p">[</span><span class="mi">6</span><span class="p">].</span><span class="nx">trim</span><span class="p">();</span>
+                                <span class="p">}</span>
+
+                                <span class="c1">// get uri of file</span>
+                                <span class="kd">let</span> <span class="na">uri</span><span class="p">:</span> <span class="nx">vscode</span><span class="p">.</span><span class="nx">Uri</span> <span class="o">=</span> <span class="nx">vscode</span><span class="p">.</span><span class="nx">Uri</span><span class="p">.</span><span class="nx">file</span><span class="p">(</span><span class="nx">path</span><span class="p">.</span><span class="nx">isAbsolute</span><span class="p">(</span><span class="nx">file</span><span class="p">)?</span> <span class="nx">file</span> <span class="p">:</span> <span class="nx">path</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">workingDirectory</span><span class="p">,</span> <span class="nx">file</span><span class="p">));</span>
+
+                                <span class="c1">// get diagnostics of this file</span>
+                                <span class="kd">let</span> <span class="na">diagnostics</span><span class="p">:</span> <span class="nx">vscode</span><span class="p">.</span><span class="nx">Diagnostic</span><span class="p">[]</span> <span class="o">=</span> <span class="nx">diagnosticsMap</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">uri</span><span class="p">.</span><span class="nx">fsPath</span><span class="p">);</span>                      
+
+                                <span class="c1">// 是错误还是警告？</span>
+                                <span class="kd">let</span> <span class="na">severity</span><span class="p">:</span> <span class="nx">vscode</span><span class="p">.</span><span class="nx">DiagnosticSeverity</span> <span class="o">=</span> <span class="p">{</span><span class="na">error</span><span class="p">:</span> <span class="nx">vscode</span><span class="p">.</span><span class="nx">DiagnosticSeverity</span><span class="p">.</span><span class="nb">Error</span><span class="p">,</span> <span class="na">warning</span><span class="p">:</span> <span class="nx">vscode</span><span class="p">.</span><span class="nx">DiagnosticSeverity</span><span class="p">.</span><span class="nx">Warning</span><span class="p">}[</span><span class="nx">kind</span><span class="p">];</span>
+                                <span class="k">if</span> <span class="p">(</span><span class="nx">severity</span> <span class="o">!=</span> <span class="nx">vscode</span><span class="p">.</span><span class="nx">DiagnosticSeverity</span><span class="p">.</span><span class="nb">Error</span> <span class="o">&amp;&amp;</span> <span class="nx">severity</span> <span class="o">!=</span> <span class="nx">vscode</span><span class="p">.</span><span class="nx">DiagnosticSeverity</span><span class="p">.</span><span class="nx">Warning</span><span class="p">)</span> <span class="p">{</span>
+                                    <span class="nx">severity</span> <span class="o">=</span> <span class="nx">vscode</span><span class="p">.</span><span class="nx">DiagnosticSeverity</span><span class="p">.</span><span class="nb">Error</span><span class="p">;</span>
+                                <span class="p">}</span>
+
+                                <span class="c1">// 定位错误行和列位置</span>
+                                <span class="kd">let</span> <span class="nx">startLine</span> <span class="o">=</span> <span class="nb">Number</span><span class="p">(</span><span class="nx">line</span><span class="p">);</span>
+                                <span class="kd">let</span> <span class="nx">startColumn</span> <span class="o">=</span> <span class="nb">Number</span><span class="p">(</span><span class="nx">column</span><span class="p">);</span>
+                                <span class="k">if</span> <span class="p">(</span><span class="nx">startLine</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="nx">startLine</span> <span class="o">-=</span> <span class="mi">1</span><span class="p">;</span>
+                                <span class="k">if</span> <span class="p">(</span><span class="nx">startColumn</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="nx">startColumn</span> <span class="o">-=</span> <span class="mi">1</span><span class="p">;</span>
+
+                                <span class="c1">// get end line and column</span>
+                                <span class="kd">let</span> <span class="nx">endLine</span> <span class="o">=</span> <span class="nx">startLine</span><span class="p">;</span>
+                                <span class="kd">let</span> <span class="nx">endColumn</span> <span class="o">=</span> <span class="nx">startColumn</span><span class="p">;</span>
+
+                                <span class="c1">// init range</span>
+                                <span class="kd">let</span> <span class="nx">range</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">vscode</span><span class="p">.</span><span class="nx">Range</span><span class="p">(</span><span class="nx">startLine</span><span class="p">,</span> <span class="nx">startColumn</span><span class="p">,</span> <span class="nx">endLine</span><span class="p">,</span> <span class="nx">endColumn</span><span class="p">);</span>
+                                
+                                <span class="c1">// 添加一个问题描述</span>
+                                <span class="kd">let</span> <span class="nx">diagnostic</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">vscode</span><span class="p">.</span><span class="nx">Diagnostic</span><span class="p">(</span><span class="nx">range</span><span class="p">,</span> <span class="nx">message</span><span class="p">,</span> <span class="nx">severity</span><span class="p">);</span>
+                                <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">diagnostics</span><span class="p">)</span> <span class="p">{</span>
+                                    <span class="nx">diagnostics</span> <span class="o">=</span> <span class="p">[];</span>
+                                    <span class="nx">diagnosticsMap</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="nx">uri</span><span class="p">.</span><span class="nx">fsPath</span><span class="p">,</span> <span class="nx">diagnostics</span><span class="p">);</span>
+                                <span class="p">}</span>
+                                <span class="nx">diagnostics</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">diagnostic</span><span class="p">);</span>                         
+                            <span class="p">}</span>
+                        <span class="p">}</span>
+                    <span class="p">});</span>
+
+                    <span class="c1">// 更新显示问题列表</span>
+                    <span class="nx">diagnosticsMap</span><span class="p">.</span><span class="nx">forEach</span><span class="p">((</span><span class="na">diagnostics</span><span class="p">:</span> <span class="nx">vscode</span><span class="p">.</span><span class="nx">Diagnostic</span><span class="p">[],</span> <span class="na">fsPath</span><span class="p">:</span><span class="nx">string</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+                        <span class="k">this</span><span class="p">.</span><span class="nx">_diagnosticCollection</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="nx">vscode</span><span class="p">.</span><span class="nx">Uri</span><span class="p">.</span><span class="nx">file</span><span class="p">(</span><span class="nx">fsPath</span><span class="p">),</span> <span class="nx">diagnostics</span><span class="p">);</span>
+                    <span class="p">});</span>
+                <span class="p">}</span>
+                <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="nx">log</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">err</span><span class="p">.</span><span class="nx">message</span><span class="p">);</span>
+                <span class="p">}</span> 
+            <span class="p">});</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<h2 id="section-16">结语</h2>
 
 <p>本文讲述的一些vscode插件代码都来自<a href="https://github.com/tboox/xmake-vscode">xmake-vscode</a>，有兴趣的同学可以直接参考源码，写个自己的插件。</p>
 
@@ -728,6 +870,13 @@
         <hr>
 
         
+        
+            
+            
+                
+            
+        
+            
         
             
             
@@ -1223,6 +1372,46 @@
                         <ul>
                         
                         <li class="relatedPost">
+                            <a href="/cn/2017/10/17/xmake-vscode-update-v1.0.1/">xmake-vscode v1.0.1正式版本发布
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
                             <a href="/cn/2017/10/13/update-v2.1.7/">xmake v2.1.7版本发布，稳定性修复和细节改进
                             
                             </a>
@@ -1415,54 +1604,6 @@
                     
                 
             
-            
-        
-            
-            
-            
-                
-                    
-                        
-                        <li class="relatedPost">
-                            <a href="/cn/2017/08/08/compiler-features/">使用xmake检测编译器特性支持
-                            
-                            </a>
-                        </li>
-                        
-                        
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-            
-        
             
         
         
