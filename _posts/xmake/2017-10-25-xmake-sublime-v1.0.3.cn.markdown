@@ -5,7 +5,7 @@ tags: xmake lua sublime 插件
 categories: xmake
 ---
 
-[xmake-sublime](https://github.com/tboox/xmake-sublime)插件深度集成了[xmake](https://github.com/tboox/xmake)和vscode，提供方便快速的跨平台c/c++构建。
+[xmake-sublime](https://github.com/tboox/xmake-sublime)插件深度集成了[xmake](https://github.com/tboox/xmake)和sublime text，提供方便快速的跨平台c/c++构建。
 
 注：使用此插件，需要先安装xmake，更多关于xmake的使用说明，请阅读：[文档手册](http://xmake.io/#/zh/)，项目源码：[Github](https://github.com/tboox/xmake)。
 

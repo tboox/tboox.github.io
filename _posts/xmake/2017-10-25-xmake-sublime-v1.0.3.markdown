@@ -7,7 +7,7 @@ categories: xmake
 
 [xmake-sublime](https://github.com/tboox/xmake-sublime) plugin is a xmake integration in Sublime Text.
 
-It is deeply integrated with [xmake](https://github.com/tboox/xmake) and vscode to provide a convenient and fast cross-platform c/c++ development and building.
+It is deeply integrated with [xmake](https://github.com/tboox/xmake) and sublime text to provide a convenient and fast cross-platform c/c++ development and building.
 
 You need install [xmake](https://github.com/tboox/xmake) first and a project with `xmake.lua`.
 
