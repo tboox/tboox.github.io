@@ -30,8 +30,9 @@ Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com
 || 2016.11.10 || xmake || [lc-soft](https://github.com/lc-soft) || oschina || ¥10 ||
 || 2016.08.05 || tbox || [蔡克伦](https://github.com/caikelun) || wechat || ¥1 ||
 || 2016.07.31 || vm86 || 清风闻仙醉 || alipay || ¥8.88 ||
-|| 2016.01.29 || tbox || [Evgeny Kulikov](mailto:xak@list.ru) || paypal || $2 ||
+|| 2016.01.29 || tbox || Evgeny Kulikov || paypal || $2 ||
 || 2016.01.29 || tbox || 建忠 || alipay || ¥20.16 ||
+|| 2017.10.26 || xmake || Welthy || alipay || ¥5 ||
 
 ## Sponsors
 
