@@ -23,17 +23,6 @@ Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com
 
 <a href="https://opencollective.com/xmake#backers" target="_blank"><img src="https://opencollective.com/xmake/backers.svg?width=890"></a>
 
-|| 2017.08.03 || tbox || 开枝 || alipay || ¥20 ||
-|| 2017.05.23 || tboox || anonymous || weixin || ¥10 ||
-|| 2017.01.14 || tboox || anonymous || wechat || ¥66 ||
-|| 2016.12.13 || tboox || anonymous || wechat || ¥5 ||
-|| 2016.11.10 || xmake || [lc-soft](https://github.com/lc-soft) || oschina || ¥10 ||
-|| 2016.08.05 || tbox || [蔡克伦](https://github.com/caikelun) || wechat || ¥1 ||
-|| 2016.07.31 || vm86 || 清风闻仙醉 || alipay || ¥8.88 ||
-|| 2016.01.29 || tbox || Evgeny Kulikov || paypal || $2 ||
-|| 2016.01.29 || tbox || 建忠 || alipay || ¥20.16 ||
-|| 2017.10.26 || xmake || Welthy || alipay || ¥5 ||
-
 ## Sponsors
 
 Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/xmake#sponsor)]
@@ -56,6 +45,20 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 ## Weixin 
 
 <img src="/static/img/weixin.png" alt="weixin" width="256" height="256">
+
+## Supporters
+
+|| 2017.11.16 || xmake || 琪峻 || alipay || ¥15 || 感谢好用的xmake ||
+|| 2017.10.26 || xmake || Welthy || alipay || ¥5 || xmake很好用啊 ||
+|| 2017.08.03 || tbox || 开枝 || alipay || ¥20 || ||
+|| 2017.05.23 || tboox || anonymous || weixin || ¥10 || ||
+|| 2017.01.14 || tboox || anonymous || wechat || ¥66 || ||
+|| 2016.12.13 || tboox || anonymous || wechat || ¥5 || ||
+|| 2016.11.10 || xmake || [lc-soft](https://github.com/lc-soft) || oschina || ¥10 || ||
+|| 2016.08.05 || tbox || [蔡克伦](https://github.com/caikelun) || wechat || ¥1 || ||
+|| 2016.07.31 || vm86 || 清风闻仙醉 || alipay || ¥8.88 || ||
+|| 2016.01.29 || tbox || Evgeny Kulikov || paypal || $2 || ||
+|| 2016.01.29 || tbox || 建忠 || alipay || ¥20.16 || ||
 
 ## Comments
 
