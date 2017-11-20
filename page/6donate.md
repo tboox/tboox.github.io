@@ -48,6 +48,7 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## Supporters
 
+|| 2017.11.19 || xmake || sytru || alipay || ¥10 || 感谢作者，让写c/c++有了写脚本的感觉。非常愉悦的使用体验，希望不要消失。||
 || 2017.11.16 || xmake || 琪峻 || alipay || ¥15 || 感谢好用的xmake ||
 || 2017.10.26 || xmake || Welthy || alipay || ¥5 || xmake很好用啊 ||
 || 2017.08.03 || tbox || 开枝 || alipay || ¥20 || ||
