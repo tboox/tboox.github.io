@@ -63,10 +63,24 @@
     },
     {
         page_link: 'https://github.com/tboox/xmake-vscode',
-        img_link: '/static/img/xmake/xmake-vscode.png',
+        img_link: '/static/img/xmake/xmake-vscode-problem.gif',
         code_repo: 'xmake-vscode',
         title: 'A XMake integration in Visual Studio Code',
         description: 'This is a xmake integration in vscode，provide fast cross-platform c/c++ development'
+    },
+    {
+        page_link: 'https://github.com/tboox/xmake-idea',
+        img_link: '/static/img/xmake/xmake-idea-problem.gif',
+        code_repo: 'xmake-idea',
+        title: 'A XMake integration in Intelij-IDEA',
+        description: 'This is a xmake integration in Intellij-IDEA，provide fast cross-platform c/c++ development'
+    },
+    {
+        page_link: 'https://github.com/tboox/xmake-sublime',
+        img_link: '/static/img/xmake/xmake-sublime-problem.gif',
+        code_repo: 'xmake-sublime',
+        title: 'A XMake integration in Sublime Text2/3',
+        description: 'This is a xmake integration in Sublime Text2/3，provide fast cross-platform c/c++ development'
     }];
 
     contentInit(demoContent) //内容初始化
