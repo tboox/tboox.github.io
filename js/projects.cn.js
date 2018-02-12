@@ -70,10 +70,24 @@
     },
     {
         page_link: 'https://github.com/tboox/xmake-vscode',
-        img_link: '/static/img/xmake/xmake-vscode.png',
+        img_link: '/static/img/xmake/xmake-vscode-problem.gif',
         code_repo: 'xmake-vscode',
         title: '一个集成xmake的vscode插件',
         description: 'xmake-vscode是一个高度集成xmake的vscode插件，提供方便快速的xmake构建支持，实现高效c/c++跨平台开发'
+    },
+    {
+        page_link: 'https://github.com/tboox/xmake-idea',
+        img_link: '/static/img/xmake/xmake-idea-problem.gif',
+        code_repo: 'xmake-idea',
+        title: '一个集成xmake的Intellij-IDEA插件',
+        description: 'xmake-idea是一个高度集成xmake的Intellij-IDEA插件，提供方便快速的xmake构建支持，实现高效c/c++跨平台开发'
+    },
+    {
+        page_link: 'https://github.com/tboox/xmake-sublime',
+        img_link: '/static/img/xmake/xmake-sublime-problem.gif',
+        code_repo: 'xmake-sublime',
+        title: '一个集成xmake的Sublime Text2/3插件',
+        description: 'xmake-sublime是一个高度集成xmake的Sublime Text2/3插件，提供方便快速的xmake构建支持，实现高效c/c++跨平台开发'
     }];
 
     contentInit(demoContent) //内容初始化
