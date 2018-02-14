@@ -48,11 +48,12 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## Supporters
 
+|| 2018.02.14 || tboox || anonymous || wechat || ¥66.6 || tboox项目加油 ||
 || 2017.11.19 || xmake || sytru || alipay || ¥10 || 感谢作者，让写c/c++有了写脚本的感觉。非常愉悦的使用体验，希望不要消失。||
 || 2017.11.16 || xmake || 琪峻 || alipay || ¥15 || 感谢好用的xmake ||
 || 2017.10.26 || xmake || Welthy || alipay || ¥5 || xmake很好用啊 ||
 || 2017.08.03 || tbox || 开枝 || alipay || ¥20 || ||
-|| 2017.05.23 || tboox || anonymous || weixin || ¥10 || ||
+|| 2017.05.23 || tboox || anonymous || wechat || ¥10 || ||
 || 2017.01.14 || tboox || anonymous || wechat || ¥66 || ||
 || 2016.12.13 || tboox || anonymous || wechat || ¥5 || ||
 || 2016.11.10 || xmake || [lc-soft](https://github.com/lc-soft) || oschina || ¥10 || ||
