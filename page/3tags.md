@@ -40,6 +40,16 @@ icon: tags
         {% endfor %}
         </ul>
 
+
+        <!-- baidu ads -->
+        {% if site.baiduads_slide_id1 and site.baiduads_slide_id2 %}
+        <script type="text/javascript">
+            var cpro_id = isPC()? "{{site.baiduads_slide_id1}}" : "{{site.baiduads_slide_id2}}";
+        </script>
+        <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
+        <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/cm.js"></script>
+        {% endif %}
+
     </div>
     <button class="anchor"><i class="fa fa-anchor"></i></button>
     <div class="right">
