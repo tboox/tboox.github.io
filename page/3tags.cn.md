@@ -99,7 +99,7 @@ icon: tags
             {% if site.baiduads_slide_id0 %}
             <br>
             <script type="text/javascript">
-                var cpro_id = "{{site.baiduads_slide_id0}}";
+                var cpro_id = isPC()? "{{site.baiduads_slide_id0}}" : "";
             </script>
             <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
             {% endif %}
