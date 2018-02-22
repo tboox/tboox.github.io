@@ -42,12 +42,11 @@ icon: tags
 
 
         <!-- baidu ads -->
-        {% if site.baiduads_slide_id1 and site.baiduads_slide_id2 %}
+        {% if site.baiduads_slide_id1 %}
         <script type="text/javascript">
-            var cpro_id = isPC()? "{{site.baiduads_slide_id1}}" : "{{site.baiduads_slide_id2}}";
+            var cpro_id = isPC()? "{{site.baiduads_slide_id1}}" : "";
         </script>
         <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
-        <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/cm.js"></script>
         {% endif %}
 
     </div>
@@ -112,6 +111,14 @@ icon: tags
             {% endif %}
         </div>
     </div>
+
+    <!-- baidu ads -->
+    {% if site.baiduads_slide_id3 %}
+    <script type="text/javascript">
+        var cpro_id = isPC()? "" : "{{site.baiduads_slide_id3}}";
+    </script>
+    <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/cm.js"></script>
+    {% endif %}
 </div>
 <script src="{{ "/js/pageContent.js " | prepend: site.baseurl }}" charset="utf-8"></script>
 
