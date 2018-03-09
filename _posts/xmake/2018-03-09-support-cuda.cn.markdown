@@ -92,7 +92,7 @@ $ xmake
 $ xmake l detect.sdks.find_cuda_toolchains
 ```
 
-```
+```js
 {
     linkdirs =
     {
@@ -118,4 +118,4 @@ $ xmake l detect.sdks.find_cuda_toolchains
 
 如果要试用此特性，可下载安装最新[master版本](https://github.com/tboox/xmake.git)，或者下载[windows 2.1.10-dev安装包](https://github.com/tboox/xmake/releases/download/v2.1.9/xmake-v2.1.10-dev.exe)。
 
-<img src="/static/img/xmake/cuda-test.gif" width="60%" />
+<img src="/static/img/xmake/cuda_test.gif" width="60%" />
