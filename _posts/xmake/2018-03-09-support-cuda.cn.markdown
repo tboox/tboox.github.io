@@ -117,3 +117,5 @@ $ xmake l detect.sdks.find_cuda_toolchains
 注：目前对cuda的支持刚刚完成，还没正式发版，更多关于xmake对cuda的支持情况和进展，见：[issues #158](https://github.com/tboox/xmake/issues/158)。
 
 如果要试用此特性，可下载安装最新[master版本](https://github.com/tboox/xmake.git)，或者下载[windows 2.1.10-dev安装包](https://github.com/tboox/xmake/releases/download/v2.1.9/xmake-v2.1.10-dev.exe)。
+
+<img src="/static/img/xmake/cuda-test.gif" width="60%" />
