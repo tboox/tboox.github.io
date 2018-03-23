@@ -10,13 +10,13 @@ icon: user
 
 ## 联系方式
 
-* 邮箱: [waruqi@gmail.com](waruqi@gmail.com)
-* Github: [https://github.com/tboox](https://github.com/tboox)
-* Twitter: [https://twitter.com/waruqi](https://twitter.com/waruqi)
-* Bearychat: [https://tboox.bearychat.com](https://tboox.bearychat.com)
-* Gitter：[![Join the chat at https://gitter.im/tboox/tboox](https://badges.gitter.im/tboox/tboox.svg)](https://gitter.im/tboox/tboox?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-* QQ群: 343118190
-
+* [邮箱](waruqi@gmail.com)
+* [Twitter](https://twitter.com/waruqi)
+* [Github组织](https://github.com/tboox)
+* [社区论坛](https://www.reddit.com/r/tboox/)
+* [Gitter聊天室](https://gitter.im/tboox/tboox?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+* [Telegram群组](https://t.me/joinchat/F2dIAw5iTkDUMwCQ_8CStw)
+* [QQ群(343118190)](https://jq.qq.com/?_wv=1027&k=5hpwWFv)
 
 ## 微信公众号
 

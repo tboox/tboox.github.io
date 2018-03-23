@@ -10,11 +10,13 @@ icon: user
 
 ## Contacts
 
-* Email: [waruqi@gmail.com](waruqi@gmail.com)
-* Github: [https://github.com/tboox](https://github.com/tboox)
-* Twitter: [https://twitter.com/waruqi](https://twitter.com/waruqi)
-* Bearychat: [https://tboox.bearychat.com](https://tboox.bearychat.com)
-* Gitter：[![Join the chat at https://gitter.im/tboox/tboox](https://badges.gitter.im/tboox/tboox.svg)](https://gitter.im/tboox/tboox?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+* [Email](waruqi@gmail.com)
+* [Twitter](https://twitter.com/waruqi)
+* [Github group](https://github.com/tboox)
+* [Forum on reddit](https://www.reddit.com/r/tboox/)
+* [Chat on gitter](https://gitter.im/tboox/tboox?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+* [Chat on telegram](https://t.me/joinchat/F2dIAw5iTkDUMwCQ_8CStw)
+* [Chat on QQ group(343118190)](https://jq.qq.com/?_wv=1027&k=5hpwWFv)
 
 ## Links
 
