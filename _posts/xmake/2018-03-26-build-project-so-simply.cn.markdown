@@ -475,6 +475,8 @@ $ xmake [-v|--verbose]
 $ xmake -v --backtrace
 ```
 
+<img src="/static/img/xmake/xmake-verbose.png" width="60%" />
+
 ## 快速安装
 
 最后我们讲下，如何安装xmake，通常只需要一个脚本命令就能搞定。
