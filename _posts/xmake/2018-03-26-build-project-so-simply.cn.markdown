@@ -40,6 +40,7 @@ categories: xmake
 - vcproj等IDE项目文件生成也支持的哦
 - 更多隐藏特性等你来体验
 
+![xmake-compilation](/static/img/xmake/xmake-compilation.png)
 
 ## 快速上手
 
@@ -475,7 +476,7 @@ $ xmake [-v|--verbose]
 $ xmake -v --backtrace
 ```
 
-<img src="/static/img/xmake/xmake-verbose.png" width="60%" />
+![xmake-verbose](/static/img/xmake/xmake-verbose.png)
 
 ## 快速安装
 
