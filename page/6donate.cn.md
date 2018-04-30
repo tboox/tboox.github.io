@@ -28,6 +28,7 @@ TBOOX的所有项目都是属于个人开源项目，它的发展需要您的帮
 
 <a href="https://opencollective.com/xmake#backers" target="_blank"><img src="https://opencollective.com/xmake/backers.svg?width=890"></a>
 
+|| 2018.04.29 || xmake || 清春 || 支付宝 || ¥180 || ||
 || 2018.04.25 || tbox || wape.yang || 微信 || ¥10 || 支持tbox越做越好 ||
 || 2018.04.09 || tboox || 匿名 || 微信 || ¥5 || 支持国人，赞 ||
 || 2018.04.01 || tboox || doke || 支付宝 || ¥5 || ||
