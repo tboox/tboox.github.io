@@ -30,6 +30,8 @@ icon: user
 
 <img src="/static/img/qqgroup.png" alt="qqgroup" width="256" height="284">
 
+如果想加入微信技术交流群，请先加我微信号：waruqi，申请时请注明：你所关注的TBOOX的某个项目名。
+
 ## 友情链接
 
 有需要跟本站换链的可以留言，或者发邮件给我。。
