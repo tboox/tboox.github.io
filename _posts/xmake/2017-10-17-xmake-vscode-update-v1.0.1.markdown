@@ -25,15 +25,17 @@ It is deeply integrated with [xmake](https://github.com/tboox/xmake) and vscode 
 
 <img src="/static/img/xmake/xmake-vscode-completion.gif" width="60%" />
 
+
+
+
+
+
+
+
 ## StatusBar
 
 ![statusbar](/static/img/xmake/xmake-vscode-statusbar.png)
 
-
-
-
-
- 
 ## Commands
 
 <img src="/static/img/xmake/xmake-vscode-commands.png" width="60%" />

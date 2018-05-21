@@ -25,15 +25,19 @@ You need install [xmake](https://github.com/tboox/xmake) first and a project wit
 ## Quickstart
 
 <img src="/static/img/xmake/xmake-sublime-quickstart.gif" width="60%" />
+
+
+
+
+
+
+
+
+
  
 ## Problem
 
 <img src="/static/img/xmake/xmake-sublime-problem.gif" width="60%" />
-
-
-
-
-
 
 ## Colorization and Completion Lists
 

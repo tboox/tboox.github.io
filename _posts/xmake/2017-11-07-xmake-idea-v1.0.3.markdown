@@ -30,17 +30,19 @@ You need install [xmake](https://github.com/tboox/xmake) first and a project wit
 <img src="/static/img/xmake/xmake-idea-quickstart.gif" width="80%" />
 </div>
 
+
+
+
+
+
+
+
+
 ## Parse errors and goto file
  
 <div align="center">
 <img src="/static/img/xmake/xmake-idea-problem.gif" width="80%" />
 </div>
-
-
-
-
-
-
 
 ## Tool windows
 
