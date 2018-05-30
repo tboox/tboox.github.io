@@ -5,7 +5,7 @@ tags: xmake lua Qt Widgets QuickApplication
 categories: xmake
 ---
 
-在最新的xmake v2.2.1版本中，新增了对Qt SDK环境的支持，我们完全可以脱离Qt Creater进行Qt应用程序的开发，甚至配合vscode/idea等编辑器+xmake插件([xmake-vscode](https://github.com/tboox/xmake-vscode), [xmake-idea](https://github.com/tboox/xmake-idea) ...)，
+在最新的[xmake](https://github.com/tboox/xmake) v2.2.1版本中，新增了对Qt SDK环境的支持，我们完全可以脱离Qt Creater进行Qt应用程序的开发，甚至配合vscode/idea等编辑器+xmake插件([xmake-vscode](https://github.com/tboox/xmake-vscode), [xmake-idea](https://github.com/tboox/xmake-idea) ...)，
 用户完全可以切换到自己最常用的编辑器环境中去开发和构建Qt程序，例如这样：
 
 <img src="/static/img/xmake/vscode-qt.jpeg" width="60%" />
