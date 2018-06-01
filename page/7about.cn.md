@@ -15,7 +15,7 @@ icon: user
 * [Github组织](https://github.com/tboox)
 * [社区论坛](https://www.reddit.com/r/tboox/)
 * [Gitter聊天室](https://gitter.im/tboox/tboox?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-* [Telegram群组](https://t.me/joinchat/F2dIAw5iTkDUMwCQ_8CStw)
+* [Telegram群组](https://t.me/tbooxorg)
 * [QQ群(343118190)](https://jq.qq.com/?_wv=1027&k=5hpwWFv)
 
 ## 微信公众号
