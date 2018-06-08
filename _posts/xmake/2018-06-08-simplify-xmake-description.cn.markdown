@@ -320,3 +320,15 @@ target("test")
 
 灵活合理运用[add_files](https://xmake.io/#/zh/manual?id=targetadd_files)和[del_files](https://xmake.io/#/zh/manual?id=targetdel_files)，我们可以极大程度的简化工程源码的配置管理。
 
+## 利用内置配置简化flags设置
+
+对于一些常用的flags设置，例如：`-O3`, `-g`, `-std=c++11`等编译选项，xmake提供了一些更加通用内置的配置，来简化设置，用户不需要再去考虑不同平台、不同编译器上对应的这些flags的一些差异性，只需要设置：
+
+```lua
+set_optimize("fastest")
+set_symbols("debug")
+set_languages("cxx11")
+set_warnings("all", "error")
+```
+
+具体配置说明，以及目前提供的配置值，都可以去看下相关文档，里面有详细说明：[内置配置说明](https://xmake.io/#/zh/manual?id=targetset_symbols)
