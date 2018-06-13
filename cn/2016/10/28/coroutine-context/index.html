@@ -938,49 +938,6 @@
 
 <p>而是使用eax, edx返回，因此tbox里面针对这个架构，重新调整stack布局，重写了一套自己的实现。</p>
 
-<h4 id="boost-windows-i386">关于boost windows i386下的优化</h4>
-
-<p>其实在windows下，返回from(context, priv)的结构体，也是用的eax, edx，而不是像linux elf那样基于栈的，因此实现上效率会高很多。</p>
-
-<p>但是，boost里面，却像elf那个版本一样，还是采用了一个跳板，进行二次跳转后，才切换到context上去，是没有必要的。</p>
-
-<p>在boost里面的跳板代码，类似像这样（摘录自tbox elf i386的实现）：</p>
-
-<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="nl">__entry:</span>
-    
-    <span class="cm">/* pass arguments(context: eax, priv: edx) to the context function
-     *
-     *              patch __end
-     *                  |
-     *                  |        old-context
-     *              ----|------------------------------------
-     * context: .. | retval | context |   priv   |  padding  |  
-     *              -----------------------------------------
-     *             0        4     arguments 
-     *             |        |
-     *            esp    16-align
-     *           (now)
-     */</span>
-    <span class="n">movl</span> <span class="o">%</span><span class="n">eax</span><span class="p">,</span> <span class="p">(</span><span class="o">%</span><span class="n">esp</span><span class="p">)</span>
-    <span class="n">movl</span> <span class="o">%</span><span class="n">edx</span><span class="p">,</span> <span class="mh">0x4</span><span class="p">(</span><span class="o">%</span><span class="n">esp</span><span class="p">)</span>
-
-    <span class="c1">// retval = the address of label __end
-</span>    <span class="n">pushl</span> <span class="o">%</span><span class="n">ebp</span>
-
-    <span class="cm">/* jump to the context function entry
-     *
-     * @note need not adjust stack pointer(+4) using 'ret $4' when enter into function first
-     */</span>
-    <span class="n">jmp</span> <span class="o">*%</span><span class="n">ebx</span>
-
-</code></pre>
-</div>
-
-<p>由于elf i386下，返回from结构体是基于栈的，所以进入function入口的栈，和切换到对方jump()返回处的栈，并不是完全平衡的，因此需要一个跳板区分对待</p>
-
-<p>stack布局上也需要特殊处理，而windows i386的返回，只需要eax/edx就足够，没必要再去使用这个跳板。</p>
-
-<p>因此，tbox里面针对这个平台，进行了优化，重新调整了栈布局，省去跳板操作，直接进行跳转，实测切换效率比boost的实现提升30%左右。</p>
 
         </article>
         <hr>
