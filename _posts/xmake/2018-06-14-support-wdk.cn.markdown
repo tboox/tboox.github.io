@@ -89,7 +89,8 @@ kmdf的项目描述跟刚才的umdf类似，只需要把`wdk.env.umdf`换成`wdk
 ```lua
 target("nonpnp")
     add_rules("wdk.driver", "wdk.env.kmdf")
-    add_values("wdk.tracewpp.flags", "-func:TraceEvents(LEVEL,FLAGS,MSG,...)", "-func:Hexdump((LEVEL,FLAGS,MSG,...))")
+    add_values("wdk.tracewpp.flags", "-func:TraceEvents(LEVEL,FLAGS,MSG,...)")
+    add_values("wdk.tracewpp.flags", "-func:Hexdump((LEVEL,FLAGS,MSG,...))")
     add_files("driver/*.c", {rule = "wdk.tracewpp"}) 
     add_files("driver/*.rc")
 
@@ -111,7 +112,8 @@ add_files("driver/dir/test.c", {rule = "wdk.tracewpp"})
 当然tracewpp还会有一些自己的特殊选项，用户有时候需要自己根据需要来设置，例如：
 
 ```lua
-add_values("wdk.tracewpp.flags", "-func:TraceEvents(LEVEL,FLAGS,MSG,...)", "-func:Hexdump((LEVEL,FLAGS,MSG,...))")
+add_values("wdk.tracewpp.flags", "-func:TraceEvents(LEVEL,FLAGS,MSG,...)")
+add_values("wdk.tracewpp.flags", "-func:Hexdump((LEVEL,FLAGS,MSG,...))")
 ```
 
 关于`add_values`的使用说明，可以看下文档：[add_values和set_values的使用说明](https://xmake.io/#/zh/manual?id=targetset_values)，简单来说，就是用来给对应规则传递扩展参数设置的。
@@ -135,11 +137,11 @@ target("kcs")
 里面也有相关的一些特殊配置选项，目前xmake支持的配置有：
 
 ```lua
-    add_values("wdk.man.flags", "-prefix Kcs")
-    add_values("wdk.man.prefix", "Kcs")
-    add_values("wdk.man.resource", "kcsCounters.rc")
-    add_values("wdk.man.header", "kcsCounters.h")
-    add_values("wdk.man.counter_header", "kcsCounters_counters.h")
+add_values("wdk.man.flags", "-prefix Kcs")
+add_values("wdk.man.prefix", "Kcs")
+add_values("wdk.man.resource", "kcsCounters.rc")
+add_values("wdk.man.header", "kcsCounters.h")
+add_values("wdk.man.counter_header", "kcsCounters_counters.h")
 ```
 
 下面再贴个wdm驱动的例子，这个例子中，除了之前讲的tracewpp，我们还加了.mof的文件处理，对于.mof文件，xmake会自动应用内置的`wdk.mof`规则，详细说明见：[mofcomp-task](https://docs.microsoft.com/en-us/windows-hardware/drivers/devtest/mofcomp-task)
@@ -157,8 +159,8 @@ target("msdsm")
 对于.mof的配置选项，有些配置并不是全局应用于target的，对每个文件需要单独配置，这个时候，就不能直接使用`set_values`和`add_values`了，需要在`add_files`中设置相关values。
 
 ```lua
-    add_files("msdsm.mof", {values = {wdk_mof_header = "msdsmwmi.h"}}) 
-    add_files("msdsm.mof", {values = {["wdk.mof.header"] = "msdsmwmi.h"}}) 
+add_files("msdsm.mof", {values = {wdk_mof_header = "msdsmwmi.h"}}) 
+add_files("msdsm.mof", {values = {["wdk.mof.header"] = "msdsmwmi.h"}}) 
 ```
 
 上面两种设置方式都是有效的，由于受限于lua的语法，为了考虑可读性，xmake通过_下划线来简化key的设置，这个设置相当于单独对msdsm.mof文件设置了`set_values("wdk.mof.header", "msdsmwmi.h")`。
