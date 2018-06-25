@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "xmake-vscode v1.0.1 released, a xmake integration in vscode"
+title:  "xmake-vscode v1.0.8 released, support Qt/WDK development"
 tags: xmake lua update
 categories: xmake
 ---

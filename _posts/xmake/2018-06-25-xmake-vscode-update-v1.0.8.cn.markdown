@@ -1,6 +1,6 @@
 ---
 layout: post.cn
-title:  "xmake-vscode v1.0.8正式版本发布"
+title:  "xmake-vscode v1.0.8版本发布，在vscode中构建Qt/WDK程序"
 tags: xmake lua 版本更新 
 categories: xmake
 ---
