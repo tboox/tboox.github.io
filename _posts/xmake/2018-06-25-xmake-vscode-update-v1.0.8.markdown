@@ -17,7 +17,7 @@ This version is mainly updated as follows:
 * Add Qt, WDK configuration to build Qt and WDK driver program
 * Add additional configuration arguments to support cross-compilation
 
-新增的配置内容如下:
+Newly added configuration:
 
 ```json
 "xmake.QtDirectory": {
