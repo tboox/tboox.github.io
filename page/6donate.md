@@ -48,6 +48,7 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## Supporters
 
+|| 2018.06.27 || xmake || Kellygod || alipay || ¥30 || 拥抱xmake ||
 || 2018.05.17 || xmake || anonymous || wechat || ¥10 || 加油xmake ||
 || 2018.04.29 || xmake || 清春 || alipay || ¥180 || ||
 || 2018.04.25 || tbox || wape.yang || wechat || ¥10 || 支持tbox越做越好 ||
