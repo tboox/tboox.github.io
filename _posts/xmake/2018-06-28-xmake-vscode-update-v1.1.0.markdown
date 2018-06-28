@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "xmake-vscode v1.10 released, Support breakpoint debugging"
+title:  "xmake-vscode v1.1.0 released, Support breakpoint debugging"
 tags: xmake lua update
 categories: xmake
 ---
@@ -15,21 +15,22 @@ This version is mainly updated as follows:
 * Support multi-project workspaces
 * Improve mingw platform
 
-## Breakpoint Debugging
 
 
 
 
 
 
+
+### Breakpoint Debugging
 
 <img src="/static/img/xmake/xmake-vscode-debug.gif" width="60%" />
 
-## Multi-project workspaces
+### Multi-project workspaces
 
-![](/static/img/xmake/xmake-vscode-projects.jpg)
+<img src="/static/img/xmake/xmake-vscode-projects.jpg" width="60%" />
 
-## MinGW configuration
+### MinGW configuration
 
 We need only add `--sdk=` option to additional configuration in vscode.
 

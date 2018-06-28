@@ -13,7 +13,13 @@ categories: xmake
 * 多工程目录工作区支持，可以随意切换和编译多个工程
 * 改进mingw平台支持
 
-## 断点调试
+
+
+
+
+
+
+### 断点调试
 
 目前xmake-vscode插件需要依赖微软提供的[vscode-cpptools](https://github.com/Microsoft/vscode-cpptools)插件才能进行调试支持，不过由于开发c/c++程序，这个插件几乎是必需，所以并没有太大问题。
 
@@ -21,20 +27,15 @@ categories: xmake
 
 下图就是新的断点调试方式，原生与vscode集成：
 
-
-
-
-
-
 <img src="/static/img/xmake/xmake-vscode-debug.gif" width="60%" />
 
-## 多工程编译
+### 多工程编译
 
 新版本在下方状态栏部分，新增工程列表选择，切换到指定工程后，之后的所有编译、调试操作都是对此工程进行。
 
-![](/static/img/xmake/xmake-vscode-projects.jpg)
+<img src="/static/img/xmake/xmake-vscode-projects.jpg" width="60%" />
 
-## mingw编译配置
+### mingw编译配置
 
 对于mingw编译原本就是支持的，只是新版本中稍微做了些改进，需要下载安装最新xmake v2.2.1版本哦。
 
