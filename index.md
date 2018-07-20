@@ -99,7 +99,7 @@ layout: default
                 <ul class="content-ul" recent>
                     {% assign count = 0 %}
                     {% for post in site.posts offset: 0 %}
-                    {% if count < 10 %}
+                    {% if count < 5 %}
                         {% unless post.url contains '/cn/' %}
                             <li><a href="{{ post.url }}">{{ post.title }}</a></li>
                             {% assign count = count | plus: 1 %}
@@ -109,25 +109,6 @@ layout: default
                 </ul>
             </div>
 
-            <!-- Content -->
-            <div class="side ">
-                <div>
-                    <i class="fa fa-th-list"></i>
-                    Categories
-                </div>
-                <ul class="content-ul" cate>
-                    {% for category in site.categories order:ascending %}
-                    <li>
-                        <a href="{{ root_url }}/{{ site.category_dir }}#{{ category | first }}" class="categories-list-item" cate="{{ category | first }}">
-                            <span class="name">
-                                {{ category | first }}
-                            </span>
-                            <span class="badge">{{ category | last | size }}</span>
-                        </a>
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
             <!-- 其他div框放到这里 -->
             <div class="side">
                 <div>
@@ -153,7 +134,7 @@ layout: default
                     {% endif %}
 
                     {% for tag in site.tags %}
-                     {% if tag[1].size > 0 %}
+                     {% if tag[1].size > 1 %}
                      {% assign post_first = tag[1][0] %}
                      {% unless post_first.url contains '/cn/' %}
                       {% assign temp = tag[1].size | minus: min | times: 36 | divided_by: diff %}
@@ -188,25 +169,6 @@ layout: default
                   <li><a href="http://xmake.io">xmake</a></li>
                   <li><a href="https://github.com/tboox">github</a></li>
                 </ul>
-            </div> 
-
-            <!-- weixin public -->
-            <div class="side">
-                <div>
-                    <i class="fa fa-external-link"></i>
-                    Weixin Public
-                </div>
-                <img src="/static/img/weixin_public.jpg" alt="weixin" width="256" height="256">
-            </div> 
- 
-            <!-- qqgroup -->
-            <br>
-            <div class="side">
-                <div>
-                    <i class="fa fa-external-link"></i>
-                    QQ Group
-                </div>
-                <img src="/static/img/qqgroup.png" alt="qqgroup" width="256" height="284">
             </div> 
 
             {% if site.adsbygoogle_client %}

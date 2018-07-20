@@ -98,7 +98,7 @@ layout: default.cn
                 <ul class="content-ul" recent>
                     {% assign count = 0 %}
                     {% for post in site.posts offset: 0 %}
-                    {% if count < 10 %}
+                    {% if count < 8 %}
                         {% if post.url contains '/cn/' %}
                             <li><a href="{{ post.url }}">{{ post.title }}</a></li>
                             {% assign count = count | plus: 1 %}
@@ -108,25 +108,6 @@ layout: default.cn
                 </ul>
             </div>
 
-            <!-- Content -->
-            <div class="side ">
-                <div>
-                    <i class="fa fa-th-list"></i>
-                    分类
-                </div>
-                <ul class="content-ul" cate>
-                    {% for category in site.categories order:ascending %}
-                    <li>
-                        <a href="{{ root_url }}/cn/{{ site.category_dir }}#{{ category | first }}" class="categories-list-item" cate="{{ category | first }}">
-                            <span class="name">
-                                {{ category | first }}
-                            </span>
-                            <span class="badge">{{ category | last | size }}</span>
-                        </a>
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
             <!-- 其他div框放到这里 -->
             <div class="side">
                 <div>
@@ -189,25 +170,6 @@ layout: default.cn
                   <li><a href="http://suppore.cn">懒人的小窝</a></li>
                   <li><a href="http://www.acgxt.com">七空幻音</a></li>
                 </ul>
-            </div> 
-
-            <!-- weixin public -->
-            <div class="side">
-                <div>
-                    <i class="fa fa-external-link"></i>
-                    微信公众号
-                </div>
-                <img src="/static/img/weixin_public.jpg" alt="weixin" width="256" height="256">
-            </div> 
- 
-            <!-- qqgroup -->
-            <br>
-            <div class="side">
-                <div>
-                    <i class="fa fa-external-link"></i>
-                    技术交流群（QQ）
-                </div>
-                <img src="/static/img/qqgroup.png" alt="qqgroup" width="256" height="284">
             </div> 
 
             {% if site.adsbygoogle_client %}
