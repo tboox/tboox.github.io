@@ -28,6 +28,7 @@ TBOOX的所有项目都是属于个人开源项目，它的发展需要您的帮
 
 <a href="https://opencollective.com/xmake#backers" target="_blank"><img src="https://opencollective.com/xmake/backers.svg?width=890"></a>
 
+|| 2018.08.07 || xmake || fasiondog || gitee || ¥50 || 感谢您的开源项目! ||
 || 2018.06.27 || xmake || Kellygod || 支付宝 || ¥30 || 拥抱xmake ||
 || 2018.05.17 || xmake || 匿名 || 微信 || ¥10 || 加油xmake ||
 || 2018.04.29 || xmake || 清春 || 支付宝 || ¥180 || ||
