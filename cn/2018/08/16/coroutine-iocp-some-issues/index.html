@@ -7,11 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta http-equiv="Cache-Control" content="no-siteapp" />
 
-    <title>TBOOX开通微信公众号</title>
-    <meta name="description" content="欢迎加入TBOOX开源工程微信公众号，我们会不定期推送一些TBOOX开发上的最新资讯以及技术文章给大家。">
+    <title>记对协程增加IOCP支持时候踩过的一些坑</title>
+    <meta name="description" content="之前在对tbox的协程库中增加了基于IOCP的io处理，期间踩了不少的坑，这边就做个简单记录吧，省的到时候忘记了，自己看不懂自己这个代码 (= =)坑点一WSARecv/WSASend在lpNumberOfBytesRecv和overlap同时被设置的情况下，如果它们的io操作立即返回成功，并且lpNumberO...">
 
     
-    <meta name="keywords" content="tboox,微信,公众号,tboox" /> 
+    <meta name="keywords" content="tbox,IOCP,协程,坑点,tboox" /> 
 
     <!-- qq oauth -->
     <meta property="qc:admins" content="5211601217706727767255" />
@@ -28,7 +28,7 @@
 	
     <link rel="stylesheet" href=" /css/fontawesome/css/font-awesome.min.css ">
     <link rel="stylesheet" href=" /css/main.css ">
-    <link rel="canonical" href="http://www.tboox.org/cn/2016/08/05/weixin-public/">
+    <link rel="canonical" href="http://www.tboox.org/cn/2018/08/16/coroutine-iocp-some-issues/">
     <link rel="alternate" type="application/rss+xml" title="TBOOX Open Source Project" href="http://www.tboox.org/feed.xml ">
     <link rel="alternate" hreflang="en" href="http://www.tboox.org/" />
     <link rel="alternate" hreflang="zh-Hans" href="http://www.tboox.org/cn/" />
@@ -334,11 +334,11 @@
 
         <div class="page clearfix" post>
     <div class="left">
-        <h1>TBOOX开通微信公众号</h1>
+        <h1>记对协程增加IOCP支持时候踩过的一些坑</h1>
         <div class="label">
 
             <div class="label-card">
-                <i class="fa fa-calendar"></i>2016-08-05
+                <i class="fa fa-calendar"></i>2018-08-16
             </div>
 
             <div class="label-card">
@@ -358,7 +358,7 @@
   <i class="fa fa-th-list"></i>
   
     
-        <a href="/category/#tboox" title="Category: tboox" rel="category">tboox</a>
+        <a href="/category/#tbox" title="Category: tbox" rel="category">tbox</a>
     
   
 
@@ -375,14 +375,17 @@
   <i class="fa fa-tags"></i>
   
     
-        <!--a href="/tag/#tboox" title="Tag: tboox" rel="tag">tboox</a-->
-        <a href="/cn/tag/#tboox" title="Tag: tboox" rel="tag">tboox</a>&nbsp;
+        <!--a href="/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a-->
+        <a href="/cn/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a>&nbsp;
     
-        <!--a href="/tag/#%E5%BE%AE%E4%BF%A1" title="Tag: 微信" rel="tag">微信</a-->
-        <a href="/cn/tag/#微信" title="Tag: 微信" rel="tag">微信</a>&nbsp;
+        <!--a href="/tag/#IOCP" title="Tag: IOCP" rel="tag">IOCP</a-->
+        <a href="/cn/tag/#IOCP" title="Tag: IOCP" rel="tag">IOCP</a>&nbsp;
     
-        <!--a href="/tag/#%E5%85%AC%E4%BC%97%E5%8F%B7" title="Tag: 公众号" rel="tag">公众号</a-->
-        <a href="/cn/tag/#公众号" title="Tag: 公众号" rel="tag">公众号</a>
+        <!--a href="/tag/#%E5%8D%8F%E7%A8%8B" title="Tag: 协程" rel="tag">协程</a-->
+        <a href="/cn/tag/#协程" title="Tag: 协程" rel="tag">协程</a>&nbsp;
+    
+        <!--a href="/tag/#%E5%9D%91%E7%82%B9" title="Tag: 坑点" rel="tag">坑点</a-->
+        <a href="/cn/tag/#坑点" title="Tag: 坑点" rel="tag">坑点</a>
     
   
 
@@ -393,10 +396,136 @@
         </div>
         <hr>
         <article itemscope itemtype="http://schema.org/BlogPosting">
-        <p>欢迎加入TBOOX开源工程微信公众号，我们会不定期推送一些TBOOX开发上的最新资讯以及技术文章给大家。</p>
+        <p>之前在对<a href="https://github.com/tboox/tbox">tbox</a>的协程库中增加了基于IOCP的io处理，期间踩了不少的坑，这边就做个简单记录吧，省的到时候忘记了，自己看不懂自己这个代码 (= =)</p>
 
-<p><img src="/static/img/weixin_public.jpg" alt="weixin" width="256" height="256" /></p>
+<h2 id="section">坑点一</h2>
 
+<p>WSARecv/WSASend在lpNumberOfBytesRecv和overlap同时被设置的情况下，如果它们的io操作立即返回成功，并且lpNumberOfBytesRecv里面也已经获取到了实际的io处理字节数，但是io event还会被放到完成队列，需要调用GetQueuedCompletionStatus去获取。</p>
+
+<p>之前就被这个坑了很久，我原本想既然如果WASRecv已经立即完成，那么没必要再去通过GetQueuedCompletionStatus等待了，我可以直接快速返回处理结果，减少不必要的协程等待和切换。</p>
+
+<p>然而经过实测发现，实时并非如此，即时我这次立即从recv返回出去不再等待了，等到下次recv如果是pending状态的话，有可能等待到的是上次处理成功的io event，蛋疼。。</p>
+
+<p>为了进一步了解其机制，我翻了下官方文档，里面对lpNumberOfBytesRecvd有如下说明:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>lpNumberOfBytesRecvd
+
+A pointer to the number, in bytes, of data received by this call if the receive operation completes immediately.
+
+Use NULL for this parameter if the lpOverlapped parameter is not NULL to avoid potentially erroneous results. This parameter can be NULL only if the lpOverlapped parameter is not NULL.
+</code></pre>
+</div>
+
+<p>大概得意思就是告诉我们，如果lpNumberOfBytesRecvd和lpOverlapped同时被设置，可能会有潜在的问题(估计多半就是我遇到的坑吧)，所以看文档这意思，估计是建议我们在传入lpOverlapped的情况下，尽量不要设置lpNumberOfBytesRecvd，传NULL就好。</p>
+
+<p>但是这不是我想要的结果，我还是希望能够快速处理WSARecv立即成功返回的情况，没必要每次都切换协程去等待io event。</p>
+
+<p>一种办法是调用两次WSARecv，一次不传lpOverlapped，直接尝试读取，如果成功立即返回结果，读不到的话，再通过lpOverlapped送入完成队列，去队列化等待事件完成。</p>
+
+<p>另外一种办法就是每次GetQueuedCompletionStatus的时候去忽略之前已经成功处理和返回的时间对象。</p>
+
+<p>不过这两种我试了下，都不是很理想，处理起来比较复杂，效率也不高，那有没有其他更好的办法呢，我翻了下golang源码中对于iocp的处理，终于找到了解决办法。(果然还是golang给力)</p>
+
+<p><a href="https://github.com/golang/go/blob/4b74506da1ccf8c2f57f11991b432a6d5ac86e4f/src/internal/poll/fd_windows.go">poll/fd_windows.go</a>里面有这么字段代码和注释说明:</p>
+
+<div class="language-go highlighter-rouge"><pre class="highlight"><code><span class="c">// This package uses the SetFileCompletionNotificationModes Windows</span><span class="x">
+</span><span class="c">// API to skip calling GetQueuedCompletionStatus if an IO operation</span><span class="x">
+</span><span class="c">// completes synchronously. There is a known bug where</span><span class="x">
+</span><span class="c">// SetFileCompletionNotificationModes crashes on some systems (see</span><span class="x">
+</span><span class="c">// https://support.microsoft.com/kb/2568167 for details).</span><span class="x">
+
+</span><span class="k">var</span><span class="x"> </span><span class="n">useSetFileCompletionNotificationModes</span><span class="x"> </span><span class="kt">bool</span><span class="x"> </span><span class="c">// determines is SetFileCompletionNotificationModes is present and safe to use</span><span class="x">
+</span></code></pre>
+</div>
+
+<p>原来golang是用了SetFileCompletionNotificationModes API去设置iocp端口在每次GetQueuedCompletionStatus等待io事件的时候，去直接内部忽略已经立即成功返回的io事件，也就是说如果WSARecv如果立即成功返回，那么不会再队列化io event了。</p>
+
+<p>这个好呀，正是我想要的东西，而且用起来也很简单，只需要:</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="n">SetFileCompletionNotificationModes</span><span class="p">(</span><span class="n">socket</span><span class="p">,</span> <span class="n">FILE_SKIP_COMPLETION_PORT_ON_SUCCESS</span><span class="p">);</span>
+</code></pre>
+</div>
+
+<p>不过这个接口，并不是所有win系统版本都支持，xp上就没法这么用了，不过好在现在用xp的也不多了，对于检测此接口的支持情况，golang也有相关实现，可以直接参考:</p>
+
+<div class="language-go highlighter-rouge"><pre class="highlight"><code><span class="c">// checkSetFileCompletionNotificationModes verifies that</span><span class="x">
+</span><span class="c">// SetFileCompletionNotificationModes Windows API is present</span><span class="x">
+</span><span class="c">// on the system and is safe to use.</span><span class="x">
+</span><span class="c">// See https://support.microsoft.com/kb/2568167 for details.</span><span class="x">
+</span><span class="k">func</span><span class="x"> </span><span class="n">checkSetFileCompletionNotificationModes</span><span class="p">()</span><span class="x"> </span><span class="p">{</span><span class="x">
+	</span><span class="n">err</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">syscall</span><span class="o">.</span><span class="n">LoadSetFileCompletionNotificationModes</span><span class="p">()</span><span class="x">
+	</span><span class="k">if</span><span class="x"> </span><span class="n">err</span><span class="x"> </span><span class="o">!=</span><span class="x"> </span><span class="no">nil</span><span class="x"> </span><span class="p">{</span><span class="x">
+		</span><span class="k">return</span><span class="x">
+	</span><span class="p">}</span><span class="x">
+	</span><span class="n">protos</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="p">[</span><span class="m">2</span><span class="p">]</span><span class="kt">int32</span><span class="p">{</span><span class="n">syscall</span><span class="o">.</span><span class="n">IPPROTO_TCP</span><span class="p">,</span><span class="x"> </span><span class="m">0</span><span class="p">}</span><span class="x">
+	</span><span class="k">var</span><span class="x"> </span><span class="n">buf</span><span class="x"> </span><span class="p">[</span><span class="m">32</span><span class="p">]</span><span class="n">syscall</span><span class="o">.</span><span class="n">WSAProtocolInfo</span><span class="x">
+	</span><span class="nb">len</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="kt">uint32</span><span class="p">(</span><span class="n">unsafe</span><span class="o">.</span><span class="n">Sizeof</span><span class="p">(</span><span class="n">buf</span><span class="p">))</span><span class="x">
+	</span><span class="n">n</span><span class="p">,</span><span class="x"> </span><span class="n">err</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">syscall</span><span class="o">.</span><span class="n">WSAEnumProtocols</span><span class="p">(</span><span class="o">&amp;</span><span class="n">protos</span><span class="p">[</span><span class="m">0</span><span class="p">],</span><span class="x"> </span><span class="o">&amp;</span><span class="n">buf</span><span class="p">[</span><span class="m">0</span><span class="p">],</span><span class="x"> </span><span class="o">&amp;</span><span class="nb">len</span><span class="p">)</span><span class="x">
+	</span><span class="k">if</span><span class="x"> </span><span class="n">err</span><span class="x"> </span><span class="o">!=</span><span class="x"> </span><span class="no">nil</span><span class="x"> </span><span class="p">{</span><span class="x">
+		</span><span class="k">return</span><span class="x">
+	</span><span class="p">}</span><span class="x">
+	</span><span class="k">for</span><span class="x"> </span><span class="n">i</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="kt">int32</span><span class="p">(</span><span class="m">0</span><span class="p">);</span><span class="x"> </span><span class="n">i</span><span class="x"> </span><span class="o">&lt;</span><span class="x"> </span><span class="n">n</span><span class="p">;</span><span class="x"> </span><span class="n">i</span><span class="o">++</span><span class="x"> </span><span class="p">{</span><span class="x">
+		</span><span class="k">if</span><span class="x"> </span><span class="n">buf</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">ServiceFlags1</span><span class="o">&amp;</span><span class="n">syscall</span><span class="o">.</span><span class="n">XP1_IFS_HANDLES</span><span class="x"> </span><span class="o">==</span><span class="x"> </span><span class="m">0</span><span class="x"> </span><span class="p">{</span><span class="x">
+			</span><span class="k">return</span><span class="x">
+		</span><span class="p">}</span><span class="x">
+	</span><span class="p">}</span><span class="x">
+	</span><span class="n">useSetFileCompletionNotificationModes</span><span class="x"> </span><span class="o">=</span><span class="x"> </span><span class="no">true</span><span class="x">
+</span><span class="p">}</span><span class="x">
+</span></code></pre>
+</div>
+
+<p>这个就不细说了，大家自己看看代码都能明白，不过似乎通过SetFileCompletionNotificationModes设置忽略io event的方式，对于udp处理上有其他问题，具体我也没验证过，既然golang没将其用到udp上，我也就暂时只对tcp上这么处理了，具体可以看下下面的注释说明:</p>
+
+<div class="language-go highlighter-rouge"><pre class="highlight"><code><span class="k">if</span><span class="x"> </span><span class="n">pollable</span><span class="x"> </span><span class="o">&amp;&amp;</span><span class="x"> </span><span class="n">useSetFileCompletionNotificationModes</span><span class="x"> </span><span class="p">{</span><span class="x">
+		</span><span class="c">// We do not use events, so we can skip them always.</span><span class="x">
+		</span><span class="n">flags</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="kt">uint8</span><span class="p">(</span><span class="n">syscall</span><span class="o">.</span><span class="n">FILE_SKIP_SET_EVENT_ON_HANDLE</span><span class="p">)</span><span class="x">
+		</span><span class="c">// It's not safe to skip completion notifications for UDP:</span><span class="x">
+		</span><span class="c">// https://blogs.technet.com/b/winserverperformance/archive/2008/06/26/designing-applications-for-high-performance-part-iii.aspx</span><span class="x">
+		</span><span class="k">if</span><span class="x"> </span><span class="n">net</span><span class="x"> </span><span class="o">==</span><span class="x"> </span><span class="s">"tcp"</span><span class="x"> </span><span class="p">{</span><span class="x">
+			</span><span class="n">flags</span><span class="x"> </span><span class="o">|=</span><span class="x"> </span><span class="n">syscall</span><span class="o">.</span><span class="n">FILE_SKIP_COMPLETION_PORT_ON_SUCCESS</span><span class="x">
+		</span><span class="p">}</span><span class="x">
+		</span><span class="n">err</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">syscall</span><span class="o">.</span><span class="n">SetFileCompletionNotificationModes</span><span class="p">(</span><span class="n">fd</span><span class="o">.</span><span class="n">Sysfd</span><span class="p">,</span><span class="x"> </span><span class="n">flags</span><span class="p">)</span><span class="x">
+		</span><span class="k">if</span><span class="x"> </span><span class="n">err</span><span class="x"> </span><span class="o">==</span><span class="x"> </span><span class="no">nil</span><span class="x"> </span><span class="o">&amp;&amp;</span><span class="x"> </span><span class="n">flags</span><span class="o">&amp;</span><span class="n">syscall</span><span class="o">.</span><span class="n">FILE_SKIP_COMPLETION_PORT_ON_SUCCESS</span><span class="x"> </span><span class="o">!=</span><span class="x"> </span><span class="m">0</span><span class="x"> </span><span class="p">{</span><span class="x">
+			</span><span class="n">fd</span><span class="o">.</span><span class="n">skipSyncNotif</span><span class="x"> </span><span class="o">=</span><span class="x"> </span><span class="no">true</span><span class="x">
+		</span><span class="p">}</span><span class="x">
+	</span><span class="p">}</span><span class="x">
+</span></code></pre>
+</div>
+
+<h2 id="section-1">坑点二</h2>
+
+<p>GetQueuedCompletionStatusEx如果每次只等待到一个io event的情况下，效率比GetQueuedCompletionStatus慢了接近一倍。</p>
+
+<p>由于GetQueuedCompletionStatusEx每次可同时等待n个io事件，可以极大减少调用次数，快速处理多个时间对象。</p>
+
+<p>对于同时有多个事件完成的情况下，这个调用确实比使用GetQueuedCompletionStatus效率好很多，但是我在本地做压测的时候发现，如果每次只有一个io事件完成的情况下，GetQueuedCompletionStatusEx的效率真的很差，还不如GetQueuedCompletionStatus了。</p>
+
+<p>为此，我在<a href="https://github.com/tboox/tbox">tbox</a>的iocp处理里面稍微做了下优化：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="cm">/* we can use GetQueuedCompletionStatusEx() to increase performance, perhaps, 
+ * but we may end up lowering perf if you max out only one I/O thread.
+ */</span>
+<span class="n">tb_long_t</span> <span class="n">wait</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">poller</span><span class="o">-&gt;</span><span class="n">lastwait_count</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="o">&amp;&amp;</span> <span class="n">poller</span><span class="o">-&gt;</span><span class="n">func</span><span class="p">.</span><span class="n">GetQueuedCompletionStatusEx</span><span class="p">)</span>
+    <span class="n">wait</span> <span class="o">=</span> <span class="n">tb_poller_iocp_event_wait_ex</span><span class="p">(</span><span class="n">poller</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">timeout</span><span class="p">);</span>
+<span class="k">else</span> <span class="n">wait</span> <span class="o">=</span> <span class="n">tb_poller_iocp_event_wait</span><span class="p">(</span><span class="n">poller</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">timeout</span><span class="p">);</span>
+
+<span class="c1">// save the last wait count
+</span><span class="n">poller</span><span class="o">-&gt;</span><span class="n">lastwait_count</span> <span class="o">=</span> <span class="n">wait</span><span class="p">;</span>
+</code></pre>
+</div>
+
+<p>我记录了下最近一次的等待时间返回数，如果最近都是只有一次io事件的话，那么切换到GetQueuedCompletionStatus去等待io，如果当前io事件比较多的话，再切换到GetQueuedCompletionStatusEx去处理。</p>
+
+<p>这里我目前只是简单处理了下，测试下来效果还不错，等后续有时间可以根据实际效果，再调整下优化策略。</p>
+
+<h2 id="section-2">坑点三</h2>
+
+<p>CancelIO只能用于取消当前线程投递的io事件，想要在取消其他线程投递的io事件，需要使用CancelIOEx，这个大家应该都知道，我就简单提下好了。</p>
+
+<h2 id="section-3">坑点四</h2>
+
+<p>写好IOCP程序，还是很不容易的，各种处理细节核注意事项非常多，这里暂时不一一列举了，等有时间我再补充下吧，大家也可以通过评论，贴下自己平常开发IOCP程序时候，经常遇到的一些坑点。</p>
 
         </article>
         <hr>
@@ -1014,18 +1143,26 @@
         
         
             
+        
             
             
-                
-                    
-                
-                    
-                
-                    
-                
             
                 
                     
+                        
+                        <h2 id="similar_posts">相关文章</h2>
+                        <ul>
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2018/08/01/update-v1.6.3/">tbox v1.6.3 更新，新增基于IOCP的协程支持
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
                 
                     
                 
@@ -1039,7 +1176,31 @@
                 
                     
                 
+                    
+                
             
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
                 
                     
                 
@@ -1062,12 +1223,6 @@
                 
                     
                 
-            
-                
-                    
-                
-                    
-                
                     
                 
             
@@ -1078,15 +1233,11 @@
                 
                     
                 
-            
-                
-                    
-                
-                    
-                
                     
                 
             
+                
+                    
                 
                     
                 
@@ -1109,12 +1260,6 @@
                 
                     
                 
-            
-                
-                    
-                
-                    
-                
                     
                 
             
@@ -1125,30 +1270,11 @@
                 
                     
                 
-            
-            
-        
-            
-        
-            
-            
-            
-                
-                    
-                
-                    
-                
                     
                 
             
                 
                     
-                
-                    
-                
-                    
-                
-            
                 
                     
                 
@@ -1171,23 +1297,11 @@
                 
                     
                 
-            
-                
-                    
-                
-                    
-                
                     
                 
             
                 
                     
-                
-                    
-                
-                    
-                
-            
                 
                     
                 
@@ -1203,7 +1317,106 @@
                 
                     
                 
+                    
+                
             
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
                 
                     
                 
@@ -1224,23 +1437,11 @@
                 
                     
                 
-            
-                
-                    
-                
-                    
-                
                     
                 
             
                 
                     
-                
-                    
-                
-                    
-                
-            
                 
                     
                 
@@ -1256,15 +1457,21 @@
                 
                     
                 
-            
-                
-                    
-                
-                    
-                
                     
                 
             
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
                 
                     
                 
@@ -1275,6 +1482,8 @@
             
             
         
+        
+            </ul>
         
 
         <div class="post-recent">
@@ -1286,7 +1495,15 @@
 
         
         
-        <p><strong>上一篇</strong> <a href="/cn/2016/08/04/uses-vector/">tbox中vector容器的使用</a></p>
+        
+
+        
+
+        
+
+        
+        
+        <p><strong>上一篇</strong> <a href="/cn/2018/08/01/update-v1.6.3/">tbox v1.6.3 更新，新增基于IOCP的协程支持</a></p>
         
     </div>
 
@@ -1297,8 +1514,1195 @@
         
 
         
+
         
-        <p><strong>下一篇</strong> <a href="/cn/2016/08/06/add-package-and-autocheck/">依赖包的添加和自动检测机制</a></p>
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
         
     </div>
 </div>
