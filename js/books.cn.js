@@ -28,7 +28,7 @@
         page_link: 'https://amazon.cn/gp/product/B073LWHBBY/ref=as_li_tl?ie=UTF8&tag=tboox01-23&camp=536&creative=3200&linkCode=as2&creativeASIN=B073LWHBBY&linkId=c8edf83e2b4f28bd29fe27c84d9ce77f',
         img_link: '/static/img/books/cn/deep_learning.jpg',
         title: '深度学习(deep learning)',
-        description: '由全球知名的三位专家Ian Goodfellow、Yoshua Bengio 和Aaron Courville撰写，是深度学习领域奠基性的经典教材'
+        description: '由全球知名的三位专家撰写，是深度学习领域奠基性的经典教材'
     },
     {
         page_link: 'https://amazon.cn/gp/product/B071436YV8/ref=as_li_tl?ie=UTF8&tag=tboox01-23&camp=536&creative=3200&linkCode=as2&creativeASIN=B071436YV8&linkId=f0304f2b625edcca430123e1d1a3e219',
@@ -58,7 +58,7 @@
         page_link: 'https://amazon.cn/gp/product/B00163LU68/ref=as_li_tl?ie=UTF8&tag=tboox01-23&camp=536&creative=3200&linkCode=as2&creativeASIN=B00163LU68&linkId=eea1436de0113f9bdcfb659e10fad306',
         img_link: '/static/img/books/cn/c_and_pointer.jpg',
         title: 'C和指针 Pointers On C',
-        description: '提供与C语言编程相关的全面资源和深入讨论，本书通过对指针的基础知识和高级特性的探讨，帮助程序员把指针的强大功能融入到自己的程序中去'
+        description: '提供与C语言编程、指针相关的全面资源和深入讨论'
     },
     {
         page_link: 'https://amazon.cn/gp/product/B00QKU9B7M/ref=as_li_tl?ie=UTF8&tag=tboox01-23&camp=536&creative=3200&linkCode=as2&creativeASIN=B00QKU9B7M&linkId=9e4aafa8fc07ded4272073bde39466ba',
@@ -70,7 +70,19 @@
         page_link: 'https://amazon.cn/gp/product/B008Z1IEQ8/ref=as_li_tl?ie=UTF8&tag=tboox01-23&camp=536&creative=3200&linkCode=as2&creativeASIN=B008Z1IEQ8&linkId=d3445bba1deaaf620b2f19b9a4f3fc41',
         img_link: '/static/img/books/cn/unix-programing-art.jpg',
         title: '传世经典书丛:UNIX编程艺术',
-        description: '主要介绍了Unix系统领域中的设计和开发哲学、思想文化体系、原则与经验，由公认的Unix编程大师、开源运动领袖人物之一Eric S.Raymond倾力多年写作而成'
+        description: 'Unix编程大师、开源运动领袖人物之一Eric S.Raymond倾力多年写作而成'
+    },
+    {
+        page_link: 'https://amazon.cn/gp/product/B0012NIW9K/ref=as_li_tl?ie=UTF8&tag=tboox01-23&camp=536&creative=3200&linkCode=as2&creativeASIN=B0012NIW9K&linkId=11d754e3db7a99da5a8af4a998f73f4f',
+        img_link: '/static/img/books/cn/c_expert.jpg',
+        title: 'C专家编程',
+        description: '专家级的C编程指南展示C程序员的编程技巧'
+    },
+    {
+        page_link: 'https://amazon.cn/gp/product/B0012UMPBY/ref=as_li_tl?ie=UTF8&tag=tboox01-23&camp=536&creative=3200&linkCode=as2&creativeASIN=B0012UMPBY&linkId=d14ce572694134030fe1dba51c4071d5',
+        img_link: '/static/img/books/cn/c_trap.jpg',
+        title: 'C陷阱与缺陷',
+        description: 'AndrewKoenig自己在Bell实验室时发表的论文为基础，结合自己的工作经验扩展成这本对C程序员具有珍贵价值的经典著作'
     }];
 
     contentInit(content) //内容初始化
@@ -141,8 +153,8 @@ function initGrid() {
     var msnry = new Masonry('.grid', {
         // options
         itemSelector: '.grid-item',
-        columnWidth: 200,
+        columnWidth: 160,
         isFitWidth: true,
-        gutter: 20,
+        gutter: 10,
     })
 }
