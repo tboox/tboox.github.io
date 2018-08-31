@@ -13,10 +13,10 @@ function getqval(qvar) {
     }
     return(false);
 }
-if (getqval("autolang") !== "0") {
+if (getqval("lang") !== "0") {
     var lang = navigator.language || navigator.userLanguage || navigator.browserLanguage;
-    if (lang && lang.substr(0, 2) == "zh") document.location.href = '/cn?autolang=0';
-    else document.location.href = '/?autolang=0';
+    if (lang && lang.substr(0, 2) == "zh") document.location.href = '/cn?lang=0';
+    else document.location.href = '/?lang=0';
 }
 //-->
 </script>
