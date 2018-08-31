@@ -2,6 +2,25 @@
 layout: default
 ---
 
+<script> 
+<!--
+function getqval(qvar) {
+    var query = window.location.search.substring(1);
+    var vars = query.split("&");
+    for (var i=0;i<vars.length;i++) {
+        var pair = vars[i].split("=");
+        if(pair[0] == qvar){return pair[1];}
+    }
+    return(false);
+}
+if (getqval("autolang") !== "0") {
+    var lang = navigator.language || navigator.userLanguage || navigator.browserLanguage;
+    if (lang && lang.substr(0, 2) == "zh") document.location.href = '/cn?autolang=0';
+    else document.location.href = '/?autolang=0';
+}
+//-->
+</script>
+
 <div class="page clearfix" index>
     <div class="left">
         <h1>{{site.title}}</h1>
