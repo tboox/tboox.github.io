@@ -5,9 +5,429 @@
     <description>Focus on cross-platform development using c language</description>
     <link>http://www.tboox.org/</link>
     <atom:link href="http://www.tboox.org/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Fri, 31 Aug 2018 10:15:18 +0800</pubDate>
-    <lastBuildDate>Fri, 31 Aug 2018 10:15:18 +0800</lastBuildDate>
+    <pubDate>Tue, 16 Oct 2018 21:30:05 +0800</pubDate>
+    <lastBuildDate>Tue, 16 Oct 2018 21:30:05 +0800</lastBuildDate>
     <generator>Jekyll v3.1.0</generator>
+    
+      <item>
+        <title>xmake v2.2.2, 让C/C++拥有包依赖自动构建</title>
+        <description>&lt;h3 id=&quot;section&quot;&gt;前言&lt;/h3&gt;
+
+&lt;p&gt;历经四个多月，&lt;a href=&quot;https://github.com/tboox/xmake&quot;&gt;xmake&lt;/a&gt;终于更新了新版本v2.2.2，并且上线了重量级功能：原生支持的远程依赖包管理。&lt;/p&gt;
+
+&lt;p&gt;而这个特性，其实我陆陆续续写了将近一年的时间，才初步完成，对于此特性的开发进展和历史，有兴趣的同学可以看下相关issues：&lt;a href=&quot;https://github.com/tboox/xmake/issues/69&quot;&gt;#69&lt;/a&gt;。&lt;/p&gt;
+
+&lt;p&gt;目前的实现效果如下，完全一致的语义版本依赖描述：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://xmake.io/assets/img/index/add_require.png&quot; width=&quot;70%&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;完全一致的跨平台构建行为，一键xmake编译：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://xmake.io/assets/img/index/package_manage.png&quot; width=&quot;80%&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;完整的项目描述：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;tbox 1.6.*&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;libpng ~1.16&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
+    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;tbox&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;libpng&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;我先简单介绍下我做这个功能的背景：&lt;/p&gt;
+
+&lt;p&gt;我们在写C/C++程序的时候，对于第三方依赖库的使用一直是一个老大难问题，因为每个依赖库的构建系统不同、代码平台支持力度的差异，导致没法像其他高级语言那样有方便好用的包管理支持。&lt;/p&gt;
+
+&lt;p&gt;虽然现在已经有了homebrew, vcpkg等包管理工具来解决这一问题，但是多少都有一些局限性，例如：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;homebrew不支持iphoneos, android, windows平台&lt;/li&gt;
+  &lt;li&gt;vcpkg不支持语义版本选择，多版本管理&lt;/li&gt;
+  &lt;li&gt;另外都不支持项目管理和构建&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;对于目前现有的跨平台构建工具，都缺少内置的包管理支持，像cmake仅提供了&lt;code class=&quot;highlighter-rouge&quot;&gt;find_package&lt;/code&gt;去查找系统包，虽然可以和vcpkg等第三方包管理配合使用，但我个人觉得并不是很方便。
+这会使得项目的其他用户在编译的时候，额外要求去安装vcpkg或者安装依赖库到系统上才行，对于pc平台还好弄些，对于iphoneos, android等平台的依赖库，用户就要折腾上一会了。&lt;/p&gt;
+
+&lt;p&gt;而xmake的理念就是：&lt;code class=&quot;highlighter-rouge&quot;&gt;真正的一致维护, 真正的一键编译&lt;/code&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;构建行为的一致性: 不管你的项目是否有库依赖，工具依赖，只需要执行一个&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake&lt;/code&gt;命令，即可编译通过。&lt;/li&gt;
+  &lt;li&gt;项目维护的一致性: 不管你的项目是在windows上用，还是给linux, iphone, android上用，都只需要一份xmake.lua维护项目即可。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;而cmake还需要生成额外的第三方IDE工程文件，即使cmakelist.txt相同，但是构建、维护体验上对用户来讲都不可能保证完全一致，毕竟还受限于vc/make此类工具。&lt;/p&gt;
+
+&lt;h3 id=&quot;section-1&quot;&gt;目前支持的特性&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;语义版本支持，例如：”&amp;gt;= 1.1.0 &amp;lt; 1.2”, “~1.6”, “1.2.x”, “1.*”&lt;/li&gt;
+  &lt;li&gt;提供官方包仓库、自建私有仓库、项目内置仓库等多仓库管理支持&lt;/li&gt;
+  &lt;li&gt;跨平台包编译集成支持（不同平台、不同架构的包可同时安装，快速切换使用）&lt;/li&gt;
+  &lt;li&gt;debug依赖包支持，实现源码调试&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;section-2&quot;&gt;依赖包处理机制&lt;/h3&gt;
+
+&lt;p&gt;这里我们简单介绍下整个依赖包的处理机制：&lt;/p&gt;
+
+&lt;div align=&quot;center&quot;&gt;
+&lt;img src=&quot;https://xmake.io/assets/img/index/package_arch.png&quot; width=&quot;80%&quot; /&gt;
+&lt;/div&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;优先检测当前系统目录、第三方包管理下有没有存在指定的包，如果有匹配的包，那么就不需要下载安装了 （当然也可以设置不使用系统包）&lt;/li&gt;
+  &lt;li&gt;检索匹配对应版本的包，然后下载、编译、安装（注：安装在特定xmake目录，不会干扰系统库环境）&lt;/li&gt;
+  &lt;li&gt;编译项目，最后自动链接启用的依赖包&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;section-3&quot;&gt;快速上手&lt;/h3&gt;
+
+&lt;p&gt;新建一个依赖tbox库的空工程：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; create -t console_tbox test
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; test
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;执行编译即可，如果当前没有安装tbox库，则会自动下载安装后使用：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;切换到iphoneos平台进行编译，将会重新安装iphoneos版本的tbox库进行链接使用：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f -p iphoneos
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;切换到android平台arm64-v8a架构编译：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f -p android [--ndk=~/android-ndk-r16b]
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;section-4&quot;&gt;语义版本设置&lt;/h3&gt;
+
+&lt;p&gt;xmake的依赖包管理是完全支持语义版本选择的，例如：”~1.6.1”，对于语义版本的具体描述见：&lt;a href=&quot;http://semver.org/&quot;&gt;http://semver.org/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;一些语义版本写法：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;tbox 1.6.*&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;pcre 1.3.x&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;libpng ^1.18&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;libpng ~1.16&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;zlib 1.1.2 || &amp;gt;=1.2.11 &amp;lt;1.3.0&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;目前xmake使用的语义版本解析器是&lt;a href=&quot;https://github.com/uael&quot;&gt;uael&lt;/a&gt;贡献的&lt;a href=&quot;https://github.com/uael/sv&quot;&gt;sv&lt;/a&gt;库，里面也有对版本描述写法的详细说明，可以参考下：&lt;a href=&quot;https://github.com/uael/sv#versions&quot;&gt;版本描述说明&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;当然，如果我们对当前的依赖包的版本没有特殊要求，那么可以直接这么写：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;tbox&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;libpng&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这会使用已知的最新版本包，或者是master分支的源码编译的包，如果当前包有git repo地址，我们也能指定特定分支版本：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;tbox master&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;tbox dev&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;section-5&quot;&gt;额外的包信息设置&lt;/h3&gt;
+
+&lt;h4 id=&quot;section-6&quot;&gt;可选包设置&lt;/h4&gt;
+
+&lt;p&gt;如果指定的依赖包当前平台不支持，或者编译安装失败了，那么xmake会编译报错，这对于有些必须要依赖某些包才能工作的项目，这是合理的。
+但是如果有些包是可选的依赖，即使没有也可以正常编译使用的话，可以设置为可选包：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;tbox&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;optional&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;section-7&quot;&gt;禁用系统库&lt;/h4&gt;
+
+&lt;p&gt;默认的设置，xmake会去优先检测系统库是否存在（如果没设置版本要求），如果用户完全不想使用系统库以及第三方包管理提供的库，那么可以设置：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;tbox&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;system&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;section-8&quot;&gt;使用调试版本的包&lt;/h4&gt;
+
+&lt;p&gt;如果我们想同时源码调试依赖包，那么可以设置为使用debug版本的包（当然前提是这个包支持debug编译）：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;tbox&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;debug&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;如果当前包还不支持debug编译，可在仓库中提交修改编译规则，对debug进行支持，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;openssl&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;on_install&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;linux&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;macosx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vrun&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;./config %s --prefix=\&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;debug&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;--debug&quot;&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;or&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;installdir&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vrun&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;make -j4&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vrun&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;make install&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;section-9&quot;&gt;传递额外的编译信息到包&lt;/h4&gt;
+
+&lt;p&gt;某些包在编译时候有各种编译选项，我们也可以传递进来，当然包本身得支持：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;tbox&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;config&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;small&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;传递&lt;code class=&quot;highlighter-rouge&quot;&gt;--small=true&lt;/code&gt;给tbox包，使得编译安装的tbox包是启用此选项的。&lt;/p&gt;
+
+&lt;h3 id=&quot;section-10&quot;&gt;使用自建私有包仓库&lt;/h3&gt;
+
+&lt;p&gt;如果需要的包不在官方仓库&lt;a href=&quot;https://github.com/tboox/xmake-repo&quot;&gt;xmake-repo&lt;/a&gt;中，我们可以提交贡献代码到仓库进行支持。
+但如果有些包仅用于个人或者私有项目，我们可以建立一个私有仓库repo，仓库组织结构可参考：&lt;a href=&quot;https://github.com/tboox/xmake-repo&quot;&gt;xmake-repo&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;比如，现在我们有一个一个私有仓库repo：&lt;code class=&quot;highlighter-rouge&quot;&gt;git@github.com:myrepo/xmake-repo.git&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;我们可以通过下面的命令进行仓库添加：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; repo --add myrepo git@github.com:myrepo/xmake-repo.git
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;或者我们直接写在xmake.lua中：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_repositories&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;my-repo git@github.com:myrepo/xmake-repo.git&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;如果我们只是想添加一两个私有包，这个时候特定去建立一个git repo太小题大做了，我们可以直接把包仓库放置项目里面，例如：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;projectdir
+  - myrepo
+    - packages
+      - t/tbox/xmake.lua
+      - z/zlib/xmake.lua
+  - src
+    - main.c
+  - xmake.lua
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;上面myrepo目录就是自己的私有包仓库，内置在自己的项目里面，然后在xmake.lua里面添加一下这个仓库位置：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_repositories&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;my-repo myrepo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这个可以参考&lt;a href=&quot;https://github.com/tboox/benchbox&quot;&gt;benchbox&lt;/a&gt;项目，里面就内置了一个私有仓库。&lt;/p&gt;
+
+&lt;p&gt;我们甚至可以连仓库也不用建，直接定义包描述到项目xmake.lua中，这对依赖一两个包的情况还是很有用的，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;libjpeg&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;set_urls&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;http://www.ijg.org/files/jpegsrc.$(version).tar.gz&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;add_versions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;v9c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;650250979303a649e21f87b5ccd02672af1ea6954b911342ea491f351ceb7122&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;on_install&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;windows&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;jconfig.vc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;jconfig.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vrun&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;nmake -f makefile.vc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;*.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;installdir&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;include&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;libjpeg.lib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;installdir&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;lib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;on_install&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;macosx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;linux&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;package.tools.autoconf&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;install&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;package_end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;libjpeg&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
+    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;libjpeg&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;section-11&quot;&gt;包管理命令使用&lt;/h3&gt;
+
+&lt;p&gt;包管理命令&lt;code class=&quot;highlighter-rouge&quot;&gt;$ xmake require&lt;/code&gt; 可用于手动显示的下载编译安装、卸载、检索、查看包信息。&lt;/p&gt;
+
+&lt;h4 id=&quot;section-12&quot;&gt;安装指定包&lt;/h4&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; require tbox
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;安装指定版本包：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; require tbox &quot;~1.6&quot;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;强制重新下载安装，并且显示详细安装信息：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; require -f -v tbox &quot;1.5.x&quot;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;传递额外的设置信息：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; require --extra=&quot;debug=true,config={small=true}&quot; tbox
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;安装debug包，并且传递&lt;code class=&quot;highlighter-rouge&quot;&gt;small=true&lt;/code&gt;的编译配置信息到包中去。&lt;/p&gt;
+
+&lt;h4 id=&quot;section-13&quot;&gt;卸载指定包&lt;/h4&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; require --uninstall tbox
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这会完全卸载删除包文件。&lt;/p&gt;
+
+&lt;h4 id=&quot;section-14&quot;&gt;移除指定包&lt;/h4&gt;
+
+&lt;p&gt;仅仅unlink指定包，不被当前项目检测到，但是包在本地还是存在的，如果重新安装的话，会很快完成。&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; require --unlink tbox
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;section-15&quot;&gt;查看包详细信息&lt;/h4&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; require --info tbox
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;section-16&quot;&gt;在当前仓库中搜索包&lt;/h4&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; require --search tbox
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这个是支持模糊搜素以及lua模式匹配搜索的：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; require --search pcr
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;会同时搜索到pcre, pcre2等包。&lt;/p&gt;
+
+&lt;h4 id=&quot;section-17&quot;&gt;列举当前已安装的包&lt;/h4&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; require --list
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;section-18&quot;&gt;仓库管理命令使用&lt;/h3&gt;
+
+&lt;p&gt;上文已经简单讲过，添加私有仓库可以用（支持本地路径添加）：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; repo --add myrepo git@github.com:myrepo/xmake-repo.git
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;我们也可以移除已安装的某个仓库：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; repo --remove myrepo
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;或者查看所有已添加的仓库：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; repo --list
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;如果远程仓库有更新，可以手动执行仓库更新，来获取更多、最新的包：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; repo -u
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;section-19&quot;&gt;提交包到官方仓库&lt;/h3&gt;
+
+&lt;p&gt;目前这个特性刚完成不久，目前官方仓库的包还不是很多，有些包也许还不支持部分平台，不过这并不是太大问题，后期迭代几个版本后，我会不断扩充完善包仓库。&lt;/p&gt;
+
+&lt;p&gt;如果你需要的包，当前的官方仓库还没有收录，可以提交issues或者自己可以在本地调通后，贡献提交到官方仓库：&lt;a href=&quot;https://github.com/tboox/xmake-repo&quot;&gt;xmake-repo&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;详细的贡献说明，见：&lt;a href=&quot;https://github.com/tboox/xmake-repo/blob/master/CONTRIBUTING.md&quot;&gt;CONTRIBUTING.md&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;关于远程依赖包的更多说明，可以看下官方文档：&lt;a href=&quot;https://xmake.io/#/zh/?id=%E8%BF%9C%E7%A8%8B%E4%BE%9D%E8%B5%96%E6%A8%A1%E5%BC%8F&quot;&gt;远程依赖模式&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;其实xmake的包管理历经了三代，前两版v1.0, v2.0分别是本地包管理模式，系统库查找模式，这两种在有些情况下还是非常有用的。
+关于这两者的介绍，这里就不多说了，可以看下文档说明：&lt;a href=&quot;https://xmake.io/#/zh/?id=%E4%BE%9D%E8%B5%96%E5%8C%85%E7%AE%A1%E7%90%86&quot;&gt;依赖包管理&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;section-20&quot;&gt;结语&lt;/h3&gt;
+
+&lt;p&gt;说了这么多，我们最后来看下，新版本提供的一些其他新特性和更新内容：&lt;/p&gt;
+
+&lt;h4 id=&quot;section-21&quot;&gt;其他新特性&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;新增fasm汇编器支持&lt;/li&gt;
+  &lt;li&gt;添加&lt;code class=&quot;highlighter-rouge&quot;&gt;has_config&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;get_config&lt;/code&gt;和&lt;code class=&quot;highlighter-rouge&quot;&gt;is_config&lt;/code&gt;接口去快速判断option和配置值&lt;/li&gt;
+  &lt;li&gt;添加&lt;code class=&quot;highlighter-rouge&quot;&gt;set_config&lt;/code&gt;接口去设置默认配置&lt;/li&gt;
+  &lt;li&gt;添加&lt;code class=&quot;highlighter-rouge&quot;&gt;$xmake --try&lt;/code&gt;去尝试构建工程&lt;/li&gt;
+  &lt;li&gt;添加&lt;code class=&quot;highlighter-rouge&quot;&gt;set_enabled(false)&lt;/code&gt;去显示的禁用target&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/tboox/xmake/issues/69&quot;&gt;#69&lt;/a&gt;: 添加远程依赖包管理, &lt;code class=&quot;highlighter-rouge&quot;&gt;add_requires(&quot;tbox ~1.6.1&quot;)&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/tboox/xmake/pull/216&quot;&gt;#216&lt;/a&gt;: 添加windows mfc编译规则&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;section-22&quot;&gt;改进&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;改进Qt编译编译环境探测，增加对mingw sdk的支持&lt;/li&gt;
+  &lt;li&gt;在自动扫描生成的xmake.lua中增加默认debug/release规则&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/tboox/xmake/issues/178&quot;&gt;#178&lt;/a&gt;: 修改mingw平台下的目标名&lt;/li&gt;
+  &lt;li&gt;对于&lt;code class=&quot;highlighter-rouge&quot;&gt;add_files()&lt;/code&gt;在windows上支持大小写不敏感路径模式匹配&lt;/li&gt;
+  &lt;li&gt;改进&lt;code class=&quot;highlighter-rouge&quot;&gt;detect.sdks.find_qt&lt;/code&gt;对于Qt根目录的探测&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/tboox/xmake/issues/184&quot;&gt;#184&lt;/a&gt;: 改进&lt;code class=&quot;highlighter-rouge&quot;&gt;lib.detect.find_package&lt;/code&gt;支持vcpkg&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/tboox/xmake/issues/208&quot;&gt;#208&lt;/a&gt;: 改进rpath对动态库的支持&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;bugs&quot;&gt;Bugs修复&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/tboox/xmake/issues/177&quot;&gt;#177&lt;/a&gt;: 修复被依赖的动态库target，如果设置了basename后链接失败问题&lt;/li&gt;
+  &lt;li&gt;修复&lt;code class=&quot;highlighter-rouge&quot;&gt;$xmake f --menu&lt;/code&gt;中Exit问题以及cpu过高问题&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/tboox/xmake/issues/197&quot;&gt;#197&lt;/a&gt;: 修复生成的vs201x工程文件带有中文路径乱码问题&lt;/li&gt;
+  &lt;li&gt;修复WDK规则编译生成的驱动在Win7下运行蓝屏问题&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/tboox/xmake/pull/205&quot;&gt;#205&lt;/a&gt;: 修复vcproj工程生成targetdir, objectdir路径设置不匹配问题&lt;/li&gt;
+&lt;/ul&gt;
+
+</description>
+        <pubDate>Sat, 13 Oct 2018 00:00:00 +0800</pubDate>
+        <link>http://www.tboox.org/cn/2018/10/13/xmake-update-v2.2.2-package-deps/</link>
+        <guid isPermaLink="true">http://www.tboox.org/cn/2018/10/13/xmake-update-v2.2.2-package-deps/</guid>
+        
+        <category>xmake</category>
+        
+        <category>lua</category>
+        
+        <category>C/C++</category>
+        
+        <category>版本更新</category>
+        
+        <category>远程包管理</category>
+        
+        <category>包依赖</category>
+        
+        <category>自动构建</category>
+        
+        
+        <category>xmake</category>
+        
+      </item>
     
       <item>
         <title>记对协程增加IOCP支持时候踩过的一些坑</title>
@@ -1070,312 +1490,6 @@ but we can add &lt;code class=&quot;highlighter-rouge&quot;&gt;set_values(&quot;
         <category>WDK</category>
         
         <category>Cuda</category>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>xmake新增对WDK驱动编译环境支持</title>
-        <description>&lt;p&gt;&lt;a href=&quot;https://github.com/tboox/xmake&quot;&gt;xmake&lt;/a&gt; v2.2.1新版本现已支持WDK驱动编译环境，我们可以直接在系统原生cmd终端下，执行xmake进行驱动编译，甚至配合vscode, sublime text, IDEA等编辑器+xmake插件去开发WDK驱动。&lt;/p&gt;
-
-&lt;p&gt;下面是xmake支持的一些编辑器插件，用户可以挑选自己喜欢的编辑器配合xmake来使用：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/tboox/xmake-idea&quot;&gt;xmake-idea&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/tboox/xmake-vscode&quot;&gt;xmake-vscode&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/tboox/xmake-sublime&quot;&gt;xmake-sublime&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;wdk&quot;&gt;WDK环境介绍&lt;/h2&gt;
-
-&lt;p&gt;首先，我们先简单介绍下WDK10的编译环境的安装方式，我们可以看下微软的官方文档：&lt;a href=&quot;https://docs.microsoft.com/en-us/windows-hardware/drivers/download-the-wdk&quot;&gt;Download the Windows Driver Kit (WDK)&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;里面介绍了两种环境：&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;下载WDK开发包，直接安装到系统并集成到VS的开发环境中&lt;/li&gt;
-  &lt;li&gt;下载EWDK iso镜像（内含完整WDK开发环境），直接挂载后，运行LaunchBuildEnv进入cmd环境&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;xmake对于这两种环境都是完全支持的，如果用户直接下载安装WDK环境到本地系统，那么不需要任何配置，只需要执行：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;xmake会自动检测到WDK的安装环境，然后编译相关驱动项目，如果用户是直接挂载的EWDK iso开发镜像，那么编译前配置下WDK所在路径即可：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f --wdk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;G:&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\P&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;rogram Files&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\W&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;indows Kits&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\1&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;0&quot;&lt;/span&gt; 
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;更多详情可以参考：&lt;a href=&quot;https://github.com/tboox/xmake/issues/159&quot;&gt;#159&lt;/a&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;wdk-1&quot;&gt;WDK驱动实例&lt;/h2&gt;
-
-&lt;p&gt;xmake支持umdf, kmdf, wdm驱动项目的维护，也是采用一系列扩展的WDK rule规则来实现，类似：&lt;a href=&quot;http://tboox.org/cn/2018/05/30/support-qt/&quot;&gt;Qt编译环境的支持&lt;/a&gt;。&lt;/p&gt;
-
-&lt;p&gt;目前支持的规则有如下这些：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;rule(“wdk.driver”)&lt;/li&gt;
-  &lt;li&gt;rule(“wdk.binary”)&lt;/li&gt;
-  &lt;li&gt;rule(“wdk.static”)&lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;rule(“wdk.shared”)&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;rule(“wdk.env.kmdf”)&lt;/li&gt;
-  &lt;li&gt;rule(“wdk.env.umdf”)&lt;/li&gt;
-  &lt;li&gt;rule(“wdk.env.wdm”)&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;其中，&lt;code class=&quot;highlighter-rouge&quot;&gt;wdk.env.*&lt;/code&gt;规则描述驱动编译的环境，&lt;code class=&quot;highlighter-rouge&quot;&gt;wdk.driver&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;wdk.static&lt;/code&gt;描述编译的目标类型，两者可以互相结合使用，我们既可以用来编译驱动程序，也可以用来编译基于wdk环境的静态库、可执行程序。&lt;/p&gt;
-
-&lt;p&gt;下面，通过一些例子可以简单看下使用方式，具体例子代码见&lt;a href=&quot;https://github.com/tboox/xmake/tree/master/tests/projects/wdk/&quot;&gt;wdk-examples&lt;/a&gt;，其中的项目代码是从&lt;a href=&quot;https://github.com/Microsoft/Windows-driver-samples&quot;&gt;Windows-driver-samples&lt;/a&gt;移植过来的。&lt;/p&gt;
-
-&lt;h4 id=&quot;umdf&quot;&gt;umdf驱动程序&lt;/h4&gt;
-
-&lt;p&gt;我们通过同时应用&lt;code class=&quot;highlighter-rouge&quot;&gt;wdk.driver&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;wdk.env.umdf&lt;/code&gt;规则，来描述这个target作为umdf驱动程序来编译：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;echo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.driver&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;wdk.env.umdf&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;driver/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;driver/*.inx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_includedirs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;exe&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;我们也可以通过&lt;code class=&quot;highlighter-rouge&quot;&gt;wdk.binary&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;wdk.env.umdf&lt;/code&gt;规则，来描述一个基于wdk/umdf编译环境的上层可执行程序：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;app&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;wdk.env.umdf&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;exe/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;kmdf&quot;&gt;kmdf驱动程序&lt;/h4&gt;
-
-&lt;p&gt;kmdf的项目描述跟刚才的umdf类似，只需要把&lt;code class=&quot;highlighter-rouge&quot;&gt;wdk.env.umdf&lt;/code&gt;换成&lt;code class=&quot;highlighter-rouge&quot;&gt;wdk.env.kmdf&lt;/code&gt;的环境规则就行了。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;nonpnp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.driver&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;wdk.env.kmdf&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.tracewpp.flags&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;-func:TraceEvents(LEVEL,FLAGS,MSG,...)&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.tracewpp.flags&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;-func:Hexdump((LEVEL,FLAGS,MSG,...))&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;driver/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;wdk.tracewpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt; 
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;driver/*.rc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;app&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;wdk.env.kmdf&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;exe/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;exe/*.inf&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;这个项目里面，需要特别注意的是，我们还用到了tracewpp对一些源文件的预处理，对于tracewpp任务的介绍，可以看下官方文档&lt;a href=&quot;https://docs.microsoft.com/en-us/windows-hardware/drivers/devtest/tracewpp-task&quot;&gt;tracewpp-task&lt;/a&gt;，这里就不多做说明了。&lt;/p&gt;
-
-&lt;p&gt;我们直接说下，如何在xmake的项目里应用tracewpp规则吧，由于这个规则并不是对当前target所有源文件都去处理的，因此我们只对需要的源文件进行应用这个规则，例如：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;driver/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;wdk.tracewpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt; 
-&lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;driver/dir/test.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;wdk.tracewpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt; 
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;当然tracewpp还会有一些自己的特殊选项，用户有时候需要自己根据需要来设置，例如：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.tracewpp.flags&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;-func:TraceEvents(LEVEL,FLAGS,MSG,...)&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;add_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.tracewpp.flags&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;-func:Hexdump((LEVEL,FLAGS,MSG,...))&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;关于&lt;code class=&quot;highlighter-rouge&quot;&gt;add_values&lt;/code&gt;的使用说明，可以看下文档：&lt;a href=&quot;https://xmake.io/#/zh/manual?id=targetset_values&quot;&gt;add_values和set_values的使用说明&lt;/a&gt;，简单来说，就是用来给对应规则传递扩展参数设置的。&lt;/p&gt;
-
-&lt;h4 id=&quot;wdm&quot;&gt;wdm驱动程序&lt;/h4&gt;
-
-&lt;p&gt;wdm的项目描述也跟umdf类似，只需要把&lt;code class=&quot;highlighter-rouge&quot;&gt;wdk.env.umdf&lt;/code&gt;换成&lt;code class=&quot;highlighter-rouge&quot;&gt;wdk.env.wdm&lt;/code&gt;的环境规则就行了。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;kcs&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.driver&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;wdk.env.wdm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.man.flags&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;-prefix Kcs&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.man.resource&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;kcsCounters.rc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.man.header&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;kcsCounters.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.man.counter_header&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;kcsCounters_counters.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;*.rc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;*.man&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;上述代码，还添加了一些.man文件用来预处理一些manifest，具体相关的任务藐视，可以参考官方文档说明：&lt;a href=&quot;https://docs.microsoft.com/en-us/windows-hardware/drivers/devtest/ctrpp-task&quot;&gt;ctrpp-task&lt;/a&gt;。
-里面也有相关的一些特殊配置选项，目前xmake支持的配置有：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.man.flags&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;-prefix Kcs&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;add_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.man.prefix&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;Kcs&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;add_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.man.resource&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;kcsCounters.rc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;add_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.man.header&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;kcsCounters.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;add_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.man.counter_header&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;kcsCounters_counters.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;下面再贴个wdm驱动的例子，这个例子中，除了之前讲的tracewpp，我们还加了.mof的文件处理，对于.mof文件，xmake会自动应用内置的&lt;code class=&quot;highlighter-rouge&quot;&gt;wdk.mof&lt;/code&gt;规则，详细说明见：&lt;a href=&quot;https://docs.microsoft.com/en-us/windows-hardware/drivers/devtest/mofcomp-task&quot;&gt;mofcomp-task&lt;/a&gt;&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;msdsm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.driver&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;wdk.env.wdm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.tracewpp.flags&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;-func:TracePrint((LEVEL,FLAGS,MSG,...))&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;wdk.tracewpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt; 
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;*.rc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;*.inf&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;*.mof|msdsm.mof&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;msdsm.mof&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;wdk_mof_header&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;msdsmwmi.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}})&lt;/span&gt; 
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;对于.mof的配置选项，有些配置并不是全局应用于target的，对每个文件需要单独配置，这个时候，就不能直接使用&lt;code class=&quot;highlighter-rouge&quot;&gt;set_values&lt;/code&gt;和&lt;code class=&quot;highlighter-rouge&quot;&gt;add_values&lt;/code&gt;了，需要在&lt;code class=&quot;highlighter-rouge&quot;&gt;add_files&lt;/code&gt;中设置相关values。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;msdsm.mof&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;wdk_mof_header&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;msdsmwmi.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}})&lt;/span&gt; 
-&lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;msdsm.mof&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{[&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.mof.header&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;msdsmwmi.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}})&lt;/span&gt; 
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;上面两种设置方式都是有效的，由于受限于lua的语法，为了考虑可读性，xmake通过_下划线来简化key的设置，这个设置相当于单独对msdsm.mof文件设置了&lt;code class=&quot;highlighter-rouge&quot;&gt;set_values(&quot;wdk.mof.header&quot;, &quot;msdsmwmi.h&quot;)&lt;/code&gt;。&lt;/p&gt;
-
-&lt;h2 id=&quot;section&quot;&gt;生成驱动包&lt;/h2&gt;
-
-&lt;p&gt;如果平常开发调试通过后，我们也可以通过以下命令生成.cab驱动包来发布驱动程序：&lt;/p&gt;
-
-&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; [p|package]
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; [p|package] -o outputdir
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;输出的目录结构如下：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;  - drivers
-    - sampledsm
-       - debug/x86/sampledsm.cab
-       - release/x64/sampledsm.cab
-       - debug/x86/sampledsm.cab
-       - release/x64/sampledsm.cab
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h2 id=&quot;section-1&quot;&gt;驱动签名&lt;/h2&gt;
-
-&lt;p&gt;默认编译我们是禁用签名的，如果想要在编译的同时，启用签名，可以通过&lt;code class=&quot;highlighter-rouge&quot;&gt;set_values(&quot;wdk.sign.mode&quot;, ...)&lt;/code&gt;设置签名模式来启用。
-只要启用了签名，那么平常的驱动构建、包括打包生成的.cab文件，都会自动对其进行签名。&lt;/p&gt;
-
-&lt;h4 id=&quot;section-2&quot;&gt;测试签名&lt;/h4&gt;
-
-&lt;p&gt;测试签名一般本机调试时候用，可以使用xmake自带的test证书来进行签名，例如：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;msdsm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.driver&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;wdk.env.wdm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.sign.mode&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;不过这种情况下，需要用户手动在管理员模式下，执行一遍：&lt;code class=&quot;highlighter-rouge&quot;&gt;$xmake l utils.wdk.testcert install&lt;/code&gt;，来生成和注册test证书到本机环境。
-这个只需要执行一次就行了，后续就可以正常编译和签名了。&lt;/p&gt;
-
-&lt;p&gt;当然也可以使用本机已有的有效证书去签名，例如直接从sha1来选择合适的证书进行签名：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;msdsm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.driver&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;wdk.env.wdm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.sign.mode&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.sign.thumbprint&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;032122545DCAA6167B1ADBE5F7FDF07AE2234AAA&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;或者从store/company来选择合适的证书进行签名：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;msdsm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.driver&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;wdk.env.wdm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.sign.mode&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.sign.store&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;PrivateCertStore&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.sign.company&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;tboox.org(test)&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;section-3&quot;&gt;正式签名&lt;/h4&gt;
-
-&lt;p&gt;对于正式签名，我们可以通过指定对应的正式签名证书文件进行签名：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;msdsm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.driver&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;wdk.env.wdm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.sign.mode&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;release&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.sign.company&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;xxxx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.sign.certfile&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;join&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;projectdir&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;xxxx.cer&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h2 id=&quot;section-4&quot;&gt;生成低版本驱动&lt;/h2&gt;
-
-&lt;p&gt;如果想在wdk10环境编译生成win7, win8等低版本系统支持的驱动，我们可以通过设置&lt;code class=&quot;highlighter-rouge&quot;&gt;wdk.env.winver&lt;/code&gt;来切换系统版本：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;set_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.env.winver&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;win10&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;set_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.env.winver&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;win10_rs3&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;set_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.env.winver&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;win81&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;set_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.env.winver&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;win8&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;set_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.env.winver&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;win7&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;set_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.env.winver&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;win7_sp1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;set_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.env.winver&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;win7_sp2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;set_values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.env.winver&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;win7_sp3&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;如果觉得每次修改xmake.lua去切换编译非常繁琐，我们也可以手动指定编译的目标程序支持的windows版本，来快速切换到对应的版本进行编译：&lt;/p&gt;
-
-&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f --wdk_winver=[win10_rs3|win8|win7|win7_sp1]
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt;
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;目前支持的一些版本有：nt4, win2k, winxp, ws03, win6, vista, ws08, longhorn, win7, win8, win81, winblue, win10&lt;/p&gt;
-
-&lt;p&gt;然后通过_下划线，组合指定子版本：sp1, sp2, sp3, th2, rs1, rs2, rs3&lt;/p&gt;
-
-&lt;p&gt;xmake还提供了一些内置的版本值，在切换winver版本是，会自动改变，用于一些更加定制化的配置需求，例如：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    
-    &lt;span class=&quot;n&quot;&gt;on_load&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;winnt_version&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wdk.env.winnt_version&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;winnt_version&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;0x0A000000&quot;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;defines&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;TEST&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;上述代码通过判断WIN32_WINNT的版本值，来定制添加一些相关配置，这个版本值会根据&lt;code class=&quot;highlighter-rouge&quot;&gt;wdk.env.winver&lt;/code&gt;的配置自动适配更新，目前提供的这些内置版本值还有：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;target:values(&quot;wdk.env.winnt_version&quot;): WIN32_WINNT
-target:values(&quot;wdk.env.ntddi_version&quot;): NTDDI_VERSION
-target:values(&quot;wdk.env.winver_version&quot;): WINVER
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;关于更多xmake下WDK开发相关介绍，请参考文档：&lt;a href=&quot;https://xmake.io/#/zh/?id=wdk%E9%A9%B1%E5%8A%A8%E7%A8%8B%E5%BA%8F&quot;&gt;WDK驱动程序开发&lt;/a&gt;&lt;/p&gt;
-</description>
-        <pubDate>Thu, 14 Jun 2018 00:00:00 +0800</pubDate>
-        <link>http://www.tboox.org/cn/2018/06/14/support-wdk/</link>
-        <guid isPermaLink="true">http://www.tboox.org/cn/2018/06/14/support-wdk/</guid>
-        
-        <category>xmake</category>
-        
-        <category>lua</category>
-        
-        <category>WDK</category>
-        
-        <category>kmdf</category>
-        
-        <category>umdf</category>
-        
-        <category>wdm</category>
-        
-        <category>driver</category>
         
         
         <category>xmake</category>

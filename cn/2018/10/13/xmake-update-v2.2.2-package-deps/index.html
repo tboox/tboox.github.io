@@ -1,0 +1,3340 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+    <title>xmake v2.2.2, 让C/C++拥有包依赖自动构建</title>
+    <meta name="description" content="前言历经四个多月，xmake终于更新了新版本v2.2.2，并且上线了重量级功能：原生支持的远程依赖包管理。而这个特性，其实我陆陆续续写了将近一年的时间，才初步完成，对于此特性的开发进展和历史，有兴趣的同学可以看下相关issues：#69。目前的实现效果如下，完全一致的语义版本依赖描述：完全一致的跨平台构建行为，一...">
+
+    
+    <meta name="keywords" content="xmake,lua,C/C++,版本更新,远程包管理,包依赖,自动构建,tboox" /> 
+
+    <!-- qq oauth -->
+    <meta property="qc:admins" content="5211601217706727767255" />
+
+    <!--icon -->
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" sizes="192x192" href="/static/img/nice-highres.png" />
+	<link rel="apple-touch-icon-precomposed" href="/static/img/apple-touch-icon-57x57-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="72x72" href="/static/img/apple-touch-icon-72x72-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="114x114" href="/static/img/apple-touch-icon-114x114-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/static/img/apple-touch-icon-144x144-precomposed.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="180x180" href="/static/img/retinahd_icon.png" />
+	<meta name="msapplication-TileImage" content="/static/img/retinahd_icon.png" />
+	
+    <link rel="stylesheet" href=" /css/fontawesome/css/font-awesome.min.css ">
+    <link rel="stylesheet" href=" /css/main.css ">
+    <link rel="canonical" href="http://www.tboox.org/cn/2018/10/13/xmake-update-v2.2.2-package-deps/">
+    <link rel="alternate" type="application/rss+xml" title="TBOOX Open Source Project" href="http://www.tboox.org/feed.xml ">
+    <link rel="alternate" hreflang="en" href="http://www.tboox.org/" />
+    <link rel="alternate" hreflang="zh-Hans" href="http://www.tboox.org/cn/" />
+
+    <!-- css -->
+    <link href="/css/reward.css" rel="stylesheet" type="text/css"> 
+
+
+    <script>
+    // 百度统计代码
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?162f1cd478898a0686b0b5d5115e2af2";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+
+
+
+    <script type="text/javascript">
+    function isPC(){    
+        var userAgentInfo = navigator.userAgent;  
+        var Agents = new Array("Android", "iPhone", "SymbianOS", "Windows Phone", "iPad", "iPod");    
+        var flag = true;    
+        for (var v = 0; v < Agents.length; v++) {    
+            if (userAgentInfo.indexOf(Agents[v]) > 0) { flag = false; break; }    
+        }    
+        return flag;    
+    }
+    </script>
+
+    <!-- baidu ads -->
+    
+    <script type="text/javascript">
+        var cpro_id = isPC()? "" : "u3207012";
+    </script>
+    <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/cm.js"></script>
+    
+</head>
+
+
+  <body>
+
+    <header id="top">
+    <div class="wrapper">
+        <a href="/cn" class="brand">TBOOX</a>
+        <button id="headerMenu" class="menu"><i class="fa fa-bars"></i></button>
+        <nav id="headerNav">
+            <ul>
+                <li>
+                    
+                    <a href="/?lang=0">
+                    
+                        <i class="fa fa-home"></i>English
+                    </a>
+                </li>
+
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/project/">
+                            
+                        
+                            <i class="fa fa-bookmark"></i>项目
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/archive/">
+                            
+                        
+                            <i class="fa fa-archive"></i>归档
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/category/">
+                            
+                        
+                            <i class="fa fa-th-list"></i>分类
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/tag/">
+                            
+                        
+                            <i class="fa fa-tags"></i>标记
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/docs/">
+                            
+                        
+                            <i class="fa fa-book"></i>文档
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/book/">
+                            
+                        
+                            <i class="fa fa-bookmark"></i>书店
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="https://www.reddit.com/r/tboox/" target="_blank" >
+                            
+                        
+                            <i class="fa fa-forumbee"></i>社区
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/donation/">
+                            
+                        
+                            <i class="fa fa-heart"></i>捐助
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                    
+                    <li>
+                        
+                            
+                            <a href="/cn/about/">
+                            
+                        
+                            <i class="fa fa-user"></i>关于
+                        </a>
+                    </li>
+                    
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                    
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            </ul>
+        </nav>
+    </div>
+</header>
+
+
+
+        <div class="page clearfix" post>
+    <div class="left">
+        <h1>xmake v2.2.2, 让C/C++拥有包依赖自动构建</h1>
+        <div class="label">
+
+            <div class="label-card">
+                <i class="fa fa-calendar"></i>2018-10-13
+            </div>
+
+            <div class="label-card">
+                
+            </div>
+
+            <div class="label-card">
+                
+            </div>
+
+            <div class="label-card">
+            
+
+
+<!-- <span class="point">•</span> -->
+<span class="categories">
+  <i class="fa fa-th-list"></i>
+  
+    
+        <a href="/category/#xmake" title="Category: xmake" rel="category">xmake</a>
+    
+  
+
+  <!-- <span class="point">•</span> -->
+</span>
+
+
+            </div>
+
+            <div class="label-card">
+            
+<!-- <span class="point">•</span> -->
+<span class="pageTag">
+  <i class="fa fa-tags"></i>
+  
+    
+        <!--a href="/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a-->
+        <a href="/cn/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a>&nbsp;
+    
+        <!--a href="/tag/#lua" title="Tag: lua" rel="tag">lua</a-->
+        <a href="/cn/tag/#lua" title="Tag: lua" rel="tag">lua</a>&nbsp;
+    
+        <!--a href="/tag/#C%2FC%2B%2B" title="Tag: C/C++" rel="tag">C/C++</a-->
+        <a href="/cn/tag/#C/C++" title="Tag: C/C++" rel="tag">C/C++</a>&nbsp;
+    
+        <!--a href="/tag/#%E7%89%88%E6%9C%AC%E6%9B%B4%E6%96%B0" title="Tag: 版本更新" rel="tag">版本更新</a-->
+        <a href="/cn/tag/#版本更新" title="Tag: 版本更新" rel="tag">版本更新</a>&nbsp;
+    
+        <!--a href="/tag/#%E8%BF%9C%E7%A8%8B%E5%8C%85%E7%AE%A1%E7%90%86" title="Tag: 远程包管理" rel="tag">远程包管理</a-->
+        <a href="/cn/tag/#远程包管理" title="Tag: 远程包管理" rel="tag">远程包管理</a>&nbsp;
+    
+        <!--a href="/tag/#%E5%8C%85%E4%BE%9D%E8%B5%96" title="Tag: 包依赖" rel="tag">包依赖</a-->
+        <a href="/cn/tag/#包依赖" title="Tag: 包依赖" rel="tag">包依赖</a>&nbsp;
+    
+        <!--a href="/tag/#%E8%87%AA%E5%8A%A8%E6%9E%84%E5%BB%BA" title="Tag: 自动构建" rel="tag">自动构建</a-->
+        <a href="/cn/tag/#自动构建" title="Tag: 自动构建" rel="tag">自动构建</a>
+    
+  
+
+</span>
+
+            </div>
+
+        </div>
+        <hr>
+        <article itemscope itemtype="http://schema.org/BlogPosting">
+        <h3 id="section">前言</h3>
+
+<p>历经四个多月，<a href="https://github.com/tboox/xmake">xmake</a>终于更新了新版本v2.2.2，并且上线了重量级功能：原生支持的远程依赖包管理。</p>
+
+<p>而这个特性，其实我陆陆续续写了将近一年的时间，才初步完成，对于此特性的开发进展和历史，有兴趣的同学可以看下相关issues：<a href="https://github.com/tboox/xmake/issues/69">#69</a>。</p>
+
+<p>目前的实现效果如下，完全一致的语义版本依赖描述：</p>
+
+<p><img src="https://xmake.io/assets/img/index/add_require.png" width="70%" /></p>
+
+<p>完全一致的跨平台构建行为，一键xmake编译：</p>
+
+<p><img src="https://xmake.io/assets/img/index/package_manage.png" width="80%" /></p>
+
+<p>完整的项目描述：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">add_requires</span><span class="p">(</span><span class="s2">"tbox 1.6.*"</span><span class="p">,</span> <span class="s2">"libpng ~1.16"</span><span class="p">,</span> <span class="s2">"zlib"</span><span class="p">)</span>
+
+<span class="n">target</span><span class="p">(</span><span class="s2">"test"</span><span class="p">)</span>
+    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"binary"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"src/*.c"</span><span class="p">)</span> 
+    <span class="n">add_packages</span><span class="p">(</span><span class="s2">"tbox"</span><span class="p">,</span> <span class="s2">"libpng"</span><span class="p">,</span> <span class="s2">"zlib"</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>我先简单介绍下我做这个功能的背景：</p>
+
+<p>我们在写C/C++程序的时候，对于第三方依赖库的使用一直是一个老大难问题，因为每个依赖库的构建系统不同、代码平台支持力度的差异，导致没法像其他高级语言那样有方便好用的包管理支持。</p>
+
+<p>虽然现在已经有了homebrew, vcpkg等包管理工具来解决这一问题，但是多少都有一些局限性，例如：</p>
+
+<ol>
+  <li>homebrew不支持iphoneos, android, windows平台</li>
+  <li>vcpkg不支持语义版本选择，多版本管理</li>
+  <li>另外都不支持项目管理和构建</li>
+</ol>
+
+<p>对于目前现有的跨平台构建工具，都缺少内置的包管理支持，像cmake仅提供了<code class="highlighter-rouge">find_package</code>去查找系统包，虽然可以和vcpkg等第三方包管理配合使用，但我个人觉得并不是很方便。
+这会使得项目的其他用户在编译的时候，额外要求去安装vcpkg或者安装依赖库到系统上才行，对于pc平台还好弄些，对于iphoneos, android等平台的依赖库，用户就要折腾上一会了。</p>
+
+<p>而xmake的理念就是：<code class="highlighter-rouge">真正的一致维护, 真正的一键编译</code></p>
+
+<ul>
+  <li>构建行为的一致性: 不管你的项目是否有库依赖，工具依赖，只需要执行一个<code class="highlighter-rouge">xmake</code>命令，即可编译通过。</li>
+  <li>项目维护的一致性: 不管你的项目是在windows上用，还是给linux, iphone, android上用，都只需要一份xmake.lua维护项目即可。</li>
+</ul>
+
+<p>而cmake还需要生成额外的第三方IDE工程文件，即使cmakelist.txt相同，但是构建、维护体验上对用户来讲都不可能保证完全一致，毕竟还受限于vc/make此类工具。</p>
+
+<h3 id="section-1">目前支持的特性</h3>
+
+<ul>
+  <li>语义版本支持，例如：”&gt;= 1.1.0 &lt; 1.2”, “~1.6”, “1.2.x”, “1.*”</li>
+  <li>提供官方包仓库、自建私有仓库、项目内置仓库等多仓库管理支持</li>
+  <li>跨平台包编译集成支持（不同平台、不同架构的包可同时安装，快速切换使用）</li>
+  <li>debug依赖包支持，实现源码调试</li>
+</ul>
+
+<h3 id="section-2">依赖包处理机制</h3>
+
+<p>这里我们简单介绍下整个依赖包的处理机制：</p>
+
+<div align="center">
+<img src="https://xmake.io/assets/img/index/package_arch.png" width="80%" />
+</div>
+
+<ol>
+  <li>优先检测当前系统目录、第三方包管理下有没有存在指定的包，如果有匹配的包，那么就不需要下载安装了 （当然也可以设置不使用系统包）</li>
+  <li>检索匹配对应版本的包，然后下载、编译、安装（注：安装在特定xmake目录，不会干扰系统库环境）</li>
+  <li>编译项目，最后自动链接启用的依赖包</li>
+</ol>
+
+<h3 id="section-3">快速上手</h3>
+
+<p>新建一个依赖tbox库的空工程：</p>
+
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">xmake</span><span class="kv"> create -t console_tbox test
+</span><span class="w">$ </span><span class="nc">cd</span><span class="kv"> test
+</span></code></pre>
+</div>
+
+<p>执行编译即可，如果当前没有安装tbox库，则会自动下载安装后使用：</p>
+
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">xmake</span><span class="kv">
+</span></code></pre>
+</div>
+
+<p>切换到iphoneos平台进行编译，将会重新安装iphoneos版本的tbox库进行链接使用：</p>
+
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">xmake</span><span class="kv"> f -p iphoneos
+</span><span class="w">$ </span><span class="nc">xmake</span><span class="kv">
+</span></code></pre>
+</div>
+
+<p>切换到android平台arm64-v8a架构编译：</p>
+
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">xmake</span><span class="kv"> f -p android [--ndk=~/android-ndk-r16b]
+</span><span class="w">$ </span><span class="nc">xmake</span><span class="kv">
+</span></code></pre>
+</div>
+
+<h3 id="section-4">语义版本设置</h3>
+
+<p>xmake的依赖包管理是完全支持语义版本选择的，例如：”~1.6.1”，对于语义版本的具体描述见：<a href="http://semver.org/">http://semver.org/</a></p>
+
+<p>一些语义版本写法：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">add_requires</span><span class="p">(</span><span class="s2">"tbox 1.6.*"</span><span class="p">,</span> <span class="s2">"pcre 1.3.x"</span><span class="p">,</span> <span class="s2">"libpng ^1.18"</span><span class="p">)</span>
+<span class="n">add_requires</span><span class="p">(</span><span class="s2">"libpng ~1.16"</span><span class="p">,</span> <span class="s2">"zlib 1.1.2 || &gt;=1.2.11 &lt;1.3.0"</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>目前xmake使用的语义版本解析器是<a href="https://github.com/uael">uael</a>贡献的<a href="https://github.com/uael/sv">sv</a>库，里面也有对版本描述写法的详细说明，可以参考下：<a href="https://github.com/uael/sv#versions">版本描述说明</a></p>
+
+<p>当然，如果我们对当前的依赖包的版本没有特殊要求，那么可以直接这么写：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">add_requires</span><span class="p">(</span><span class="s2">"tbox"</span><span class="p">,</span> <span class="s2">"libpng"</span><span class="p">,</span> <span class="s2">"zlib"</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>这会使用已知的最新版本包，或者是master分支的源码编译的包，如果当前包有git repo地址，我们也能指定特定分支版本：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">add_requires</span><span class="p">(</span><span class="s2">"tbox master"</span><span class="p">)</span>
+<span class="n">add_requires</span><span class="p">(</span><span class="s2">"tbox dev"</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<h3 id="section-5">额外的包信息设置</h3>
+
+<h4 id="section-6">可选包设置</h4>
+
+<p>如果指定的依赖包当前平台不支持，或者编译安装失败了，那么xmake会编译报错，这对于有些必须要依赖某些包才能工作的项目，这是合理的。
+但是如果有些包是可选的依赖，即使没有也可以正常编译使用的话，可以设置为可选包：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">add_requires</span><span class="p">(</span><span class="s2">"tbox"</span><span class="p">,</span> <span class="p">{</span><span class="n">optional</span> <span class="o">=</span> <span class="kc">true</span><span class="p">})</span>
+</code></pre>
+</div>
+
+<h4 id="section-7">禁用系统库</h4>
+
+<p>默认的设置，xmake会去优先检测系统库是否存在（如果没设置版本要求），如果用户完全不想使用系统库以及第三方包管理提供的库，那么可以设置：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">add_requires</span><span class="p">(</span><span class="s2">"tbox"</span><span class="p">,</span> <span class="p">{</span><span class="n">system</span> <span class="o">=</span> <span class="kc">false</span><span class="p">})</span>
+</code></pre>
+</div>
+
+<h4 id="section-8">使用调试版本的包</h4>
+
+<p>如果我们想同时源码调试依赖包，那么可以设置为使用debug版本的包（当然前提是这个包支持debug编译）：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">add_requires</span><span class="p">(</span><span class="s2">"tbox"</span><span class="p">,</span> <span class="p">{</span><span class="n">debug</span> <span class="o">=</span> <span class="kc">true</span><span class="p">})</span>
+</code></pre>
+</div>
+
+<p>如果当前包还不支持debug编译，可在仓库中提交修改编译规则，对debug进行支持，例如：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">package</span><span class="p">(</span><span class="s2">"openssl"</span><span class="p">)</span>
+    <span class="n">on_install</span><span class="p">(</span><span class="s2">"linux"</span><span class="p">,</span> <span class="s2">"macosx"</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="n">package</span><span class="p">)</span>
+        <span class="n">os</span><span class="p">.</span><span class="n">vrun</span><span class="p">(</span><span class="s2">"./config %s --prefix=\"</span><span class="o">%</span><span class="n">s</span><span class="err">\</span><span class="s2">""</span><span class="p">,</span> <span class="n">package</span><span class="p">:</span><span class="n">debug</span><span class="p">()</span> <span class="ow">and</span> <span class="s2">"--debug"</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">,</span> <span class="n">package</span><span class="p">:</span><span class="n">installdir</span><span class="p">())</span>
+        <span class="n">os</span><span class="p">.</span><span class="n">vrun</span><span class="p">(</span><span class="s2">"make -j4"</span><span class="p">)</span>
+        <span class="n">os</span><span class="p">.</span><span class="n">vrun</span><span class="p">(</span><span class="s2">"make install"</span><span class="p">)</span>
+    <span class="k">end</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<h4 id="section-9">传递额外的编译信息到包</h4>
+
+<p>某些包在编译时候有各种编译选项，我们也可以传递进来，当然包本身得支持：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">add_requires</span><span class="p">(</span><span class="s2">"tbox"</span><span class="p">,</span> <span class="p">{</span><span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="n">small</span><span class="o">=</span><span class="kc">true</span><span class="p">}})</span>
+</code></pre>
+</div>
+
+<p>传递<code class="highlighter-rouge">--small=true</code>给tbox包，使得编译安装的tbox包是启用此选项的。</p>
+
+<h3 id="section-10">使用自建私有包仓库</h3>
+
+<p>如果需要的包不在官方仓库<a href="https://github.com/tboox/xmake-repo">xmake-repo</a>中，我们可以提交贡献代码到仓库进行支持。
+但如果有些包仅用于个人或者私有项目，我们可以建立一个私有仓库repo，仓库组织结构可参考：<a href="https://github.com/tboox/xmake-repo">xmake-repo</a></p>
+
+<p>比如，现在我们有一个一个私有仓库repo：<code class="highlighter-rouge">git@github.com:myrepo/xmake-repo.git</code></p>
+
+<p>我们可以通过下面的命令进行仓库添加：</p>
+
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">xmake</span><span class="kv"> repo --add myrepo git@github.com:myrepo/xmake-repo.git
+</span></code></pre>
+</div>
+
+<p>或者我们直接写在xmake.lua中：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">add_repositories</span><span class="p">(</span><span class="s2">"my-repo git@github.com:myrepo/xmake-repo.git"</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>如果我们只是想添加一两个私有包，这个时候特定去建立一个git repo太小题大做了，我们可以直接把包仓库放置项目里面，例如：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>projectdir
+  - myrepo
+    - packages
+      - t/tbox/xmake.lua
+      - z/zlib/xmake.lua
+  - src
+    - main.c
+  - xmake.lua
+</code></pre>
+</div>
+
+<p>上面myrepo目录就是自己的私有包仓库，内置在自己的项目里面，然后在xmake.lua里面添加一下这个仓库位置：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">add_repositories</span><span class="p">(</span><span class="s2">"my-repo myrepo"</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>这个可以参考<a href="https://github.com/tboox/benchbox">benchbox</a>项目，里面就内置了一个私有仓库。</p>
+
+<p>我们甚至可以连仓库也不用建，直接定义包描述到项目xmake.lua中，这对依赖一两个包的情况还是很有用的，例如：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">package</span><span class="p">(</span><span class="s2">"libjpeg"</span><span class="p">)</span>
+
+    <span class="n">set_urls</span><span class="p">(</span><span class="s2">"http://www.ijg.org/files/jpegsrc.$(version).tar.gz"</span><span class="p">)</span>
+
+    <span class="n">add_versions</span><span class="p">(</span><span class="s2">"v9c"</span><span class="p">,</span> <span class="s2">"650250979303a649e21f87b5ccd02672af1ea6954b911342ea491f351ceb7122"</span><span class="p">)</span>
+
+    <span class="n">on_install</span><span class="p">(</span><span class="s2">"windows"</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="n">package</span><span class="p">)</span>
+        <span class="n">os</span><span class="p">.</span><span class="n">mv</span><span class="p">(</span><span class="s2">"jconfig.vc"</span><span class="p">,</span> <span class="s2">"jconfig.h"</span><span class="p">)</span>
+        <span class="n">os</span><span class="p">.</span><span class="n">vrun</span><span class="p">(</span><span class="s2">"nmake -f makefile.vc"</span><span class="p">)</span>
+        <span class="n">os</span><span class="p">.</span><span class="n">cp</span><span class="p">(</span><span class="s2">"*.h"</span><span class="p">,</span> <span class="n">package</span><span class="p">:</span><span class="n">installdir</span><span class="p">(</span><span class="s2">"include"</span><span class="p">))</span>
+        <span class="n">os</span><span class="p">.</span><span class="n">cp</span><span class="p">(</span><span class="s2">"libjpeg.lib"</span><span class="p">,</span> <span class="n">package</span><span class="p">:</span><span class="n">installdir</span><span class="p">(</span><span class="s2">"lib"</span><span class="p">))</span>
+    <span class="k">end</span><span class="p">)</span>
+
+    <span class="n">on_install</span><span class="p">(</span><span class="s2">"macosx"</span><span class="p">,</span> <span class="s2">"linux"</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="n">package</span><span class="p">)</span>
+        <span class="n">import</span><span class="p">(</span><span class="s2">"package.tools.autoconf"</span><span class="p">).</span><span class="n">install</span><span class="p">(</span><span class="n">package</span><span class="p">)</span>
+    <span class="k">end</span><span class="p">)</span>
+
+<span class="n">package_end</span><span class="p">()</span>
+
+<span class="n">add_requires</span><span class="p">(</span><span class="s2">"libjpeg"</span><span class="p">)</span>
+
+<span class="n">target</span><span class="p">(</span><span class="s2">"test"</span><span class="p">)</span>
+    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"binary"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"src/*.c"</span><span class="p">)</span> 
+    <span class="n">add_packages</span><span class="p">(</span><span class="s2">"libjpeg"</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<h3 id="section-11">包管理命令使用</h3>
+
+<p>包管理命令<code class="highlighter-rouge">$ xmake require</code> 可用于手动显示的下载编译安装、卸载、检索、查看包信息。</p>
+
+<h4 id="section-12">安装指定包</h4>
+
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">xmake</span><span class="kv"> require tbox
+</span></code></pre>
+</div>
+
+<p>安装指定版本包：</p>
+
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">xmake</span><span class="kv"> require tbox "~1.6"
+</span></code></pre>
+</div>
+
+<p>强制重新下载安装，并且显示详细安装信息：</p>
+
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">xmake</span><span class="kv"> require -f -v tbox "1.5.x"
+</span></code></pre>
+</div>
+
+<p>传递额外的设置信息：</p>
+
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">xmake</span><span class="kv"> require --extra="debug=true,config={small=true}" tbox
+</span></code></pre>
+</div>
+
+<p>安装debug包，并且传递<code class="highlighter-rouge">small=true</code>的编译配置信息到包中去。</p>
+
+<h4 id="section-13">卸载指定包</h4>
+
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">xmake</span><span class="kv"> require --uninstall tbox
+</span></code></pre>
+</div>
+
+<p>这会完全卸载删除包文件。</p>
+
+<h4 id="section-14">移除指定包</h4>
+
+<p>仅仅unlink指定包，不被当前项目检测到，但是包在本地还是存在的，如果重新安装的话，会很快完成。</p>
+
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">xmake</span><span class="kv"> require --unlink tbox
+</span></code></pre>
+</div>
+
+<h4 id="section-15">查看包详细信息</h4>
+
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">xmake</span><span class="kv"> require --info tbox
+</span></code></pre>
+</div>
+
+<h4 id="section-16">在当前仓库中搜索包</h4>
+
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">xmake</span><span class="kv"> require --search tbox
+</span></code></pre>
+</div>
+
+<p>这个是支持模糊搜素以及lua模式匹配搜索的：</p>
+
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">xmake</span><span class="kv"> require --search pcr
+</span></code></pre>
+</div>
+
+<p>会同时搜索到pcre, pcre2等包。</p>
+
+<h4 id="section-17">列举当前已安装的包</h4>
+
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">xmake</span><span class="kv"> require --list
+</span></code></pre>
+</div>
+
+<h3 id="section-18">仓库管理命令使用</h3>
+
+<p>上文已经简单讲过，添加私有仓库可以用（支持本地路径添加）：</p>
+
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">xmake</span><span class="kv"> repo --add myrepo git@github.com:myrepo/xmake-repo.git
+</span></code></pre>
+</div>
+
+<p>我们也可以移除已安装的某个仓库：</p>
+
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">xmake</span><span class="kv"> repo --remove myrepo
+</span></code></pre>
+</div>
+
+<p>或者查看所有已添加的仓库：</p>
+
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">xmake</span><span class="kv"> repo --list
+</span></code></pre>
+</div>
+
+<p>如果远程仓库有更新，可以手动执行仓库更新，来获取更多、最新的包：</p>
+
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">xmake</span><span class="kv"> repo -u
+</span></code></pre>
+</div>
+
+<h3 id="section-19">提交包到官方仓库</h3>
+
+<p>目前这个特性刚完成不久，目前官方仓库的包还不是很多，有些包也许还不支持部分平台，不过这并不是太大问题，后期迭代几个版本后，我会不断扩充完善包仓库。</p>
+
+<p>如果你需要的包，当前的官方仓库还没有收录，可以提交issues或者自己可以在本地调通后，贡献提交到官方仓库：<a href="https://github.com/tboox/xmake-repo">xmake-repo</a></p>
+
+<p>详细的贡献说明，见：<a href="https://github.com/tboox/xmake-repo/blob/master/CONTRIBUTING.md">CONTRIBUTING.md</a></p>
+
+<p>关于远程依赖包的更多说明，可以看下官方文档：<a href="https://xmake.io/#/zh/?id=%E8%BF%9C%E7%A8%8B%E4%BE%9D%E8%B5%96%E6%A8%A1%E5%BC%8F">远程依赖模式</a></p>
+
+<p>其实xmake的包管理历经了三代，前两版v1.0, v2.0分别是本地包管理模式，系统库查找模式，这两种在有些情况下还是非常有用的。
+关于这两者的介绍，这里就不多说了，可以看下文档说明：<a href="https://xmake.io/#/zh/?id=%E4%BE%9D%E8%B5%96%E5%8C%85%E7%AE%A1%E7%90%86">依赖包管理</a></p>
+
+<h3 id="section-20">结语</h3>
+
+<p>说了这么多，我们最后来看下，新版本提供的一些其他新特性和更新内容：</p>
+
+<h4 id="section-21">其他新特性</h4>
+
+<ul>
+  <li>新增fasm汇编器支持</li>
+  <li>添加<code class="highlighter-rouge">has_config</code>, <code class="highlighter-rouge">get_config</code>和<code class="highlighter-rouge">is_config</code>接口去快速判断option和配置值</li>
+  <li>添加<code class="highlighter-rouge">set_config</code>接口去设置默认配置</li>
+  <li>添加<code class="highlighter-rouge">$xmake --try</code>去尝试构建工程</li>
+  <li>添加<code class="highlighter-rouge">set_enabled(false)</code>去显示的禁用target</li>
+  <li><a href="https://github.com/tboox/xmake/issues/69">#69</a>: 添加远程依赖包管理, <code class="highlighter-rouge">add_requires("tbox ~1.6.1")</code></li>
+  <li><a href="https://github.com/tboox/xmake/pull/216">#216</a>: 添加windows mfc编译规则</li>
+</ul>
+
+<h4 id="section-22">改进</h4>
+
+<ul>
+  <li>改进Qt编译编译环境探测，增加对mingw sdk的支持</li>
+  <li>在自动扫描生成的xmake.lua中增加默认debug/release规则</li>
+  <li><a href="https://github.com/tboox/xmake/issues/178">#178</a>: 修改mingw平台下的目标名</li>
+  <li>对于<code class="highlighter-rouge">add_files()</code>在windows上支持大小写不敏感路径模式匹配</li>
+  <li>改进<code class="highlighter-rouge">detect.sdks.find_qt</code>对于Qt根目录的探测</li>
+  <li><a href="https://github.com/tboox/xmake/issues/184">#184</a>: 改进<code class="highlighter-rouge">lib.detect.find_package</code>支持vcpkg</li>
+  <li><a href="https://github.com/tboox/xmake/issues/208">#208</a>: 改进rpath对动态库的支持</li>
+</ul>
+
+<h4 id="bugs">Bugs修复</h4>
+
+<ul>
+  <li><a href="https://github.com/tboox/xmake/issues/177">#177</a>: 修复被依赖的动态库target，如果设置了basename后链接失败问题</li>
+  <li>修复<code class="highlighter-rouge">$xmake f --menu</code>中Exit问题以及cpu过高问题</li>
+  <li><a href="https://github.com/tboox/xmake/issues/197">#197</a>: 修复生成的vs201x工程文件带有中文路径乱码问题</li>
+  <li>修复WDK规则编译生成的驱动在Win7下运行蓝屏问题</li>
+  <li><a href="https://github.com/tboox/xmake/pull/205">#205</a>: 修复vcproj工程生成targetdir, objectdir路径设置不匹配问题</li>
+</ul>
+
+
+        </article>
+        <hr>
+
+        <!-- baidu ads -->
+        
+        <script type="text/javascript">
+            var cpro_id = isPC()? "u3206994" : "";
+        </script>
+        <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
+        
+
+        <!-- reward -->
+        <div style="text-align: center;">
+            <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+              <span>赏</span>
+            </button>
+            <div id="QR" style="display: none;">
+                <div id="wechat" style="display: inline-block">
+                  <img id="wechat_qr" src="/static/img/weixin.png" alt="WeChat Pay"/>
+                  <p>微信打赏</p>
+                </div>
+                <div id="alipay" style="display: inline-block">
+                  <img id="alipay_qr" src="/static/img/alipay.png" alt="Alipay"/>
+                  <p>支付宝打赏</p>
+                </div>
+            </div>
+        </div>
+
+        
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+            
+            
+                
+            
+        
+            
+        
+        
+
+        
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                        
+                        <h2 id="similar_posts">相关文章</h2>
+                        <ul>
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2018/08/01/update-v1.6.3/">tbox v1.6.3 更新，新增基于IOCP的协程支持
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2018/06/28/xmake-vscode-update-v1.1.0/">xmake-vscode v1.1.0版本发布，断点调试支持
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2018/06/25/xmake-vscode-update-v1.0.8/">xmake-vscode v1.0.8版本发布，在vscode中构建Qt/WDK程序
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2018/06/17/update-v2.2.1/">xmake v2.2.1 大版本发布，Qt, WDK和Cuda编译环境支持
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2018/06/14/support-wdk/">xmake新增对WDK驱动编译环境支持
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+        
+            </ul>
+        
+
+        <div class="post-recent">
+    <div class="pre">
+
+        
+
+        
+
+        
+        
+        <p><strong>上一篇</strong> <a href="/cn/2018/08/16/coroutine-iocp-some-issues/">记对协程增加IOCP支持时候踩过的一些坑</a></p>
+        
+    </div>
+
+    <div class="nex">
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+    </div>
+</div>
+
+
+        <h2 id="comments">评论</h2>
+        
+
+
+
+
+
+
+<div id="gitalk-container"></div>
+<link rel="stylesheet" href="/css/gitalk.css">
+<script src="/js/gitalk.min.js"></script>
+
+<script>
+const gitalk = new Gitalk({
+  clientID: '73946dc1d9e2276ad0da',
+  clientSecret: '12a3cb94361ba3ebc6ecb68cf80d592bfaa8106d',
+  repo: 'tboox.github.io',
+  owner: 'waruqi',
+  admin: ['waruqi'],
+  id: location.pathname,       
+  language: 'zh-CN',
+  distractionFreeMode: false  
+})
+
+gitalk.render('gitalk-container')
+</script>
+
+
+
+
+
+    </div>
+    <button class="anchor"><i class="fa fa-anchor"></i></button>
+    <div class="right">
+        <div class="wrap">
+
+            <!-- Content -->
+            <div class="side content">
+                <div>
+                    内容
+                </div>
+                <ul id="content-side" class="content-ul">
+                    <li><a href="#english">English</a></li>
+                    <li><a href="#similar_posts">相关文章</a></li>
+                    <li><a href="#comments">评论</a></li>
+                </ul>
+            </div>
+            
+            <br>
+            <div class="side">
+                <div>
+                    <i class="fa fa-external-link"></i>
+                    链接
+                </div>
+                <ul class="content-ul">
+                  <li><a href="http://github.com/waruqi/tbox">tbox</a></li>
+                  <li><a href="http://www.xmake.io">xmake</a></li>
+                  <li><a href="https://github.com/waruqi">github</a></li>
+                </ul>
+            </div> 
+
+            <!-- qqgroup -->
+            <br>
+            <div class="side">
+                <div>
+                    <i class="fa fa-external-link"></i>
+                    技术交流群（QQ）
+                </div>
+                <img src="/static/img/qqgroup.png" alt="qqgroup" width="256" height="284">
+            </div> 
+
+            <!-- google ads -->
+            
+
+            <!-- baidu ads -->
+            
+            <br>
+            <script type="text/javascript">
+                var cpro_id = isPC()? "u3207300" : "";
+            </script>
+            <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
+            
+
+        </div>
+    </div>
+
+    <!-- baidu ads -->
+    
+    <script type="text/javascript">
+        var cpro_id = isPC()? "" : "u3207015";
+    </script>
+    <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/cm.js"></script>
+    
+</div>
+<script>
+/**
+ * target _blank
+ */
+(function() {
+    var aTags = document.querySelectorAll('article a:not([id])')
+    for (var i = 0; i < aTags.length; i++) {
+        aTags[i].setAttribute('target', '_blank')
+    }
+}());
+</script>
+<script src="/js/pageContent.js " charset="utf-8"></script>
+
+
+
+    <footer class="site-footer">
+    <div class="wrapper">
+        <p class="description">
+             Copyright (c) 2016-2018 tboox.org 
+        </p>
+        <p class="contact">
+            
+            <a href="https://github.com/waruqi" title="GitHub"><i class="fa fa-github" aria-hidden="true"></i></a> 
+             
+            
+            <a href="mailto:waruqi@gmail.com" title="email"><i class="fa fa-envelope-o" aria-hidden="true"></i></a> 
+            
+            
+            <a href="https://twitter.com/waruqi" title="Twitter"><i class="fa fa-twitter" aria-hidden="true"></i></a> 
+            
+            <a href="/feed.xml" title="feed"><i class="fa fa-feed" aria-hidden="true"></i></a> 
+        </p>
+        <p class="power">
+            <span>
+                Site powered by <a href="https://jekyllrb.com/">Jekyll</a> & <a href="https://github.com/Gaohaoyang">HyG</a>.
+            </span>
+            <span>
+                <a href="http://www.miitbeian.gov.cn/">沪ICP备16031914号</a>.
+                <a href="http://www.beian.gov.cn/">沪公网安备31011702000303号</a>.
+            </span>
+        </p>
+    </div>
+</footer>
+
+    <div class="back-to-top">
+    <a href="#top" class="scroll">
+        <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    </a>
+</div>
+
+    <script src=" /js/main.js " charset="utf-8"></script>
+    <script src=" /js/scroll.min.js " charset="utf-8"></script>
+  </body>
+
+</html>
