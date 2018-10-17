@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "xmake v2.2.2, Let C/C++ also manage package dependencies and build"
+title:  "xmake v2.2.2, We can also manage package dependencies for C/C++"
 tags: xmake lua C/C++ Package
 categories: xmake
 ---
