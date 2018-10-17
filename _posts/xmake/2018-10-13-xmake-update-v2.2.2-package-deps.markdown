@@ -11,7 +11,7 @@ Since my English is not very good, the article uses google translation, if you c
 
 After more than four months, [xmake](https://github.com/tboox/xmake) finally updated the new version v2.2.2 and launched the heavyweight feature: Natively Supported Remote Dependency Package Management.
 
-This feature, in fact, I have been writing for almost a year, before the initial completion, for the development of this feature and history, interested students can look at the relevant issues: [#69](https://github .com/tboox/xmake/issues/69).
+This feature, in fact, I have been writing for almost a year, before the initial completion, for the development of this feature and history, interested students can look at the relevant issues: [#69](https://github.com/tboox/xmake/issues/69).
 
 The current implementation is as follows, a fully consistent semantic version dependency description:
 
