@@ -108,6 +108,14 @@ layout: default.cn
                 </ul>
             </div>
 
+            <!-- baidu ads -->
+            {% if site.baiduads_slide_id0 %}
+            <script type="text/javascript">
+                var cpro_id = isPC()? "{{site.baiduads_slide_id0}}" : "";
+            </script>
+            <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
+            {% endif %}
+
             <!-- 其他div框放到这里 -->
             <div class="side">
                 <div>
