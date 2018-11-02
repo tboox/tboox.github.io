@@ -61,11 +61,19 @@ layout: default.cn
         </ul>
 
         <!-- baidu ads -->
-        {% if site.baiduads_slide_id1 %}
+        {% if site.baiduads_id1 %}
         <script type="text/javascript">
-            var cpro_id = isPC()? "{{site.baiduads_slide_id1}}" : "";
+            if (isPC()) {
+                (function() {
+                    var s = "_" + Math.random().toString(36).slice(2);
+                    document.write('<div style="" id="' + s + '"></div>');
+                    (window.slotbydup = window.slotbydup || []).push({
+                        id: "{{site.baiduads_id1}}",
+                        container:  s
+                    });
+                })();
+            }
         </script>
-        <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
         {% endif %}
 
         <!-- Pagination links -->
@@ -109,14 +117,23 @@ layout: default.cn
             </div>
 
             <!-- baidu ads -->
-            {% if site.baiduads_slide_id0 %}
+            {% if site.baiduads_id4 %}
             <script type="text/javascript">
-                var cpro_id = isPC()? "{{site.baiduads_slide_id0}}" : "";
+                if (isPC()) {
+                    (function() {
+                        var s = "_" + Math.random().toString(36).slice(2);
+                        document.write('<div style="" id="' + s + '"></div>');
+                        (window.slotbydup = window.slotbydup || []).push({
+                            id: "{{site.baiduads_id4}}",
+                            container:  s
+                        });
+                    })();
+                }
             </script>
-            <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
             {% endif %}
 
             <!-- 其他div框放到这里 -->
+            <br>
             <div class="side">
                 <div>
                     <i class="fa fa-tags"></i>
@@ -194,22 +211,38 @@ layout: default.cn
             {% endif %}
 
             <!-- baidu ads -->
-            {% if site.baiduads_slide_id0 %}
+            {% if site.baiduads_id0 %}
             <script type="text/javascript">
-                var cpro_id = isPC()? "{{site.baiduads_slide_id0}}" : "";
+                if (isPC()) {
+                    (function() {
+                        var s = "_" + Math.random().toString(36).slice(2);
+                        document.write('<div style="" id="' + s + '"></div>');
+                        (window.slotbydup = window.slotbydup || []).push({
+                            id: "{{site.baiduads_id0}}",
+                            container:  s
+                        });
+                    })();
+                }
             </script>
-            <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
             {% endif %}
 
         </div>
     </div>
 
     <!-- baidu ads -->
-    {% if site.baiduads_slide_id3 %}
+    {% if site.baiduads_id3 %}
     <script type="text/javascript">
-        var cpro_id = isPC()? "" : "{{site.baiduads_slide_id3}}";
+        if (!isPC()) {
+            (function() {
+                var s = "_" + Math.random().toString(36).slice(2);
+                document.write('<div style="" id="' + s + '"></div>');
+                (window.slotbydup = window.slotbydup || []).push({
+                    id: "{{site.baiduads_id3}}",
+                    container:  s
+                });
+            })();
+        }
     </script>
-    <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/cm.js"></script>
     {% endif %}
 </div>
 

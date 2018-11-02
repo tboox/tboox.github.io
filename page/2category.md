@@ -69,10 +69,10 @@ icon: th-list
             {% endif %}
 
             <!-- baidu ads -->
-            {% if site.baiduads_slide_id0 %}
+            {% if site.baiduads_id0 %}
             <br>
             <script type="text/javascript">
-                var cpro_id = isPC()? "{{site.baiduads_slide_id0}}" : "";
+                var cpro_id = isPC()? "{{site.baiduads_id0}}" : "";
             </script>
             <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
             {% endif %}
@@ -95,9 +95,9 @@ icon: th-list
     </div>
 
     <!-- baidu ads -->
-    {% if site.baiduads_slide_id3 %}
+    {% if site.baiduads_id3 %}
     <script type="text/javascript">
-        var cpro_id = isPC()? "" : "{{site.baiduads_slide_id3}}";
+        var cpro_id = isPC()? "" : "{{site.baiduads_id3}}";
     </script>
     <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/cm.js"></script>
     {% endif %}
