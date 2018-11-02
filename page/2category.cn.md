@@ -100,9 +100,17 @@ icon: th-list
             {% if site.baiduads_id0 %}
             <br>
             <script type="text/javascript">
-                var cpro_id = isPC()? "{{site.baiduads_id0}}" : "";
+                if (isPC()) {
+                    (function() {
+                        var s = "_" + Math.random().toString(36).slice(2);
+                        document.write('<div style="" id="' + s + '"></div>');
+                        (window.slotbydup = window.slotbydup || []).push({
+                            id: "{{site.baiduads_id0}}",
+                            container:  s
+                        });
+                    })();
+                }
             </script>
-            <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
             {% endif %}
 
         </div>
@@ -122,6 +130,7 @@ icon: th-list
             })();
         }
     </script>
+    {% endif %}
 </div>
 <script src="{{ "/js/pageContent.js " | prepend: site.baseurl }}" charset="utf-8"></script>
 

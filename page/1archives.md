@@ -162,6 +162,7 @@ icon: archive
             })();
         }
     </script>
+    {% endif %}
 </div>
 <script src="{{ "/js/pageContent.js " | prepend: site.baseurl }}" charset="utf-8"></script>
 
