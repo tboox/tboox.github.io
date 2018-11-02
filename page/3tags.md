@@ -70,6 +70,23 @@ icon: tags
 
                 </ul>
             </div>
+
+            <!-- baidu ads -->
+            {% if site.baiduads_id4 %}
+            <br>
+            <script type="text/javascript">
+                if (isPC()) {
+                    (function() {
+                        var s = "_" + Math.random().toString(36).slice(2);
+                        document.write('<div style="" id="' + s + '"></div>');
+                        (window.slotbydup = window.slotbydup || []).push({
+                            id: "{{site.baiduads_id4}}",
+                            container:  s
+                        });
+                    })();
+                }
+            </script>
+            {% endif %}
             
             <!-- 其他div框放到这里 -->
             {% if site.adsbygoogle_client %}
@@ -115,10 +132,17 @@ icon: tags
     <!-- baidu ads -->
     {% if site.baiduads_id3 %}
     <script type="text/javascript">
-        var cpro_id = isPC()? "" : "{{site.baiduads_id3}}";
+        if (!isPC()) {
+            (function() {
+                var s = "_" + Math.random().toString(36).slice(2);
+                document.write('<div style="" id="' + s + '"></div>');
+                (window.slotbydup = window.slotbydup || []).push({
+                    id: "{{site.baiduads_id3}}",
+                    container:  s
+                });
+            })();
+        }
     </script>
-    <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/cm.js"></script>
-    {% endif %}
 </div>
 <script src="{{ "/js/pageContent.js " | prepend: site.baseurl }}" charset="utf-8"></script>
 

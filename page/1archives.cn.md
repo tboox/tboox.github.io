@@ -45,10 +45,19 @@ icon: archive
         <!-- baidu ads -->
         {% if site.baiduads_id1 %}
         <script type="text/javascript">
-            var cpro_id = isPC()? "{{site.baiduads_id1}}" : "";
+            if (isPC()) {
+                (function() {
+                    var s = "_" + Math.random().toString(36).slice(2);
+                    document.write('<div style="" id="' + s + '"></div>');
+                    (window.slotbydup = window.slotbydup || []).push({
+                        id: "{{site.baiduads_id1}}",
+                        container:  s
+                    });
+                })();
+            }
         </script>
-        <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
         {% endif %}
+
     </div>
     <button class="anchor"><i class="fa fa-anchor"></i></button>
     <div class="right">
@@ -72,6 +81,24 @@ icon: archive
                         {% endfor %}
                 </ul>
             </div>
+
+            <!-- baidu ads -->
+            {% if site.baiduads_id4 %}
+            <br>
+            <script type="text/javascript">
+                if (isPC()) {
+                    (function() {
+                        var s = "_" + Math.random().toString(36).slice(2);
+                        document.write('<div style="" id="' + s + '"></div>');
+                        (window.slotbydup = window.slotbydup || []).push({
+                            id: "{{site.baiduads_id4}}",
+                            container:  s
+                        });
+                    })();
+                }
+            </script>
+            {% endif %}
+            
             
             <!-- qqgroup -->
             <br>
@@ -114,10 +141,17 @@ icon: archive
     <!-- baidu ads -->
     {% if site.baiduads_id3 %}
     <script type="text/javascript">
-        var cpro_id = isPC()? "" : "{{site.baiduads_id3}}";
+        if (!isPC()) {
+            (function() {
+                var s = "_" + Math.random().toString(36).slice(2);
+                document.write('<div style="" id="' + s + '"></div>');
+                (window.slotbydup = window.slotbydup || []).push({
+                    id: "{{site.baiduads_id3}}",
+                    container:  s
+                });
+            })();
+        }
     </script>
-    <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/cm.js"></script>
-    {% endif %}
 </div>
 <script src="{{ "/js/pageContent.js " | prepend: site.baseurl }}" charset="utf-8"></script>
 
