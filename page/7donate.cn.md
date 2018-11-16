@@ -32,7 +32,7 @@ TBOOX的所有项目都是属于个人开源项目，它的发展需要您的帮
 
 <a href="https://opencollective.com/xmake#backers" target="_blank"><img src="https://opencollective.com/xmake/backers.svg?width=890"></a>
 
-|| 2018.11.16 || tboox || 匿名 || 微信 || ¥10 || ||
+|| 2018.11.16 || xmake || 孙果 || 微信 || ¥10 || xmake很好用，加油！||
 || 2018.10.20 || tboox || 匿名 || 微信 || ¥100 || ||
 || 2018.10.17 || xmake || 红红 || 微信 || ¥100 || ||
 || 2018.10.15 || xmake || xtvjxk || 支付宝 || ¥10 || 希望越来越好用 ||
