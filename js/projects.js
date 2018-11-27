@@ -65,7 +65,7 @@
         page_link: 'https://github.com/tboox/vm86',
         img_link: '/static/img/vm86/idapro.png',
         code_repo: 'vm86',
-        title: 'The x86 Script Instruction Virtual Machine',
+        title: 'vm86',
         description: 'This is a very simple and lightweight x86 virtual machine which can load and run the assembly code from ida pro directly.'
     },
     {

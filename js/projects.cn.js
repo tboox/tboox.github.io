@@ -65,7 +65,7 @@
         page_link: 'https://github.com/tboox/vm86',
         img_link: '/static/img/vm86/idapro.png',
         code_repo: 'vm86',
-        title: 'x86汇编指令脚本虚拟机',
+        title: 'vm86',
         description: '这是一个可以直接解释执行从ida pro里面提取出来的x86汇编代码的虚拟机'
     },
     {

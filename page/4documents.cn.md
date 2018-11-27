@@ -21,7 +21,7 @@ icon: book
 
 #### tbox
 
-- [在线文档](http://tboox.io/#/zh/)
+- [在线文档](https://tboox.io/zh/)
 - [在线文章](/cn/category/#tbox)
 - [Wiki文档](https://github.com/tboox/tbox/wiki)
 
