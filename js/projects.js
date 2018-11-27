@@ -34,6 +34,13 @@
         description: 'GBox is a cross-platform 2d graphic library in c language.'
     },
     {
+        page_link: 'https://github.com/tboox/ltui',
+        img_link: '/static/img/ltui/choicebox.png',
+        code_repo: 'ltui',
+        title: 'ltui',
+        description: 'LTUI is a cross-platform terminal ui library based on Lua.'
+    },
+    {
         page_link: 'https://github.com/tboox/itrace',
         img_link: '/static/img/itrace/itrace.png',
         code_repo: 'itrace',
@@ -65,21 +72,21 @@
         page_link: 'https://github.com/tboox/xmake-vscode',
         img_link: '/static/img/xmake/xmake-vscode-problem.gif',
         code_repo: 'xmake-vscode',
-        title: 'A XMake integration in Visual Studio Code',
+        title: 'xmake-vscode',
         description: 'This is a xmake integration in vscode，provide fast cross-platform c/c++ development'
     },
     {
         page_link: 'https://github.com/tboox/xmake-idea',
         img_link: '/static/img/xmake/xmake-idea-problem.gif',
         code_repo: 'xmake-idea',
-        title: 'A XMake integration in Intelij-IDEA',
+        title: 'xmake-idea',
         description: 'This is a xmake integration in Intellij-IDEA，provide fast cross-platform c/c++ development'
     },
     {
         page_link: 'https://github.com/tboox/xmake-sublime',
         img_link: '/static/img/xmake/xmake-sublime-problem.gif',
         code_repo: 'xmake-sublime',
-        title: 'A XMake integration in Sublime Text2/3',
+        title: 'xmake-sublime',
         description: 'This is a xmake integration in Sublime Text2/3，provide fast cross-platform c/c++ development'
     }];
 
