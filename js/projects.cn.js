@@ -34,6 +34,13 @@
         description: 'GBox是一个用c语言实现的跨平台的2d图形库渲染库'
     },
     {
+        page_link: 'https://github.com/tboox/ltui',
+        img_link: '/static/img/ltui/choicebox.png',
+        code_repo: 'ltui',
+        title: 'ltui',
+        description: 'LTUI是一个基于lua的跨平台字符终端UI界面库'
+    },
+    {
         page_link: 'https://github.com/tboox/itrace',
         img_link: '/static/img/itrace/itrace.png',
         code_repo: 'itrace',
@@ -72,21 +79,21 @@
         page_link: 'https://github.com/tboox/xmake-vscode',
         img_link: '/static/img/xmake/xmake-vscode-problem.gif',
         code_repo: 'xmake-vscode',
-        title: '一个集成xmake的vscode插件',
+        title: 'xmake-vscode',
         description: 'xmake-vscode是一个高度集成xmake的vscode插件，提供方便快速的xmake构建支持，实现高效c/c++跨平台开发'
     },
     {
         page_link: 'https://github.com/tboox/xmake-idea',
         img_link: '/static/img/xmake/xmake-idea-problem.gif',
         code_repo: 'xmake-idea',
-        title: '一个集成xmake的Intellij-IDEA插件',
+        title: 'xmake-idea',
         description: 'xmake-idea是一个高度集成xmake的Intellij-IDEA插件，提供方便快速的xmake构建支持，实现高效c/c++跨平台开发'
     },
     {
         page_link: 'https://github.com/tboox/xmake-sublime',
         img_link: '/static/img/xmake/xmake-sublime-problem.gif',
         code_repo: 'xmake-sublime',
-        title: '一个集成xmake的Sublime Text2/3插件',
+        title: 'xmake-sublime',
         description: 'xmake-sublime是一个高度集成xmake的Sublime Text2/3插件，提供方便快速的xmake构建支持，实现高效c/c++跨平台开发'
     }];
 
