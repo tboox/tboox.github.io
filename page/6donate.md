@@ -48,6 +48,7 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## Supporters
 
+|| 2019.01.10 || tbox || 翅膀 || wechat || ¥50 || ||
 || 2018.11.30 || tboox || 刘* || alipay || ¥60 || tbox和xmake非常优秀，加油~||
 || 2018.11.16 || xmake || 孙果 || wechat || ¥10 || xmake很好用，加油！||
 || 2018.10.20 || tboox || anonymous || wechat || ¥100 || ||
