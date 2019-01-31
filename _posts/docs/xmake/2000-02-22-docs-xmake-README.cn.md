@@ -14,7 +14,7 @@ permalink: /docs/xmake/quickstart/
 <p>
 <div align="center">
   <a href="http://xmake.io/cn">
-    <img width="200" heigth="200" src="http://tboox.org/static/img/xmake/logo256c.png">
+    <img width="200" heigth="200" src="https://tboox.org/static/img/xmake/logo256c.png">
   </a>  
 
   <h1>xmake</h1>
@@ -779,7 +779,7 @@ $ xmake run
 $ xmake f -y
 ```
 
-更多相关介绍，请参考文章：[xmake新增智能代码扫描编译模式，无需手写任何make文件](http://tboox.org/cn/2017/01/07/build-without-makefile/)
+更多相关介绍，请参考文章：[xmake新增智能代码扫描编译模式，无需手写任何make文件](https://tboox.org/cn/2017/01/07/build-without-makefile/)
 
 ## 支持项目
 

@@ -14,7 +14,7 @@ Note: This documents is only a mirror, if you want to see newest documents pleas
 <p>
 <div align="center">
   <a href="http://xmake.io">
-    <img width="200" heigth="200" src="http://tboox.org/static/img/xmake/logo256c.png">
+    <img width="200" heigth="200" src="https://tboox.org/static/img/xmake/logo256c.png">
   </a>  
 
   <h1>xmake</h1>
@@ -725,7 +725,7 @@ If we only want to generate xmake.lua file, we can run:
 $ xmake f -y
 ```
 
-If you want to known more information please see [Scan source codes and build project without makefile](http://tboox.org/2017/01/07/build-without-makefile/)
+If you want to known more information please see [Scan source codes and build project without makefile](https://tboox.org/2017/01/07/build-without-makefile/)
 
 ## Backers
 
