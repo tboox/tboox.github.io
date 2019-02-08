@@ -5,11 +5,11 @@ tags: xmake lua sublime plugin
 categories: xmake
 ---
 
-[xmake-sublime](https://github.com/tboox/xmake-sublime) plugin is a xmake integration in Sublime Text.
+[xmake-sublime](https://github.com/xmake-io/xmake-sublime) plugin is a xmake integration in Sublime Text.
 
-It is deeply integrated with [xmake](https://github.com/tboox/xmake) and sublime text to provide a convenient and fast cross-platform c/c++ development and building.
+It is deeply integrated with [xmake](https://github.com/xmake-io/xmake) and sublime text to provide a convenient and fast cross-platform c/c++ development and building.
 
-You need install [xmake](https://github.com/tboox/xmake) first and a project with `xmake.lua`.
+You need install [xmake](https://github.com/xmake-io/xmake) first and a project with `xmake.lua`.
 
 ## Features
 

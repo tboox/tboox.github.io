@@ -505,7 +505,7 @@ $ xmake doxygen
 
 ## More Plugins
 
-Please download and install from the plugins repository [xmake-plugins](https://github.com/tboox/xmake-plugins).
+Please download and install from the plugins repository [xmake-plugins](https://github.com/xmake-io/xmake-plugins).
 
 #### Convert .app to .ipa
 

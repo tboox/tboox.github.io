@@ -5,8 +5,8 @@ tags: xmake lua Qt Widgets QuickApplication
 categories: xmake
 ---
 
-In the latest [xmake](https://github.com/tboox/xmake) v2.2.1 release, we have supported for the QT SDK environment, and we can fully develop QT applications 
-in VScode/Sublime Text/IDEA Intellij and xmake plugin ([xmake-vscode](https://github.com/tboox/xmake-vscode), [xmake-idea](https://github.com/tboox/
+In the latest [xmake](https://github.com/xmake-io/xmake) v2.2.1 release, we have supported for the QT SDK environment, and we can fully develop QT applications 
+in VScode/Sublime Text/IDEA Intellij and xmake plugin ([xmake-vscode](https://github.com/xmake-io/xmake-vscode), [xmake-idea](https://github.com/tboox/
 xmake-idea) ...).
 
 Users can completely switch to their most commonly used editor environments to develop and build QT programs, such as:
@@ -129,4 +129,4 @@ target("qt_widgetapp")
     add_frameworks("QtWidgets")
 ```
 
-For more information on QT SDK Environment support, refer to: [#160] (https://github.com/tboox/xmake/issues/160)
+For more information on QT SDK Environment support, refer to: [#160] (https://github.com/xmake-io/xmake/issues/160)

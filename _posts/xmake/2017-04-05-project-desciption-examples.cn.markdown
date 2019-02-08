@@ -439,7 +439,7 @@ target("test")
 
 xmake的插件支持也是功能很强大的，并且提供了很多内置的使用插件，具体请参考：[xmake插件手册](http://xmake.io/#/zh/plugins?id=%E7%AE%80%E4%BB%8B)和[task手册](http://xmake.io/#/zh/manual?id=%E6%8F%92%E4%BB%B6%E4%BB%BB%E5%8A%A1)
 
-或者可以参考xmake自带的一些[插件demo](https://github.com/tboox/xmake/blob/master/xmake/plugins/echo/xmake.lua)。
+或者可以参考xmake自带的一些[插件demo](https://github.com/xmake-io/xmake/blob/master/xmake/plugins/echo/xmake.lua)。
 
 ### 另外一种语法风格
 

@@ -97,4 +97,4 @@ rule("markdown")
     end)
 ```
 
-最后附上一个完整例子，请供参考：[rule使用例子](https://github.com/tboox/xmake/issues/149)
+最后附上一个完整例子，请供参考：[rule使用例子](https://github.com/xmake-io/xmake/issues/149)

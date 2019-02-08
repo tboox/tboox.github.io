@@ -29,7 +29,7 @@ Note: This documents is only a mirror, if you want to see newest documents pleas
     <a href="https://codecov.io/gh/tboox/xmake">
       <img src="https://img.shields.io/codecov/c/github/tboox/xmake/master.svg?style=flat-square" alt="Coverage" />
     </a>
-    <a href="https://github.com/tboox/xmake/releases">
+    <a href="https://github.com/xmake-io/xmake/releases">
       <img src="https://img.shields.io/github/release/tboox/xmake.svg?style=flat-square" alt="Github All Releases" />
     </a>
     <a href="https://aur.archlinux.org/packages/xmake">
@@ -37,7 +37,7 @@ Note: This documents is only a mirror, if you want to see newest documents pleas
     </a>
   </div>
   <div>
-    <a href="https://github.com/tboox/xmake/blob/master/LICENSE.md">
+    <a href="https://github.com/xmake-io/xmake/blob/master/LICENSE.md">
       <img src="https://img.shields.io/github/license/tboox/xmake.svg?colorB=f48041&style=flat-square" alt="license" />
     </a>
     <a href="https://gitter.im/tboox/tboox?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge">
@@ -92,7 +92,7 @@ Invoke-Expression (Invoke-Webrequest 'https://raw.githubusercontent.com/tboox/xm
 
 #### Windows
 
-1. Download xmake windows installer from [Releases](https://github.com/tboox/xmake/releases)
+1. Download xmake windows installer from [Releases](https://github.com/xmake-io/xmake/releases)
 2. Run xmake-[version].exe
 
 #### MacOS
@@ -139,7 +139,7 @@ $ sudo apt install xmake
 
 Or download deb package to install it:
 
-1. Download xmake `.deb` install package from [Releases](https://github.com/tboox/xmake/releases) 
+1. Download xmake `.deb` install package from [Releases](https://github.com/xmake-io/xmake/releases) 
 2. Run `dpkg -i xmake-xxxx.deb`
 
 #### Compilation
@@ -147,7 +147,7 @@ Or download deb package to install it:
 Compile and install:
 
 ```bash
-$ git clone https://github.com/tboox/xmake.git
+$ git clone https://github.com/xmake-io/xmake.git
 $ cd ./xmake
 $ ./scripts/get.sh __local__
 ```
@@ -691,7 +691,7 @@ For exmaple:
 $ xmake [-v|--verbose] 
 ```
 
-And add `--backtrace` to get the verbose backtrace info, then you can submit these infos to [issues](https://github.com/tboox/xmake/issues).
+And add `--backtrace` to get the verbose backtrace info, then you can submit these infos to [issues](https://github.com/xmake-io/xmake/issues).
 
 ```bash
 $ xmake -v --backtrace

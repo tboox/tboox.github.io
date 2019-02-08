@@ -5,13 +5,13 @@ tags: xmake lua IntelliJ IDEA plugin
 categories: xmake
 ---
 
-[xmake-idea](https://github.com/tboox/xmake-idea) plugin is a xmake integration in Intellij-IDEA.
+[xmake-idea](https://github.com/xmake-io/xmake-idea) plugin is a xmake integration in Intellij-IDEA.
 
-It is deeply integrated with [xmake](https://github.com/tboox/xmake) and Intellij-IDEA to provide a convenient and fast cross-platform c/c++ development and building.
+It is deeply integrated with [xmake](https://github.com/xmake-io/xmake) and Intellij-IDEA to provide a convenient and fast cross-platform c/c++ development and building.
 
 And It also support other Intellij-based platform, like Clion, Android Studio and etc.
 
-You need install [xmake](https://github.com/tboox/xmake) first and a project with `xmake.lua`.
+You need install [xmake](https://github.com/xmake-io/xmake) first and a project with `xmake.lua`.
  
 ## Features
 

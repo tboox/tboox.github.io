@@ -42,7 +42,7 @@ $ xmake f --zlib=n
 $ xmake
 ```
 
-Note: We will implement package management 3.0 in the 2.2.1 version, if you want to known more info, please see：[Remote package management](https://github.com/tboox/xmake/issues/69)。
+Note: We will implement package management 3.0 in the 2.2.1 version, if you want to known more info, please see：[Remote package management](https://github.com/xmake-io/xmake/issues/69)。
 
 For example:
 
@@ -90,7 +90,7 @@ The search order of `find_package`:
 
 #### Fast compiler feature detection support
 
-This is also a reference to the design of CMake, details see: [issues#83](https://github.com/tboox/xmake/issues/83)。
+This is also a reference to the design of CMake, details see: [issues#83](https://github.com/xmake-io/xmake/issues/83)。
 
 ```lua
 target("test")
@@ -387,8 +387,8 @@ local tool = find_tool("clang", {version = true, {pathes = {"/usr/bin", "/usr/lo
 
 #### More Secure Root Permissions compilation
 
-You can see: [pull#113](https://github.com/tboox/xmake/pull/113)
+You can see: [pull#113](https://github.com/xmake-io/xmake/pull/113)
 
 #### More expansion Modules
 
-You can see: [modules](https://github.com/tboox/xmake/tree/master/xmake/modules)
+You can see: [modules](https://github.com/xmake-io/xmake/tree/master/xmake/modules)

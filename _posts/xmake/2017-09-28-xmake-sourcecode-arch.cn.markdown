@@ -5,10 +5,10 @@ tags: xmake lua 源码 架构设计
 categories: xmake
 ---
 
-本文主要介绍下[xmake](https://github.com/tboox/xmake)的整体架构设计，以及源码结构的布局和模块划分。
+本文主要介绍下[xmake](https://github.com/xmake-io/xmake)的整体架构设计，以及源码结构的布局和模块划分。
 如果你想深度使用xmake，开发xmake插件、工程自定义脚本或者想为xmake贡献一些代码和特性，可以通过此本的介绍，对xmake项目整体有个大概的了解。，
 
-源码地址：[Github](https://github.com/tboox/xmake)
+源码地址：[Github](https://github.com/xmake-io/xmake)
 
 ## 顶层目录结构
 
@@ -300,7 +300,7 @@ end
 
 ## Plugins目录
 
-放置内置插件的目录，里面内置了一些常用插件，我们也可以自己扩展插件，或者从[xmake-plugins](https://github.com/tboox/xmake-plugins)上面下载一些扩展插件。
+放置内置插件的目录，里面内置了一些常用插件，我们也可以自己扩展插件，或者从[xmake-plugins](https://github.com/xmake-io/xmake-plugins)上面下载一些扩展插件。
 
 ```bash
 ./xmake/plugins/

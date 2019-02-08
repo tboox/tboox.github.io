@@ -109,13 +109,13 @@ $ xmake l detect.sdks.find_cuda_toolchains
 }
 ```
 
-来测试检测情况，甚至可以帮忙贡献相关检测代码[find_cuda_toolchains.lua](https://github.com/tboox/xmake/blob/master/xmake/modules/detect/sdks/find_cuda_toolchains.lua)来改进xmake的检测过程。
+来测试检测情况，甚至可以帮忙贡献相关检测代码[find_cuda_toolchains.lua](https://github.com/xmake-io/xmake/blob/master/xmake/modules/detect/sdks/find_cuda_toolchains.lua)来改进xmake的检测过程。
 
 
 #### 其他说明
 
-注：目前对cuda的支持刚刚完成，还没正式发版，更多关于xmake对cuda的支持情况和进展，见：[issues #158](https://github.com/tboox/xmake/issues/158)。
+注：目前对cuda的支持刚刚完成，还没正式发版，更多关于xmake对cuda的支持情况和进展，见：[issues #158](https://github.com/xmake-io/xmake/issues/158)。
 
-如果要试用此特性，可下载安装最新[master版本](https://github.com/tboox/xmake.git)，或者下载[windows 2.1.10-dev安装包](https://github.com/tboox/xmake/releases/download/v2.1.9/xmake-v2.1.10-dev.exe)。
+如果要试用此特性，可下载安装最新[master版本](https://github.com/xmake-io/xmake.git)，或者下载[windows 2.1.10-dev安装包](https://github.com/xmake-io/xmake/releases/download/v2.1.9/xmake-v2.1.10-dev.exe)。
 
 <img src="/static/img/xmake/cuda_test.gif" width="60%" />

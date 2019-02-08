@@ -5,7 +5,7 @@ tags: xmake lua 文档
 categories: xmake
 ---
 
-之前的[wiki文档](#https://github.com/tboox/xmake/wiki)结构不是很好，而且不方便检索。
+之前的[wiki文档](#https://github.com/xmake-io/xmake/wiki)结构不是很好，而且不方便检索。
 
 因此最近使用[docute](https://docute.js.org/)这个文档工具，重写了一遍整个xmake文档，并且增加了更加详细的api文档手册，后续会持续更新维护。
 

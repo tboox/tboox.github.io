@@ -5,7 +5,7 @@ tags: xmake vscode 插件开发
 categories: xmake
 ---
 
-最近打算给[xmake](https://github.com/tboox/xmake)写一些IDE和编辑器的集成插件，发现vscode的编辑器插件比较容易上手的，就先研究了下vscode的插件开发流程，并且完成了[xmake-vscode](https://github.com/tboox/xmake-vscode)插件的开发。
+最近打算给[xmake](https://github.com/xmake-io/xmake)写一些IDE和编辑器的集成插件，发现vscode的编辑器插件比较容易上手的，就先研究了下vscode的插件开发流程，并且完成了[xmake-vscode](https://github.com/xmake-io/xmake-vscode)插件的开发。
 
 我们先来看几张最后的效果图：
 
@@ -238,7 +238,7 @@ createStatusBarItem中第二个参数4.5用于控制按钮在状态栏上的布�
 
 #### 添加选项输入列表
 
-在[xmake-vscode](https://github.com/tboox/xmake-vscode)的状态栏上，我们还增加了几个快速配置的状态按钮，用于快速切换不同的平台、架构、编译模式，例如：
+在[xmake-vscode](https://github.com/xmake-io/xmake-vscode)的状态栏上，我们还增加了几个快速配置的状态按钮，用于快速切换不同的平台、架构、编译模式，例如：
 
 <img src="/static/img/xmake/xmake-vscode-configure.gif" width="60%" />
 
@@ -375,7 +375,7 @@ export class Completion implements vscode.CompletionItemProvider {
 }
 ```
 
-这部分代码比较多，就不完全贴出来了，完整实现，可参考：[completion.ts](https://github.com/tboox/xmake-vscode/blob/master/src/completion.ts)
+这部分代码比较多，就不完全贴出来了，完整实现，可参考：[completion.ts](https://github.com/xmake-io/xmake-vscode/blob/master/src/completion.ts)
 
 <img src="/static/img/xmake/xmake-vscode-completion.gif" width="60%" />
 
@@ -523,4 +523,4 @@ export class ProblemList implements vscode.Disposable {
 
 ## 结语
 
-本文讲述的一些vscode插件代码都来自[xmake-vscode](https://github.com/tboox/xmake-vscode)，有兴趣的同学可以直接参考源码，写个自己的插件。
+本文讲述的一些vscode插件代码都来自[xmake-vscode](https://github.com/xmake-io/xmake-vscode)，有兴趣的同学可以直接参考源码，写个自己的插件。

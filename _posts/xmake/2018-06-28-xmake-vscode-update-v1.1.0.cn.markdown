@@ -5,7 +5,7 @@ tags: xmake lua 版本更新
 categories: xmake
 ---
 
-[xmake-vscode](https://github.com/tboox/xmake-vscode)插件深度集成了[xmake](https://github.com/tboox/xmake)和vscode，提供方便快速的跨平台c/c++构建。
+[xmake-vscode](https://github.com/xmake-io/xmake-vscode)插件深度集成了[xmake](https://github.com/xmake-io/xmake)和vscode，提供方便快速的跨平台c/c++构建。
 
 此版本主要更新内容如下：
 

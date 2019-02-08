@@ -7,7 +7,7 @@ categories: xmake
 
 ## 前言
 
-在开发[xmake](https://github.com/tboox/xmake)之前，我一直在使用gnumake/makefile来维护个人C/C++项目，一开始还好，然而等项目越来越庞大后，维护起来就非常吃力了，后续也用过一阵子automake系列工具，并不是很好用。
+在开发[xmake](https://github.com/xmake-io/xmake)之前，我一直在使用gnumake/makefile来维护个人C/C++项目，一开始还好，然而等项目越来越庞大后，维护起来就非常吃力了，后续也用过一阵子automake系列工具，并不是很好用。
 
 由于C/C++程序的构建过程比较繁琐，如果不借助IDE工具，很难快速构建一个新的C/C++程序，想要跨平台构建就更加麻烦了。
 
@@ -490,7 +490,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/tboox/xmake/master/scripts/g
 
 #### windows安装包
 
-对于windows用户，提供了安装包来快速安装，可到[Github Releases](https://github.com/tboox/xmake/releases)上下载对应版本。
+对于windows用户，提供了安装包来快速安装，可到[Github Releases](https://github.com/xmake-io/xmake/releases)上下载对应版本。
 
 更加详细的安装过程，见相关文档: [安装说明](http://xmake.io/#/zh/?id=安装)
 

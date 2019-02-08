@@ -5,11 +5,11 @@ tags: xmake lua Intellij IDEA 插件
 categories: xmake
 ---
 
-[xmake-idea](https://github.com/tboox/xmake-idea) 插件深度集成了[xmake](https://github.com/tboox/xmake)和Intellij-IDEA，提供方便快速的跨平台c/c++构建。
+[xmake-idea](https://github.com/xmake-io/xmake-idea) 插件深度集成了[xmake](https://github.com/xmake-io/xmake)和Intellij-IDEA，提供方便快速的跨平台c/c++构建。
 
 并且它也支持其他基于Intellij的IDE环境, 例如：Clion, Android Studio等等。
 
-注：使用此插件，需要先安装xmake，更多关于xmake的使用说明，请阅读：[文档手册](http://xmake.io/#/zh/)，项目源码：[Github](https://github.com/tboox/xmake)。
+注：使用此插件，需要先安装xmake，更多关于xmake的使用说明，请阅读：[文档手册](http://xmake.io/#/zh/)，项目源码：[Github](https://github.com/xmake-io/xmake)。
  
 ## 特性
 

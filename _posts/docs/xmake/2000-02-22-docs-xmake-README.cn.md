@@ -29,7 +29,7 @@ permalink: /docs/xmake/quickstart/
     <a href="https://codecov.io/gh/tboox/xmake">
       <img src="https://img.shields.io/codecov/c/github/tboox/xmake/master.svg?style=flat-square" alt="Coverage" />
     </a>
-    <a href="https://github.com/tboox/xmake/releases">
+    <a href="https://github.com/xmake-io/xmake/releases">
       <img src="https://img.shields.io/github/release/tboox/xmake.svg?style=flat-square" alt="Github All Releases" />
     </a>
     <a href="https://aur.archlinux.org/packages/xmake">
@@ -37,7 +37,7 @@ permalink: /docs/xmake/quickstart/
     </a>
   </div>
   <div>
-    <a href="https://github.com/tboox/xmake/blob/master/LICENSE.md">
+    <a href="https://github.com/xmake-io/xmake/blob/master/LICENSE.md">
       <img src="https://img.shields.io/github/license/tboox/xmake.svg?colorB=f48041&style=flat-square" alt="license" />
     </a>
     <a href="https://gitter.im/tboox/tboox?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge">
@@ -98,7 +98,7 @@ Invoke-Expression (Invoke-Webrequest 'https://raw.githubusercontent.com/tboox/xm
 
 #### Windows
 
-1. 从 [Releases](https://github.com/tboox/xmake/releases) 上下载windows安装包
+1. 从 [Releases](https://github.com/xmake-io/xmake/releases) 上下载windows安装包
 2. 运行安装程序 xmake-[version].exe
 
 #### MacOS
@@ -110,7 +110,7 @@ $ brew install xmake
 
 或者：
 
-1. 从 [Releases](https://github.com/tboox/xmake/releases) 上下载pkg安装包
+1. 从 [Releases](https://github.com/xmake-io/xmake/releases) 上下载pkg安装包
 2. 双击运行
 
 或者安装master版本:
@@ -159,12 +159,12 @@ $ sudo apt-get install xmake
 
 或者下载deb包来安装：
 
-1. 从 [Releases](https://github.com/tboox/xmake/releases) 上下载deb安装包
+1. 从 [Releases](https://github.com/xmake-io/xmake/releases) 上下载deb安装包
 2. 运行: `dpkg -i xmake-xxxx.deb`
 
 在`redhat/centos`上安装：
 
-1. 从 [Releases](https://github.com/tboox/xmake/releases) 上下载rpm安装包
+1. 从 [Releases](https://github.com/xmake-io/xmake/releases) 上下载rpm安装包
 2. 运行: `yum install xmake-xxx.rpm --nogpgcheck`
 
 #### 编译安装
@@ -172,7 +172,7 @@ $ sudo apt-get install xmake
 通过脚本编译安装:
 
 ```bash
-$ git clone https://github.com/tboox/xmake.git
+$ git clone https://github.com/xmake-io/xmake.git
 $ cd ./xmake
 $ ./scripts/get.sh __local__
 ```
@@ -743,7 +743,7 @@ $ xmake
 $ xmake [-v|--verbose] 
 ```
 
-并且可以加上 `--backtrace` 选项获取出错时的xmake的调试栈信息, 然后你可以提交这些信息到[issues](https://github.com/tboox/xmake/issues).
+并且可以加上 `--backtrace` 选项获取出错时的xmake的调试栈信息, 然后你可以提交这些信息到[issues](https://github.com/xmake-io/xmake/issues).
 
 ```bash
 $ xmake -v --backtrace

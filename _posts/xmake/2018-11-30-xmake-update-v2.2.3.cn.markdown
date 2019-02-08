@@ -9,32 +9,32 @@ categories: xmake
 
 关于新特性的详细说明见文章下文。
 
-* [项目源码](https://github.com/tboox/xmake)
+* [项目源码](https://github.com/xmake-io/xmake)
 * [官方文档](https://xmake.io/#/zh/)
 
 ## 更新内容
 
 ### 新特性
 
-* [#233](https://github.com/tboox/xmake/issues/233): 对mingw平台增加windres的支持
-* [#239](https://github.com/tboox/xmake/issues/239): 添加cparser编译器支持
+* [#233](https://github.com/xmake-io/xmake/issues/233): 对mingw平台增加windres的支持
+* [#239](https://github.com/xmake-io/xmake/issues/239): 添加cparser编译器支持
 * 添加插件管理器，`xmake plugin --help`
 * 添加`add_syslinks`接口去设置系统库依赖，分离与`add_links`添加的库依赖之间的链接顺序
 * 添加 `xmake l time xmake [--rebuild]` 去记录编译耗时
-* [#250](https://github.com/tboox/xmake/issues/250): 添加`xmake f --vs_sdkver=10.0.15063.0`去改变windows sdk版本
+* [#250](https://github.com/xmake-io/xmake/issues/250): 添加`xmake f --vs_sdkver=10.0.15063.0`去改变windows sdk版本
 * 添加`lib.luajit.ffi`和`lib.luajit.jit`扩展模块
-* [#263](https://github.com/tboox/xmake/issues/263): 添加object目标类型，仅仅用于编译生成object对象文件
-* [#269](https://github.com/tboox/xmake/issues/269): 每天第一次构建时候后台进程自动清理最近30天的临时文件
+* [#263](https://github.com/xmake-io/xmake/issues/263): 添加object目标类型，仅仅用于编译生成object对象文件
+* [#269](https://github.com/xmake-io/xmake/issues/269): 每天第一次构建时候后台进程自动清理最近30天的临时文件
 * 增加`xmake update`命令实现自我更新
 
 ### 改进
 
-* [#229](https://github.com/tboox/xmake/issues/229): 改进vs toolset选择已经vcproj工程文件生成
+* [#229](https://github.com/xmake-io/xmake/issues/229): 改进vs toolset选择已经vcproj工程文件生成
 * 改进编译依赖，对源文件列表的改动进行依赖判断
 * 支持解压*.xz文件
-* [#249](https://github.com/tboox/xmake/pull/249): 改进编译进度信息显示格式
-* [#247](https://github.com/tboox/xmake/pull/247): 添加`-D`和`--diagnosis`去替换`--backtrace`，改进诊断信息显示
-* [#259](https://github.com/tboox/xmake/issues/259): 改进 on_build, on_build_file 和 on_xxx 等接口
+* [#249](https://github.com/xmake-io/xmake/pull/249): 改进编译进度信息显示格式
+* [#247](https://github.com/xmake-io/xmake/pull/247): 添加`-D`和`--diagnosis`去替换`--backtrace`，改进诊断信息显示
+* [#259](https://github.com/xmake-io/xmake/issues/259): 改进 on_build, on_build_file 和 on_xxx 等接口
 * 改进远程包管理器，更加方便的包依赖配置切换
 * 支持only头文件依赖包的安装
 * 支持对包内置links的手动调整，`add_packages("xxx", {links = {}})`
@@ -66,7 +66,7 @@ $ xmake update master
 
 ### 新增插件管理器
 
-用于拉取通过[xmake-plugins](https://github.com/tboox/xmake-plugins)官方插件仓库维护的扩展插件，更新集成到本地：
+用于拉取通过[xmake-plugins](https://github.com/xmake-io/xmake-plugins)官方插件仓库维护的扩展插件，更新集成到本地：
 
 ```console
 $ xmake plugin --install

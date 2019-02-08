@@ -296,7 +296,7 @@ end
 
 这里只是一个简单的例子，稍微扩展下，还是可以实现lua脚本的api实时调用追踪（也就是trace）。
 
-完整代码，可以到xmake的源码中翻看：[profiler代码](https://github.com/tboox/xmake/blob/master/xmake/core/base/profiler.lua)
+完整代码，可以到xmake的源码中翻看：[profiler代码](https://github.com/xmake-io/xmake/blob/master/xmake/core/base/profiler.lua)
 
 里面除了性能分析，trace调用也有实现。
 

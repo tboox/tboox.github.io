@@ -615,7 +615,7 @@ target("test")                   -- add -DDEBUG
 ###### End target definition
 
 <p class="warning">
-Translating ..., help me please! [Edit this page](https://github.com/tboox/xmake/blob/master/docs/manual.md)
+Translating ..., help me please! [Edit this page](https://github.com/xmake-io/xmake/blob/master/docs/manual.md)
 </p>
 
 这是一个可选的api，如果不调用，那么`target("xxx")`之后的所有设置都是针对这个target进行的，除非进入其他`target`, `option`, `task`域。
@@ -3713,19 +3713,19 @@ function main(kind)
 end
 ```
 
-具体实现这里就不介绍了，可以参考xmake源码目录下的`platforms`平台配置代码: [check.lua](https://github.com/tboox/xmake/blob/master/xmake/platforms/macosx/check.lua)
+具体实现这里就不介绍了，可以参考xmake源码目录下的`platforms`平台配置代码: [check.lua](https://github.com/xmake-io/xmake/blob/master/xmake/platforms/macosx/check.lua)
 
 ##### on_install
 
 ###### 设置目标工程在指定平台的安装脚本
 
-具体实现逻辑见xmake源码：[install.lua](https://github.com/tboox/xmake/blob/master/xmake/platforms/macosx/install.lua)
+具体实现逻辑见xmake源码：[install.lua](https://github.com/xmake-io/xmake/blob/master/xmake/platforms/macosx/install.lua)
 
 ##### on_uninstall
 
 ###### 设置目标工程在指定平台的卸载脚本
 
-具体实现逻辑见xmake源码：[uninstall.lua](https://github.com/tboox/xmake/blob/master/xmake/platforms/macosx/uninstall.lua)
+具体实现逻辑见xmake源码：[uninstall.lua](https://github.com/xmake-io/xmake/blob/master/xmake/platforms/macosx/uninstall.lua)
 
 #### Extension Languages
 
@@ -4105,7 +4105,7 @@ import("xxx.xxx", {inherit = true})
 inherit("xxx.xxx")
 ```
 
-使用实例，可以参看xmake的tools目录下的脚本：[clang.lua](#https://github.com/tboox/xmake/blob/master/xmake/tools/clang.lua)
+使用实例，可以参看xmake的tools目录下的脚本：[clang.lua](#https://github.com/xmake-io/xmake/blob/master/xmake/tools/clang.lua)
 
 这个就是clang工具模块继承了gcc的部分实现。
 

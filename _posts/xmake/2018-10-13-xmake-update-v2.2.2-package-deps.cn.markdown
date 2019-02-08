@@ -7,9 +7,9 @@ categories: xmake
 
 ### 前言
 
-历经四个多月，[xmake](https://github.com/tboox/xmake)终于更新了新版本v2.2.2，并且上线了重量级功能：原生支持的远程依赖包管理。
+历经四个多月，[xmake](https://github.com/xmake-io/xmake)终于更新了新版本v2.2.2，并且上线了重量级功能：原生支持的远程依赖包管理。
 
-而这个特性，其实我陆陆续续写了将近一年的时间，才初步完成，对于此特性的开发进展和历史，有兴趣的同学可以看下相关issues：[#69](https://github.com/tboox/xmake/issues/69)。
+而这个特性，其实我陆陆续续写了将近一年的时间，才初步完成，对于此特性的开发进展和历史，有兴趣的同学可以看下相关issues：[#69](https://github.com/xmake-io/xmake/issues/69)。
 
 目前的实现效果如下，完全一致的语义版本依赖描述：
 
@@ -178,8 +178,8 @@ add_requires("tbox", {config = {small=true}})
 
 ### 使用自建私有包仓库
 
-如果需要的包不在官方仓库[xmake-repo](https://github.com/tboox/xmake-repo)中，我们可以提交贡献代码到仓库进行支持。
-但如果有些包仅用于个人或者私有项目，我们可以建立一个私有仓库repo，仓库组织结构可参考：[xmake-repo](https://github.com/tboox/xmake-repo)
+如果需要的包不在官方仓库[xmake-repo](https://github.com/xmake-io/xmake-repo)中，我们可以提交贡献代码到仓库进行支持。
+但如果有些包仅用于个人或者私有项目，我们可以建立一个私有仓库repo，仓库组织结构可参考：[xmake-repo](https://github.com/xmake-io/xmake-repo)
 
 比如，现在我们有一个一个私有仓库repo：`git@github.com:myrepo/xmake-repo.git`
 
@@ -348,9 +348,9 @@ $ xmake repo -u
 
 目前这个特性刚完成不久，目前官方仓库的包还不是很多，有些包也许还不支持部分平台，不过这并不是太大问题，后期迭代几个版本后，我会不断扩充完善包仓库。
 
-如果你需要的包，当前的官方仓库还没有收录，可以提交issues或者自己可以在本地调通后，贡献提交到官方仓库：[xmake-repo](https://github.com/tboox/xmake-repo)
+如果你需要的包，当前的官方仓库还没有收录，可以提交issues或者自己可以在本地调通后，贡献提交到官方仓库：[xmake-repo](https://github.com/xmake-io/xmake-repo)
 
-详细的贡献说明，见：[CONTRIBUTING.md](https://github.com/tboox/xmake-repo/blob/master/CONTRIBUTING.md)
+详细的贡献说明，见：[CONTRIBUTING.md](https://github.com/xmake-io/xmake-repo/blob/master/CONTRIBUTING.md)
 
 关于远程依赖包的更多说明，可以看下官方文档：[远程依赖模式](https://xmake.io/#/zh/?id=%E8%BF%9C%E7%A8%8B%E4%BE%9D%E8%B5%96%E6%A8%A1%E5%BC%8F)
 
@@ -368,25 +368,25 @@ $ xmake repo -u
 * 添加`set_config`接口去设置默认配置
 * 添加`$xmake --try`去尝试构建工程
 * 添加`set_enabled(false)`去显示的禁用target
-* [#69](https://github.com/tboox/xmake/issues/69): 添加远程依赖包管理, `add_requires("tbox ~1.6.1")`
-* [#216](https://github.com/tboox/xmake/pull/216): 添加windows mfc编译规则
+* [#69](https://github.com/xmake-io/xmake/issues/69): 添加远程依赖包管理, `add_requires("tbox ~1.6.1")`
+* [#216](https://github.com/xmake-io/xmake/pull/216): 添加windows mfc编译规则
 
 #### 改进
 
 * 改进Qt编译编译环境探测，增加对mingw sdk的支持
 * 在自动扫描生成的xmake.lua中增加默认debug/release规则
-* [#178](https://github.com/tboox/xmake/issues/178): 修改mingw平台下的目标名
+* [#178](https://github.com/xmake-io/xmake/issues/178): 修改mingw平台下的目标名
 * 对于`add_files()`在windows上支持大小写不敏感路径模式匹配
 * 改进`detect.sdks.find_qt`对于Qt根目录的探测
-* [#184](https://github.com/tboox/xmake/issues/184): 改进`lib.detect.find_package`支持vcpkg
-* [#208](https://github.com/tboox/xmake/issues/208): 改进rpath对动态库的支持
+* [#184](https://github.com/xmake-io/xmake/issues/184): 改进`lib.detect.find_package`支持vcpkg
+* [#208](https://github.com/xmake-io/xmake/issues/208): 改进rpath对动态库的支持
 
 #### Bugs修复
 
-* [#177](https://github.com/tboox/xmake/issues/177): 修复被依赖的动态库target，如果设置了basename后链接失败问题
+* [#177](https://github.com/xmake-io/xmake/issues/177): 修复被依赖的动态库target，如果设置了basename后链接失败问题
 * 修复`$xmake f --menu`中Exit问题以及cpu过高问题
-* [#197](https://github.com/tboox/xmake/issues/197): 修复生成的vs201x工程文件带有中文路径乱码问题
+* [#197](https://github.com/xmake-io/xmake/issues/197): 修复生成的vs201x工程文件带有中文路径乱码问题
 * 修复WDK规则编译生成的驱动在Win7下运行蓝屏问题
-* [#205](https://github.com/tboox/xmake/pull/205): 修复vcproj工程生成targetdir, objectdir路径设置不匹配问题 
+* [#205](https://github.com/xmake-io/xmake/pull/205): 修复vcproj工程生成targetdir, objectdir路径设置不匹配问题 
 
 

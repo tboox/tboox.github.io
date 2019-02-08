@@ -9,9 +9,9 @@ categories: xmake
 
 Since my English is not very good, the article uses google translation, if you can't understand, please understand.
 
-After more than four months, [xmake](https://github.com/tboox/xmake) finally updated the new version v2.2.2 and launched the heavyweight feature: Natively Supported Remote Dependency Package Management.
+After more than four months, [xmake](https://github.com/xmake-io/xmake) finally updated the new version v2.2.2 and launched the heavyweight feature: Natively Supported Remote Dependency Package Management.
 
-This feature, in fact, I have been writing for almost a year, before the initial completion, for the development of this feature and history, interested students can look at the relevant issues: [#69](https://github.com/tboox/xmake/issues/69).
+This feature, in fact, I have been writing for almost a year, before the initial completion, for the development of this feature and history, interested students can look at the relevant issues: [#69](https://github.com/xmake-io/xmake/issues/69).
 
 The current implementation is as follows, a fully consistent semantic version dependency description:
 
@@ -180,8 +180,8 @@ Pass `--small=true` to the tbox package so that compiling the installed tbox pac
 
 ### Using a self-built private package repository
 
-If the required package is not in the official repository [xmake-repo](https://github.com/tboox/xmake-repo), we can submit the contribution code to the repository for support.
-But if some packages are only for personal or private projects, we can create a private repository repo. The repository organization structure can be found at: [xmake-repo](https://github.com/tboox/xmake-repo)
+If the required package is not in the official repository [xmake-repo](https://github.com/xmake-io/xmake-repo), we can submit the contribution code to the repository for support.
+But if some packages are only for personal or private projects, we can create a private repository repo. The repository organization structure can be found at: [xmake-repo](https://github.com/xmake-io/xmake-repo)
 
 For example, now we have a private repository repo:`git@github.com:myrepo/xmake-repo.git`
 
@@ -350,9 +350,9 @@ $ xmake repo -u
 
 At present, this feature has just been completed. At present, there are not many packages in the official warehouse. Some packages may not support some platforms, but this is not a big problem. After several iterations, I will continue to expand and improve the package warehouse.
 
-If you need a package, the current official repository is not yet included, you can submit an issue or you can submit it to the official repository after you have localized it: [xmake-repo](https://github.com/tboox/xmake-repo)
+If you need a package, the current official repository is not yet included, you can submit an issue or you can submit it to the official repository after you have localized it: [xmake-repo](https://github.com/xmake-io/xmake-repo)
 
-For detailed contribution descriptions, see: [CONTRIBUTING.md](https://github.com/tboox/xmake-repo/blob/master/CONTRIBUTING.md)
+For detailed contribution descriptions, see: [CONTRIBUTING.md](https://github.com/xmake-io/xmake-repo/blob/master/CONTRIBUTING.md)
 
 For more instructions on remote dependencies, see the official documentation: [Remote Dependency Mode](https://xmake.io/#/home?id=remote-dependency-mode)
 
@@ -370,27 +370,27 @@ Having said that, let's finally look at some of the other new features and updat
 * Add `set_config` to set the default configuration
 * Add `$xmake --try` to try building project using third-party buildsystem
 * Add `set_enabled(false)` to disable target 
-* [#69](https://github.com/tboox/xmake/issues/69): Add remote package management, `add_requires("tbox ~1.6.1")`
-* [#216](https://github.com/tboox/xmake/pull/216): Add windows mfc rules
+* [#69](https://github.com/xmake-io/xmake/issues/69): Add remote package management, `add_requires("tbox ~1.6.1")`
+* [#216](https://github.com/xmake-io/xmake/pull/216): Add windows mfc rules
 
 #### Changes
 
 * Improve to detect Qt envirnoment and support mingw
 * Add debug and release rules to the auto-generated xmake.lua
-* [#178](https://github.com/tboox/xmake/issues/178): Modify the shared library name for mingw.
+* [#178](https://github.com/xmake-io/xmake/issues/178): Modify the shared library name for mingw.
 * Support case-insensitive path pattern-matching for `add_files()` on windows
 * Improve to detect Qt sdk directory for `detect.sdks.find_qt`
-* [#184](https://github.com/tboox/xmake/issues/184): Improve `lib.detect.find_package` to support vcpkg
-* [#208](https://github.com/tboox/xmake/issues/208): Improve rpath for shared library
-* [#225](https://github.com/tboox/xmake/issues/225): Improve to detect vs envirnoment
+* [#184](https://github.com/xmake-io/xmake/issues/184): Improve `lib.detect.find_package` to support vcpkg
+* [#208](https://github.com/xmake-io/xmake/issues/208): Improve rpath for shared library
+* [#225](https://github.com/xmake-io/xmake/issues/225): Improve to detect vs envirnoment
 
 #### Bug fixed
 
-* [#177](https://github.com/tboox/xmake/issues/177): Fix the dependent target link bug
+* [#177](https://github.com/xmake-io/xmake/issues/177): Fix the dependent target link bug
 * Fix high cpu usage bug and Exit issues for `$ xmake f --menu`
-* [#197](https://github.com/tboox/xmake/issues/197): Fix Chinese path for generating vs201x project
+* [#197](https://github.com/xmake-io/xmake/issues/197): Fix Chinese path for generating vs201x project
 * Fix wdk rules bug
-* [#205](https://github.com/tboox/xmake/pull/205): Fix targetdir,objectdir not used in vsproject 
+* [#205](https://github.com/xmake-io/xmake/pull/205): Fix targetdir,objectdir not used in vsproject 
 
 
 

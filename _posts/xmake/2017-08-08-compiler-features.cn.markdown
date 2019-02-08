@@ -27,7 +27,7 @@ target("test")
 
 通过`core.tool.compiler`模块的[compiler.has_features](http://xmake.io/#/zh/manual?id=compiler-has_features)接口，在`xmake.lua`中预先判断当前编译期支持的语言特性，实现条件编译。
 
-此处也是参考了cmake的设计，具体详情见：[issues#83](https://github.com/tboox/xmake/issues/83)。
+此处也是参考了cmake的设计，具体详情见：[issues#83](https://github.com/xmake-io/xmake/issues/83)。
 
 上述代码，在加载target的时候，判断当前编译器是否支持c++的常量表达式语法特性，如果支持则添加宏定义：`HAS_CXX_CONSTEXPR=1`。
 

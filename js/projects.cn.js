@@ -76,21 +76,21 @@
         description: 'Benchbox是一个基准测试包，里面包含许多针对第三方库功能的性能基准测试和对比'
     },
     {
-        page_link: 'https://github.com/tboox/xmake-vscode',
+        page_link: 'https://github.com/xmake-io/xmake-vscode',
         img_link: '/static/img/xmake/xmake-vscode-problem.gif',
         code_repo: 'xmake-vscode',
         title: 'xmake-vscode',
         description: 'xmake-vscode是一个高度集成xmake的vscode插件，提供方便快速的xmake构建支持，实现高效c/c++跨平台开发'
     },
     {
-        page_link: 'https://github.com/tboox/xmake-idea',
+        page_link: 'https://github.com/xmake-io/xmake-idea',
         img_link: '/static/img/xmake/xmake-idea-problem.gif',
         code_repo: 'xmake-idea',
         title: 'xmake-idea',
         description: 'xmake-idea是一个高度集成xmake的Intellij-IDEA插件，提供方便快速的xmake构建支持，实现高效c/c++跨平台开发'
     },
     {
-        page_link: 'https://github.com/tboox/xmake-sublime',
+        page_link: 'https://github.com/xmake-io/xmake-sublime',
         img_link: '/static/img/xmake/xmake-sublime-problem.gif',
         code_repo: 'xmake-sublime',
         title: 'xmake-sublime',

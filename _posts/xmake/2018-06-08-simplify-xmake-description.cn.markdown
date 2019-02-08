@@ -5,7 +5,7 @@ tags: xmake lua 工程描述 xmake.lua 简化
 categories: xmake
 ---
 
-[xmake](https://github.com/tboox/xmake)的初衷就是为了让用户能够用最简单直接的方式去描述工程，提供跨平台项目构建，因此，`简洁，灵活` 是xmake.lua的核心设计思想。
+[xmake](https://github.com/xmake-io/xmake)的初衷就是为了让用户能够用最简单直接的方式去描述工程，提供跨平台项目构建，因此，`简洁，灵活` 是xmake.lua的核心设计思想。
 
 通过之前的那篇文章:[xmake入门，构建项目原来可以如此简单](http://tboox.org/cn/2018/03/26/build-project-so-simply/)，我们对如何使用xmake去构建项目有了大概的了解，并且能够编写一些简单的xmake.lua去描述项目，例如:
 

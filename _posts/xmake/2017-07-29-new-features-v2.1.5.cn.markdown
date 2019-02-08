@@ -64,7 +64,7 @@ $ xmake f --zlib=n
 $ xmake
 ```
 
-注：2.2.1版本将会实现包管理3.0，更加自动化的依赖包管理和使用，具体详情见：[Remote package management](https://github.com/tboox/xmake/issues/69)。
+注：2.2.1版本将会实现包管理3.0，更加自动化的依赖包管理和使用，具体详情见：[Remote package management](https://github.com/xmake-io/xmake/issues/69)。
 
 例如：
 
@@ -114,7 +114,7 @@ projectdir
 
 通过`core.tool.compiler`模块的[compiler.has_features](http://xmake.io/#/zh/manual?id=compiler-has_features)接口，在`xmake.lua`中预先判断当前编译期支持的语言特性，实现条件编译。
 
-此处也是参考了cmake的设计，具体详情见：[issues#83](https://github.com/tboox/xmake/issues/83)。
+此处也是参考了cmake的设计，具体详情见：[issues#83](https://github.com/xmake-io/xmake/issues/83)。
 
 ```lua
 target("test")
@@ -512,7 +512,7 @@ projectdir
 2. 如果需要写一些系统文件，会提示用户当前权限不安全，禁止继续运行，除非加`--root`参数强制root运行。
 3. 如果当期工程目录是root用户权限，则同2。
 
-具体详情见：[pull#113](https://github.com/tboox/xmake/pull/113)
+具体详情见：[pull#113](https://github.com/xmake-io/xmake/pull/113)
 
 #### API接口改进
 

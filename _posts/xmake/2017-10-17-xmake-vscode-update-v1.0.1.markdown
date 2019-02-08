@@ -5,9 +5,9 @@ tags: xmake lua update
 categories: xmake
 ---
 
-[xmake-vscode](https://github.com/tboox/xmake-vscode) plugin is a xmake integration in Visual Studio Code.
+[xmake-vscode](https://github.com/xmake-io/xmake-vscode) plugin is a xmake integration in Visual Studio Code.
 
-It is deeply integrated with [xmake](https://github.com/tboox/xmake) and vscode to provide a convenient and fast cross-platform c/c++ development and building.
+It is deeply integrated with [xmake](https://github.com/xmake-io/xmake) and vscode to provide a convenient and fast cross-platform c/c++ development and building.
 
 ## Features
 

@@ -5,13 +5,13 @@ tags: xmake lua WDK kmdf umdf wdm driver
 categories: xmake
 ---
 
-[xmake](https://github.com/tboox/xmake) v2.2.1新版本现已支持WDK驱动编译环境，我们可以直接在系统原生cmd终端下，执行xmake进行驱动编译，甚至配合vscode, sublime text, IDEA等编辑器+xmake插件去开发WDK驱动。
+[xmake](https://github.com/xmake-io/xmake) v2.2.1新版本现已支持WDK驱动编译环境，我们可以直接在系统原生cmd终端下，执行xmake进行驱动编译，甚至配合vscode, sublime text, IDEA等编辑器+xmake插件去开发WDK驱动。
 
 下面是xmake支持的一些编辑器插件，用户可以挑选自己喜欢的编辑器配合xmake来使用：
 
-* [xmake-idea](https://github.com/tboox/xmake-idea) 
-* [xmake-vscode](https://github.com/tboox/xmake-vscode)
-* [xmake-sublime](https://github.com/tboox/xmake-sublime) 
+* [xmake-idea](https://github.com/xmake-io/xmake-idea) 
+* [xmake-vscode](https://github.com/xmake-io/xmake-vscode)
+* [xmake-sublime](https://github.com/xmake-io/xmake-sublime) 
 
 ## WDK环境介绍
 
@@ -35,7 +35,7 @@ $ xmake f --wdk="G:\Program Files\Windows Kits\10"
 $ xmake
 ```
 
-更多详情可以参考：[#159](https://github.com/tboox/xmake/issues/159)
+更多详情可以参考：[#159](https://github.com/xmake-io/xmake/issues/159)
 
 
 
@@ -60,7 +60,7 @@ xmake支持umdf, kmdf, wdm驱动项目的维护，也是采用一系列扩展的
 
 其中，`wdk.env.*`规则描述驱动编译的环境，`wdk.driver`, `wdk.static`描述编译的目标类型，两者可以互相结合使用，我们既可以用来编译驱动程序，也可以用来编译基于wdk环境的静态库、可执行程序。
 
-下面，通过一些例子可以简单看下使用方式，具体例子代码见[wdk-examples](https://github.com/tboox/xmake/tree/master/tests/projects/wdk/)，其中的项目代码是从[Windows-driver-samples](https://github.com/Microsoft/Windows-driver-samples)移植过来的。
+下面，通过一些例子可以简单看下使用方式，具体例子代码见[wdk-examples](https://github.com/xmake-io/xmake/tree/master/tests/projects/wdk/)，其中的项目代码是从[Windows-driver-samples](https://github.com/Microsoft/Windows-driver-samples)移植过来的。
 
 #### umdf驱动程序
 
