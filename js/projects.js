@@ -69,21 +69,21 @@
         description: 'This is a very simple and lightweight x86 virtual machine which can load and run the assembly code from ida pro directly.'
     },
     {
-        page_link: 'https://github.com/tboox/xmake-vscode',
+        page_link: 'https://github.com/xmake-io/xmake-vscode',
         img_link: '/static/img/xmake/xmake-vscode-problem.gif',
         code_repo: 'xmake-vscode',
         title: 'xmake-vscode',
         description: 'This is a xmake integration in vscode，provide fast cross-platform c/c++ development'
     },
     {
-        page_link: 'https://github.com/tboox/xmake-idea',
+        page_link: 'https://github.com/xmake-io/xmake-idea',
         img_link: '/static/img/xmake/xmake-idea-problem.gif',
         code_repo: 'xmake-idea',
         title: 'xmake-idea',
         description: 'This is a xmake integration in Intellij-IDEA，provide fast cross-platform c/c++ development'
     },
     {
-        page_link: 'https://github.com/tboox/xmake-sublime',
+        page_link: 'https://github.com/xmake-io/xmake-sublime',
         img_link: '/static/img/xmake/xmake-sublime-problem.gif',
         code_repo: 'xmake-sublime',
         title: 'xmake-sublime',
