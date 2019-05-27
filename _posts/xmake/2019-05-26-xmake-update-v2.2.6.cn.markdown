@@ -7,6 +7,8 @@ categories: xmake
 
 这个版本主要对远程依赖包的支持进一步完善，并且新增了对clib包依赖的支持，另外现在xmake已经能够直接编译Qt/Android项目，并且可以直接生成apk包，以及安装到设备支持。
 
+此版本还对xmake的启动性能做了优化，解决了windows启动慢的问题，提速98%，整体编译速度也加快了不少。
+
 * [项目源码](https://github.com/xmake-io/xmake)
 * [官方文档](https://xmake.io/#/zh/)
 
