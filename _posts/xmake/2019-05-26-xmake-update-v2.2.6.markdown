@@ -44,13 +44,13 @@ Very simple, we can look at its xmake.lua description, in fact, there is no diff
 add_rules("mode.debug", "mode.release")
 
 target("appdemo")
-    add_rules("qt.application")
-    add_headerfiles("src/*.h")
+    add_rules("qt.application")
+    add_headerfiles("src/*.h")
 
-    add_files("src/*.cpp")
-    add_files("src/qml.qrc")
+    add_files("src/*.cpp")
+    add_files("src/qml.qrc")
 
-    add_frameworks("QtQuick")
+    add_frameworks("QtQuick")
 ```
 
 
@@ -68,10 +68,10 @@ It is also very convenient to integrate in xmake. The only thing to note is that
 add_requires("clib::clibs/bytes@0.0.4", {alias = "bytes"})
 
 target("xmake-test")
-    set_kind("binary")
-    add_files("clib/bytes/*.c")
-    add_files("src/*.c")
-    add_packages("bytes")
+    set_kind("binary")
+    add_files("clib/bytes/*.c")
+    add_files("src/*.c")
+    add_packages("bytes")
 ```
 
 ### Syntax simplification
@@ -80,16 +80,16 @@ The configuration field syntax of xmake.lua is very flexible and can be used in 
 
 ```lua
 option("test1")
-    set_default(true)
-    set_showmenu(true)
-    set_description("test1 option")
+    set_default(true)
+    set_showmenu(true)
+    set_description("test1 option")
 
 option("test2")
-    set_default(true)
-    set_showmeu(true)
+    set_default(true)
+    set_showmeu(true)
 
 option("test3")
-    set_default("hello")
+    set_default("hello")
 ```
 
 For the above small block option domain settings, we can simplify the description into a single line:
@@ -104,8 +104,8 @@ In addition to the option field, this simplified writing is also supported for o
 
 ```lua
 target("demo")
-    set_kind("binary")
-    add_files("src/*.c")
+    set_kind("binary")
+    add_files("src/*.c")
 ```
 
 Simplified to:
