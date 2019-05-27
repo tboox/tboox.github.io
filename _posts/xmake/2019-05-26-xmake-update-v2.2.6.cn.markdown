@@ -17,10 +17,10 @@ categories: xmake
 我们可以先创建一个Qt空项目，并且尝试编译生成apk，例如：
 
 ```console
-$ xmake create -t quickapp_qt -l c++ appdemo
-$ cd appdemo
-$ xmake f -p android --ndk=~/Downloads/android-ndk-r19c/ --android_sdk=~/Library/Android/sdk/ -c 
-$ xmake
+xmake create -t quickapp_qt -l c++ appdemo
+cd appdemo
+xmake f -p android --ndk=~/Downloads/android-ndk-r19c/ --android_sdk=~/Library/Android/sdk/ -c 
+xmake
 [  0%]: compiling.qt.qrc src/qml.qrc
 [ 50%]: ccache compiling.release src/main.cpp
 [100%]: linking.release libappdemo.so
@@ -30,7 +30,7 @@ $ xmake
 然后安装到设备：
 
 ```console
-$ xmake install
+xmake install
 installing appdemo ...
 installing build/android/armv7-a/release/appdemo.apk ..
 Success

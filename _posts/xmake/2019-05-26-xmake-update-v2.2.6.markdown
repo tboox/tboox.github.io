@@ -18,10 +18,10 @@ In addition, xmake has been able to directly compile Qt/Android projects, and ca
 We can create a Qt empty project first, and try to compile and generate apk, for example:
 
 ```console
-$ Xmake create -t quickapp_qt -l c ++ appdemo
-$ cd appdemo
-$ Xmake f -p android --ndk = ~/Downloads/android-ndk-r19c/ --android_sdk = ~/Library/Android/sdk/ -c
-$ xmake
+xmake create -t quickapp_qt -l c ++ appdemo
+cd appdemo
+xmake f -p android --ndk = ~/Downloads/android-ndk-r19c/ --android_sdk = ~/Library/Android/sdk/ -c
+xmake
 [0%]: compiling.qt.qrc src/qml.qrc
 [ 50%]: ccache compiling.release src/main.cpp
 [100%]: linking.release libappdemo.so
@@ -31,11 +31,11 @@ $ xmake
 Then install to the device:
 
 ```console
-$ xmake install
-Installing appdemo ...
-Installing build/android/armv7-a/release/appdemo.apk ..
-Success
-Install ok!👌
+xmake install
+installing appdemo ...
+installing build/android/armv7-a/release/appdemo.apk ..
+success
+install ok!👌
 ```
 
 Very simple, we can look at its xmake.lua description, in fact, there is no difference between compiling and maintaining the Qt project on the pc. The exact same description file is just switched to the android platform when compiling.
