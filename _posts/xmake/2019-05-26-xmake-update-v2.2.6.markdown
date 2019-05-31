@@ -8,8 +8,8 @@ categories: xmake
 This version mainly improves the support of remote dependencies, and adds support for clib package dependencies. 
 In addition, xmake has been able to directly compile Qt/Android projects, and can directly generate apk packages and install them to device support.
 
-* [project source] (https://github.com/xmake-io/xmake)
-* [Official Document] (https://xmake.io/#/en/)
+* [project source](https://github.com/xmake-io/xmake)
+* [Official Document](https://xmake.io/#/en/)
 
 ## Introduction of new features
 
@@ -20,7 +20,7 @@ We can create a Qt empty project first, and try to compile and generate apk, for
 ```console
 xmake create -t quickapp_qt -l c ++ appdemo
 cd appdemo
-xmake f -p android --ndk = ~/Downloads/android-ndk-r19c/ --android_sdk = ~/Library/Android/sdk/ -c
+xmake f -p android --ndk=~/Downloads/android-ndk-r19c/ --android_sdk=~/Library/Android/sdk/ -c
 xmake
 [0%]: compiling.qt.qrc src/qml.qrc
 [ 50%]: ccache compiling.release src/main.cpp
