@@ -12,6 +12,8 @@ categories: xmake
 * [项目源码](https://github.com/xmake-io/xmake)
 * [官方文档](https://xmake.io/#/zh/)
 
+最近正好写了篇与cmake的对比分析文章，有兴趣的同学可以看下：[xmake vs cmake对比分析](https://tboox.org/cn/2019/05/29/xmake-vs-cmake/)
+
 ## 新特性介绍
 
 ### Qt/Android编译支持

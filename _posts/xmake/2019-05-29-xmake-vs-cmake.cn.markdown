@@ -17,6 +17,7 @@ categories: xmake
 
 * [项目源码](https://github.com/xmake-io/xmake)
 * [官方文档](https://xmake.io/#/zh/)
+* [xmake v2.2.6 发布, Qt/Android编译支持](https://tboox.org/cn/2019/05/26/xmake-update-v2.2.6/)
 
 ### 特性支持
 
