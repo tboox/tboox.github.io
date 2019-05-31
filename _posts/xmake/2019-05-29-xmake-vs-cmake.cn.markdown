@@ -80,6 +80,13 @@ add_files("src/**.c|impl/*.c")
 
 更多关于这个接口的使用说明，见相关文档：[add_files接口文档](https://xmake.io/#/zh/manual?id=targetadd_files)
 
+
+
+
+
+
+
+
 ##### cmake
 
 cmake似乎并不支持这种方式，只能挨个添加。
@@ -361,6 +368,12 @@ target("test")
     add_packages("libuv", "ffmpeg", "tbox", "zlib")
 ```
 
+执行xmake命令后，会去自动从仓库中下载对应的包然后编译安装，集成链接进来，效果如下：
+
+<div align="center">
+<img src="https://xmake.io/assets/img/index/package_manage.png" width="80%" />
+</div>
+
 除了官方的包仓库，用户也可以自己创建多个私有仓库，用来集成使用一些私有包，这对于公司内部项目的依赖维护还是很有帮助的。
 
 我们只需要在xmake.lua加上自己的私有仓库地址就行了：
@@ -382,7 +395,10 @@ $ xmake repo --add my-repo git@github.com:myrepo/xmake-repo.git
 
 最后，附带一张xmake的依赖包管理架构图：
 
-![](https://xmake.io/assets/img/index/package_arch.png)
+<div align="center">
+<img src="https://xmake.io/assets/img/index/package_arch.png" width="80%" />
+</div>
+
 
 ##### cmake
 
