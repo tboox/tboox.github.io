@@ -1,6 +1,6 @@
 ---
 layout: post.cn
-title:  "xmake vs cmake"
+title:  "xmake vs cmake对比分析"
 tags: xmake lua cmake 
 categories: xmake
 ---
@@ -206,7 +206,7 @@ install(SCRIPT cmake_install.cmake)
 而是直接调用的编译工具链进行编译，默认会根据cpu核数自动开启多任务加速构建。
 
 ```console
-$ xmake
+xmake
 ```
 
 ##### cmake
@@ -214,8 +214,8 @@ $ xmake
 而cmake的通常是先生成对应IDE/Makefile等第三方构建文件，然后调用make/msbuild等第三方构建工具去编译。
 
 ```console
-$ cmake .
-$ cmake --build .
+cmake .
+cmake --build .
 ```
 
 #### 编译指定平台
@@ -225,8 +225,8 @@ $ cmake --build .
 xmake可以以近乎一致的方式快速切换不同平台和架构来编译。
 
 ```console
-# xmake f -p [iphoneos|android|linux|windows|mingw] -a [arm64|armv7|i386|x86_64]
-$ xmake
+xmake f -p [iphoneos|android|linux|windows|mingw] -a [arm64|armv7|i386|x86_64]
+xmake
 ```
 
 ##### cmake
@@ -234,19 +234,19 @@ $ xmake
 cmake似乎对不同平台和架构的编译配置方式，差异性还是有些的，需要花点时间研究下才行。
 
 ```console
-$ cmake -G Xcode -DIOS_ARCH="arm64" .
-$ cmake --build .
+cmake -G Xcode -DIOS_ARCH="arm64" .
+cmake --build .
 ```
 
 ```console
-$ cmake -G "Visual Studio 9 2008" -A x64
-$ cmake --build .
+cmake -G "Visual Studio 9 2008" -A x64
+cmake --build .
 ```
 
 像android平台编译，配置ndk的方式似乎也很繁琐。
 
 ```console
-$ cmake .. -DCMAKE_TOOLCHAIN_FILE=%ANDROID_NDK%\build\cmake\android.toolchain.cmake -DCMAKE_SYSTEM_NAME="Android" -DANDROID_NDK=%ANDROID_NDK% -DANDROID_TOOLCHAIN=clang -DANDROID_PLATFORM=android-24
+cmake .. -DCMAKE_TOOLCHAIN_FILE=%ANDROID_NDK%\build\cmake\android.toolchain.cmake -DCMAKE_SYSTEM_NAME="Android" -DANDROID_NDK=%ANDROID_NDK% -DANDROID_TOOLCHAIN=clang -DANDROID_PLATFORM=android-24
 ```
 
 #### 安装目标
@@ -254,13 +254,13 @@ $ cmake .. -DCMAKE_TOOLCHAIN_FILE=%ANDROID_NDK%\build\cmake\android.toolchain.cm
 ##### xmake
 
 ```console
-$ xmake install 
+xmake install 
 ```
 
 ##### cmake
 
 ```console
-$ cmake -P cmake_install.cmake
+cmake -P cmake_install.cmake
 ```
 
 #### 运行目标
@@ -270,7 +270,7 @@ $ cmake -P cmake_install.cmake
 大部分情况下，xmake不需要写自定义脚本就可以直接加载运行编译生成的目标程序。
 
 ```console
-$ xmake run 
+xmake run 
 ```
 
 ##### cmake
@@ -278,7 +278,7 @@ $ xmake run
 cmake我没找到可以快速运行指定目标程序的方式，但是应该可以通过写一个自定义脚本去加载运行它。
 
 ```console
-$ cmake -P cmake_run.cmake
+cmake -P cmake_run.cmake
 ```
 
 ### 依赖支持
@@ -385,7 +385,7 @@ add_repositories("my-repo git@github.com:myrepo/xmake-repo.git")
 或者直接命令行添加：
 
 ```console
-$ xmake repo --add my-repo git@github.com:myrepo/xmake-repo.git
+xmake repo --add my-repo git@github.com:myrepo/xmake-repo.git
 ```
 
 关于这块的详细说明可以看下相关文档：
