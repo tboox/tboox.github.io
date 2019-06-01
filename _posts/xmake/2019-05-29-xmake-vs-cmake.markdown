@@ -90,16 +90,15 @@ For more instructions on using this interface, see the related documentation: [a
 
 ##### cmake
 
-cmake doesn't seem to support this method, it can only be added one by one.
-
 ```lua
 add_executable(test "")
+file(GLOB SRC_FILES "src/*.c")
+file(GLOB TEST_FILES "test/*.c")
+file(GLOB_RECURSE EXAMPLE_FILES "example/*.cpp")
 target_sources(test PRIVATE 
-    src/main.c
-    src/demo.c
-    test/test1.c
-    example/test1.cpp
-    example/xxx/test2.cpp
+    ${SRC_FILES}
+    ${TEST_FILES}
+    ${EXAMPLE_FILES}
 )
 ```
 

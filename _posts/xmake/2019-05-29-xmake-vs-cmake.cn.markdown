@@ -90,16 +90,17 @@ add_files("src/**.c|impl/*.c")
 
 ##### cmake
 
-cmake似乎并不支持这种方式，只能挨个添加。
+cmake似乎需要先遍历文件列表到对应变量，再添加到对应的target中去才行，稍微繁琐些。
 
 ```lua
 add_executable(test "")
+file(GLOB SRC_FILES "src/*.c")
+file(GLOB TEST_FILES "test/*.c")
+file(GLOB_RECURSE EXAMPLE_FILES "example/*.cpp")
 target_sources(test PRIVATE 
-    src/main.c
-    src/demo.c
-    test/test1.c
-    example/test1.cpp
-    example/xxx/test2.cpp
+    ${SRC_FILES}
+    ${TEST_FILES}
+    ${EXAMPLE_FILES}
 )
 ```
 
