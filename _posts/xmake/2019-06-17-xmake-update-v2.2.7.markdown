@@ -156,6 +156,35 @@ target("calc")
 
 Here is an example code for reference: [lex_yacc_example](https://github.com/xmake-io/xmake/tree/dev/tests/projects/lex_yacc)
 
+### Improve to set run environments
+
+#### Setting the running directory
+
+We can use the `set_rundir` interface to set the current running directory of the default running target program. If not set, by default, the target is loaded and run in the directory where the executable file is located.
+
+If the user wants to modify the load directory, one is to customize the run logic by `on_run()`, and to do the switch inside, but just to cut the directory, this is too cumbersome.
+
+Therefore, you can quickly switch settings to the default directory environment through this interface.
+
+```lua
+target("test")
+     set_kind("binary")
+     add_files("src/*.c")
+     set_rundir("$(projectdir)/xxx")
+```
+
+#### Adding the environment variables
+
+Another new interface, `add_runenvs`, can be used to add environment variables that set the default run target program.
+
+```lua
+target("test")
+     set_kind("binary")
+     add_files("src/*.c")
+     add_runenvs("PATH", "/tmp/bin", "xxx/bin")
+     add_runenvs("NAME", "value")
+```
+
 ### Support Command line tab completion 
 
 In order to improve the user experience, the new version also supports the xmake command parameter tab completion under the command line. The user can conveniently and quickly tab out all the command parameters of xmake.

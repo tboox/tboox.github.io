@@ -155,6 +155,35 @@ target("calc")
 
 这里有个例子代码，可供参考：[lex_yacc_example](https://github.com/xmake-io/xmake/tree/dev/tests/projects/lex_yacc)
 
+### 运行环境设置改进
+
+#### 设置运行目录
+
+我们可以通过`set_rundir`接口用于设置默认运行target程序的当前运行目录，如果不设置，默认情况下，target是在可执行文件所在目录加载运行。
+
+如果用户想要修改加载目录，一种是通过`on_run()`的方式自定义运行逻辑，里面去做切换，但仅仅为了切个目录就这么做，太过繁琐。
+
+因此可以通过这个接口快速的对默认执行的目录环境做设置切换。
+
+```lua
+target("test")
+    set_kind("binary")
+    add_files("src/*.c")
+    set_rundir("$(projectdir)/xxx")
+```
+
+#### 添加运行环境变量
+
+另外一个新接口`add_runenvs`可用于添加设置默认运行target程序的环境变量。
+
+```lua
+target("test")
+    set_kind("binary")
+    add_files("src/*.c")
+    add_runenvs("PATH", "/tmp/bin", "xxx/bin")
+    add_runenvs("NAME", "value")
+```
+
 ### 命令行tab补全支持
 
 为了改善用户体验，新版本中对命令行下xmake命令参数tab补全也做了支持，用户可以很方便快速的tab出xmake的所有命令参数。
