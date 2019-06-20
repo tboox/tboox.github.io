@@ -107,10 +107,10 @@ xmake
 
 #### 可配置切换nvcc使用的c++编译器
 
-xmake新增了`--ccbin=`参数可以配置切换，nvcc默认使用的c++编译器和链接器，用法如下：
+xmake新增了`--cu-ccbin=`参数可以配置切换，nvcc默认使用的c++编译器和链接器，用法如下：
 
 ```console
-xmake f --ccbin=clang++
+xmake f --cu-ccbin=clang++
 xmake
 ```
 

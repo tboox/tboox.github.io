@@ -108,10 +108,10 @@ However, regarding devlink, it seems that you still need to rely on nvcc, clang 
 
 #### Switch c++ compiler for nvcc
 
-xmake added the `--ccbin=` parameter to configure the switch. The nvcc defaults to the c++ compiler and linker. The usage is as follows:
+xmake added the `--cu-ccbin=` parameter to configure the switch. The nvcc defaults to the c++ compiler and linker. The usage is as follows:
 
 ```console
-xmake f --ccbin=clang++
+xmake f --cu-ccbin=clang++
 xmake
 ```
 
