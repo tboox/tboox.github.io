@@ -12,7 +12,7 @@ icon: book
 
 #### xmake
 
-- [Online Documents](http://xmake.io/#/home)
+- [Online Documents](http://xmake.io/)
 - [Online Articles](/category/#xmake)
 - Mirror Documents 
   - [Quickstart](/docs/xmake/quickstart)
@@ -21,7 +21,7 @@ icon: book
 
 #### tbox
 
-- [Online Documents](https://tboox.io)
+- [Online Documents](https://tboox.io/)
 - [Online Articles](/category/#tbox)
 - [Wiki Documents](https://github.com/tboox/tbox/wiki)
 

@@ -12,7 +12,7 @@ icon: book
 
 #### xmake
 
-- [在线文档](http://xmake.io/#/zh/)
+- [在线文档](http://xmake.io/#/zh-cn/)
 - [在线文章](/cn/category/#xmake)
 - 镜像文档
   - [快速开始](/cn/docs/xmake/quickstart)
@@ -21,7 +21,7 @@ icon: book
 
 #### tbox
 
-- [在线文档](https://tboox.io/zh/)
+- [在线文档](https://tboox.io/#/zh-cn/)
 - [在线文章](/cn/category/#tbox)
 - [Wiki文档](https://github.com/tboox/tbox/wiki)
 
