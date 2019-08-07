@@ -121,6 +121,15 @@ icon: tags
             </div> 
             {% endif %}
 
+            <!-- codefund ads -->
+            {% if site.codefundads_id %}
+            <br>
+            <div class="side">
+            <div id="codefund"></div>
+            <script src="https://codefund.io/properties/{{site.codefundads_id}}/funder.js" async="async"></script>
+            </div> 
+            {% endif %}
+
             <!-- baidu ads -->
             {% if site.baiduads_id0 %}
             <br>

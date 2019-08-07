@@ -127,6 +127,14 @@ icon: tags
             </script>
             {% endif %}
 
+            <!-- codefund ads -->
+            {% if site.codefundads_id %}
+            <br>
+            <div class="side">
+            <div id="codefund"></div>
+            <script src="https://codefund.io/properties/{{site.codefundads_id}}/funder.js" async="async"></script>
+            </div> 
+            {% endif %}
 
             <!-- chitika ads -->
             {% if site.chitika_ads_en %}
