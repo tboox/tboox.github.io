@@ -32,6 +32,7 @@ TBOOX的所有项目都是属于个人开源项目，它的发展需要您的帮
 
 <a href="https://opencollective.com/xmake#backers" target="_blank"><img src="https://opencollective.com/xmake/backers.svg?width=890"></a>
 
+|| 2019.08.31 || tboox || 匿名 || 微信 || ¥30 || 加油 ||
 || 2019.06.17 || xmake || 匿名 || 微信 || ¥10 || 比cmake好用 ||
 || 2019.03.12 || tbox || 翅膀 || 微信 || ¥50 || ||
 || 2019.01.31 || tbox || 翅膀 || 微信 || ¥100 || ||
