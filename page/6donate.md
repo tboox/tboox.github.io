@@ -48,6 +48,7 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## Supporters
 
+|| 2019.09.15 || xmake || ryan || wechat || ¥100 ||  ||
 || 2019.08.31 || tboox || anonymous || wechat || ¥30 || 加油 ||
 || 2019.06.17 || xmake || anonymous || wechat || ¥10 || 比cmake好用 ||
 || 2019.03.12 || tbox || 翅膀 || wechat || ¥50 || ||
