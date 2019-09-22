@@ -19,8 +19,8 @@ I will not talk about the introduction of c++modules. This is mainly about how t
 
 ```lua
 target("hello")
-    set_kind("binary")
-    add_files("src/*.cpp", "src/*.mpp")
+    set_kind("binary")
+    add_files("src/*.cpp", "src/*.mpp")
 ```
 
 The above is a description of the xmake.lua that supports building c++modules files, where `hello.mpp` is the module file:
@@ -31,9 +31,9 @@ export module hello;
 using namespace std;
 
 export namespace hello {
-    void say(const char* str) {
-        printf("%s\n", str);
-    }
+    void say(const char* str) {
+        printf("%s\n", str);
+    }
 }
 ```
 
@@ -43,8 +43,8 @@ Main.cpp is the main program that uses the hello module:
 import hello;
 
 int main() {
-    hello::say("hello module!");
-    return 0;
+    hello::say("hello module!");
+    return 0;
 }
 ```
 
