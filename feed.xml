@@ -5,9 +5,148 @@
     <description>Focus on cross-platform development using c language</description>
     <link>http://www.tboox.org/</link>
     <atom:link href="http://www.tboox.org/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Fri, 20 Sep 2019 11:47:34 +0800</pubDate>
-    <lastBuildDate>Fri, 20 Sep 2019 11:47:34 +0800</lastBuildDate>
+    <pubDate>Sun, 22 Sep 2019 11:14:02 +0800</pubDate>
+    <lastBuildDate>Sun, 22 Sep 2019 11:14:02 +0800</lastBuildDate>
     <generator>Jekyll v3.1.0</generator>
+    
+      <item>
+        <title>使用xmake构建c++20 modules</title>
+        <description>&lt;p&gt;c++ modules已经正式纳入了c++20草案，msvc和clang也已经基本实现了对&lt;a href=&quot;http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1103r3.pdf&quot;&gt;modules-ts&lt;/a&gt;的支持，随着c++20的脚步离我们越来越近，xmake也开始对c++modules提前做好了支持。&lt;/p&gt;
+
+&lt;p&gt;目前xmake已经完全支持了msvc/clang的modules-ts构建实现，而对于gcc，由于它的cxx-modules分支还在开发中，还没有正式进入master，我看了下里面的changelog，相关flags还在不断变动，感觉还没稳定下来，因此这里暂时还没对其进行支持。&lt;/p&gt;
+
+&lt;p&gt;关于xmake对c++modules的相关进展见：&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/569&quot;&gt;https://github.com/xmake-io/xmake/pull/569&lt;/a&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;项目源码&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh/&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;hello-module&quot;&gt;Hello Module&lt;/h3&gt;
+
+&lt;p&gt;关于c++modules的相关介绍我就不多说了，这边主要还是介绍下xmake下如何去构建c++modules项目，我们先来看一个简单的例子：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;hello&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;src/*.mpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;上面是一个支持构建c++modules文件的xmake.lua描述，其中&lt;code class=&quot;highlighter-rouge&quot;&gt;hello.mpp&lt;/code&gt;就是模块文件：&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;cp&quot;&gt;#include &amp;lt;cstdio&amp;gt;
+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;export&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hello&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;using&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;namespace&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;export&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;namespace&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hello&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;say&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;printf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;%s&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;而main.cpp是使用了hello模块的主程序：&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hello&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;hello&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;say&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;hello module!&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;接下来我们执行xmake来构建下这个程序吧：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;ruki:hello ruki$ xmake 
+[  0%]: ccache compiling.release src/hello.mpp
+[ 50%]: ccache compiling.release src/main.cpp
+[100%]: linking.release hello
+build ok!
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;是不是非常简单，xmake内部会去处理所有细节逻辑，对于开发者而言，仅仅是添加了模块文件&lt;code class=&quot;highlighter-rouge&quot;&gt;*.mpp&lt;/code&gt;作为源文件而已。&lt;/p&gt;
+
+&lt;h3 id=&quot;section&quot;&gt;模块接口文件&lt;/h3&gt;
+
+&lt;p&gt;上文所述的&lt;code class=&quot;highlighter-rouge&quot;&gt;*.mpp&lt;/code&gt;是xmake推荐的模块接口文件命名，其实各家编译器对于模块文件的默认后缀名都是不统一的，clang下是&lt;code class=&quot;highlighter-rouge&quot;&gt;*.cppm&lt;/code&gt;，而msvc下是&lt;code class=&quot;highlighter-rouge&quot;&gt;*.ixx&lt;/code&gt;，这对于编写跨编译器统一的模块项目是非常不友好的，
+因此这里参考了&lt;a href=&quot;https://build2.org/doc/modules-cppcon2017.pdf&quot;&gt;build2&lt;/a&gt;里面的推荐方式，采用统一的&lt;code class=&quot;highlighter-rouge&quot;&gt;*.mpp&lt;/code&gt;后缀，来规范xmake下模块项目接口的命令。&lt;/p&gt;
+
+&lt;p&gt;当然，这也支持xmake推荐命名方式，而对于&lt;code class=&quot;highlighter-rouge&quot;&gt;*.ixx&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;*.cppm&lt;/code&gt;等后缀名，xmake也是完全兼容支持的，也可以直接添加到&lt;code class=&quot;highlighter-rouge&quot;&gt;add_files&lt;/code&gt;中去。&lt;/p&gt;
+
+&lt;h3 id=&quot;section-1&quot;&gt;编译参数处理&lt;/h3&gt;
+
+&lt;h4 id=&quot;clang&quot;&gt;clang&lt;/h4&gt;
+
+&lt;p&gt;我们先来看下clang下，是如何处理modules构建的，我们只需要加上-v来执行xmake构建，就能看到所有的细节参数：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;ruki:hello ruki$ xmake -v
+[  0%]: ccache compiling.release src/hello.mpp
+/usr/local/bin/ccache /usr/bin/xcrun -sdk macosx clang -c -fmodules-ts --precompile -x c++-module -Qunused-arguments -arch x86_64 -fpascal-strings -fmessage-length=0 -mmacosx-version-min=10.14 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk -o build/.objs/hello/macosx/x86_64/release/src/hello.mpp.o.pcm src/hello.mpp
+/usr/local/bin/ccache /usr/bin/xcrun -sdk macosx clang -c -fmodules-ts -Qunused-arguments -arch x86_64 -fpascal-strings -fmessage-length=0 -mmacosx-version-min=10.14 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk -o build/.objs/hello/macosx/x86_64/release/src/hello.mpp.o build/.objs/hello/macosx/x86_64/release/src/hello.mpp.o.pcm
+[ 50%]: ccache compiling.release src/main.cpp
+/usr/local/bin/ccache /usr/bin/xcrun -sdk macosx clang -c -fmodules-ts -fmodule-file=build/.objs/hello/macosx/x86_64/release/src/hello.mpp.o.pcm -Qunused-arguments -arch x86_64 -fpascal-strings -fmessage-length=0 -mmacosx-version-min=10.14 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk -o build/.objs/hello/macosx/x86_64/release/src/main.cpp.o src/main.cpp
+[100%]: linking.release hello
+&quot;/usr/bin/xcrun -sdk macosx clang++&quot; -o build/macosx/x86_64/release/hello build/.objs/hello/macosx/x86_64/release/src/hello.mpp.o build/.objs/hello/macosx/x86_64/release/src/main.cpp.o -arch x86_64 -mmacosx-version-min=10.14 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk -stdlib=libc++ -lz
+build ok!
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;我们简化下就是：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;clang -c -fmodules-ts --precompile -x c++-module -o hello.mpp.o.pcm src/hello.mpp
+clang -c -fmodules-ts -o hello.mpp.o hello.mpp.o.pcm
+clang -c -fmodules-ts -fmodule-file=hello.mpp.o.pcm -o main.cpp.o src/main.cpp
+clang++ -o hello hello.mpp.o main.cpp.o 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;-fmodules-ts&lt;/code&gt;用于启用c++-modules模块标准，&lt;code class=&quot;highlighter-rouge&quot;&gt;--precompile&lt;/code&gt;用于预编译模块接口文件，这里由于&lt;code class=&quot;highlighter-rouge&quot;&gt;*.mpp&lt;/code&gt;不是编译器默认的模块接口文件名，因此xmake加上了&lt;code class=&quot;highlighter-rouge&quot;&gt;-x c++-module&lt;/code&gt;来强制作为模块接口文件来编译。&lt;/p&gt;
+
+&lt;p&gt;编译&lt;code class=&quot;highlighter-rouge&quot;&gt;*.mpp&lt;/code&gt;模块接口文件，最后会生成&lt;code class=&quot;highlighter-rouge&quot;&gt;*.pcm&lt;/code&gt;模块文件最终通过&lt;code class=&quot;highlighter-rouge&quot;&gt;-fmodule-file&lt;/code&gt;来告诉clang编译器，我们编译的main.cpp里面hello模块定义在哪里，避免编译main.cpp时候出现hello module未定义的编译器错误。&lt;/p&gt;
+
+&lt;p&gt;最终，clang++将所有对象文件，包括hello.mpp生成的对象文件，全部link进来生成目标程序。&lt;/p&gt;
+
+&lt;h4 id=&quot;msvc&quot;&gt;msvc&lt;/h4&gt;
+
+&lt;p&gt;对于msvc下的处理，我就不细说了，其实整个逻辑是差不多的，我就直接贴下执行的命令过程吧：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;cl.exe -c /experimental:module /module:interface /module:output hello.mpp.obj.pcm /TP -nologo -Fohello.mpp.obj src\\hello.mpp
+cl.exe -c /experimental:module /module:reference hello.mpp.obj.pcm -nologo -Fomain.cpp.obj src\\main.cpp
+link.exe -nologo -dynamicbase -nxcompat -machine:x64 -out:hello.exe hello.mpp.obj main.cpp.obj
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;gcc&quot;&gt;gcc&lt;/h4&gt;
+
+&lt;p&gt;原本是想把gcc也支持进来着的，后来发现gcc对于c++modules的支持，还在独立的分支维护，都还没有进入master，如果要使用，还得单独为此checkout cxx-modules分支代码来编译一份支持c++modules的gcc toolchains才行。&lt;/p&gt;
+
+&lt;p&gt;而且里面的flags使用经常在变动，感觉还没有完全稳定下来，因此这里我懒的去折腾了，等什么时候gcc正式版支持了再说吧。&lt;/p&gt;
+
+&lt;p&gt;如果要进一步了解gcc的modules-ts实现进展，请参考：https://gcc.gnu.org/wiki/cxx-modules&lt;/p&gt;
+
+&lt;h3 id=&quot;section-2&quot;&gt;其他例子&lt;/h3&gt;
+
+&lt;p&gt;xmake项目下还内置了不少跟c++modules相关的工程examples，有兴趣的同学可以参考下：&lt;a href=&quot;https://github.com/xmake-io/xmake/tree/dev/tests/projects/c%2B%2B/modules&quot;&gt;c++module examples&lt;/a&gt;&lt;/p&gt;
+</description>
+        <pubDate>Sun, 22 Sep 2019 00:00:00 +0800</pubDate>
+        <link>http://www.tboox.org/cn/2019/09/22/xmake-c++20-modules/</link>
+        <guid isPermaLink="true">http://www.tboox.org/cn/2019/09/22/xmake-c++20-modules/</guid>
+        
+        <category>xmake</category>
+        
+        <category>lua</category>
+        
+        <category>c++20</category>
+        
+        <category>modules-ts</category>
+        
+        
+        <category>xmake</category>
+        
+      </item>
     
       <item>
         <title>xmake v2.2.8 released, New vs project generator</title>
@@ -3087,168 +3226,6 @@ install ok!👌
         <category>C/C++</category>
         
         <category>Package</category>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>xmake v2.2.6 发布, Qt/Android编译支持</title>
-        <description>&lt;p&gt;这个版本主要对远程依赖包的支持进一步完善，并且新增了对clib包依赖的支持，另外现在xmake已经能够直接编译Qt/Android项目，并且可以直接生成apk包，以及安装到设备支持。&lt;/p&gt;
-
-&lt;p&gt;此版本还对xmake的启动性能做了优化，解决了windows启动慢的问题，提速98%，整体编译速度也加快了不少。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;项目源码&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh/&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;最近正好写了篇与cmake的对比分析文章，有兴趣的同学可以看下：&lt;a href=&quot;https://tboox.org/cn/2019/05/29/xmake-vs-cmake/&quot;&gt;xmake vs cmake对比分析&lt;/a&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;section&quot;&gt;新特性介绍&lt;/h2&gt;
-
-&lt;h3 id=&quot;qtandroid&quot;&gt;Qt/Android编译支持&lt;/h3&gt;
-
-&lt;p&gt;我们可以先创建一个Qt空项目，并且尝试编译生成apk，例如：&lt;/p&gt;
-
-&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake create -t quickapp_qt -l c++ appdemo
-cd appdemo
-xmake f -p android --ndk=~/Downloads/android-ndk-r19c/ --android_sdk=~/Library/Android/sdk/ -c 
-xmake
-[  0%]: compiling.qt.qrc src/qml.qrc
-[ 50%]: ccache compiling.release src/main.cpp
-[100%]: linking.release libappdemo.so
-[100%]: generating.qt.app appdemo.apk
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;然后安装到设备：&lt;/p&gt;
-
-&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake install
-installing appdemo ...
-installing build/android/armv7-a/release/appdemo.apk ..
-Success
-install ok!👌
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;非常简单，我们可以看下其xmake.lua描述，其实跟在pc上编译维护Qt项目并没有区别，完全一样的描述文件，仅仅只是编译的时候切换到了android平台而已。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mode.debug&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mode.release&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;appdemo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;qt.application&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_headerfiles&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/qml.qrc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;add_frameworks&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;QtQuick&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;clib&quot;&gt;clib包依赖集成&lt;/h3&gt;
-
-&lt;p&gt;clib是一款基于源码的依赖包管理器，拉取的依赖包是直接下载对应的库源码，集成到项目中编译，而不是二进制库依赖。&lt;/p&gt;
-
-&lt;p&gt;其在xmake中集成也很方便，唯一需要注意的是，还需要自己添加上对应库的源码到xmake.lua，例如：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;clib::clibs/bytes@0.0.4&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alias&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;bytes&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;xmake-test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;clib/bytes/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
-    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;bytes&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;section-1&quot;&gt;语法简化&lt;/h3&gt;
-
-&lt;p&gt;xmake.lua的配置域语法，非常灵活，可以在相关域做各种复杂灵活的配置，但是对于许多精简的小块配置，这个时候就稍显冗余了：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_default&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_showmenu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_description&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test1 option&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_default&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_showmeu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test3&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_default&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;hello&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;对于上面的这些小块option域设置，我们可以简化下成单行描述：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;default&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;showmenu&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;description&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;test1 option&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;default&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;showmenu&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test3&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;default&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;hello&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;除了option域，对于其他域也是支持这种简化写法的，例如：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;demo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;简化为：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;demo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kind&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;files&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;当然，如果配置需求比较复杂的，还是原有的多行设置方式更加方便，这个就看自己的需求来评估到底使用哪种方式了。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-2&quot;&gt;更新内容&lt;/h2&gt;
-
-&lt;h3 id=&quot;section-3&quot;&gt;新特性&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/380&quot;&gt;#380&lt;/a&gt;: 添加导出compile_flags.txt&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/382&quot;&gt;#382&lt;/a&gt;: 简化域设置语法&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/397&quot;&gt;#397&lt;/a&gt;: 添加clib包集成支持&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/404&quot;&gt;#404&lt;/a&gt;: 增加Qt/Android编译支持，并且支持android apk生成和部署&lt;/li&gt;
-  &lt;li&gt;添加一些Qt空工程模板，例如：&lt;code class=&quot;highlighter-rouge&quot;&gt;widgetapp_qt&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;quickapp_qt_static&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;widgetapp_qt_static&lt;/code&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/415&quot;&gt;#415&lt;/a&gt;: 添加&lt;code class=&quot;highlighter-rouge&quot;&gt;--cu-cxx&lt;/code&gt;配置参数到&lt;code class=&quot;highlighter-rouge&quot;&gt;nvcc/-ccbin&lt;/code&gt;&lt;/li&gt;
-  &lt;li&gt;为Android NDK添加&lt;code class=&quot;highlighter-rouge&quot;&gt;--ndk_stdcxx=y&lt;/code&gt;和&lt;code class=&quot;highlighter-rouge&quot;&gt;--ndk_cxxstl=gnustl_static&lt;/code&gt;参数选项&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;section-4&quot;&gt;改进&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;改进远程依赖包管理，丰富包仓库&lt;/li&gt;
-  &lt;li&gt;改进&lt;code class=&quot;highlighter-rouge&quot;&gt;target:on_xxx&lt;/code&gt;自定义脚本，去支持匹配&lt;code class=&quot;highlighter-rouge&quot;&gt;android|armv7-a@macosx,linux|x86_64&lt;/code&gt;模式&lt;/li&gt;
-  &lt;li&gt;改进loadfile，优化启动速度，windows上启动xmake时间提速98%&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;bugs&quot;&gt;Bugs修复&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/400&quot;&gt;#400&lt;/a&gt;: 修复qt项目c++语言标准设置无效问题&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-        <pubDate>Sun, 26 May 2019 00:00:00 +0800</pubDate>
-        <link>http://www.tboox.org/cn/2019/05/26/xmake-update-v2.2.6/</link>
-        <guid isPermaLink="true">http://www.tboox.org/cn/2019/05/26/xmake-update-v2.2.6/</guid>
-        
-        <category>xmake</category>
-        
-        <category>lua</category>
-        
-        <category>C/C++</category>
-        
-        <category>版本更新</category>
-        
-        <category>Qt</category>
-        
-        <category>Android</category>
         
         
         <category>xmake</category>
