@@ -11,7 +11,7 @@ categories: xmake
 此外，他还帮忙改进了xmake的整个单元测试框架，自更新程序，命令行tab补全以及ci脚本，使得xmake的更新迭代更加高效和稳定。
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh/)
+* [官方文档](https://xmake.io/#/zh-cn/)
 
 ## 新特性介绍
 

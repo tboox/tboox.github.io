@@ -14,7 +14,7 @@ categories: xmake
 不过，需要注意的事，此版本的源码结构改成了git submodule来维护，所以老版本的`xmake update`无法完整支持对新版本的更新，请参考[安装文档](https://xmake.io/#/zh-cn/guide/installation)进行完整安装。
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh/)
+* [官方文档](https://xmake.io/#/zh-cn/)
 
 ## 新特性介绍
 
