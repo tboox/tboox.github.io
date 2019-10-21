@@ -32,6 +32,7 @@ TBOOX的所有项目都是属于个人开源项目，它的发展需要您的帮
 
 <a href="https://opencollective.com/xmake#backers" target="_blank"><img src="https://opencollective.com/xmake/backers.svg?width=890"></a>
 
+|| 2019.10.07 || xmake || 1m188 || 支付宝 || ¥50 || 相比cmake写起来要简单清晰一些 ||
 || 2019.09.15 || xmake || ryan || 微信 || ¥100 ||  ||
 || 2019.08.31 || tboox || 匿名 || 微信 || ¥30 || 加油 ||
 || 2019.06.17 || xmake || 匿名 || 微信 || ¥10 || 比cmake好用 ||
