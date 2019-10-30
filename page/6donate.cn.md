@@ -20,10 +20,6 @@ TBOOX的所有项目都是属于个人开源项目，它的发展需要您的帮
 
 <img src="/static/img/weixin.png" alt="weixin" width="256" height="256">
 
-## 书店
-
-买几本书支持下哦：[逛逛书店](/cn/book/)
-
 ## Paypal
 
 [![Paypal Me](/static/img/paypal.png)](http://paypal.me/tboox/5)
