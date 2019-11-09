@@ -1,6 +1,6 @@
 ---
 layout: post.cn
-title:  "xmake从入门到精通（2）：创建和编译工程"
+title:  "xmake从入门到精通2：创建和编译工程"
 tags: xmake lua c/c++ 创建工程
 categories: xmake
 ---
