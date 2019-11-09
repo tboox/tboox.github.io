@@ -1,6 +1,6 @@
 ---
 layout: post.cn
-title:  "xmake从入门到精通(1)：安装和更新"
+title:  "xmake从入门到精通（1）：安装和更新"
 tags: xmake lua 安装 更新
 categories: xmake
 ---

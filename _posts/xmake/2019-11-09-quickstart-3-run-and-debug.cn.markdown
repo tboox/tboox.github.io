@@ -1,6 +1,6 @@
 ---
 layout: post.cn
-title:  "xmake从入门到精通(3)：运行和调试目标程序"
+title:  "xmake从入门到精通（3）：运行和调试目标程序"
 tags: xmake lua c/c++ 运行 调试
 categories: xmake
 ---
