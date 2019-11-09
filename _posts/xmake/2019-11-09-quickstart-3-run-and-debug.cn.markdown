@@ -60,6 +60,8 @@ target("test")
 
 ### 调试程序
 
+#### 命令行调试
+
 我们也可以传递`-d`参数，调用gdb/lldb等调试器程序，加载目标文件进行调试：
 
 
@@ -87,4 +89,12 @@ hello`main:
 [lldb]$
 ```
 
+#### 使用vscode进行断点调试
 
+我们还可以通过[xmake-vscode](https://github.com/xmake-io/xmake-vscode)插件配合vscode来实现对c/c++项目的断点调试支持。
+
+另外我们还需要依赖vscode的C++插件才能进行调试支持，不过由于开发c/c++程序，这个插件几乎是必需，所以并没有太大问题。
+
+就算没有安装此插件，xmake-vscode也会加载lldb/gdb/vsjitdebugger等系统调试器，直接加载调试。
+
+<img src="/static/img/xmake/xmake-vscode-debug.gif" width="60%" />
