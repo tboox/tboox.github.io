@@ -37,6 +37,15 @@ icon: th-list
     <div class="right">
         <div class="wrap">
 
+            <!-- codefund ads -->
+            {% if site.codefundads_id %}
+            <div class="side">
+            <div id="codefund"></div>
+            <script src="https://codefund.io/properties/{{site.codefundads_id}}/funder.js" async="async"></script>
+            </div> 
+            <br>
+            {% endif %}
+
             <!-- Content -->
             <div class="side content">
                 <div>
@@ -86,14 +95,6 @@ icon: th-list
             </div> 
             {% endif %}
 
-            <!-- codefund ads -->
-            {% if site.codefundads_id %}
-            <br>
-            <div class="side">
-            <div id="codefund"></div>
-            <script src="https://codefund.io/properties/{{site.codefundads_id}}/funder.js" async="async"></script>
-            </div> 
-            {% endif %}
 
             <!-- baidu ads -->
             {% if site.baiduads_id0 %}

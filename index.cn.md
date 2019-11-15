@@ -98,6 +98,15 @@ layout: default.cn
     <!-- <button class="anchor"><i class="fa fa-anchor"></i></button> -->
     <div class="right">
         <div class="wrap">
+
+            <!-- codefund ads -->
+            {% if site.codefundads_id %}
+            <div class="side">
+            <div id="codefund"></div>
+            <script src="https://codefund.io/properties/{{site.codefundads_id}}/funder.js" async="async"></script>
+            </div> 
+            {% endif %}
+
             <div class="side">
                 <div>
                     <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
@@ -207,14 +216,6 @@ layout: default.cn
                 <script>
                 (adsbygoogle = window.adsbygoogle || []).push({});
                 </script>
-            </div> 
-            {% endif %}
-
-            <!-- codefund ads -->
-            {% if site.codefundads_id %}
-            <div class="side">
-            <div id="codefund"></div>
-            <script src="https://codefund.io/properties/{{site.codefundads_id}}/funder.js" async="async"></script>
             </div> 
             {% endif %}
 
