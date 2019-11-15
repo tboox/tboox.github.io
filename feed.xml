@@ -5,9 +5,161 @@
     <description>Focus on cross-platform development using c language</description>
     <link>http://www.tboox.org/</link>
     <atom:link href="http://www.tboox.org/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Tue, 12 Nov 2019 07:29:52 +0800</pubDate>
-    <lastBuildDate>Tue, 12 Nov 2019 07:29:52 +0800</lastBuildDate>
+    <pubDate>Fri, 15 Nov 2019 22:30:49 +0800</pubDate>
+    <lastBuildDate>Fri, 15 Nov 2019 22:30:49 +0800</lastBuildDate>
     <generator>Jekyll v3.1.0</generator>
+    
+      <item>
+        <title>xmake从入门到精通5：Android平台编译详解</title>
+        <description>&lt;p&gt;xmake是一个基于Lua的轻量级现代化c/c++的项目构建工具，主要特点是：语法简单易上手，提供更加可读的项目维护，实现跨平台行为一致的构建体验。&lt;/p&gt;
+
+&lt;p&gt;本文主要详细讲解如何通过xmake编译可在android下运行的库和可执行程序。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;项目源码&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;准备工作&quot;&gt;准备工作&lt;/h3&gt;
+
+&lt;p&gt;首先，我们需要先准备好编译android native库必须的ndk工具链，如果还没有可以从官网下载解压即可：&lt;a href=&quot;https://developer.android.com/ndk/&quot;&gt;Android NDK&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;如果是为了获取更好的向下兼容性，可以选择r16版本，因为这个是最后一个支持armeabi的版本，如果没什么特别需求，可以直接下载最新版。&lt;/p&gt;
+
+&lt;h3 id=&quot;ndk集成和编译&quot;&gt;NDK集成和编译&lt;/h3&gt;
+
+&lt;h4 id=&quot;手动配置ndk&quot;&gt;手动配置NDK&lt;/h4&gt;
+
+&lt;p&gt;我们只需要将解压后ndk目录路径传递给xmake完成配置，可以直接编译了，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p android --ndk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;~/downloads/android-ndk-r19c
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;其中，&lt;code class=&quot;highlighter-rouge&quot;&gt;-p android&lt;/code&gt;用于切换到android平台，因为如果不指定平台，默认会编译当前主机平台的target程序。&lt;/p&gt;
+
+&lt;p&gt;通常，如果没特殊需求，上面的配置就可以完成android native程序的编译，目前xmake内置支持：binary, static, shared这三种基础target类型文件的生成，分别对应可执行程序，.a静态库，.so动态库。&lt;/p&gt;
+
+&lt;h4 id=&quot;ndk路径的全局配置&quot;&gt;NDK路径的全局配置&lt;/h4&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f/config&lt;/code&gt;命令仅仅是针对当前项目的配置，如果经常跨平台编译和配置切换都要重新设置一遍ndk路径，那么还是稍显繁琐。&lt;/p&gt;
+
+&lt;p&gt;我们可以通过&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake g/global&lt;/code&gt;全局配置命令来设置它，确保永久生效。&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake g --ndk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;~/xxx/android-ndk-r19c
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;我们也可以通过设置&lt;code class=&quot;highlighter-rouge&quot;&gt;ANDROID_NDK_HOME&lt;/code&gt;全局环境变量来确保永久生效，这跟上述命令配置的效果是差不多的。&lt;/p&gt;
+
+&lt;h4 id=&quot;ndk路径的自动探测&quot;&gt;NDK路径的自动探测&lt;/h4&gt;
+
+&lt;p&gt;通常情况下即使没有配置ndk路径，xmake还是会尝试默认检测一些常用路径，比如在macos下会自动探测是否存在以下路径：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;~/Library/Android/sdk/ndk-bundle
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这是mac下装完android studio自动创建的sdk目录，以及ndk的常用放置路径。&lt;/p&gt;
+
+&lt;p&gt;或者尝试从ANDROID_NDK_HOME这种环境变量中探测，如果存在的话。&lt;/p&gt;
+
+&lt;p&gt;如果能探测到，也就没必要再额外手动配置了。&lt;/p&gt;
+
+&lt;h3 id=&quot;c-stl库配置切换&quot;&gt;C++ STL库配置切换&lt;/h3&gt;
+
+&lt;p&gt;首先，我们先来介绍下，ndk提供的三种stl库版本&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;stlport：早期ndk内置的stl库，现在基本已废弃&lt;/li&gt;
+  &lt;li&gt;gnustl：ndk r16b之前主要使用的stl库，但是自从r16b之后，也已经被google去掉了&lt;/li&gt;
+  &lt;li&gt;llvm-c++：r16b之后较新的ndk内置的stl库&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;因此，我们在编译android库的时候，需要根据自己的需求，选用stl，以及选用合适的ndk版本，而xmake通常会尽可能默认使用llvm-c++库，如果发现当前ndk版本比较老，会尝试退化到gnustl上去。&lt;/p&gt;
+
+&lt;p&gt;用户也可以手动修改stl库的版本，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p android --ndk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;xxxx --ndk_cxxstl&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;gnustl_shared
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;具体，关于ndk_cxxstl选项的配置值，可以敲help查看，&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f --help&lt;/code&gt;，主要就是：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;llvmstl_static&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;llvmstl_shared&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;gnustl_static&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;gnustl_shared&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;stlport_static&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;stlport_shared&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;api版本设置&quot;&gt;API版本设置&lt;/h3&gt;
+
+&lt;p&gt;如果在编译过程中，报出一些libc库符号找不到，通常有可能是api版本没设置对，因为有些libc函数，只有在高版本api下才存在。&lt;/p&gt;
+
+&lt;p&gt;这个时候，我们可以通过尝试手动修改api版本来解决：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p android --ndk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;xxx --ndk_sdkver&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;16
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;arch的编译切换&quot;&gt;arch的编译切换&lt;/h3&gt;
+
+&lt;p&gt;目前xmake提供 &lt;code class=&quot;highlighter-rouge&quot;&gt;armv7-a&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;arm64-v8a&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;armv5te&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;mips&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;mips64&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;i386&lt;/code&gt;,&lt;code class=&quot;highlighter-rouge&quot;&gt;x86_64&lt;/code&gt;这些架构的配置编译，如果没有指定arch，那么默认会使用armv7架构。&lt;/p&gt;
+
+&lt;p&gt;手动修改arch方式如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p android --ndk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;xxx -a arm64-v8a
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;android相关配置设置&quot;&gt;Android相关配置设置&lt;/h3&gt;
+
+&lt;p&gt;如果项目中需要配置一些只有android平台才有的编译设置，比如添加特定宏开关，链接库等，可以在xmake.lua中，通过&lt;code class=&quot;highlighter-rouge&quot;&gt;is_plat(&quot;android&quot;)&lt;/code&gt;来判断处理。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;shared&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;is_plat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;android&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;add_defines&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;ANDROID&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;add_syslinks&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;log&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;faq&quot;&gt;FAQ&lt;/h3&gt;
+
+&lt;h4 id=&quot;遇到一些libcstl库头文件找不到怎么办&quot;&gt;遇到一些libc/stl库头文件找不到怎么办？&lt;/h4&gt;
+
+&lt;p&gt;可以尝试修改stl库版本，和api版本来解决，比如ndk r16b 推荐使用gnustl库，因为这个版本的llvmc++库刚集成进去不久，问题比较多，使用过程中容易遇到各种编译问题。&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p android --ndk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;xxxx --ndk_cxxstl&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;gnustl_shared --ndk_sdkver&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;16
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;编译生成的可执行程序在设备上运行不起来&quot;&gt;编译生成的可执行程序在设备上运行不起来？&lt;/h4&gt;
+
+&lt;p&gt;通常是api版本设置太高，导致的不兼容问题，可以尝试调低api版本。&lt;/p&gt;
+</description>
+        <pubDate>Fri, 15 Nov 2019 00:00:00 +0800</pubDate>
+        <link>http://www.tboox.org/cn/2019/11/15/quickstart-5-build-android/</link>
+        <guid isPermaLink="true">http://www.tboox.org/cn/2019/11/15/quickstart-5-build-android/</guid>
+        
+        <category>xmake</category>
+        
+        <category>lua</category>
+        
+        <category>android</category>
+        
+        <category>jni</category>
+        
+        
+        <category>xmake</category>
+        
+      </item>
     
       <item>
         <title>xmake从入门到精通4：常用C/C++项目描述设置详解</title>
@@ -21,7 +173,7 @@
   &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h3 id=&quot;section&quot;&gt;先来一段最简短的&lt;/h3&gt;
+&lt;h3 id=&quot;先来一段最简短的&quot;&gt;先来一段最简短的&lt;/h3&gt;
 
 &lt;p&gt;一行描述即可编译src目录下所有c源文件，然后生成一个名为demo的可执行文件。&lt;/p&gt;
 
@@ -41,7 +193,7 @@
 
 &lt;p&gt;如果没有特殊目的，下文我们都会采用第二段的写法。&lt;/p&gt;
 
-&lt;h3 id=&quot;section-1&quot;&gt;配置项目目标类型&lt;/h3&gt;
+&lt;h3 id=&quot;配置项目目标类型&quot;&gt;配置项目目标类型&lt;/h3&gt;
 
 &lt;p&gt;通常的C/C++项目生成的目标文件主要有三大类：可执行程序，静态库，动态库。&lt;/p&gt;
 
@@ -55,7 +207,7 @@
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;h3 id=&quot;section-2&quot;&gt;添加宏定义&lt;/h3&gt;
+&lt;h3 id=&quot;添加宏定义&quot;&gt;添加宏定义&lt;/h3&gt;
 
 &lt;p&gt;编译宏的设置，大多数c/c++项目都会用到，一般如果我们设置编译flags传给gcc/clang，都是要配置：&lt;code class=&quot;highlighter-rouge&quot;&gt;-DXXX&lt;/code&gt;&lt;/p&gt;
 
@@ -68,7 +220,7 @@
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;h3 id=&quot;section-3&quot;&gt;条件配置&lt;/h3&gt;
+&lt;h3 id=&quot;条件配置&quot;&gt;条件配置&lt;/h3&gt;
 
 &lt;p&gt;那如果我们想在不同编译平台，分别设置不同的宏开关呢？我们可以利用lua内置的if语句很方便的实现：&lt;/p&gt;
 
@@ -84,7 +236,7 @@
 
 &lt;p&gt;我们通过&lt;code class=&quot;highlighter-rouge&quot;&gt;is_plat()&lt;/code&gt;判断，如果当前编译目标平台是linux或者macosx，那么target会额外增加&lt;code class=&quot;highlighter-rouge&quot;&gt;-DYYY&lt;/code&gt;宏定义。&lt;/p&gt;
 
-&lt;h3 id=&quot;section-4&quot;&gt;全局配置&lt;/h3&gt;
+&lt;h3 id=&quot;全局配置&quot;&gt;全局配置&lt;/h3&gt;
 
 &lt;p&gt;我们在&lt;code class=&quot;highlighter-rouge&quot;&gt;target(&quot;demo&quot;)&lt;/code&gt;下面的所有配置，都属于demo这个target子域，并不是全局的，所以你会看到通常配置上都加了缩进，就是为了凸显作用域的影响范围。&lt;/p&gt;
 
@@ -148,7 +300,7 @@
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;h3 id=&quot;section-5&quot;&gt;添加编译选项&lt;/h3&gt;
+&lt;h3 id=&quot;添加编译选项&quot;&gt;添加编译选项&lt;/h3&gt;
 
 &lt;p&gt;如果有些编译选项，xmake没有提供内置api设置，那么我们可以退化到&lt;code class=&quot;highlighter-rouge&quot;&gt;add_cflags&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;add_cxflags&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;add_cxxflags&lt;/code&gt;来设置，
 不过这就需要用户自己去判断编译平台了，因为并不是所有编译flags每个平台都支持。&lt;/p&gt;
@@ -190,7 +342,7 @@ checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the flags &lt;span cla
   &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;add_cxxflags&lt;/code&gt;：仅添加C++代码相关编译flags&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h3 id=&quot;section-6&quot;&gt;添加库相关设置&lt;/h3&gt;
+&lt;h3 id=&quot;添加库相关设置&quot;&gt;添加库相关设置&lt;/h3&gt;
 
 &lt;p&gt;一个C/C++库的集成使用，通常需要设置头文件搜索目录，链接库名，库搜索目录，比如：&lt;/p&gt;
 
@@ -215,7 +367,7 @@ checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the flags &lt;span cla
 
 &lt;p&gt;如果你不确定实际的链接顺序，我们可以执行&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake -v&lt;/code&gt;编译，查看完整的链接参数命令行。&lt;/p&gt;
 
-&lt;h3 id=&quot;section-7&quot;&gt;设置语言标准&lt;/h3&gt;
+&lt;h3 id=&quot;设置语言标准&quot;&gt;设置语言标准&lt;/h3&gt;
 
 &lt;p&gt;c标准和c++标准可同时进行设置，例如：&lt;/p&gt;
 
@@ -229,7 +381,7 @@ checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the flags &lt;span cla
 &lt;p&gt;例如：windows下vs的编译器并不支持按c99的标准来编译c代码，只能支持到c89，但是xmake为了尽可能的支持它，所以在设置c99的标准后，
 xmake会强制按c++代码模式去编译c代码，从一定程度上解决了windows下编译c99的c代码问题。&lt;/p&gt;
 
-&lt;h3 id=&quot;section-8&quot;&gt;设置编译优化&lt;/h3&gt;
+&lt;h3 id=&quot;设置编译优化&quot;&gt;设置编译优化&lt;/h3&gt;
 
 &lt;p&gt;xmake提供了几种内置的编译优化配置：none, fast, faster, fastest, smallest, aggressive，来实现各种级别的编译优化。&lt;/p&gt;
 
@@ -241,7 +393,7 @@ xmake会强制按c++代码模式去编译c代码，从一定程度上解决了wi
 
 &lt;p&gt;如果想查看详细的映射规则，可以到xmake的官方文档进行查看：&lt;a href=&quot;https://xmake.io/#/zh-cn/manual/project_target?id=targetset_optimize&quot;&gt;编译优化设置&lt;/a&gt;&lt;/p&gt;
 
-&lt;h3 id=&quot;section-9&quot;&gt;调试和发布模式&lt;/h3&gt;
+&lt;h3 id=&quot;调试和发布模式&quot;&gt;调试和发布模式&lt;/h3&gt;
 
 &lt;p&gt;即使xmake提供了&lt;code class=&quot;highlighter-rouge&quot;&gt;set_optimize&lt;/code&gt;简化了不同编译器的复杂配置，但是对于不同的编译模式: debug/release，还是要自己做一些繁琐的判断和配置：&lt;/p&gt;
 
@@ -285,7 +437,7 @@ xmake会强制按c++代码模式去编译c代码，从一定程度上解决了wi
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;h3 id=&quot;section-10&quot;&gt;添加源文件&lt;/h3&gt;
+&lt;h3 id=&quot;添加源文件&quot;&gt;添加源文件&lt;/h3&gt;
 
 &lt;p&gt;最后，我们在介绍下xmake最常用，也最为强大的设置之一，也就是对编译源文件的配置管理：&lt;code class=&quot;highlighter-rouge&quot;&gt;add_files()&lt;/code&gt;。&lt;/p&gt;
 
@@ -347,7 +499,7 @@ xmake会强制按c++代码模式去编译c代码，从一定程度上解决了wi
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;h3 id=&quot;section-11&quot;&gt;删除指定源文件&lt;/h3&gt;
+&lt;h3 id=&quot;删除指定源文件&quot;&gt;删除指定源文件&lt;/h3&gt;
 
 &lt;p&gt;既然讲到了添加源文件，那么如何删除，我们也顺带着讲下吧，我们只需要通过&lt;code class=&quot;highlighter-rouge&quot;&gt;del_files()&lt;/code&gt;接口，就可以从前面&lt;code class=&quot;highlighter-rouge&quot;&gt;add_files&lt;/code&gt;接口添加的文件列表中，删除指定的文件，例如：&lt;/p&gt;
 
@@ -402,7 +554,7 @@ xmake会强制按c++代码模式去编译c代码，从一定程度上解决了wi
   &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h3 id=&quot;section&quot;&gt;运行生成目标&lt;/h3&gt;
+&lt;h3 id=&quot;运行生成目标&quot;&gt;运行生成目标&lt;/h3&gt;
 
 &lt;p&gt;xmake也提供了run命令，直接运行生成后的可执行文件，用于方便快速的进行测试，例如：&lt;/p&gt;
 
@@ -411,7 +563,7 @@ hello xmake!
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;h4 id=&quot;section-1&quot;&gt;添加运行环境变量&lt;/h4&gt;
+&lt;h4 id=&quot;添加运行环境变量&quot;&gt;添加运行环境变量&lt;/h4&gt;
 
 &lt;p&gt;我们也可以在xmake.lua中通过&lt;code class=&quot;highlighter-rouge&quot;&gt;add_runenvs&lt;/code&gt;接口来添加设置默认运行target程序的环境变量。&lt;/p&gt;
 
@@ -427,7 +579,7 @@ hello xmake!
 
 &lt;p&gt;更多关于此接口的描述，可以看下文档：&lt;a href=&quot;https://xmake.io/#/zh-cn/manual/project_target?id=targetadd_runenvs&quot;&gt;add_runenvs接口文档&lt;/a&gt;&lt;/p&gt;
 
-&lt;h4 id=&quot;section-2&quot;&gt;自定义运行逻辑&lt;/h4&gt;
+&lt;h4 id=&quot;自定义运行逻辑&quot;&gt;自定义运行逻辑&lt;/h4&gt;
 
 &lt;p&gt;如果单纯的环境设置，以及默认的加载运行规则不满足需求，我们可以通过定制化&lt;code class=&quot;highlighter-rouge&quot;&gt;on_run&lt;/code&gt;脚本，实现更加复杂的运行逻辑：&lt;/p&gt;
 
@@ -443,9 +595,9 @@ hello xmake!
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;h3 id=&quot;section-3&quot;&gt;调试程序&lt;/h3&gt;
+&lt;h3 id=&quot;调试程序&quot;&gt;调试程序&lt;/h3&gt;
 
-&lt;h4 id=&quot;section-4&quot;&gt;命令行调试&lt;/h4&gt;
+&lt;h4 id=&quot;命令行调试&quot;&gt;命令行调试&lt;/h4&gt;
 
 &lt;p&gt;我们也可以传递&lt;code class=&quot;highlighter-rouge&quot;&gt;-d&lt;/code&gt;参数，调用gdb/lldb等调试器程序，加载目标文件进行调试：&lt;/p&gt;
 
@@ -473,7 +625,7 @@ hello&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;main:
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;h4 id=&quot;vscode&quot;&gt;使用vscode进行断点调试&lt;/h4&gt;
+&lt;h4 id=&quot;使用vscode进行断点调试&quot;&gt;使用vscode进行断点调试&lt;/h4&gt;
 
 &lt;p&gt;我们还可以通过&lt;a href=&quot;https://github.com/xmake-io/xmake-vscode&quot;&gt;xmake-vscode&lt;/a&gt;插件配合vscode来实现对c/c++项目的断点调试支持。&lt;/p&gt;
 
@@ -513,7 +665,7 @@ hello&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;main:
   &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h3 id=&quot;section&quot;&gt;创建空工程&lt;/h3&gt;
+&lt;h3 id=&quot;创建空工程&quot;&gt;创建空工程&lt;/h3&gt;
 
 &lt;p&gt;xmake提供了&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake create&lt;/code&gt;命令，可以很方便的快速创建基于c/c++, swift, objc等各种语言的空工程项目，比如：&lt;/p&gt;
 
@@ -539,7 +691,7 @@ create ok!
 
 &lt;p&gt;而最上面的&lt;code class=&quot;highlighter-rouge&quot;&gt;mode.debug&lt;/code&gt;和&lt;code class=&quot;highlighter-rouge&quot;&gt;mode.release&lt;/code&gt;规则设置，是可选设置，但是通常我们都会建议加上，这样默认就可以生效两种常用的构建模式：debug和release&lt;/p&gt;
 
-&lt;h3 id=&quot;section-1&quot;&gt;执行编译&lt;/h3&gt;
+&lt;h3 id=&quot;执行编译&quot;&gt;执行编译&lt;/h3&gt;
 
 &lt;p&gt;通常我们如果只是编译当前主机环境的可执行文件，只需要执行xmake这个命令就可以了：&lt;/p&gt;
 
@@ -553,7 +705,7 @@ checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the SDK version of Xco
 
 &lt;p&gt;xmake默认会检测当前环境已存在的构建环境，比如笔者当前的xcode环境，然后默认采用release模式编译，如果设置了&lt;code class=&quot;highlighter-rouge&quot;&gt;mode.release&lt;/code&gt;规则，那么就会生效。&lt;/p&gt;
 
-&lt;h3 id=&quot;section-2&quot;&gt;编译模式切换&lt;/h3&gt;
+&lt;h3 id=&quot;编译模式切换&quot;&gt;编译模式切换&lt;/h3&gt;
 
 &lt;p&gt;而如果我们要切到&lt;code class=&quot;highlighter-rouge&quot;&gt;mode.debug&lt;/code&gt;编译，只需要：&lt;/p&gt;
 
@@ -564,7 +716,7 @@ checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the SDK version of Xco
 
 &lt;p&gt;其中，&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f&lt;/code&gt;是&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake config&lt;/code&gt;命令的简写，用来快速的切换配置，如果上手之后，通常采用简写会更加方便，更多命令的简写，都可执行&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake --help&lt;/code&gt;查看。&lt;/p&gt;
 
-&lt;h3 id=&quot;section-3&quot;&gt;创建其他模板工程&lt;/h3&gt;
+&lt;h3 id=&quot;创建其他模板工程&quot;&gt;创建其他模板工程&lt;/h3&gt;
 
 &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake create&lt;/code&gt;还可以用来创建各种其他类型的工程项目，我们可以敲&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake create --help&lt;/code&gt;看下：&lt;/p&gt;
 
@@ -688,23 +840,23 @@ checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the SDK version of Xco
   &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2 id=&quot;master&quot;&gt;安装Master版本&lt;/h2&gt;
+&lt;h2 id=&quot;安装master版本&quot;&gt;安装Master版本&lt;/h2&gt;
 
 &lt;p&gt;通常情况下我们只需要通过一键安装脚本即可完成安装。&lt;/p&gt;
 
-&lt;h3 id=&quot;curl&quot;&gt;使用curl&lt;/h3&gt;
+&lt;h3 id=&quot;使用curl&quot;&gt;使用curl&lt;/h3&gt;
 
 &lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;bash &amp;lt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;curl -fsSL https://raw.githubusercontent.com/tboox/xmake/master/scripts/get.sh&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;h3 id=&quot;wget&quot;&gt;使用wget&lt;/h3&gt;
+&lt;h3 id=&quot;使用wget&quot;&gt;使用wget&lt;/h3&gt;
 
 &lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;bash &amp;lt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;wget https://raw.githubusercontent.com/tboox/xmake/master/scripts/get.sh -O -&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;h3 id=&quot;powershell&quot;&gt;使用powershell&lt;/h3&gt;
+&lt;h3 id=&quot;使用powershell&quot;&gt;使用powershell&lt;/h3&gt;
 
 &lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Invoke-Expression &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;Invoke-Webrequest &lt;span class=&quot;s1&quot;&gt;&#39;https://raw.githubusercontent.com/tboox/xmake/master/scripts/get.ps1&#39;&lt;/span&gt; -UseBasicParsing&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;.Content
 &lt;/code&gt;&lt;/pre&gt;
@@ -712,9 +864,9 @@ checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the SDK version of Xco
 
 &lt;p&gt;注：如果ps脚本执行提示失败，可以尝试在管理员模式下执行&lt;/p&gt;
 
-&lt;h2 id=&quot;windows&quot;&gt;安装Windows版本&lt;/h2&gt;
+&lt;h2 id=&quot;安装windows版本&quot;&gt;安装Windows版本&lt;/h2&gt;
 
-&lt;h3 id=&quot;section&quot;&gt;使用安装包&lt;/h3&gt;
+&lt;h3 id=&quot;使用安装包&quot;&gt;使用安装包&lt;/h3&gt;
 
 &lt;p&gt;windows下提供了预制的nsis安装包，我们可直接从github的Releases下载页面下载后，运行安装包即可。&lt;/p&gt;
 
@@ -723,7 +875,7 @@ checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the SDK version of Xco
   &lt;li&gt;运行安装程序 xmake-[version].exe&lt;/li&gt;
 &lt;/ol&gt;
 
-&lt;h3 id=&quot;scoop&quot;&gt;使用scoop&lt;/h3&gt;
+&lt;h3 id=&quot;使用scoop&quot;&gt;使用scoop&lt;/h3&gt;
 
 &lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;scoop install xmake
 &lt;/code&gt;&lt;/pre&gt;
@@ -772,9 +924,9 @@ checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the SDK version of Xco
 
 &lt;p&gt;最新版本的xmake已经很好地支持了termux，而我们也通常只需要执行上面的一键安装脚本即可，如果失败，可参考下文自己拉取源码编译安装。&lt;/p&gt;
 
-&lt;h2 id=&quot;section-1&quot;&gt;源码编译安装&lt;/h2&gt;
+&lt;h2 id=&quot;源码编译安装&quot;&gt;源码编译安装&lt;/h2&gt;
 
-&lt;h3 id=&quot;section-2&quot;&gt;安装&lt;/h3&gt;
+&lt;h3 id=&quot;安装&quot;&gt;安装&lt;/h3&gt;
 
 &lt;p&gt;注：切记，xmake不建议在root下安装，所以尽量不要在root下拉取源码编译安装！&lt;/p&gt;
 
@@ -800,13 +952,13 @@ checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the SDK version of Xco
 
 &lt;p&gt;注：&lt;code class=&quot;highlighter-rouge&quot;&gt;./get.sh __local__&lt;/code&gt;是安装到&lt;code class=&quot;highlighter-rouge&quot;&gt;~/.local/xmake&lt;/code&gt;下，然后通过&lt;code class=&quot;highlighter-rouge&quot;&gt;source ~/.xmake/profile&lt;/code&gt;方式来加载的，所以安装完，当前终端如果执行xmake失败，提示找不到，就手动执行下 &lt;code class=&quot;highlighter-rouge&quot;&gt;source ~/.xmake/profile&lt;/code&gt;，而下次打开终端就不需要了。&lt;/p&gt;
 
-&lt;h3 id=&quot;section-3&quot;&gt;卸载&lt;/h3&gt;
+&lt;h3 id=&quot;卸载&quot;&gt;卸载&lt;/h3&gt;
 
 &lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;./scripts/get.sh __uninstall__
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;h3 id=&quot;lua&quot;&gt;仅仅更新安装lua脚本&lt;/h3&gt;
+&lt;h3 id=&quot;仅仅更新安装lua脚本&quot;&gt;仅仅更新安装lua脚本&lt;/h3&gt;
 
 &lt;p&gt;这个开发者本地调试xmake源码才需要：&lt;/p&gt;
 
@@ -814,18 +966,18 @@ checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the SDK version of Xco
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;h3 id=&quot;root&quot;&gt;root下安装&lt;/h3&gt;
+&lt;h3 id=&quot;root下安装&quot;&gt;root下安装&lt;/h3&gt;
 
 &lt;p&gt;xmake不推荐root下安装使用，因为这很不安全，如果用户非要root下装，装完后，如果提示xmake运行不了，请根据提示传递&lt;code class=&quot;highlighter-rouge&quot;&gt;--root&lt;/code&gt;参数，或者设置&lt;code class=&quot;highlighter-rouge&quot;&gt;XMAKE_ROOT=y&lt;/code&gt;环境变量强行启用下，前提是：用户需要随时注意root下误操作系统文件文件的风险。&lt;/p&gt;
 
-&lt;h3 id=&quot;section-4&quot;&gt;依赖问题&lt;/h3&gt;
+&lt;h3 id=&quot;依赖问题&quot;&gt;依赖问题&lt;/h3&gt;
 
 &lt;ol&gt;
   &lt;li&gt;如果遇到readline相关问题，请装下readline-devel或者libreadline-dev依赖，这个是可选的，仅仅&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake lua&lt;/code&gt;命令执行REPL时候才需要。&lt;/li&gt;
   &lt;li&gt;如果想要提速编译，可以装下ccache，xmake会自动检测并使用，这也是可选的。&lt;/li&gt;
 &lt;/ol&gt;
 
-&lt;h2 id=&quot;section-5&quot;&gt;其他安装方式&lt;/h2&gt;
+&lt;h2 id=&quot;其他安装方式&quot;&gt;其他安装方式&lt;/h2&gt;
 
 &lt;p&gt;注：这种也是源码编译安装，但是安装路径会直接写入&lt;code class=&quot;highlighter-rouge&quot;&gt;/usr/&lt;/code&gt;下，需要root权限，因此除非特殊情况，不推荐这种安装方式，建议采用上文提供的&lt;code class=&quot;highlighter-rouge&quot;&gt;./get.sh __local__&lt;/code&gt;方式来安装，这两种安装方式的安装路径是不同的，不要混用。&lt;/p&gt;
 
@@ -847,7 +999,7 @@ checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the SDK version of Xco
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;h2 id=&quot;section-6&quot;&gt;更新升级&lt;/h2&gt;
+&lt;h2 id=&quot;更新升级&quot;&gt;更新升级&lt;/h2&gt;
 
 &lt;p&gt;从v2.2.3版本开始，新增了&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake update&lt;/code&gt;命令，来快速进行自我更新和升级，默认是升级到最新版本，当然也可以指定升级或者回退到某个版本：&lt;/p&gt;
 
@@ -951,7 +1103,7 @@ checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the SDK version of Xco
   &lt;li&gt;&lt;a href=&quot;https://tboox.io/#/zh-cn/&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h3 id=&quot;section&quot;&gt;新特性&lt;/h3&gt;
+&lt;h3 id=&quot;新特性&quot;&gt;新特性&lt;/h3&gt;
 
 &lt;ul&gt;
   &lt;li&gt;&lt;a href=&quot;https://github.com/tboox/tbox/issues/70&quot;&gt;#70&lt;/a&gt;: 添加&lt;code class=&quot;highlighter-rouge&quot;&gt;tb_stream_init_from_sock_ref()&lt;/code&gt;接口去直接打开一个socket作为stream去读取数据。&lt;/li&gt;
@@ -961,7 +1113,7 @@ checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the SDK version of Xco
   &lt;li&gt;添加匿名管道，命名管道支持&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h3 id=&quot;section-1&quot;&gt;改进&lt;/h3&gt;
+&lt;h3 id=&quot;改进&quot;&gt;改进&lt;/h3&gt;
 
 &lt;ul&gt;
   &lt;li&gt;优化queue_buffer模块&lt;/li&gt;
@@ -974,7 +1126,7 @@ checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the SDK version of Xco
   &lt;li&gt;改进基于openssl/mbedtls的https访问&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h3 id=&quot;section-2&quot;&gt;源码&lt;/h3&gt;
+&lt;h3 id=&quot;源码&quot;&gt;源码&lt;/h3&gt;
 
 &lt;ul&gt;
   &lt;li&gt;&lt;a href=&quot;https://github.com/tboox/tbox&quot;&gt;Github&lt;/a&gt;&lt;/li&gt;
@@ -1200,14 +1352,14 @@ build ok!
 
 &lt;p&gt;是不是非常简单，xmake内部会去处理所有细节逻辑，对于开发者而言，仅仅是添加了模块文件&lt;code class=&quot;highlighter-rouge&quot;&gt;*.mpp&lt;/code&gt;作为源文件而已。&lt;/p&gt;
 
-&lt;h3 id=&quot;section&quot;&gt;模块接口文件&lt;/h3&gt;
+&lt;h3 id=&quot;模块接口文件&quot;&gt;模块接口文件&lt;/h3&gt;
 
 &lt;p&gt;上文所述的&lt;code class=&quot;highlighter-rouge&quot;&gt;*.mpp&lt;/code&gt;是xmake推荐的模块接口文件命名，其实各家编译器对于模块文件的默认后缀名都是不统一的，clang下是&lt;code class=&quot;highlighter-rouge&quot;&gt;*.cppm&lt;/code&gt;，而msvc下是&lt;code class=&quot;highlighter-rouge&quot;&gt;*.ixx&lt;/code&gt;，这对于编写跨编译器统一的模块项目是非常不友好的，
 因此这里参考了&lt;a href=&quot;https://build2.org/doc/modules-cppcon2017.pdf&quot;&gt;build2&lt;/a&gt;里面的推荐方式，采用统一的&lt;code class=&quot;highlighter-rouge&quot;&gt;*.mpp&lt;/code&gt;后缀，来规范xmake下模块项目接口的命令。&lt;/p&gt;
 
 &lt;p&gt;当然，这也支持xmake推荐命名方式，而对于&lt;code class=&quot;highlighter-rouge&quot;&gt;*.ixx&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;*.cppm&lt;/code&gt;等后缀名，xmake也是完全兼容支持的，也可以直接添加到&lt;code class=&quot;highlighter-rouge&quot;&gt;add_files&lt;/code&gt;中去。&lt;/p&gt;
 
-&lt;h3 id=&quot;section-1&quot;&gt;编译参数处理&lt;/h3&gt;
+&lt;h3 id=&quot;编译参数处理&quot;&gt;编译参数处理&lt;/h3&gt;
 
 &lt;h4 id=&quot;clang&quot;&gt;clang&lt;/h4&gt;
 
@@ -1258,7 +1410,7 @@ link.exe -nologo -dynamicbase -nxcompat -machine:x64 -out:hello.exe hello.mpp.ob
 
 &lt;p&gt;如果要进一步了解gcc的modules-ts实现进展，请参考：https://gcc.gnu.org/wiki/cxx-modules&lt;/p&gt;
 
-&lt;h3 id=&quot;section-2&quot;&gt;其他例子&lt;/h3&gt;
+&lt;h3 id=&quot;其他例子&quot;&gt;其他例子&lt;/h3&gt;
 
 &lt;p&gt;xmake项目下还内置了不少跟c++modules相关的工程examples，有兴趣的同学可以参考下：&lt;a href=&quot;https://github.com/xmake-io/xmake/tree/dev/tests/projects/c%2B%2B/modules&quot;&gt;c++module examples&lt;/a&gt;&lt;/p&gt;
 </description>
@@ -1419,158 +1571,6 @@ We can add a &lt;code class=&quot;highlighter-rouge&quot;&gt;*.proto&lt;/code&gt
         <category>lua</category>
         
         <category>C/C++</category>
-        
-        <category>VisualStudio</category>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>xmake v2.2.8 发布, 新版vs工程生成插件</title>
-        <description>&lt;p&gt;这个版本提供了全新的vs工程生成插件（非常感谢@&lt;a href=&quot;https://github.com/OpportunityLiu&quot;&gt;OpportunityLiu&lt;/a&gt;的贡献），跟之前的生成vs的插件处理模式上有很大的不同，原先生成的vs工程是把所有源文件展开后，转交给vs来处理编译。&lt;/p&gt;
-
-&lt;p&gt;此外，我们重写了整个luajit的io runtime，使其更好的支持unicode字符集，尤其是windows上对中文字符的支持。&lt;/p&gt;
-
-&lt;p&gt;最后新版本开始尝试直接安装lua bitcode脚本，来减少安装包的大小（控制在2.4M以内），提高xmake启动加载的效率。&lt;/p&gt;
-
-&lt;p&gt;不过，需要注意的事，此版本的源码结构改成了git submodule来维护，所以老版本的&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake update&lt;/code&gt;无法完整支持对新版本的更新，请参考&lt;a href=&quot;https://xmake.io/#/zh-cn/guide/installation&quot;&gt;安装文档&lt;/a&gt;进行完整安装。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;项目源码&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;section&quot;&gt;新特性介绍&lt;/h2&gt;
-
-&lt;h3 id=&quot;vsxmake&quot;&gt;使用新版vsxmake集成编译&lt;/h3&gt;
-
-&lt;p&gt;原先的vs生成插件对xmake的rules是没法支持的。因为xmake的rules里面用了很多的&lt;code class=&quot;highlighter-rouge&quot;&gt;on_build&lt;/code&gt;此类自定义脚本，无法展开，所以像qt， wdk此类的项目就没法支持导出到vs里面进行编译了。&lt;/p&gt;
-
-&lt;p&gt;因此，为了解决这个问题，新版本的vs生成插件通过在vs下直接调用xmake命令，去执行编译操作，并且对intellsence和定义跳转，还有断点调试也做了支持。&lt;/p&gt;
-
-&lt;p&gt;具体使用方式跟老版本类似：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake project -k &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;vsxmake2010|vsxmake2013|vsxmake2015|..] -m &lt;span class=&quot;s2&quot;&gt;&quot;debug;release&quot;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;如果没指明版本，那么xmake会自动探测当前已有的vs版本来生成：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake project -k vsxmake -m &lt;span class=&quot;s2&quot;&gt;&quot;debug;release&quot;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://xmake.io/assets/img/manual/qt_vs.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;另外，vsxmake插件还会额外生成一个自定义的配置属性页，用于在vs里面，方便灵活的修改和追加一些xmake编译配置，甚至可以在里面配置切换到其他交叉工具链，实现在vs中对android, linux等其他平台的交叉编译。&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://xmake.io/assets/img/manual/property_page_vsxmake.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;顺便提下，这个vsxmake插件生成的工程，也是支持选择指定一批源文件来快速编译的。&lt;/p&gt;
-
-&lt;h3 id=&quot;unicode&quot;&gt;Unicode编码支持&lt;/h3&gt;
-
-&lt;p&gt;原先的版本在某些windows环境下，并不能很好的处理unicode编码，显示的中文编译错误信息也可能出现乱码的情况，新版本中xmake多内置的luajit/io完全进行了重写，在win下对unicode编码提供更好的支持，哪怕是在xmake.lua或者源文件路径中存在emoji等字符都可以很好的处理。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;程序&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;源文件🎆/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_includedirs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;头文件✨&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;before_build&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;开始编译😊&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;after_build&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;结束编译🎉&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;protobuf-cc&quot;&gt;Protobuf c/c++构建支持&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake-repo&quot;&gt;xmake-repo&lt;/a&gt;官方仓库新增了protobuf-c/cpp依赖包，用户可以很方便的在xmake.lua中集成使用protobuf了，配合内置的&lt;code class=&quot;highlighter-rouge&quot;&gt;protobuf.c&lt;/code&gt;/&lt;code class=&quot;highlighter-rouge&quot;&gt;protobuf.cpp&lt;/code&gt;构建规则，
-我们可以在项目直接添加&lt;code class=&quot;highlighter-rouge&quot;&gt;*.proto&lt;/code&gt;文件来开发基于protobuf的程序，例如：&lt;/p&gt;
-
-&lt;h4 id=&quot;c&quot;&gt;使用c库&lt;/h4&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;protobuf-c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;console_c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;protobuf-c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.proto&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rules&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;protobuf.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;c-1&quot;&gt;使用c++库&lt;/h4&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;protobuf-cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;console_c++&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_languages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;c++11&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;protobuf-cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.proto&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rules&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;protobuf.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;termuxandroid&quot;&gt;Termux/Android支持&lt;/h3&gt;
-
-&lt;p&gt;新版本xmake对android/termux进行了很好的支持，使用户可以随时随地在android手机上进行编码和编译，配合vim效果非常好。&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://user-images.githubusercontent.com/151335/62007118-5fa1a180-b17c-11e9-821c-9a6d8d00a23b.jpeg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;section-1&quot;&gt;更新内容&lt;/h2&gt;
-
-&lt;h3 id=&quot;section-2&quot;&gt;新特性&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;添加protobuf c/c++构建规则&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/468&quot;&gt;#468&lt;/a&gt;: 添加对 Windows 的 UTF-8 支持&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/472&quot;&gt;#472&lt;/a&gt;: 添加&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake project -k vsxmake&lt;/code&gt;去更好的支持vs工程的生成，内部直接调用xmake来编译&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/487&quot;&gt;#487&lt;/a&gt;: 通过&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake --files=&quot;src/*.c&quot;&lt;/code&gt;支持指定一批文件进行编译。&lt;/li&gt;
-  &lt;li&gt;针对io模块增加文件锁接口&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/513&quot;&gt;#513&lt;/a&gt;: 增加对android/termux终端的支持，可在android设备上执行xmake来构建项目&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/517&quot;&gt;#517&lt;/a&gt;: 为target增加&lt;code class=&quot;highlighter-rouge&quot;&gt;add_cleanfiles&lt;/code&gt;接口，实现快速定制化清理文件&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/537&quot;&gt;#537&lt;/a&gt;: 添加&lt;code class=&quot;highlighter-rouge&quot;&gt;set_runenv&lt;/code&gt;接口去覆盖写入系统envs&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;section-3&quot;&gt;改进&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/257&quot;&gt;#257&lt;/a&gt;: 锁定当前正在构建的工程，避免其他xmake进程同时对其操作&lt;/li&gt;
-  &lt;li&gt;尝试采用/dev/shm作为os.tmpdir去改善构建过程中临时文件的读写效率&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/542&quot;&gt;#542&lt;/a&gt;: 改进vs系列工具链的unicode输出问题&lt;/li&gt;
-  &lt;li&gt;对于安装的lua脚本，启用lua字节码存储，减少安装包大小（&amp;lt;2.4M），提高运行加载效率。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;bugs&quot;&gt;Bugs修复&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/549&quot;&gt;#549&lt;/a&gt;: 修复新版vs2019下检测环境会卡死的问题&lt;/li&gt;
-&lt;/ul&gt;
-
-</description>
-        <pubDate>Thu, 22 Aug 2019 00:00:00 +0800</pubDate>
-        <link>http://www.tboox.org/cn/2019/08/22/xmake-update-v2.2.8/</link>
-        <guid isPermaLink="true">http://www.tboox.org/cn/2019/08/22/xmake-update-v2.2.8/</guid>
-        
-        <category>xmake</category>
-        
-        <category>lua</category>
-        
-        <category>C/C++</category>
-        
-        <category>版本更新</category>
         
         <category>VisualStudio</category>
         
