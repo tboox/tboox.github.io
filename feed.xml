@@ -5,9 +5,273 @@
     <description>Focus on cross-platform development using c language</description>
     <link>http://www.tboox.org/</link>
     <atom:link href="http://www.tboox.org/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Fri, 15 Nov 2019 23:32:38 +0800</pubDate>
-    <lastBuildDate>Fri, 15 Nov 2019 23:32:38 +0800</lastBuildDate>
+    <pubDate>Thu, 21 Nov 2019 18:36:14 +0800</pubDate>
+    <lastBuildDate>Thu, 21 Nov 2019 18:36:14 +0800</lastBuildDate>
     <generator>Jekyll v3.1.0</generator>
+    
+      <item>
+        <title>xmake从入门到精通6：开发和构建Qt程序</title>
+        <description>&lt;p&gt;xmake是一个基于Lua的轻量级现代化c/c++的项目构建工具，主要特点是：语法简单易上手，提供更加可读的项目维护，实现跨平台行为一致的构建体验。&lt;/p&gt;
+
+&lt;p&gt;xmake完全支持对Qt5项目的维护和构建，通过本文将会带你了解如何通过xmake来维护各种类型的Qt项目。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;项目源码&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;前言&quot;&gt;前言&lt;/h3&gt;
+
+&lt;p&gt;Qt是一个1991年由Qt Company开发的跨平台C++图形用户界面应用程序开发框架。它有自己的IDE程序：qt creator，也有自己的构建程序：qmake，似乎新版本开始打算全面切到cmake来维护了。&lt;/p&gt;
+
+&lt;p&gt;尽管如此，xmake还是对Qt的开发做了支持，搭配上xmake-vscode/xmake-idea等插件，使用户可以在自己熟悉的编辑器和IDE上集成和开发Qt程序，并且在不同平台上提供一致的开发体验。&lt;/p&gt;
+
+&lt;h3 id=&quot;准备构建环境&quot;&gt;准备构建环境&lt;/h3&gt;
+
+&lt;p&gt;首先，我们得准备好Qt开发环境，如果还没安装Qt SDK，那么到qt的官网登录下载安装包：https://www.qt.io/，或者自己拉取qt源码，编译静态版本sdk和工具链。&lt;/p&gt;
+
+&lt;p&gt;通常情况，如果是采用官方提供的QT SDK安装包，并且安装目录采用的默认路径，那么即使不配置QT SDK路径，xmake也会尝试去检测它，一般都是能检测到的，如果检测不到，我们可以尝试手动配置下它：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f --qt&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/home/xxx/qtsdk
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;或者设置到全局路径，避免每次编译切换都要配置一遍：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake g --qt&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/home/xxx/qtsdk
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;创建模板工程&quot;&gt;创建模板工程&lt;/h3&gt;
+
+&lt;p&gt;xmake内置了各种Qt项目的空工程模板，我们可以通过&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake create&lt;/code&gt;命令来快速创建它们。&lt;/p&gt;
+
+&lt;p&gt;注：由于xmake的master最新版本，也就是还未发布的v2.2.9版本对Qt的模板和构建规则进行了升级，因此本文主要讲解的都是基于最新版本来讲解，
+而之前的老模版和规则也是向下兼容的，如果想要继续了解，可以查看相关文档：&lt;a href=&quot;https://xmake.io/#/zh-cn/guide/project_examples?id=qt%e7%a8%8b%e5%ba%8f&quot;&gt;Qt项目开发文档&lt;/a&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;创建quickapp应用程序&quot;&gt;创建QuickApp应用程序&lt;/h4&gt;
+
+&lt;p&gt;我们先来创建一个带qml的quickapp空工程，只需要敲如下命令：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake create -t qt.quickapp &lt;span class=&quot;nb&quot;&gt;test
+&lt;/span&gt;create &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt; ...
+  &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+]: xmake.lua
+  &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+]: src/main.qml
+  &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+]: src/main.cpp
+  &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+]: src/qml.qrc
+  &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+]: .gitignore
+create ok!
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;xmake会生成带有xmake.lua的Qt项目，xmake.lua内容也很简单：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;qt.quickapp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_headerfiles&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/qml.qrc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;除了源文件的添加，其他基本上都跟之前的可执行程序项目没什么不同，唯一的区别就是通过&lt;code class=&quot;highlighter-rouge&quot;&gt;add_rules(&quot;qt.quickapp&quot;)&lt;/code&gt;这个内置的Qt构建规则来代替&lt;code class=&quot;highlighter-rouge&quot;&gt;set_kind(&quot;binary&quot;)&lt;/code&gt;。&lt;/p&gt;
+
+&lt;p&gt;其实&lt;code class=&quot;highlighter-rouge&quot;&gt;qt.quickapp&lt;/code&gt;规则内部最终还是设置了binary类型，只不过在此基础上额外增加了一些只有Qt才需要的构建规则，比如：特定links，flags还有includedirs等。&lt;/p&gt;
+
+&lt;p&gt;接下来，我们尝试编译下这个项目：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
+checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the architecture ... x86_64
+checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the Xcode directory ... /Applications/Xcode.app
+checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the SDK version of Xcode ... 10.15
+checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the Qt SDK directory ... /Users/ruki/Qt5.13.2/5.13.2/clang_64
+checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the Qt SDK version ... 5.13.2
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;  0%]: ccache compiling.release src/main.cpp
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 49%]: compiling.qt.qrc src/qml.qrc
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;100%]: linking.release &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;其中&lt;code class=&quot;highlighter-rouge&quot;&gt;*.qrc&lt;/code&gt;文件的构建规则也是在&lt;code class=&quot;highlighter-rouge&quot;&gt;qt.quickapp&lt;/code&gt;的构建规则里面维护的，所以只有设置了这个rule，才能正常编译qrc文件。&lt;/p&gt;
+
+&lt;p&gt;最后，我们尝试运行下看看：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake run
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;运行效果如下：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://xmake.io/assets/img/guide/qt_quickapp.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;创建widgetapp应用程序&quot;&gt;创建WidgetApp应用程序&lt;/h4&gt;
+
+&lt;p&gt;创建一个widgetapp工程跟上文的quickapp方式基本一致，只需要改下模板名即可：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake create -t qt.widgetapp &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;里面xmake.lua的内容看起来，也仅仅就是把&lt;code class=&quot;highlighter-rouge&quot;&gt;qt.quickapp&lt;/code&gt;规则改成了&lt;code class=&quot;highlighter-rouge&quot;&gt;qt.widgetapp&lt;/code&gt;规则，另外，ui描述文件从&lt;code class=&quot;highlighter-rouge&quot;&gt;.qrc&lt;/code&gt;变成了&lt;code class=&quot;highlighter-rouge&quot;&gt;.ui&lt;/code&gt;，其他并无区别。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;qt_widgetapp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;qt.widgetapp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/mainwindow.ui&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/mainwindow.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;  &lt;span class=&quot;c1&quot;&gt;-- 添加带有 Q_OBJECT 的meta头文件&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;运行效果如下：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://xmake.io/assets/img/guide/qt_widgetapp.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;创建静态链接版本应用程序&quot;&gt;创建静态链接版本应用程序&lt;/h4&gt;
+
+&lt;p&gt;默认通过qt官网下载的sdk，都是基于动态库的，如果用户用的是自己拉取qt源码然后编译的static版本qt sdk，那么创建的qt工程类型也必须对应static版本，因为两者来处理链接上会有不同的逻辑。&lt;/p&gt;
+
+&lt;p&gt;对于模板名，后面追加下&lt;code class=&quot;highlighter-rouge&quot;&gt;_static&lt;/code&gt;来创建：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake create -t qt.widgetapp_static &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;创建的就是基于静态QtSdk的WidgetApp工程，其里面的构建规则，也会改成&lt;code class=&quot;highlighter-rouge&quot;&gt;add_rules(&quot;qt.widgetapp_static&quot;)&lt;/code&gt;，其他并无不同，QuickApp项目也是如此。&lt;/p&gt;
+
+&lt;h4 id=&quot;创建其他qt项目&quot;&gt;创建其他Qt项目&lt;/h4&gt;
+
+&lt;p&gt;除了QuickApp和WidgetApp项目，xmake还支持其他Qt项目的创建和编译，比如：终端程序，基于Qt的静态库和动态库等。&lt;/p&gt;
+
+&lt;p&gt;具体的工程模板，我们可以进入help菜单查看里面的模板列表：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake create --help
+Usage: &lt;span class=&quot;nv&quot;&gt;$xmake&lt;/span&gt; create &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;options] &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;target]
+
+Create a new project.
+
+Options: 
+    -t TEMPLATE, --template&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;TEMPLATE       Select the project template id or 
+                                           name of the given language. 
+                                           &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;default: console&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+                                               - console: c++, go, dlang, cuda, 
+                                           rust, swift, objc, c, objc++
+                                               - qt.console: c++
+                                               - qt.quickapp: c++
+                                               - qt.quickapp_static: c++
+                                               - qt.shared: c++
+                                               - qt.static: c++
+                                               - qt.widgetapp: c++
+                                               - qt.widgetapp_static: c++
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;更多其他Qt项目的使用说明，可以查看xmake的官方文档：&lt;a href=&quot;https://xmake.io/#/zh-cn/guide/project_examples?id=qt%e7%a8%8b%e5%ba%8f&quot;&gt;Qt项目构建文档&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;运行和断点调试&quot;&gt;运行和断点调试&lt;/h3&gt;
+
+&lt;p&gt;我们可以通过&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake run -d&lt;/code&gt;命令来加载gdb/lldb调试程序，或者搭配xmake-vscode插件的断点调试支持，来开发和调试Qt程序。
+这块可以阅读前文：&lt;a href=&quot;https://tboox.org/cn/2019/11/09/quickstart-3-run-and-debug/&quot;&gt;xmake从入门到精通3：运行和调试目标程序&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;另外，如果是win平台，我们也可以通过生成vs proj，然后通过vs自带的调试功能，进行断点调试，更加方便：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake project -k vsxmake
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;生成基于xmake的vs工程后，打开vs工程，点击调试运行即可：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://xmake.io/assets/img/manual/qt_vs.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;开发android程序&quot;&gt;开发Android程序&lt;/h3&gt;
+
+&lt;p&gt;xmake目前是完全支持编译Android版本的Qt项目，整个Qt项目包括xmake.lua完全跟前面的例子一致，并不需要做特别的设置。&lt;/p&gt;
+
+&lt;p&gt;我们需要做的仅仅是，切换到android的编译平台去编译它，比如：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p android --ndk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;~/xxx/android-ndk-r19c
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;就可以很方便的将之前的QuickApp和WidgetApp项目编译成Android App，其运行效果如下：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://user-images.githubusercontent.com/151335/57430932-c7261000-7263-11e9-8886-eff07208d0d8.jpeg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;关于如何配置Android编译环境，可阅读前文：&lt;a href=&quot;https://tboox.org/cn/2019/11/15/quickstart-5-build-android/&quot;&gt;xmake从入门到精通5：Android平台编译详解&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;不过由于要生成apk包，在执行xmake编译后，qt构建规则会自动对android程序做一个部署deploy步骤，也就是调用qt内部的androiddeployqt程序去生成apk包。&lt;/p&gt;
+
+&lt;p&gt;这除了需要android ndk，还需要额外依赖android sdk，因此，我们还需要对其指定下：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p android --ndk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;~/Downloads/android-ndk-r19c/ --android_sdk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;~/Library/Android/sdk/ -c 
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;  0%]: compiling.qt.qrc src/qml.qrc
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 50%]: ccache compiling.release src/main.cpp
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;100%]: linking.release libappdemo.so
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;100%]: generating.qt.app appdemo.apk
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;并且qt规则内部还对android版本定制了install程序，可以很方便的安装qt apk到设备。&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake install
+installing appdemo ...
+installing build/android/armv7-a/release/appdemo.apk ..
+success
+install ok!
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;编辑器和ide集成&quot;&gt;编辑器和IDE集成&lt;/h3&gt;
+
+&lt;p&gt;xmake也提供了对各大常用编辑器的插件集成支持，配合这些插件，就可以在自己最熟悉的编辑器上开发和构建Qt程序。&lt;/p&gt;
+
+&lt;h4 id=&quot;在vscode上开发和调试qt程序&quot;&gt;在vscode上开发和调试Qt程序&lt;/h4&gt;
+
+&lt;p&gt;插件地址：&lt;a href=&quot;https://github.com/xmake-io/xmake-vscode&quot;&gt;xmake-vscode&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://raw.githubusercontent.com/tboox/xmake-vscode/master/res/problem.gif&quot; width=&quot;650px&quot; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;在sublime-text上开发qt程序&quot;&gt;在Sublime Text上开发Qt程序&lt;/h4&gt;
+
+&lt;p&gt;插件地址：&lt;a href=&quot;https://github.com/xmake-io/xmake-sublime&quot;&gt;xmake-sublime&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://raw.githubusercontent.com/tboox/xmake-sublime/master/res/problem.gif&quot; width=&quot;650px&quot; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;在ideaclionandroid-studio上开发qt程序&quot;&gt;在Idea/CLion/Android Studio上开发Qt程序&lt;/h4&gt;
+
+&lt;p&gt;插件地址：&lt;a href=&quot;https://github.com/xmake-io/xmake-idea&quot;&gt;xmake-idea&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://raw.githubusercontent.com/tboox/xmake-idea/master/res/problem.gif&quot; width=&quot;650px&quot; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;在visualstudio里面开发和调试qt程序&quot;&gt;在VisualStudio里面开发和调试Qt程序&lt;/h4&gt;
+
+&lt;p&gt;也就是刚上面提到的通过生成vs proj方式来集成xmake：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake project -k vsxmake
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;生成基于xmake的vs工程后，打开vs工程，点击调试运行即可：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://xmake.io/assets/img/manual/qt_vs.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;这块，具体详情，可以查看插件文档：&lt;a href=&quot;https://xmake.io/#/zh-cn/plugin/builtin_plugins?id=%e7%94%9f%e6%88%90visualstudio%e5%b7%a5%e7%a8%8b&quot;&gt;使用xmake生成vs工程&lt;/a&gt;&lt;/p&gt;
+</description>
+        <pubDate>Thu, 21 Nov 2019 00:00:00 +0800</pubDate>
+        <link>http://www.tboox.org/cn/2019/11/21/quickstart-6-build-qt-project/</link>
+        <guid isPermaLink="true">http://www.tboox.org/cn/2019/11/21/quickstart-6-build-qt-project/</guid>
+        
+        <category>xmake</category>
+        
+        <category>lua</category>
+        
+        <category>qt</category>
+        
+        
+        <category>xmake</category>
+        
+      </item>
     
       <item>
         <title>xmake从入门到精通5：Android平台编译详解</title>
@@ -1425,154 +1689,6 @@ link.exe -nologo -dynamicbase -nxcompat -machine:x64 -out:hello.exe hello.mpp.ob
         <category>c++20</category>
         
         <category>modules-ts</category>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>xmake v2.2.8 released, New vs project generator</title>
-        <description>&lt;p&gt;This version provides a new vs project generation plugin (thanks to @&lt;a href=&quot;https://github.com/OpportunityLiu&quot;&gt;OpportunityLiu&lt;/a&gt; for its contribution), which is quite different from the previous plugin processing mode for generating vs. The vs project is to open all the source files and hand them over to vs to handle the compilation.&lt;/p&gt;
-
-&lt;p&gt;In addition, we rewrote the entire luajit io runtime to better support the unicode character set, especially the support for Chinese characters on Windows.&lt;/p&gt;
-
-&lt;p&gt;Finally, the new version began to try to install the lua bitcode script directly, to reduce the size of the installation package (controlled within 2.4M), improve the efficiency of xmake boot load.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;Project Source&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://xmake.io/&quot;&gt;Official Document&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;introduction-of-new-features&quot;&gt;Introduction of new features&lt;/h2&gt;
-
-&lt;h3 id=&quot;integrating-with-the-new-vsxmake-generator&quot;&gt;Integrating with the new vsxmake generator&lt;/h3&gt;
-
-&lt;p&gt;The original vs build plugin does not support xmake’s rules. Because xmake’s rules use a lot of custom scripts like &lt;code class=&quot;highlighter-rouge&quot;&gt;on_build&lt;/code&gt;, they can’t be expanded, so projects like qt, wdk can’t support exporting to vs. compile.&lt;/p&gt;
-
-&lt;p&gt;Therefore, in order to solve this problem, the new version of the vs. build plugin performs the compile operation by directly calling the xmake command under vs, and also supports intellsence and definition jumps, as well as breakpoint debugging.&lt;/p&gt;
-
-&lt;p&gt;The specific use is similar to the old version:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake project -k &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;vsxmake2010|vsxmake2013|vsxmake2015|..] -m &lt;span class=&quot;s2&quot;&gt;&quot;debug;release&quot;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;If no version is specified, xmake will automatically detect the current version of vs to generate:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake project -k vsxmake -m &lt;span class=&quot;s2&quot;&gt;&quot;debug;release&quot;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://xmake.io/assets/img/manual/qt_vs.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;In addition, the vsxmake plugin will additionally generate a custom configuration property page for easy and flexible modification and appending some xmake compilation configuration in the vs., and even switch to other cross toolchains in the configuration to achieve the vs. vs. Cross-compilation of other platforms such as android, linux.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://xmake.io/assets/img/manual/property_page_vsxmake.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;By the way, the project generated by this vsxmake plugin also supports the selection of a specified batch of source files for quick compilation.&lt;/p&gt;
-
-&lt;h3 id=&quot;unicode-encoding-support&quot;&gt;Unicode encoding support&lt;/h3&gt;
-
-&lt;p&gt;The original version in some windows environment, and can not handle unicode encoding very well, the Chinese compilation error message displayed may also be garbled. In the new version, xamake built-in luajit/io is completely rewritten in win. Under the unicode encoding provides better support, even in the xmake.lua or source file path, there are characters such as emoji can be handled very well.&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;program&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;source file 🎆/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_includedirs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;header file&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;before_build&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;start compile 😊&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;after_build&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;end Compile&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;protobuf-ccbuilding-support&quot;&gt;Protobuf c/c++Building support&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake-repo&quot;&gt;xmake-repo&lt;/a&gt; The official repository has added the protobuf-c/cpp dependency package. Users can easily use protobuf in xmake.lua. With the built-in &lt;code class=&quot;highlighter-rouge&quot;&gt;protobuf.c&lt;/code&gt;/&lt;code class=&quot;highlighter-rouge&quot;&gt;protobuf.cpp&lt;/code&gt; build rules,
-We can add a &lt;code class=&quot;highlighter-rouge&quot;&gt;*.proto&lt;/code&gt; file directly to the project to develop a protocol based on protobuf, for example:&lt;/p&gt;
-
-&lt;h4 id=&quot;using-c-library&quot;&gt;Using c library&lt;/h4&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;protobuf-c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;console_c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;protobuf-c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.proto&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rules&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;protobuf.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;using-the-c-library&quot;&gt;Using the C++ library&lt;/h4&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;protobuf-cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;console_c++&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_languages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;c++11&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;protobuf-cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.proto&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rules&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;protobuf.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;termuxandroid-support&quot;&gt;Termux/Android Support&lt;/h3&gt;
-
-&lt;p&gt;The new version of xmake has a good support for android/termux, so that users can encode and compile on android phones anytime and anywhere, with vim effect is very good.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://user-images.githubusercontent.com/151335/62007118-5fa1a180-b17c-11e9-821c-9a6d8d00a23b.jpeg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;changelog&quot;&gt;Changelog&lt;/h2&gt;
-
-&lt;h3 id=&quot;new-features&quot;&gt;New features&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Add protobuf c/c++ rules&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/468&quot;&gt;#468&lt;/a&gt;: Add utf-8 support for io module on windows&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/472&quot;&gt;#472&lt;/a&gt;: Add &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake project -k vsxmake&lt;/code&gt; plugin to support call xmake from vs/msbuild&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/487&quot;&gt;#487&lt;/a&gt;: Support to build the selected files for the given target&lt;/li&gt;
-  &lt;li&gt;Add filelock for io&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/513&quot;&gt;#513&lt;/a&gt;: Support for android/termux&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/517&quot;&gt;#517&lt;/a&gt;: Add &lt;code class=&quot;highlighter-rouge&quot;&gt;add_cleanfiles&lt;/code&gt; api for target&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/537&quot;&gt;#537&lt;/a&gt;: Add &lt;code class=&quot;highlighter-rouge&quot;&gt;set_runenv&lt;/code&gt; api to override os/envs&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;changes&quot;&gt;Changes&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/257&quot;&gt;#257&lt;/a&gt;: Lock the whole project to avoid other process to access.&lt;/li&gt;
-  &lt;li&gt;Attempt to enable /dev/shm for the os.tmpdir&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/542&quot;&gt;#542&lt;/a&gt;: Improve vs unicode output for link/cl&lt;/li&gt;
-  &lt;li&gt;Improve binary bitcode lua scripts in the program directory&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;bugs-fixed&quot;&gt;Bugs fixed&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/549&quot;&gt;#549&lt;/a&gt;: Fix error caused by the new vsDevCmd.bat of vs2019&lt;/li&gt;
-&lt;/ul&gt;
-
-</description>
-        <pubDate>Thu, 22 Aug 2019 00:00:00 +0800</pubDate>
-        <link>http://www.tboox.org/2019/08/22/xmake-update-v2.2.8/</link>
-        <guid isPermaLink="true">http://www.tboox.org/2019/08/22/xmake-update-v2.2.8/</guid>
-        
-        <category>xmake</category>
-        
-        <category>lua</category>
-        
-        <category>C/C++</category>
-        
-        <category>VisualStudio</category>
         
         
         <category>xmake</category>
