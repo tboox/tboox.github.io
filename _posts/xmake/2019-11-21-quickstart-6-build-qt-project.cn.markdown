@@ -184,22 +184,9 @@ $ xmake project -k vsxmake
 
 xmake目前是完全支持编译Android版本的Qt项目，整个Qt项目包括xmake.lua完全跟前面的例子一致，并不需要做特别的设置。
 
-我们需要做的仅仅是，切换到android的编译平台去编译它，比如：
+我们需要做的仅仅是，切换到android的编译平台去编译它，不过由于要生成apk包，在执行xmake编译后，qt构建规则会自动对android程序做一个部署deploy步骤，也就是调用qt内部的androiddeployqt程序去生成apk包。
 
-```bash
-$ xmake f -p android --ndk=~/xxx/android-ndk-r19c
-$ xmake
-```
-
-就可以很方便的将之前的QuickApp和WidgetApp项目编译成Android App，其运行效果如下：
-
-![](https://user-images.githubusercontent.com/151335/57430932-c7261000-7263-11e9-8886-eff07208d0d8.jpeg)
-
-关于如何配置Android编译环境，可阅读前文：[xmake从入门到精通5：Android平台编译详解](https://tboox.org/cn/2019/11/15/quickstart-5-build-android/)
-
-不过由于要生成apk包，在执行xmake编译后，qt构建规则会自动对android程序做一个部署deploy步骤，也就是调用qt内部的androiddeployqt程序去生成apk包。
-
-这除了需要android ndk，还需要额外依赖android sdk，因此，我们还需要对其指定下：
+因此除了需要android ndk，我们还需要额外依赖android sdk，通过设置`--android_sdk`参数对其指定下：
 
 ```bash
 $ xmake f -p android --ndk=~/Downloads/android-ndk-r19c/ --android_sdk=~/Library/Android/sdk/ -c 
@@ -210,7 +197,7 @@ $ xmake
 [100%]: generating.qt.app appdemo.apk
 ```
 
-并且qt规则内部还对android版本定制了install程序，可以很方便的安装qt apk到设备。
+上面的配置和构建过程就可以很方便的将之前的QuickApp和WidgetApp项目编译成Android App，另外qt规则内部还对android版本定制了install程序，可以很方便的安装qt apk到设备。
 
 ```bash
 $ xmake install
@@ -219,6 +206,12 @@ installing build/android/armv7-a/release/appdemo.apk ..
 success
 install ok!
 ```
+
+安装和运行后的效果如下：
+
+![](https://user-images.githubusercontent.com/151335/57430932-c7261000-7263-11e9-8886-eff07208d0d8.jpeg)
+
+关于如何配置Android编译环境，可阅读前文：[xmake从入门到精通5：Android平台编译详解](https://tboox.org/cn/2019/11/15/quickstart-5-build-android/)
 
 ### 编辑器和IDE集成
 
