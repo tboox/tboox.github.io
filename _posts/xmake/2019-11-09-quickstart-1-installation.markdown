@@ -1,5 +1,5 @@
 ---
-layout: post.cn
+layout: post
 title:  "Xmake Getting Started Tutorial 1: Installation and Updates"
 tags: xmake lua installation update
 categories: xmake
