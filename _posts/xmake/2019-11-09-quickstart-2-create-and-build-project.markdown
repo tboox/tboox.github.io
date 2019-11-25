@@ -9,7 +9,7 @@ Xmake is a lightweight modern C/C++ project build tool based on Lua. Its main fe
 
 This article focuses on how to create a xmake-based project and compilation operations.
 
-* [project source](https://github.com/xmake-io/xmake)
+* [Project Source](https://github.com/xmake-io/xmake)
 * [Official Document](https://xmake.io/)
 
 ### Creating an empty project
