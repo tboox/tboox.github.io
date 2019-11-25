@@ -9,8 +9,8 @@ Xmake is a lightweight modern C/C++ project build tool based on Lua. Its main fe
 
 This article mainly explains the installation process of xmake under various platforms.
 
-* [project source] (https://github.com/xmake-io/xmake)
-* [Official Document] (https://xmake.io/#/zh-cn/)
+* [project source](https://github.com/xmake-io/xmake)
+* [Official Document](https://xmake.io/#/zh-cn/)
 
 ## Install the Master version
 
