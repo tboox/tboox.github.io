@@ -53,8 +53,8 @@ target("test")
     -- ...
     -- Set a custom run script, automatically run the installed app, and automatically obtain device output information
     on_run(function(target)
-        os.run("adb shell am start -n com.demo/com.demo.DemoTest")
-        os.run("adb logcat")
+        os.run("adb shell am start -n com.demo/com.demo.DemoTest")
+        os.run("adb logcat")
     end)
 ```
 
@@ -97,4 +97,4 @@ In addition, we need to rely on the c++ plug-in of vscode for debugging support,
 
 Even if this plugin is not installed, xmake-vscode will load the system debuggers such as lldb/gdb/vsjitdebugger, and directly load and debug.
 
-<img src = "/static/img/xmake/xmake-vscode-debug.gif" width = "60%" />
+<img src="/static/img/xmake/xmake-vscode-debug.gif" width="60%" />
