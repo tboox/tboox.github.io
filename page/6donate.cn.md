@@ -24,6 +24,10 @@ TBOOX的所有项目都是属于个人开源项目，它的发展需要您的帮
 
 [![Paypal Me](/static/img/paypal.png)](http://paypal.me/tboox/5)
 
+## Bitcoin
+
+[17HDrR4boKQp5b1qxJrErrd2miiWVykx6X](https://www.blockchain.com/btc/payment_request?address=17HDrR4boKQp5b1qxJrErrd2miiWVykx6X)
+
 ## 支持者
 
 <a href="https://opencollective.com/xmake#backers" target="_blank"><img src="https://opencollective.com/xmake/backers.svg?width=890"></a>

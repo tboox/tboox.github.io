@@ -17,6 +17,10 @@ If you would like to support the development of these projects, welcome to donat
 
 [![Paypal Me](/static/img/paypal.png)](http://paypal.me/tboox/5)
 
+## Bitcoin
+
+[17HDrR4boKQp5b1qxJrErrd2miiWVykx6X](https://www.blockchain.com/btc/payment_request?address=17HDrR4boKQp5b1qxJrErrd2miiWVykx6X)
+
 ## Backers
 
 Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/xmake#backer)]
