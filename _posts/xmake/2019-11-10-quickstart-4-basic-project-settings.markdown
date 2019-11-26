@@ -105,7 +105,7 @@ So, we need to set a common macro definition for these two targets. How should w
 
 `add_defines("TEST")` is configured under each target? Of course it can, but this is a bit redundant, and it will be difficult to maintain if you configure more. In fact, we only need to place it in the global root scope:
 
-`` `lua
+```lua
 -- global settings
 add_defines("TEST")
 if is_arch("arm64", "armv7") then
@@ -164,7 +164,7 @@ The user does not need to worry about its compatibility. If other compilers do n
 
 We can also force the automatic detection of flags through the force parameter, and pass it directly to the compiler, even if the compiler may not support it, it will be set:
 
-`` `lua
+```lua
 add_cflags("-g", "-O2", {force = true})
 ```
 
