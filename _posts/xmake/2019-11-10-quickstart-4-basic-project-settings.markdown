@@ -17,7 +17,7 @@ For most small projects, these configurations are completely sufficient. In the 
 
 One line of description compiles all c source files in the src directory, and then generates an executable file named demo.
 
-`` `lua
+```lua
 target("demo", {kind = "binary", files = "src/*.c"})
 ```
 
