@@ -25,17 +25,17 @@ hello xmake!
 
 We can also add environment variables to set the default running target program through the `add_runenvs` interface in xmake.lua.
 
-Therefore, for PATH, it is very convenient to append values ​​through this interface, and this interface supports multi-value setting, so it is usually used to set multi-value env with path sep. .
+Therefore, for PATH, it is very convenient to append values through this interface, and this interface supports multi-value setting, so it is usually used to set multi-value env with path sep. .
 
 ```lua
 target("test")
     set_kind("binary")
-    add_files ("src / *. c")
-    add_runenvs ("PATH", "/ tmp / bin", "xxx / bin")
-    add_runenvs ("LD_LIBRARY_PATH", "/ tmp / lib", "xxx / lib")
+    add_files("src/*.c")
+    add_runenvs("PATH", "/tmp/bin", "xxx/bin")
+    add_runenvs("LD_LIBRARY_PATH", "/tmp/lib", "xxx/lib")
 ```
 
-For more description of this interface, you can see the documentation: [add_runenvs interface documentation] (https://xmake.io/#/zh-cn/manual/project_target?id=targetadd_runenvs)
+For more description of this interface, you can see the documentation: [add_runenvs interface documentation](https://xmake.io/#/zh-cn/manual/project_target?id=targetadd_runenvs)
 
 
 
@@ -52,9 +52,9 @@ For example, run the installed apk program:
 target("test")
     -- ...
     -- Set a custom run script, automatically run the installed app, and automatically obtain device output information
-    on_run (function (target)
-        os.run ("adb shell am start -n com.demo / com.demo.DemoTest")
-        os.run ("adb logcat")
+    on_run(function(target)
+        os.run("adb shell am start -n com.demo/com.demo.DemoTest")
+        os.run("adb logcat")
     end)
 ```
 
@@ -62,22 +62,22 @@ target("test")
 
 #### Command line debugging
 
-We can also pass `-d` parameters, call debugger programs such as gdb / lldb, load the target file for debugging:
+We can also pass `-d` parameters, call debugger programs such as gdb/lldb, load the target file for debugging:
 
 
 ```bash
 $ xmake run -d
 ```
 
-xmake will use the debugger that comes with the system to load the program. Currently it supports: lldb, gdb, windbg, vsjitdebugger, ollydbg and other debuggers.
+xmake will use the debugger that comes with the system to load the program.currently it supports: lldb, gdb, windbg, vsjitdebugger, ollydbg and other debuggers.
 
 ```bash
-[lldb] $ target create "build / hello"
-Current executable set to 'build / hello' (x86_64).
+[lldb] $ target create "build/hello"
+Current executable set to 'build/hello' (x86_64).
 [lldb] $ b main
 Breakpoint 1: where = hello`main, address = 0x0000000100000f50
 [lldb] $ r
-Process 7509 launched: '/ private / tmp / hello / build / hello' (x86_64)
+Process 7509 launched: '/private/tmp/hello/build/hello' (x86_64)
 Process 7509 stopped
 * thread # 1: tid = 0x435a2, 0x0000000100000f50 hello`main, queue = 'com.apple.main-thread', stop reason = breakpoint 1.1
     frame # 0: 0x0000000100000f50 hello`main
@@ -91,10 +91,10 @@ hello`main:
 
 #### Breakpoint debugging with vscode
 
-We can also use the [xmake-vscode] (https://github.com/xmake-io/xmake-vscode) plugin to cooperate with vscode to implement breakpoint debugging support for c / c ++ projects.
+We can also use the [xmake-vscode](https://github.com/xmake-io/xmake-vscode) plugin to cooperate with vscode to implement breakpoint debugging support for c/c++ projects.
 
-In addition, we need to rely on the C ++ plug-in of vscode for debugging support, but since developing c / c ++ programs, this plug-in is almost necessary, so there is not much problem.
+In addition, we need to rely on the c++ plug-in of vscode for debugging support, but since developing c/c++ programs, this plug-in is almost necessary, so there is not much problem.
 
-Even if this plugin is not installed, xmake-vscode will load the system debuggers such as lldb / gdb / vsjitdebugger, and directly load and debug.
+Even if this plugin is not installed, xmake-vscode will load the system debuggers such as lldb/gdb/vsjitdebugger, and directly load and debug.
 
-<img src = "/ static / img / xmake / xmake-vscode-debug.gif" width = "60%" />
+<img src = "/static/img/xmake/xmake-vscode-debug.gif" width = "60%" />
