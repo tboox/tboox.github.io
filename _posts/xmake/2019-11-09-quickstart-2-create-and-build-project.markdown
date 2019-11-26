@@ -30,8 +30,8 @@ By default, a c++ hello world project is created, and a xmake.lua is generated i
 ```lua
 add_rules("mode.debug", "mode.release")
 target("test")
-    set_kind("binary")
-    add_files("src/*.cpp")
+    set_kind("binary")
+    add_files("src/*.cpp")
 ```
 
 

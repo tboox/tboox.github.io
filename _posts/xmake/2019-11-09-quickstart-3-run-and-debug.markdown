@@ -29,10 +29,10 @@ Therefore, for PATH, it is very convenient to append values ​​through this i
 
 ```lua
 target("test")
-    set_kind("binary")
-    add_files ("src / *. c")
-    add_runenvs ("PATH", "/ tmp / bin", "xxx / bin")
-    add_runenvs ("LD_LIBRARY_PATH", "/ tmp / lib", "xxx / lib")
+    set_kind("binary")
+    add_files ("src / *. c")
+    add_runenvs ("PATH", "/ tmp / bin", "xxx / bin")
+    add_runenvs ("LD_LIBRARY_PATH", "/ tmp / lib", "xxx / lib")
 ```
 
 For more description of this interface, you can see the documentation: [add_runenvs interface documentation] (https://xmake.io/#/zh-cn/manual/project_target?id=targetadd_runenvs)
@@ -50,12 +50,12 @@ For example, run the installed apk program:
 
 ```lua
 target("test")
-    -- ...
-    -- Set a custom run script, automatically run the installed app, and automatically obtain device output information
-    on_run (function (target)
-        os.run ("adb shell am start -n com.demo / com.demo.DemoTest")
-        os.run ("adb logcat")
-    end)
+    -- ...
+    -- Set a custom run script, automatically run the installed app, and automatically obtain device output information
+    on_run (function (target)
+        os.run ("adb shell am start -n com.demo / com.demo.DemoTest")
+        os.run ("adb logcat")
+    end)
 ```
 
 ### Debugger
@@ -80,12 +80,12 @@ Breakpoint 1: where = hello`main, address = 0x0000000100000f50
 Process 7509 launched: '/ private / tmp / hello / build / hello' (x86_64)
 Process 7509 stopped
 * thread # 1: tid = 0x435a2, 0x0000000100000f50 hello`main, queue = 'com.apple.main-thread', stop reason = breakpoint 1.1
-    frame # 0: 0x0000000100000f50 hello`main
+    frame # 0: 0x0000000100000f50 hello`main
 hello`main:
 -> 0x100000f50 <+0>: pushq% rbp
-    0x100000f51 <+1>: movq% rsp,% rbp
-    0x100000f54 <+4>: leaq 0x2b (% rip),% rdi; "hello world!"
-    0x100000f5b <+11>: callq 0x100000f64; symbol stub for: puts
+    0x100000f51 <+1>: movq% rsp,% rbp
+    0x100000f54 <+4>: leaq 0x2b (% rip),% rdi; "hello world!"
+    0x100000f5b <+11>: callq 0x100000f64; symbol stub for: puts
 [lldb] $
 ```
 
