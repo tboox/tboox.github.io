@@ -5,9 +5,231 @@
     <description>Focus on cross-platform development using c language</description>
     <link>http://www.tboox.org/</link>
     <atom:link href="http://www.tboox.org/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Tue, 26 Nov 2019 22:23:20 +0800</pubDate>
-    <lastBuildDate>Tue, 26 Nov 2019 22:23:20 +0800</lastBuildDate>
+    <pubDate>Sat, 30 Nov 2019 21:46:36 +0800</pubDate>
+    <lastBuildDate>Sat, 30 Nov 2019 21:46:36 +0800</lastBuildDate>
     <generator>Jekyll v3.1.0</generator>
+    
+      <item>
+        <title>xmake从入门到精通7：开发和构建Cuda程序</title>
+        <description>&lt;p&gt;xmake是一个基于Lua的轻量级现代化c/c++的项目构建工具，主要特点是：语法简单易上手，提供更加可读的项目维护，实现跨平台行为一致的构建体验。&lt;/p&gt;
+
+&lt;p&gt;本文我们会详细介绍下如何通过xmake来构建cuda程序以及与c/c++程序混合编译。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;项目源码&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;准备环境&quot;&gt;准备环境&lt;/h3&gt;
+
+&lt;p&gt;首先，我们需要安装NVIDIA提供的Cuda Toolkit SDK工具，其相关说明以及安装文档，可参考官方文档：&lt;a href=&quot;http://docs.nvidia.com/cuda/index.html&quot;&gt;CUDA Toolkit Documentation&lt;/a&gt;。&lt;/p&gt;
+
+&lt;p&gt;下载安装好Cuda SDK后，在macosx上会默认安装到&lt;code class=&quot;highlighter-rouge&quot;&gt;/Developer/NVIDIA/CUDA-x.x&lt;/code&gt;目录下，Windows上可以通过&lt;code class=&quot;highlighter-rouge&quot;&gt;CUDA_PATH&lt;/code&gt;的环境变量找到对应的SDK目录，而
+Linux下默认会安装到&lt;code class=&quot;highlighter-rouge&quot;&gt;/usr/local/cuda&lt;/code&gt;目录下。&lt;/p&gt;
+
+&lt;p&gt;通常，xmake都能自动检测到默认的cuda安装环境，并不需要做任何操作，只需要执行&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake&lt;/code&gt;命令就可以自动完成编译，当然如果找不到SDK，我们也可以手动指定Cuda SDK环境目录：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f --cuda=/usr/local/cuda-9.1/ 
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;或者通过&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake g/global&lt;/code&gt;命令切到全局设置，避免每次切换编译模式都要重新配置一遍。&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; g --cuda=/usr/local/cuda-9.1/ 
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;如果想要测试xmake对当前cuda环境的探测支持，可以直接运行：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake l detect.sdks.find_cuda
+&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; 
+  linkdirs &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; 
+    &lt;span class=&quot;s2&quot;&gt;&quot;/Developer/NVIDIA/CUDA-10.2/lib/stubs&quot;&lt;/span&gt;,
+    &lt;span class=&quot;s2&quot;&gt;&quot;/Developer/NVIDIA/CUDA-10.2/lib&quot;&lt;/span&gt; 
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;,
+  bindir &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;/Developer/NVIDIA/CUDA-10.2/bin&quot;&lt;/span&gt;,
+  sdkdir &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;/Developer/NVIDIA/CUDA-10.2&quot;&lt;/span&gt;,
+  includedirs &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; 
+    &lt;span class=&quot;s2&quot;&gt;&quot;/Developer/NVIDIA/CUDA-10.2/include&quot;&lt;/span&gt; 
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt; 
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;大家也可以帮忙贡献相关检测代码&lt;a href=&quot;https://github.com/xmake-io/xmake/blob/master/xmake/modules/detect/sdks/find_cuda.lua&quot;&gt;find_cuda.lua&lt;/a&gt;来改进xmake的检测机制。&lt;/p&gt;
+
+&lt;h3 id=&quot;创建工程&quot;&gt;创建工程&lt;/h3&gt;
+
+&lt;p&gt;接下来，我们就可以创建一个空工程来快速体验下了，xmake自带了cuda的工程模板，只需要指定对应的语言即可创建cuda项目：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake create -l cuda &lt;span class=&quot;nb&quot;&gt;test
+&lt;/span&gt;create &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt; ...
+  &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+]: xmake.lua
+  &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+]: src/main.cu
+  &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+]: .gitignore
+create ok!
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;默认创建的cuda工程，就是一个最简单的基于Cuda的hello world工程，其源码结构如下：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;├── src
+│   └── main.cu
+└── xmake.
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;而xmake.lua里面的内容我们也可以简单看下：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;-- define target&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cu&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;-- generate SASS code for SM architecture of current host&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_cugencodes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;native&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;-- generate PTX code for the virtual architecture to guarantee compatibility&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_cugencodes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;compute_30&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;可以看到，除了最基本的.cu源文件添加，跟其他c/c++项目唯一的区别就是多了个&lt;code class=&quot;highlighter-rouge&quot;&gt;add_cugencodes()&lt;/code&gt;用来设置cuda需要的gencodes，关于这块，下面会详细讲解。&lt;/p&gt;
+
+&lt;h3 id=&quot;编译项目&quot;&gt;编译项目&lt;/h3&gt;
+
+&lt;p&gt;工程创建好后，只需要简单的执行xmake即可完成编译。&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;00%]: ccache compiling.release src/main.cu
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;99%]: devlinking.release test_gpucode.cu.o
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;100%]: linking.release &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;需要注意的是：从v2.2.7版本开始，xmake默认构建会启用device-link的构建行为，也就是说，现在编译过程中，会额外增加一步device-link过程：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;100%]: devlinking.release test_gpucode.cu.o
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;按照官方的说法，启用device-link设备代码链接的主要优点是可以为您的应用程序提供更传统的代码结构，尤其是在C++中，在现有项目结构不变的前提下，控制每个构建和链接步骤，方便快速的启用GPU代码，实现混合编译。&lt;/p&gt;
+
+&lt;p&gt;关于这块可参看NVIDIA的官方描述：&lt;a href=&quot;https://devblogs.nvidia.com/separate-compilation-linking-cuda-device-code/&quot;&gt;Separate Compilation and Linking of CUDA C++ Device Code&lt;/a&gt;）
+如果要禁用device-link的构建逻辑，可以通过&lt;code class=&quot;highlighter-rouge&quot;&gt;add_values(&quot;cuda.devlink&quot;, false)&lt;/code&gt; 来设置禁用它。&lt;/p&gt;
+
+&lt;p&gt;当然，我们也可以尝试直接运行这个cuda程序：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake run
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;项目设置&quot;&gt;项目设置&lt;/h3&gt;
+
+&lt;p&gt;并且如果设置了里面值为native，那么xmake会自动探测当前主机的cuda设备对应的gencode。&lt;/p&gt;
+
+&lt;h4 id=&quot;add_cuflags&quot;&gt;add_cuflags&lt;/h4&gt;
+
+&lt;p&gt;这个接口主要用于添加cu代码相关的编译选项，我们如果还需要一些更加定制化的设置flags，那么就可以调用&lt;code class=&quot;highlighter-rouge&quot;&gt;add_cuflags&lt;/code&gt;来直接设置更加原始的编译选项，就好比c/c++中的&lt;code class=&quot;highlighter-rouge&quot;&gt;add_cxflags&lt;/code&gt;。&lt;/p&gt;
+
+&lt;p&gt;例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_cuflags&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;-gencode arch=compute_30,code=sm_30&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;add_culdflags&quot;&gt;add_culdflags&lt;/h4&gt;
+
+&lt;p&gt;这个接口主要用于添加cuda设备链接选项，由于上文所说，2.2.7之后，xmake对于cuda程序的默认构建行为会使用device-link，这个阶段如果要设置一些链接flags，则可以通过这个接口来设置。
+因为最终的程序链接，会使用ldflags，不会调用nvcc，直接通过gcc/clang等c/c++链接器来链接，所以device-link这个独立的链接阶段的flags设置，通过这个接口来完成。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_culdflags&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;-gencode arch=compute_30,code=sm_30&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;add_cugencodes&quot;&gt;add_cugencodes&lt;/h4&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;add_cugencodes()&lt;/code&gt;接口其实就是对&lt;code class=&quot;highlighter-rouge&quot;&gt;add_cuflags(&quot;-gencode arch=compute_xx,code=compute_xx&quot;)&lt;/code&gt;编译flags设置的简化封装，其内部参数值对应的实际flags映射关系如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;compute_xx&lt;/span&gt;                   &lt;span class=&quot;c1&quot;&gt;--&amp;gt; `-gencode arch=compute_xx,code=compute_xx`&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sm_xx&lt;/span&gt;                        &lt;span class=&quot;c1&quot;&gt;--&amp;gt; `-gencode arch=compute_xx,code=sm_xx`&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sm_xx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sm_yy&lt;/span&gt;                  &lt;span class=&quot;c1&quot;&gt;--&amp;gt; `-gencode arch=compute_xx,code=[sm_xx,sm_yy]`&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;compute_xx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sm_yy&lt;/span&gt;             &lt;span class=&quot;c1&quot;&gt;--&amp;gt; `-gencode arch=compute_xx,code=sm_yy`&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;compute_xx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sm_yy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sm_zz&lt;/span&gt;       &lt;span class=&quot;c1&quot;&gt;--&amp;gt; `-gencode arch=compute_xx,code=[sm_yy,sm_zz]`&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;native&lt;/span&gt;                       &lt;span class=&quot;c1&quot;&gt;--&amp;gt; match the fastest cuda device on current host,&lt;/span&gt;
+                                   &lt;span class=&quot;n&quot;&gt;eg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Tesla&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;P100&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gencode&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;arch&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;compute_60&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;code&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sm_60&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;`&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;will&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;be&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;added&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+                                   &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;no&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;available&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;device&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;is&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;found&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;no&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gencode&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;`&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;flags&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;will&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;be&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;added&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_cugencodes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;sm_30&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;就等价为&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_cuflags&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;-gencode arch=compute_30,code=sm_30&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_culdflags&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;-gencode arch=compute_30,code=sm_30&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;是不是上面的更加精简些，这其实就是个用于简化设置的辅助接口。&lt;/p&gt;
+
+&lt;p&gt;而如果我们设置了native值，那么xmake会自动探测当前主机的cuda设备，然后快速匹配到它对应的gencode设置，自动追加到整个构建过程中。&lt;/p&gt;
+
+&lt;p&gt;例如，如果我们主机目前的GPU是Tesla P100，并且能够被xmake自动检测到，那么下面的设置：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_cugencodes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;native&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;等价于：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_cugencodes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;sm_60&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;cudacc的混合编译&quot;&gt;Cuda/C/C++的混合编译&lt;/h3&gt;
+
+&lt;p&gt;对于混合编译，我们只需要通过&lt;code class=&quot;highlighter-rouge&quot;&gt;add_files&lt;/code&gt;接口继续加上对应的c/c++代码文件就行了，是不是很简单？&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cu&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_cugencodes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;native&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;编译设置&quot;&gt;编译设置&lt;/h3&gt;
+
+&lt;p&gt;nvcc在编译内部的c/c++代码时候，其实会调用主机环境的c/c++编译器来编译，比如linux下会默认使用gcc/g++，macos下默认使用clang/clang++，windows上默认使用cl.exe。
+如果想要让nvcc采用其他的编译器，比如在linux下改用clang作为默认的c/c++编译器，则需要指定&lt;code class=&quot;highlighter-rouge&quot;&gt;--ccbin=&lt;/code&gt;参数设置，这块可以看下：&lt;a href=&quot;https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#file-and-path-specifications-compiler-bindir&quot;&gt;compiler-ccbin&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;而在xmake中，也对其进行了支持，只需要设置&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f --cu-ccbin=clang&lt;/code&gt; 就可以切换到其他编译器。&lt;/p&gt;
+
+&lt;p&gt;还有两个跟cuda相关的编译参数，我就简单介绍下：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake f --cu&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;nvcc --cu-ld&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;nvcc
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;其中&lt;code class=&quot;highlighter-rouge&quot;&gt;--cu&lt;/code&gt;用来设置.cu代码的编译器，默认就是nvcc，不过clang现在也支持对.cu代码的编译，可以切换设置来尝试，&lt;code class=&quot;highlighter-rouge&quot;&gt;--cu-ld&lt;/code&gt;是设置device-link的链接器，而最终的整体程序link过程，还是用的&lt;code class=&quot;highlighter-rouge&quot;&gt;--ld&lt;/code&gt;来链接的。&lt;/p&gt;
+</description>
+        <pubDate>Sat, 30 Nov 2019 00:00:00 +0800</pubDate>
+        <link>http://www.tboox.org/cn/2019/11/30/quickstart-7-build-cuda-project/</link>
+        <guid isPermaLink="true">http://www.tboox.org/cn/2019/11/30/quickstart-7-build-cuda-project/</guid>
+        
+        <category>xmake</category>
+        
+        <category>lua</category>
+        
+        <category>cuda</category>
+        
+        
+        <category>xmake</category>
+        
+      </item>
     
       <item>
         <title>xmake从入门到精通6：开发和构建Qt程序</title>
@@ -1964,223 +2186,6 @@ checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the SDK version of Xco
         <category>installation</category>
         
         <category>update</category>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>xmake从入门到精通1：安装和更新</title>
-        <description>&lt;p&gt;xmake是一个基于Lua的轻量级现代化c/c++的项目构建工具，主要特点是：语法简单易上手，提供更加可读的项目维护，实现跨平台行为一致的构建体验。&lt;/p&gt;
-
-&lt;p&gt;本文主要详细讲解xmake在各个平台下的安装过程。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;项目源码&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;安装master版本&quot;&gt;安装Master版本&lt;/h2&gt;
-
-&lt;p&gt;通常情况下我们只需要通过一键安装脚本即可完成安装。&lt;/p&gt;
-
-&lt;h3 id=&quot;使用curl&quot;&gt;使用curl&lt;/h3&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;bash &amp;lt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;curl -fsSL https://raw.githubusercontent.com/tboox/xmake/master/scripts/get.sh&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;使用wget&quot;&gt;使用wget&lt;/h3&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;bash &amp;lt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;wget https://raw.githubusercontent.com/tboox/xmake/master/scripts/get.sh -O -&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;使用powershell&quot;&gt;使用powershell&lt;/h3&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Invoke-Expression &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;Invoke-Webrequest &lt;span class=&quot;s1&quot;&gt;&#39;https://raw.githubusercontent.com/tboox/xmake/master/scripts/get.ps1&#39;&lt;/span&gt; -UseBasicParsing&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;.Content
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;注：如果ps脚本执行提示失败，可以尝试在管理员模式下执行&lt;/p&gt;
-
-&lt;h2 id=&quot;安装windows版本&quot;&gt;安装Windows版本&lt;/h2&gt;
-
-&lt;h3 id=&quot;使用安装包&quot;&gt;使用安装包&lt;/h3&gt;
-
-&lt;p&gt;windows下提供了预制的nsis安装包，我们可直接从github的Releases下载页面下载后，运行安装包即可。&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;从 &lt;a href=&quot;https://github.com/xmake-io/xmake/releases&quot;&gt;Releases&lt;/a&gt; 上下载windows安装包&lt;/li&gt;
-  &lt;li&gt;运行安装程序 xmake-[version].exe&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h3 id=&quot;使用scoop&quot;&gt;使用scoop&lt;/h3&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;scoop install xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h2 id=&quot;macos&quot;&gt;MacOS&lt;/h2&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;ruby -e &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt;curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install&lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;brew install xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;或者：&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;从 &lt;a href=&quot;https://github.com/xmake-io/xmake/releases&quot;&gt;Releases&lt;/a&gt; 上下载pkg安装包&lt;/li&gt;
-  &lt;li&gt;双击运行&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;或者安装master版本:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# 使用homebrew安装master版本&lt;/span&gt;
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;brew install xmake --HEAD
-
-&lt;span class=&quot;c&quot;&gt;# 或者直接调用shell下载安装&lt;/span&gt;
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;bash &amp;lt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;curl -fsSL https://raw.githubusercontent.com/tboox/xmake/master/scripts/get.sh&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h2 id=&quot;linux&quot;&gt;Linux&lt;/h2&gt;
-
-&lt;p&gt;在archlinux上安装：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;yaourt xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;或者下载deb包来安装：&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;从 &lt;a href=&quot;https://github.com/xmake-io/xmake/releases&quot;&gt;Releases&lt;/a&gt; 上下载deb安装包&lt;/li&gt;
-  &lt;li&gt;运行: &lt;code class=&quot;highlighter-rouge&quot;&gt;dpkg -i xmake-xxxx.deb&lt;/code&gt;&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h2 id=&quot;termux&quot;&gt;Termux&lt;/h2&gt;
-
-&lt;p&gt;最新版本的xmake已经很好地支持了termux，而我们也通常只需要执行上面的一键安装脚本即可，如果失败，可参考下文自己拉取源码编译安装。&lt;/p&gt;
-
-&lt;h2 id=&quot;源码编译安装&quot;&gt;源码编译安装&lt;/h2&gt;
-
-&lt;h3 id=&quot;安装&quot;&gt;安装&lt;/h3&gt;
-
-&lt;p&gt;注：切记，xmake不建议在root下安装，所以尽量不要在root下拉取源码编译安装！&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;git clone --recursive https://github.com/xmake-io/xmake.git
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;cd&lt;/span&gt; ./xmake
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;./scripts/get.sh __local__
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;source&lt;/span&gt; ~/.xmake/profile
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;如果觉得github的源太慢，可以通过gitee的镜像源拉取：&lt;code class=&quot;highlighter-rouge&quot;&gt;clone --recursive https://gitee.com/tboox/xmake.git&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;注：由于目前xmake源码通过git submodule维护依赖，所以clone的时候需要加上&lt;code class=&quot;highlighter-rouge&quot;&gt;--recursive&lt;/code&gt;参数同时拉取所有submodules代码，请不要直接下载tar.gz源码，因为github不会自动打包submodules里面的代码。&lt;/p&gt;
-
-&lt;p&gt;如果git clone的时候忘记加&lt;code class=&quot;highlighter-rouge&quot;&gt;--recursive&lt;/code&gt;，那么也可以执行&lt;code class=&quot;highlighter-rouge&quot;&gt;git submodule update --init&lt;/code&gt;来拉取所有submodules，例如：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;git clone https://github.com/xmake-io/xmake.git
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;cd&lt;/span&gt; ./xmake
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;git submodule update --init
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;./scripts/get.sh __local__
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;注：&lt;code class=&quot;highlighter-rouge&quot;&gt;./get.sh __local__&lt;/code&gt;是安装到&lt;code class=&quot;highlighter-rouge&quot;&gt;~/.local/xmake&lt;/code&gt;下，然后通过&lt;code class=&quot;highlighter-rouge&quot;&gt;source ~/.xmake/profile&lt;/code&gt;方式来加载的，所以安装完，当前终端如果执行xmake失败，提示找不到，就手动执行下 &lt;code class=&quot;highlighter-rouge&quot;&gt;source ~/.xmake/profile&lt;/code&gt;，而下次打开终端就不需要了。&lt;/p&gt;
-
-&lt;h3 id=&quot;卸载&quot;&gt;卸载&lt;/h3&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;./scripts/get.sh __uninstall__
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;仅仅更新安装lua脚本&quot;&gt;仅仅更新安装lua脚本&lt;/h3&gt;
-
-&lt;p&gt;这个开发者本地调试xmake源码才需要：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;./scripts/get.sh __local__ __install_only__
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;root下安装&quot;&gt;root下安装&lt;/h3&gt;
-
-&lt;p&gt;xmake不推荐root下安装使用，因为这很不安全，如果用户非要root下装，装完后，如果提示xmake运行不了，请根据提示传递&lt;code class=&quot;highlighter-rouge&quot;&gt;--root&lt;/code&gt;参数，或者设置&lt;code class=&quot;highlighter-rouge&quot;&gt;XMAKE_ROOT=y&lt;/code&gt;环境变量强行启用下，前提是：用户需要随时注意root下误操作系统文件文件的风险。&lt;/p&gt;
-
-&lt;h3 id=&quot;依赖问题&quot;&gt;依赖问题&lt;/h3&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;如果遇到readline相关问题，请装下readline-devel或者libreadline-dev依赖，这个是可选的，仅仅&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake lua&lt;/code&gt;命令执行REPL时候才需要。&lt;/li&gt;
-  &lt;li&gt;如果想要提速编译，可以装下ccache，xmake会自动检测并使用，这也是可选的。&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h2 id=&quot;其他安装方式&quot;&gt;其他安装方式&lt;/h2&gt;
-
-&lt;p&gt;注：这种也是源码编译安装，但是安装路径会直接写入&lt;code class=&quot;highlighter-rouge&quot;&gt;/usr/&lt;/code&gt;下，需要root权限，因此除非特殊情况，不推荐这种安装方式，建议采用上文提供的&lt;code class=&quot;highlighter-rouge&quot;&gt;./get.sh __local__&lt;/code&gt;方式来安装，这两种安装方式的安装路径是不同的，不要混用。&lt;/p&gt;
-
-&lt;p&gt;通过make进行编译安装:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;make build; sudo make install
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;安装到其他指定目录:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;sudo make install &lt;span class=&quot;nv&quot;&gt;prefix&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/usr/local
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;卸载:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;sudo make uninstall
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h2 id=&quot;更新升级&quot;&gt;更新升级&lt;/h2&gt;
-
-&lt;p&gt;从v2.2.3版本开始，新增了&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake update&lt;/code&gt;命令，来快速进行自我更新和升级，默认是升级到最新版本，当然也可以指定升级或者回退到某个版本：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake update 2.2.4
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;我们也可以指定更新到master/dev分支版本：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake update master
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake update dev
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;从指定git源更新&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake update github:xmake-io/xmake#master
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake update gitee:tboox/xmake#dev &lt;span class=&quot;c&quot;&gt;# gitee镜像&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;如果xmake/core没动过，仅仅更新xmake的lua脚本改动，可以加&lt;code class=&quot;highlighter-rouge&quot;&gt;-s/--scriptonly&lt;/code&gt;快速更新lua脚本&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake update -s dev
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;最后，我们如果要卸载xmake，也是支持的：&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake update --uninstall&lt;/code&gt;&lt;/p&gt;
-</description>
-        <pubDate>Sat, 09 Nov 2019 00:00:00 +0800</pubDate>
-        <link>http://www.tboox.org/cn/2019/11/09/quickstart-1-installation/</link>
-        <guid isPermaLink="true">http://www.tboox.org/cn/2019/11/09/quickstart-1-installation/</guid>
-        
-        <category>xmake</category>
-        
-        <category>lua</category>
-        
-        <category>安装</category>
-        
-        <category>更新</category>
         
         
         <category>xmake</category>
