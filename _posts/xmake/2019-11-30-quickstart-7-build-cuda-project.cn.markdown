@@ -73,7 +73,7 @@ create ok!
 ```
 ├── src
 │   └── main.cu
-└── xmake.
+└── xmalua
 ```
 
 而xmake.lua里面的内容我们也可以简单看下：
