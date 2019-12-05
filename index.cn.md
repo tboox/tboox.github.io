@@ -141,6 +141,16 @@ layout: default.cn
             </script>
             {% endif %}
 
+            <!-- wechat public -->
+            <br>
+            <div class="side">
+                <div>
+                    <i class="fa fa-external-link"></i>
+                    微信公众号
+                </div>
+                <img src="/static/img/weixin_public.jpg" alt="qqgroup" width="256" height="284">
+            </div> 
+
             <!-- 其他div框放到这里 -->
             <br>
             <div class="side">
@@ -191,19 +201,6 @@ layout: default.cn
                     {% endfor %}
                 </div>
             </div>
-
-            <div class="side">
-                <div>
-                    <i class="fa fa-external-link"></i>
-                    链接
-                </div>
-                <ul class="content-ul" links>
-                  <li><a href="https://github.com/tboox/tbox">tbox</a></li>
-                  <li><a href="https://xmake.io/cn">xmake</a></li>
-                  <li><a href="https://github.com/tboox">github</a></li>
-                  <li><a href="http://www.acgxt.com">七空幻音</a></li>
-                </ul>
-            </div> 
 
             {% if site.adsbygoogle_client %}
             <div class="side">
