@@ -5,8 +5,6 @@ tags: xmake lua 交叉编译
 categories: xmake
 ---
 
-cross-compile
-
 xmake是一个基于Lua的轻量级现代化c/c++的项目构建工具，主要特点是：语法简单易上手，提供更加可读的项目维护，实现跨平台行为一致的构建体验。
 
 除了win, linux, macOS平台，以及android, ios等移动端平台的内建构建支持，xmake也支持对各种其他工具链的交叉编译支持，本文我们将会详细介绍下如何使用xmake进行交叉编译。
@@ -298,6 +296,8 @@ if is_plat("sunos") then
     add_headerfiles("(include/uv-sunos.h)")
 end
 ```
+
+然后，我们就可以切换这些平台来编译：
 
 ```bash
 $ xmake f -p [gragonfly|freebsd|netbsd|openbsd|sunos] --sdk=/home/arm-xxx-gcc/
