@@ -5,9 +5,334 @@
     <description>Focus on cross-platform development using c language</description>
     <link>http://www.tboox.org/</link>
     <atom:link href="http://www.tboox.org/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Thu, 05 Dec 2019 23:26:47 +0800</pubDate>
-    <lastBuildDate>Thu, 05 Dec 2019 23:26:47 +0800</lastBuildDate>
+    <pubDate>Sun, 08 Dec 2019 20:29:37 +0800</pubDate>
+    <lastBuildDate>Sun, 08 Dec 2019 20:29:37 +0800</lastBuildDate>
     <generator>Jekyll v3.1.0</generator>
+    
+      <item>
+        <title>xmake从入门到精通9：交叉编译详解</title>
+        <description>&lt;p&gt;cross-compile&lt;/p&gt;
+
+&lt;p&gt;xmake是一个基于Lua的轻量级现代化c/c++的项目构建工具，主要特点是：语法简单易上手，提供更加可读的项目维护，实现跨平台行为一致的构建体验。&lt;/p&gt;
+
+&lt;p&gt;除了win, linux, macOS平台，以及android, ios等移动端平台的内建构建支持，xmake也支持对各种其他工具链的交叉编译支持，本文我们将会详细介绍下如何使用xmake进行交叉编译。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;项目源码&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;交叉编译工具链简介&quot;&gt;交叉编译工具链简介&lt;/h3&gt;
+
+&lt;p&gt;通常，如果我们需要在当前pc环境编译生成其他设备上才能运行的目标文件时候，就需要通过对应的交叉编译工具链来编译生成它们，比如在win/macos上编译linux的程序，或者在linux上编译其他嵌入式设备的目标文件等。&lt;/p&gt;
+
+&lt;p&gt;通常的交叉编译工具链都是基于gcc/clang的，大都具有类似如下的结构：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;/home/toolchains_sdkdir
+   - bin
+       - arm-linux-armeabi-gcc
+       - arm-linux-armeabi-ld
+       - ...
+   - lib
+       - libxxx.a
+   - include
+       - xxx.h
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;每个工具链都有对应的include/lib目录，用于放置一些系统库和头文件，例如libc, stdc++等，而bin目录下放置的就是编译工具链一系列工具。例如：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;arm-linux-armeabi-ar
+arm-linux-armeabi-as
+arm-linux-armeabi-c++
+arm-linux-armeabi-cpp
+arm-linux-armeabi-g++
+arm-linux-armeabi-gcc
+arm-linux-armeabi-ld
+arm-linux-armeabi-nm
+arm-linux-armeabi-strip
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;其中&lt;code class=&quot;highlighter-rouge&quot;&gt;arm-linux-armeabi-&lt;/code&gt;前缀就是cross，通过用来标示目标平台和架构，主要用于跟主机自身的gcc/clang进行区分。&lt;/p&gt;
+
+&lt;p&gt;里面的gcc/g++就是c/c++的编译器，通常也可以作为链接器使用，链接的时候内部会去调用ld来链接，并且自动追加一些c++库。
+cpp是预处理器，as是汇编器，ar用于生成静态库，strip用于裁剪掉一些符号信息，使得目标程序会更加的小。nm用于查看导出符号列表。&lt;/p&gt;
+
+&lt;h3 id=&quot;自动探测和编译&quot;&gt;自动探测和编译&lt;/h3&gt;
+
+&lt;p&gt;如果我们的交叉编译工具链是上文的结构，xmake会自动检测识别这个sdk的结构，提取里面的cross，以及include/lib路径位置，用户通常不需要做额外的参数设置，只需要配置好sdk根目录就可以编译了，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p cross --sdk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/home/toolchains_sdkdir
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;其中，&lt;code class=&quot;highlighter-rouge&quot;&gt;-p cross&lt;/code&gt;用于指定当前的平台是交叉编译平台，&lt;code class=&quot;highlighter-rouge&quot;&gt;--sdk=&lt;/code&gt;用于指定交叉工具链的根目录。&lt;/p&gt;
+
+&lt;p&gt;注：我们也可以指定&lt;code class=&quot;highlighter-rouge&quot;&gt;-p linux&lt;/code&gt;平台来配置交叉编译，效果是一样的，唯一的区别是额外标识了linux平台名，方便xmake.lua里面通过&lt;code class=&quot;highlighter-rouge&quot;&gt;is_plat(&quot;linux&quot;)&lt;/code&gt;来判断平台。&lt;/p&gt;
+
+&lt;p&gt;这个时候，xmake会去自动探测gcc等编译器的前缀名cross：&lt;code class=&quot;highlighter-rouge&quot;&gt;arm-linux-armeabi-&lt;/code&gt;，并且编译的时候，也会自动加上&lt;code class=&quot;highlighter-rouge&quot;&gt;链接库&lt;/code&gt;和&lt;code class=&quot;highlighter-rouge&quot;&gt;头文件&lt;/code&gt;的搜索选项，例如：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;-I/home/toolchains_sdkdir/include 
+-L/home/toolchains_sdkdir/lib
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这些都是xmake自动处理的，不需要手动配置他们。&lt;/p&gt;
+
+&lt;h3 id=&quot;手动配置编译&quot;&gt;手动配置编译&lt;/h3&gt;
+
+&lt;p&gt;如果上面的自动检测对某些工具链，还无法完全通过编译，就需要用户自己手动设置一些交叉编译相关的配置参数，来调整适应这些特殊的工具链了，下面我会逐一讲解如何配置。&lt;/p&gt;
+
+&lt;h4 id=&quot;设置工具链bin目录&quot;&gt;设置工具链bin目录&lt;/h4&gt;
+
+&lt;p&gt;对于不规则工具链目录结构，靠单纯地&lt;a href=&quot;https://xmake.io/#/zh-cn/guide/configuration?id=-sdk&quot;&gt;–sdk&lt;/a&gt;选项设置，没法完全检测通过的情况下，可以通过这个选项继续附加设置工具链的bin目录位置。&lt;/p&gt;
+
+&lt;p&gt;例如：一些特殊的交叉工具链的，编译器bin目录，并不在  &lt;code class=&quot;highlighter-rouge&quot;&gt;/home/toolchains_sdkdir/bin&lt;/code&gt;  这个位置，而是独立到了  &lt;code class=&quot;highlighter-rouge&quot;&gt;/usr/opt/bin&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;这个时候，我们可以在设置了sdk参数的基础上追加bin目录的参数设置，来调整工具链的bin目录。&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p linux --sdk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/home/toolchains_sdkdir --bin&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/usr/opt/bin
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;设置交叉工具链工具前缀&quot;&gt;设置交叉工具链工具前缀&lt;/h4&gt;
+
+&lt;p&gt;像aarch64-linux-android-这种，通常如果你配置了–sdk或者–bin的情况下，xmake会去自动检测的，不需要自己手动设置。&lt;/p&gt;
+
+&lt;p&gt;但是对于一些极特殊的工具链，一个目录下同时有多个cross前缀的工具bin混在一起的情况，你需要手动设置这个配置，来区分到底需要选用哪个bin。&lt;/p&gt;
+
+&lt;p&gt;例如，toolchains的bin目录下同时存在两个不同的编译器：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;/opt/bin
+  - armv7-linux-gcc 
+  - aarch64-linux-gcc
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;我们现在想要选用armv7的版本，那么我们可以追加&lt;code class=&quot;highlighter-rouge&quot;&gt;--cross=&lt;/code&gt;配置编译工具前缀名，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p linux --sdk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/usr/toolsdk --bin&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/opt/bin --cross&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;armv7-linux-
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;设置cc编译器&quot;&gt;设置c/c++编译器&lt;/h4&gt;
+
+&lt;p&gt;如果还要继续细分选择编译器，则继续追加相关编译器选项，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p linux --sdk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/user/toolsdk --cc&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;armv7-linux-clang --cxx&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;armv7-linux-clang++
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;当然，我们也可以指定编译器全路径。&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;--cc&lt;/code&gt;用于指定c编译器名，&lt;code class=&quot;highlighter-rouge&quot;&gt;--cxx&lt;/code&gt;用于指定c++编译器名。&lt;/p&gt;
+
+&lt;p&gt;注：如果存在CC/CXX环境变量的话，会优先使用当前环境变量中指定的值。&lt;/p&gt;
+
+&lt;p&gt;如果指定的编译器名不是那些xmake内置可识别的名字（带有gcc, clang等字样），那么编译器工具检测就会失败。&lt;/p&gt;
+
+&lt;p&gt;这个时候我们可以通过：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake f --cxx&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;clang++@/home/xxx/c++mips.exe
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;设置c++mips.exe编译器作为类clang++的使用方式来编译。&lt;/p&gt;
+
+&lt;p&gt;也就是说，在指定编译器为&lt;code class=&quot;highlighter-rouge&quot;&gt;c++mips.exe&lt;/code&gt;的同时，告诉xmake，它跟clang++用法和参数选项基本相同。&lt;/p&gt;
+
+&lt;h4 id=&quot;设置cc连接器&quot;&gt;设置c/c++连接器&lt;/h4&gt;
+
+&lt;p&gt;如果还要继续细分选择链接器，则继续追加相关链接器选项，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p linux --sdk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/user/toolsdk --ld&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;armv7-linux-clang++ --sh&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;armv7-linux-clang++ --ar&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;armv7-linux-ar
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;ld指定可执行程序链接器，sh指定共享库程序链接器，ar指定生成静态库的归档器。&lt;/p&gt;
+
+&lt;p&gt;注：如果存在LD/SH/AR环境变量的话，会优先使用当前环境变量中指定的值。&lt;/p&gt;
+
+&lt;h4 id=&quot;设置头文件和库搜索目录&quot;&gt;设置头文件和库搜索目录&lt;/h4&gt;
+
+&lt;p&gt;如果sdk里面还有额外的其他include/lib目录不在标准的结构中，导致交叉编译找不到库和头文件，那么我们可以通过&lt;code class=&quot;highlighter-rouge&quot;&gt;--includedirs&lt;/code&gt;和&lt;code class=&quot;highlighter-rouge&quot;&gt;--linkdirs&lt;/code&gt;来追加搜索路径，然后通过&lt;code class=&quot;highlighter-rouge&quot;&gt;--links&lt;/code&gt;添加额外的链接库。&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p linux --sdk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/usr/toolsdk --includedirs&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/usr/toolsdk/xxx/include --linkdirs&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/usr/toolsdk/xxx/lib --links&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;pthread
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;注：如果要指定多个搜索目录，可以通过&lt;code class=&quot;highlighter-rouge&quot;&gt;:&lt;/code&gt;或者&lt;code class=&quot;highlighter-rouge&quot;&gt;;&lt;/code&gt;来分割，也就是不同主机平台的路径分隔符，linux/macos下用&lt;code class=&quot;highlighter-rouge&quot;&gt;:&lt;/code&gt;，win下用&lt;code class=&quot;highlighter-rouge&quot;&gt;;&lt;/code&gt;。&lt;/p&gt;
+
+&lt;h4 id=&quot;设置编译和链接选项&quot;&gt;设置编译和链接选项&lt;/h4&gt;
+
+&lt;p&gt;我们也可以根据实际情况通过&lt;code class=&quot;highlighter-rouge&quot;&gt;--cflags&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;--cxxflags&lt;/code&gt;，&lt;code class=&quot;highlighter-rouge&quot;&gt;--ldflags&lt;/code&gt;，&lt;code class=&quot;highlighter-rouge&quot;&gt;--shflags&lt;/code&gt;和&lt;code class=&quot;highlighter-rouge&quot;&gt;--arflags&lt;/code&gt;额外配置一些编译和链接选项。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;cflags: 指定c编译参数&lt;/li&gt;
+  &lt;li&gt;cxxflags：指定c++编译参数&lt;/li&gt;
+  &lt;li&gt;cxflags: 指定c/c++编译参数&lt;/li&gt;
+  &lt;li&gt;asflags: 指定汇编器编译参数&lt;/li&gt;
+  &lt;li&gt;ldflags: 指定可执行程序链接参数&lt;/li&gt;
+  &lt;li&gt;shflags: 指定动态库程序链接参数&lt;/li&gt;
+  &lt;li&gt;arflags: 指定静态库的生成参数&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p linux --sdk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/usr/toolsdk --cflags&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;-DTEST -I/xxx/xxx&quot;&lt;/span&gt; --ldflags&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;-lpthread&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;mingw工具链&quot;&gt;mingw工具链&lt;/h3&gt;
+
+&lt;p&gt;使用mingw工具链编译，其实也是交叉编译，但是由于这个比较常用，xmake专门增加了一个mingw的平台来快速处理使用mingw工具链的编译。&lt;/p&gt;
+
+&lt;p&gt;因此，xmake对mingw的工具链检测会更加完善，在macos下，基本上连sdk路径都不需要配置，也能直接检测到，只需要切到mingw平台编译即可。&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p mingw
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake -v
+configure
+&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    ld &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; /usr/local/opt/mingw-w64/bin/x86_64-w64-mingw32-g++
+    ndk_stdcxx &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;true
+    &lt;/span&gt;plat &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; mingw
+    mingw &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; /usr/local/opt/mingw-w64
+    buildir &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; build
+    arch &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; x86_64
+    xcode &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; /Applications/Xcode.app
+    mode &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; release
+    cxx &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; /usr/local/opt/mingw-w64/bin/x86_64-w64-mingw32-gcc
+    cross &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; x86_64-w64-mingw32-
+    theme &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; default
+    kind &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; static
+    ccache &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;true
+    &lt;/span&gt;host &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; macosx
+    clean &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;true
+    &lt;/span&gt;bin &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; /usr/local/opt/mingw-w64/bin
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;  0%]: ccache compiling.release src/main.cpp
+/usr/local/bin/ccache /usr/local/opt/mingw-w64/bin/x86_64-w64-mingw32-gcc -c -fvisibility&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;hidden -O3 -m64 -o build/.objs/test/mingw/x86_64/release/src/main.cpp.obj src/main.cpp
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;100%]: linking.release test.exe
+/usr/local/opt/mingw-w64/bin/x86_64-w64-mingw32-g++ -o build/mingw/x86_64/release/test.exe build/.objs/test/mingw/x86_64/release/src/main.cpp.obj -s -fvisibility&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;hidden -m64
+build ok!
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这里我们追加了&lt;code class=&quot;highlighter-rouge&quot;&gt;-v&lt;/code&gt;参数，看了下详细的编译命令和检测到的mingw工具链配置值，其中cross被自动检测为：&lt;code class=&quot;highlighter-rouge&quot;&gt;x86_64-w64-mingw32-&lt;/code&gt;，bin目录也被自动检测到了，还有编译器和链接器也是。&lt;/p&gt;
+
+&lt;p&gt;尽管在linux/win上还没法自动检测到sdk路径，我们也可以手动指定sdk路径，需要注意的是，xmake为mingw专门提供了一个&lt;code class=&quot;highlighter-rouge&quot;&gt;--mingw=&lt;/code&gt;参数用来指定mingw的工具链根目录，其效果跟&lt;code class=&quot;highlighter-rouge&quot;&gt;--sdk=&lt;/code&gt;是一样的，但是它可以作为全局配置被设置。&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake g --mingw&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/home/mingwsdk
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p mingw
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;我们通过&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake g/global&lt;/code&gt;命令设置&lt;code class=&quot;highlighter-rouge&quot;&gt;--mingw&lt;/code&gt;根目录到全局配置后，之后每次编译和切换编译平台，就不用额外指定mingw工具链路径了，方便使用。&lt;/p&gt;
+
+&lt;p&gt;另外，其他的工具链配置参数用法，跟上文描述的没什么区别，像&lt;code class=&quot;highlighter-rouge&quot;&gt;--cross&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;--bin=&lt;/code&gt;等都可以根据实际的环境需要，自己控制是否需要额外追加配置来适配自己的mingw工具链。&lt;/p&gt;
+
+&lt;h3 id=&quot;项目描述设置&quot;&gt;项目描述设置&lt;/h3&gt;
+
+&lt;h4 id=&quot;set_toolchain&quot;&gt;set_toolchain&lt;/h4&gt;
+
+&lt;p&gt;如果觉得每次通过命令行配置比较繁琐，有些配置可以通过在xmake.lua预先配置好，来简化命令配置，比如编译器的指定，就可以通过&lt;code class=&quot;highlighter-rouge&quot;&gt;set_toolchain&lt;/code&gt;来对每个target单独设置。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_toolchain&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cxx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;clang&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_toolchain&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;ld&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;clang++&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;强制test目标的编译器和链接器使用clang编译器，或者指定交叉编译工具链中的编译器名或者路径。&lt;/p&gt;
+
+&lt;h4 id=&quot;set_config&quot;&gt;set_config&lt;/h4&gt;
+
+&lt;p&gt;我们也可以通过&lt;code class=&quot;highlighter-rouge&quot;&gt;set_config&lt;/code&gt;来设置在&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f/config&lt;/code&gt;命令中的每个配置参数的默认值，这是个全局api，对每个target都会生效。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;set_config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cflags&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;-DTEST&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;set_config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;sdk&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;/home/xxx/tooksdk&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;set_config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;gcc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;set_config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;ld&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;g++&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;不过，我们还是可以通过&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f --name=value&lt;/code&gt;的方式，去修改xmake.lua中的默认配置。&lt;/p&gt;
+
+&lt;h3 id=&quot;自定义编译平台&quot;&gt;自定义编译平台&lt;/h3&gt;
+
+&lt;p&gt;如果某个交叉工具链编译后目标程序有对应的平台需要指定，并且需要在xmake.lua里面根据不同的交叉编译平台，还需要配置一些额外的编译参数，那么上文的&lt;code class=&quot;highlighter-rouge&quot;&gt;-p cross&lt;/code&gt;设置就不能满足需求了。&lt;/p&gt;
+
+&lt;p&gt;其实，&lt;code class=&quot;highlighter-rouge&quot;&gt;-p/--plat=&lt;/code&gt;参数也可以设置为其他自定义的值，只需要跟&lt;code class=&quot;highlighter-rouge&quot;&gt;is_plat&lt;/code&gt;保持对应关系就可以，所有非内置平台名，都会默认采用交叉编译模式，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p myplat --sdk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/usr/local/arm-xxx-gcc/
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;我们传入了myplat自定义平台名，作为当前交叉工具链的编译平台，然后xmake.lua里面我们对这个平台，配置下对应的设置：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;is_plat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;myplat&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_defines&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;TEST&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;通过这种方式，xmake就可以很方便的扩展处理各种编译平台，用户可以自己扩展支持freebsd, netbsd, sunos等其他各种平台的交叉编译。&lt;/p&gt;
+
+&lt;p&gt;我摘录一段之前移植libuv写的交叉编译的配置，直观感受下：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;-- for gragonfly/freebsd/netbsd/openbsd platform&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;is_plat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;gragonfly&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;freebsd&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;netbsd&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;openbsd&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/unix/bsd-ifaddrs.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/unix/freebsd.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/unix/kqueue.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/unix/posix-hrtime.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_headerfiles&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;(include/uv-bsd.h)&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt; 
+
+&lt;span class=&quot;c1&quot;&gt;-- for sunos platform&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;is_plat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;sunos&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/unix/no-proctitle.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/unix/sunos.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_defines&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;__EXTENSIONS_&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;_XOPEN_SOURCE=600&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_headerfiles&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;(include/uv-sunos.h)&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;gragonfly|freebsd|netbsd|openbsd|sunos] --sdk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/home/arm-xxx-gcc/
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;另外，内置的linux平台也是支持交叉编译的哦，如果不想配置其他平台名，统一作为linux平台来交叉编译，也是可以的。&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p linux --sdk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/usr/local/arm-xxx-gcc/
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;只要设置了&lt;code class=&quot;highlighter-rouge&quot;&gt;--sdk=&lt;/code&gt;等参数，就会启用linux平台的交叉编译模式。&lt;/p&gt;
+</description>
+        <pubDate>Thu, 05 Dec 2019 00:00:00 +0800</pubDate>
+        <link>http://www.tboox.org/cn/2019/12/05/quickstart-9-cross-compile/</link>
+        <guid isPermaLink="true">http://www.tboox.org/cn/2019/12/05/quickstart-9-cross-compile/</guid>
+        
+        <category>xmake</category>
+        
+        <category>lua</category>
+        
+        <category>交叉编译</category>
+        
+        
+        <category>xmake</category>
+        
+      </item>
     
       <item>
         <title>xmake从入门到精通8：切换编译模式</title>
@@ -2121,181 +2446,6 @@ assessment &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the SDK version of X
         <category>lua</category>
         
         <category>c/c++</category>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>xmake从入门到精通2：创建和编译工程</title>
-        <description>&lt;p&gt;xmake是一个基于Lua的轻量级现代化c/c++的项目构建工具，主要特点是：语法简单易上手，提供更加可读的项目维护，实现跨平台行为一致的构建体验。&lt;/p&gt;
-
-&lt;p&gt;本文主要详细讲解如何创建一个基于xmake的工程以及编译操作。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;项目源码&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;创建空工程&quot;&gt;创建空工程&lt;/h3&gt;
-
-&lt;p&gt;xmake提供了&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake create&lt;/code&gt;命令，可以很方便的快速创建基于c/c++, swift, objc等各种语言的空工程项目，比如：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake create &lt;span class=&quot;nb&quot;&gt;test
-&lt;/span&gt;create &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt; ...
-  &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+]: xmake.lua
-  &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+]: src/main.cpp
-  &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+]: .gitignore
-create ok!
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;默认会创建一个c++的hello world工程，根目录下会生成一个xmake.lua用于描述项目的构建规则。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mode.debug&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mode.release&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;这是一个非常简单的xmake.lua描述，&lt;code class=&quot;highlighter-rouge&quot;&gt;target(&quot;test&quot;)&lt;/code&gt;定义了一个子工程模块test，每个target会生成一个对应的目标文件，此处的binary类型，指定创建一个最基础的可执行文件。&lt;/p&gt;
-
-&lt;p&gt;而最上面的&lt;code class=&quot;highlighter-rouge&quot;&gt;mode.debug&lt;/code&gt;和&lt;code class=&quot;highlighter-rouge&quot;&gt;mode.release&lt;/code&gt;规则设置，是可选设置，但是通常我们都会建议加上，这样默认就可以生效两种常用的构建模式：debug和release&lt;/p&gt;
-
-&lt;h3 id=&quot;执行编译&quot;&gt;执行编译&lt;/h3&gt;
-
-&lt;p&gt;通常我们如果只是编译当前主机环境的可执行文件，只需要执行xmake这个命令就可以了：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
-checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the Xcode directory ... /Applications/Xcode.app
-checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the SDK version of Xcode ... 10.15
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;  0%]: ccache compiling.release src/main.cpp
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;100%]: linking.release &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;xmake默认会检测当前环境已存在的构建环境，比如笔者当前的xcode环境，然后默认采用release模式编译，如果设置了&lt;code class=&quot;highlighter-rouge&quot;&gt;mode.release&lt;/code&gt;规则，那么就会生效。&lt;/p&gt;
-
-&lt;h3 id=&quot;编译模式切换&quot;&gt;编译模式切换&lt;/h3&gt;
-
-&lt;p&gt;而如果我们要切到&lt;code class=&quot;highlighter-rouge&quot;&gt;mode.debug&lt;/code&gt;编译，只需要：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -m debug
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;其中，&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f&lt;/code&gt;是&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake config&lt;/code&gt;命令的简写，用来快速的切换配置，如果上手之后，通常采用简写会更加方便，更多命令的简写，都可执行&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake --help&lt;/code&gt;查看。&lt;/p&gt;
-
-&lt;h3 id=&quot;创建其他模板工程&quot;&gt;创建其他模板工程&lt;/h3&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake create&lt;/code&gt;还可以用来创建各种其他类型的工程项目，我们可以敲&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake create --help&lt;/code&gt;看下：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake create --help
-Usage: &lt;span class=&quot;nv&quot;&gt;$xmake&lt;/span&gt; create &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;options] &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;target]
-
-Create a new project.
-
-Options: 
-                                           
-    -l LANGUAGE, --language&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;LANGUAGE       The project language &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;default: c++&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-                                               - c++
-                                               - go
-                                               - dlang
-                                               - cuda
-                                               - rust
-                                               - swift
-                                               - objc
-                                               - c
-                                               - objc++
-    -t TEMPLATE, --template&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;TEMPLATE       Select the project template id or name of the given language. 
-                                           &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;default: console&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-                                               - console: c++, go, dlang, cuda, rust, swift, objc, c, objc++
-                                               - qt.console: c++
-                                               - qt.quickapp: c++
-                                               - qt.quickapp_static: c++
-                                               - qt.shared: c++
-                                               - qt.static: c++
-                                               - qt.widgetapp: c++
-                                               - qt.widgetapp_static: c++
-                                               - shared: c++, dlang, cuda, c
-                                               - static: c++, go, dlang, cuda, rust, c
-                                               - tbox.console: c++, c
-                                               - tbox.shared: c++, c
-                                               - tbox.static: c++, c
-                                           
-    target                                 Create the given target.
-                                           Uses the project name as target &lt;span class=&quot;k&quot;&gt;if &lt;/span&gt;not exists.
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;从上面的帮助菜单，我们可以大概了解到，可以通过&lt;code class=&quot;highlighter-rouge&quot;&gt;-l/--language&lt;/code&gt;来指定工程语言，而&lt;code class=&quot;highlighter-rouge&quot;&gt;-t/--template&lt;/code&gt;用来指定闯将的工程模板类型。&lt;/p&gt;
-
-&lt;p&gt;比如，我们创建一个基于c的静态库项目：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake create -l c -t static &lt;span class=&quot;nb&quot;&gt;test
-&lt;/span&gt;create &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt; ...
-  &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+]: xmake.lua
-  &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+]: src/interface.c
-  &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+]: src/interface.h
-  &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+]: src/test.c
-  &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+]: src/main.cpp
-  &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+]: .gitignore
-create ok!
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;我们也可以创建基于qt的quickapp项目：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake create -l c++ -t qt.quickapp &lt;span class=&quot;nb&quot;&gt;test
-&lt;/span&gt;create &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt; ...
-  &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+]: xmake.lua
-  &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+]: src/interface.c
-  &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+]: src/main.qml
-  &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+]: src/interface.h
-  &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+]: src/test.c
-  &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+]: src/main.cpp
-  &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+]: src/qml.qrc
-  &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+]: .gitignore
-create ok!
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;除了c/c++项目，xmake还支持其他语言的项目编译，但xmake重点还是在c/c++上，支持其他语言也主要是为了支持跟c/c++进行混合编译，毕竟其他语言向rust什么的官方有提供更好的构建方案。&lt;/p&gt;
-
-&lt;p&gt;不过我们还是可以使用xmake来尝试编译他们：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake create -l rust &lt;span class=&quot;nb&quot;&gt;test
-&lt;/span&gt;create &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt; ...
-  &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+]: xmake.lua
-  &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+]: src/main.rs
-  &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+]: .gitignore
-create ok!
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
-checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the architecture ... x86_64
-checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the Xcode directory ... /Applications/Xcode.app
-checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the SDK version of Xcode ... 10.15
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;  0%]: linking.release &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-</description>
-        <pubDate>Sat, 09 Nov 2019 00:00:00 +0800</pubDate>
-        <link>http://www.tboox.org/cn/2019/11/09/quickstart-2-create-and-build-project/</link>
-        <guid isPermaLink="true">http://www.tboox.org/cn/2019/11/09/quickstart-2-create-and-build-project/</guid>
-        
-        <category>xmake</category>
-        
-        <category>lua</category>
-        
-        <category>c/c++</category>
-        
-        <category>创建工程</category>
         
         
         <category>xmake</category>
