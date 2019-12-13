@@ -5,8 +5,8 @@
     <description>Focus on cross-platform development using c language</description>
     <link>http://www.tboox.org/</link>
     <atom:link href="http://www.tboox.org/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Fri, 13 Dec 2019 11:21:13 +0800</pubDate>
-    <lastBuildDate>Fri, 13 Dec 2019 11:21:13 +0800</lastBuildDate>
+    <pubDate>Fri, 13 Dec 2019 21:07:43 +0800</pubDate>
+    <lastBuildDate>Fri, 13 Dec 2019 21:07:43 +0800</lastBuildDate>
     <generator>Jekyll v3.1.0</generator>
     
       <item>
@@ -1344,6 +1344,160 @@ install ok!
       </item>
     
       <item>
+        <title>Xmake Getting Started Tutorial 5: Introduction to Android platform compilation</title>
+        <description>&lt;p&gt;xmake is a lightweight and modern c/c++ project building tool based on Lua. It’s main features are: easy to use syntax, easy to use project maintenance, 
+and a consistent build experience across platforms.&lt;/p&gt;
+
+&lt;p&gt;This article mainly explains in detail how to compile libraries and executable programs that can run under android through xmake.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;Project Source&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://xmake.io&quot;&gt;Official Document&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;ready-to-work&quot;&gt;Ready to work&lt;/h3&gt;
+
+&lt;p&gt;First of all, we need to prepare the ndk toolchain necessary for compiling the android native library. 
+If you haven’t, you can download and decompress it from the official websit: &lt;a href=&quot;https://developer.android.com/ndk&quot;&gt;Android NDK&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;If you want to get better backward compatibility, you can choose the r16 version, because this is the last version that supports armeabi. If there is no special requirement, you can download the latest version directly.&lt;/p&gt;
+
+&lt;h3 id=&quot;ndk-integration-and-compilation&quot;&gt;NDK integration and compilation&lt;/h3&gt;
+
+&lt;h4 id=&quot;manually-configure-the-ndk&quot;&gt;Manually configure the NDK&lt;/h4&gt;
+
+&lt;p&gt;We only need to pass the decompressed ndk directory path to xmake to complete the configuration, and we can compile directly, for example:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p android --ndk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;~/downloads/android-ndk-r19c
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Among them, &lt;code class=&quot;highlighter-rouge&quot;&gt;-p android&lt;/code&gt; is used to switch to the android platform, because if you do not specify a platform, the target program of the current host platform will be compiled by default.&lt;/p&gt;
+
+&lt;p&gt;Generally, if there is no special requirement, the above configuration can complete the compilation of the android native program. Currently, xmake has built-in support for the generation of three types of target files: binary, static, and shared, which correspond to executable programs and .a static libraries. .so dynamic library.&lt;/p&gt;
+
+&lt;h4 id=&quot;global-configuration-of-ndk-paths&quot;&gt;Global configuration of NDK paths&lt;/h4&gt;
+
+&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f/config&lt;/code&gt; command is only for the configuration of the current project. If you often need to set the ndk path again during cross-platform compilation and configuration switching, it is still a little tedious.&lt;/p&gt;
+
+&lt;p&gt;We can set it through the &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake g/global&lt;/code&gt; global configuration command to ensure it takes effect permanently.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake g --ndk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;~/xxx/android-ndk-r19c
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;We can also ensure the permanent effect by setting the &lt;code class=&quot;highlighter-rouge&quot;&gt;ANDROID_NDK_HOME&lt;/code&gt; global environment variable, which is similar to the effect of the above command configuration.&lt;/p&gt;
+
+&lt;h4 id=&quot;automatic-detection-of-ndk-paths&quot;&gt;Automatic detection of NDK paths&lt;/h4&gt;
+
+&lt;p&gt;Generally, even if the ndk path is not configured, xmake will still try to detect some common paths by default. For example, under macos, it will automatically detect whether the following paths exist:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;~/Library/Android/sdk/ndk-bundle
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;This is the SDK directory automatically created by android studio after downloading the Mac, and the common place for the ndk.&lt;/p&gt;
+
+&lt;p&gt;Or try to probe from the environment variable &lt;code class=&quot;highlighter-rouge&quot;&gt;ANDROID_NDK_HOME&lt;/code&gt;, if it exists.&lt;/p&gt;
+
+&lt;p&gt;If it can be detected, there is no need to configure it manually.&lt;/p&gt;
+
+&lt;h3 id=&quot;c-stl-library-configuration-switch&quot;&gt;C++ STL library configuration switch&lt;/h3&gt;
+
+&lt;p&gt;First, let’s introduce the three stl library versions provided by ndk.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;stlport: the stl library built in early ndk, now basically obsolete&lt;/li&gt;
+  &lt;li&gt;gnustl: stl library mainly used before ndk r16b, but since r16b, it has also been removed by google&lt;/li&gt;
+  &lt;li&gt;llvm-c++: newer ndk built-in stl libraries after r16b&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Therefore, when we compile the android library, we need to choose stl and choose the appropriate ndk version according to our needs. Xmake usually uses the llvm-c++ library by default if possible. If it finds that the current ndk version is older, it will try to degrade Go to gnustl.&lt;/p&gt;
+
+&lt;p&gt;Users can also manually modify the version of the stl library, for example:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p android --ndk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;xxxx --ndk_cxxstl&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;gnustl_shared
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Specifically, for the configuration value of the ndk_cxxstl option, you can type help to view, &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f --help&lt;/code&gt;, mainly:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;llvmstl_static&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;llvmstl_shared&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;gnustl_static&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;gnustl_shared&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;stlport_static&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;stlport_shared&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;api-version-settings&quot;&gt;API Version Settings&lt;/h3&gt;
+
+&lt;p&gt;If during the compilation process, some libc library symbols are not found, it is usually possible that the api version is not set correctly, because some libc functions exist only in higher version apis.&lt;/p&gt;
+
+&lt;p&gt;At this time, we can solve it by trying to manually modify the api version:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p android --ndk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;xxx --ndk_sdkver&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;16
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;arch-compilation-switch&quot;&gt;arch compilation switch&lt;/h3&gt;
+
+&lt;p&gt;At present xmake provides configuration of these architectures &lt;code class=&quot;highlighter-rouge&quot;&gt;armv7-a&lt;/code&gt;,&lt;code class=&quot;highlighter-rouge&quot;&gt; arm64-v8a&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;armv5te&lt;/code&gt;,&lt;code class=&quot;highlighter-rouge&quot;&gt; mips&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;mips64&lt;/code&gt;,&lt;code class=&quot;highlighter-rouge&quot;&gt; i386&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;x86_64&lt;/code&gt;. If arch is not specified, then armv7 will be used by default. Architecture.&lt;/p&gt;
+
+&lt;p&gt;Manually modify the arch as follows:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p android --ndk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;xxx -a arm64-v8a
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;android-related-configuration-settings&quot;&gt;Android related configuration settings&lt;/h3&gt;
+
+&lt;p&gt;If the project needs to configure some compilation settings unique to the android platform, such as adding specific macro switches, link libraries, etc., you can use &lt;code class=&quot;highlighter-rouge&quot;&gt;is_plat(&quot;android&quot;)&lt;/code&gt; to determine the processing in xmake.lua.&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;shared&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*. c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;is_plat&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;android&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;        &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add_defines&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;ANDROID&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;        &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add_syslinks&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;log&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;faq&quot;&gt;FAQ&lt;/h3&gt;
+
+&lt;h4 id=&quot;what-should-i-do-if-i-cannot-find-some-libcstl-library-header-files&quot;&gt;What should I do if I cannot find some libc/stl library header files?&lt;/h4&gt;
+
+&lt;p&gt;You can try to modify the stl library version and api version to solve it. For example, ndk r16b recommends using the gnustl library, because this version of the llvmc++ library has just been integrated shortly, there are many problems, and it is easy to encounter various compilation problems during use.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p android --ndk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;xxxx --ndk_cxxstl&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;gnustl_shared --ndk_sdkver&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;16
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;the-compiled-executable-does-not-run-on-the-device&quot;&gt;The compiled executable does not run on the device?&lt;/h4&gt;
+
+&lt;p&gt;Usually the api version is set too high, causing incompatibility issues, you can try to reduce the api version.&lt;/p&gt;
+</description>
+        <pubDate>Fri, 15 Nov 2019 00:00:00 +0800</pubDate>
+        <link>http://www.tboox.org/2019/11/15/quickstart-5-build-android/</link>
+        <guid isPermaLink="true">http://www.tboox.org/2019/11/15/quickstart-5-build-android/</guid>
+        
+        <category>xmake</category>
+        
+        <category>lua</category>
+        
+        <category>android</category>
+        
+        <category>jni</category>
+        
+        
+        <category>xmake</category>
+        
+      </item>
+    
+      <item>
         <title>xmake从入门到精通5：Android平台编译详解</title>
         <description>&lt;p&gt;xmake是一个基于Lua的轻量级现代化c/c++的项目构建工具，主要特点是：语法简单易上手，提供更加可读的项目维护，实现跨平台行为一致的构建体验。&lt;/p&gt;
 
@@ -2366,117 +2520,6 @@ hello&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;main:
         <category>run</category>
         
         <category>debug</category>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>xmake从入门到精通3：运行和调试目标程序</title>
-        <description>&lt;p&gt;xmake是一个基于Lua的轻量级现代化c/c++的项目构建工具，主要特点是：语法简单易上手，提供更加可读的项目维护，实现跨平台行为一致的构建体验。&lt;/p&gt;
-
-&lt;p&gt;本文主要详细讲解如何加载运行编译好的目标程序，以及如何去调试。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;项目源码&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;运行生成目标&quot;&gt;运行生成目标&lt;/h3&gt;
-
-&lt;p&gt;xmake也提供了run命令，直接运行生成后的可执行文件，用于方便快速的进行测试，例如：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake run
-hello xmake!
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;添加运行环境变量&quot;&gt;添加运行环境变量&lt;/h4&gt;
-
-&lt;p&gt;我们也可以在xmake.lua中通过&lt;code class=&quot;highlighter-rouge&quot;&gt;add_runenvs&lt;/code&gt;接口来添加设置默认运行target程序的环境变量。&lt;/p&gt;
-
-&lt;p&gt;所以，对于PATH这种，通过此接口追加值是非常方便的，而且此接口支持多值设置，所以通常就是用来设置带有path sep的多值env。。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_runenvs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;PATH&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;/tmp/bin&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;xxx/bin&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_runenvs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;LD_LIBRARY_PATH&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;/tmp/lib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;xxx/lib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;更多关于此接口的描述，可以看下文档：&lt;a href=&quot;https://xmake.io/#/zh-cn/manual/project_target?id=targetadd_runenvs&quot;&gt;add_runenvs接口文档&lt;/a&gt;&lt;/p&gt;
-
-&lt;h4 id=&quot;自定义运行逻辑&quot;&gt;自定义运行逻辑&lt;/h4&gt;
-
-&lt;p&gt;如果单纯的环境设置，以及默认的加载运行规则不满足需求，我们可以通过定制化&lt;code class=&quot;highlighter-rouge&quot;&gt;on_run&lt;/code&gt;脚本，实现更加复杂的运行逻辑：&lt;/p&gt;
-
-&lt;p&gt;例如，运行安装好的apk程序：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;-- ...&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;-- 设置自定义运行脚本，自动运行安装好的app程序，并且自动获取设备输出信息&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;on_run&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
-        &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;run&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;adb shell am start -n com.demo/com.demo.DemoTest&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;run&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;adb logcat&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;调试程序&quot;&gt;调试程序&lt;/h3&gt;
-
-&lt;h4 id=&quot;命令行调试&quot;&gt;命令行调试&lt;/h4&gt;
-
-&lt;p&gt;我们也可以传递&lt;code class=&quot;highlighter-rouge&quot;&gt;-d&lt;/code&gt;参数，调用gdb/lldb等调试器程序，加载目标文件进行调试：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake run -d  
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;xmake将会使用系统自带的调试器去加载程序运行，目前支持：lldb, gdb, windbg, vsjitdebugger, ollydbg 等各种调试器。&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;lldb]&lt;span class=&quot;nv&quot;&gt;$target&lt;/span&gt; create &lt;span class=&quot;s2&quot;&gt;&quot;build/hello&quot;&lt;/span&gt;
-Current executable &lt;span class=&quot;nb&quot;&gt;set &lt;/span&gt;to &lt;span class=&quot;s1&quot;&gt;&#39;build/hello&#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;x86_64&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;.
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;lldb]&lt;span class=&quot;nv&quot;&gt;$b&lt;/span&gt; main
-Breakpoint 1: where &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; hello&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;main, address &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 0x0000000100000f50
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;lldb]&lt;span class=&quot;nv&quot;&gt;$r&lt;/span&gt;
-Process 7509 launched: &lt;span class=&quot;s1&quot;&gt;&#39;/private/tmp/hello/build/hello&#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;x86_64&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-Process 7509 stopped
-&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; thread &lt;span class=&quot;c&quot;&gt;#1: tid = 0x435a2, 0x0000000100000f50 hello`main, queue = &#39;com.apple.main-thread&#39;, stop reason = breakpoint 1.1&lt;/span&gt;
-    frame &lt;span class=&quot;c&quot;&gt;#0: 0x0000000100000f50 hello`main&lt;/span&gt;
-hello&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;main:
-&lt;span class=&quot;gp&quot;&gt;-&amp;gt;  &lt;/span&gt;0x100000f50 &amp;lt;+0&amp;gt;:  pushq  %rbp
-    0x100000f51 &amp;lt;+1&amp;gt;:  movq   %rsp, %rbp
-    0x100000f54 &amp;lt;+4&amp;gt;:  leaq   0x2b&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;%rip&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;, %rdi          ; &lt;span class=&quot;s2&quot;&gt;&quot;hello world!&quot;&lt;/span&gt;
-    0x100000f5b &amp;lt;+11&amp;gt;: callq  0x100000f64               ; symbol stub &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt;: puts
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;lldb]&lt;span class=&quot;err&quot;&gt;$&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;使用vscode进行断点调试&quot;&gt;使用vscode进行断点调试&lt;/h4&gt;
-
-&lt;p&gt;我们还可以通过&lt;a href=&quot;https://github.com/xmake-io/xmake-vscode&quot;&gt;xmake-vscode&lt;/a&gt;插件配合vscode来实现对c/c++项目的断点调试支持。&lt;/p&gt;
-
-&lt;p&gt;另外我们还需要依赖vscode的C++插件才能进行调试支持，不过由于开发c/c++程序，这个插件几乎是必需，所以并没有太大问题。&lt;/p&gt;
-
-&lt;p&gt;就算没有安装此插件，xmake-vscode也会加载lldb/gdb/vsjitdebugger等系统调试器，直接加载调试。&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/xmake/xmake-vscode-debug.gif&quot; width=&quot;60%&quot; /&gt;&lt;/p&gt;
-</description>
-        <pubDate>Sat, 09 Nov 2019 00:00:00 +0800</pubDate>
-        <link>http://www.tboox.org/cn/2019/11/09/quickstart-3-run-and-debug/</link>
-        <guid isPermaLink="true">http://www.tboox.org/cn/2019/11/09/quickstart-3-run-and-debug/</guid>
-        
-        <category>xmake</category>
-        
-        <category>lua</category>
-        
-        <category>c/c++</category>
-        
-        <category>运行</category>
-        
-        <category>调试</category>
         
         
         <category>xmake</category>

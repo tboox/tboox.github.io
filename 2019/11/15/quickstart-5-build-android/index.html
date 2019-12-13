@@ -7,11 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta http-equiv="Cache-Control" content="no-siteapp" />
 
-    <title>Compile project</title>
-    <meta name="description" content="Typically, you only need to execute the following command for compiling project.    xmakexmake will probe your host environment and target platform automatic...">
+    <title>Xmake Getting Started Tutorial 5: Introduction to Android platform compilation</title>
+    <meta name="description" content="xmake is a lightweight and modern c/c++ project building tool based on Lua. It’s main features are: easy to use syntax, easy to use project maintenance, and ...">
 
     
-    <meta name="keywords" content="xmake,compile,configure,tboox" /> 
+    <meta name="keywords" content="xmake,lua,android,jni,tboox" /> 
 
     <!-- qq oauth -->
     <meta property="qc:admins" content="5211601217706727767255" />
@@ -28,7 +28,7 @@
 	
     <link rel="stylesheet" href=" /css/fontawesome/css/font-awesome.min.css ">
     <link rel="stylesheet" href=" /css/main.css ">
-    <link rel="canonical" href="http://www.tboox.org/2016/06/26/compile-project/">
+    <link rel="canonical" href="http://www.tboox.org/2019/11/15/quickstart-5-build-android/">
     <link rel="alternate" type="application/rss+xml" title="TBOOX Open Source Project" href="http://www.tboox.org/feed.xml ">
     <link rel="alternate" hreflang="en" href="http://www.tboox.org/" />
     <link rel="alternate" hreflang="zh-Hans" href="http://www.tboox.org/cn/" />
@@ -359,11 +359,11 @@
 
         <div class="page clearfix" post>
     <div class="left">
-        <h1>Compile project</h1>
+        <h1>Xmake Getting Started Tutorial 5: Introduction to Android platform compilation</h1>
         <div class="label">
 
             <div class="label-card">
-                <i class="fa fa-calendar"></i>2016-06-26
+                <i class="fa fa-calendar"></i>2019-11-15
             </div>
 
             <div class="label-card">
@@ -403,11 +403,14 @@
         <!--a href="/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a-->
         <a href="/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a>&nbsp;
     
-        <!--a href="/tag/#compile" title="Tag: compile" rel="tag">compile</a-->
-        <a href="/tag/#compile" title="Tag: compile" rel="tag">compile</a>&nbsp;
+        <!--a href="/tag/#lua" title="Tag: lua" rel="tag">lua</a-->
+        <a href="/tag/#lua" title="Tag: lua" rel="tag">lua</a>&nbsp;
     
-        <!--a href="/tag/#configure" title="Tag: configure" rel="tag">configure</a-->
-        <a href="/tag/#configure" title="Tag: configure" rel="tag">configure</a>
+        <!--a href="/tag/#android" title="Tag: android" rel="tag">android</a-->
+        <a href="/tag/#android" title="Tag: android" rel="tag">android</a>&nbsp;
+    
+        <!--a href="/tag/#jni" title="Tag: jni" rel="tag">jni</a-->
+        <a href="/tag/#jni" title="Tag: jni" rel="tag">jni</a>
     
   
 
@@ -418,268 +421,140 @@
         </div>
         <hr>
         <article itemscope itemtype="http://schema.org/BlogPosting">
-        <p>Typically, you only need to execute the following command for compiling project.</p>
+        <p>xmake is a lightweight and modern c/c++ project building tool based on Lua. It’s main features are: easy to use syntax, easy to use project maintenance, 
+and a consistent build experience across platforms.</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    xmake
+<p>This article mainly explains in detail how to compile libraries and executable programs that can run under android through xmake.</p>
+
+<ul>
+  <li><a href="https://github.com/xmake-io/xmake">Project Source</a></li>
+  <li><a href="https://xmake.io">Official Document</a></li>
+</ul>
+
+<h3 id="ready-to-work">Ready to work</h3>
+
+<p>First of all, we need to prepare the ndk toolchain necessary for compiling the android native library. 
+If you haven’t, you can download and decompress it from the official websit: <a href="https://developer.android.com/ndk">Android NDK</a></p>
+
+<p>If you want to get better backward compatibility, you can choose the r16 version, because this is the last version that supports armeabi. If there is no special requirement, you can download the latest version directly.</p>
+
+<h3 id="ndk-integration-and-compilation">NDK integration and compilation</h3>
+
+<h4 id="manually-configure-the-ndk">Manually configure the NDK</h4>
+
+<p>We only need to pass the decompressed ndk directory path to xmake to complete the configuration, and we can compile directly, for example:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake f -p android --ndk<span class="o">=</span>~/downloads/android-ndk-r19c
+<span class="gp">$ </span>xmake
 </code></pre>
 </div>
 
-<p>xmake will probe your host environment and target platform automaticly.</p>
+<p>Among them, <code class="highlighter-rouge">-p android</code> is used to switch to the android platform, because if you do not specify a platform, the target program of the current host platform will be compiled by default.</p>
 
-<p>The default mode is release and xmake will compile all targets.</p>
+<p>Generally, if there is no special requirement, the above configuration can complete the compilation of the android native program. Currently, xmake has built-in support for the generation of three types of target files: binary, static, and shared, which correspond to executable programs and .a static libraries. .so dynamic library.</p>
 
-<p>You can compile only one given target which name is ‘test’ for executing the following command.</p>
+<h4 id="global-configuration-of-ndk-paths">Global configuration of NDK paths</h4>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    xmake <span class="nb">test</span>
+<p>The <code class="highlighter-rouge">xmake f/config</code> command is only for the configuration of the current project. If you often need to set the ndk path again during cross-platform compilation and configuration switching, it is still a little tedious.</p>
+
+<p>We can set it through the <code class="highlighter-rouge">xmake g/global</code> global configuration command to ensure it takes effect permanently.</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake g --ndk<span class="o">=</span>~/xxx/android-ndk-r19c
 </code></pre>
 </div>
 
-<p>If you want to complie the debug program, you need configure it for switching to the debug mode and compile it.</p>
+<p>We can also ensure the permanent effect by setting the <code class="highlighter-rouge">ANDROID_NDK_HOME</code> global environment variable, which is similar to the effect of the above command configuration.</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    xmake config --mode<span class="o">=</span>debug
-    xmake
+<h4 id="automatic-detection-of-ndk-paths">Automatic detection of NDK paths</h4>
+
+<p>Generally, even if the ndk path is not configured, xmake will still try to detect some common paths by default. For example, under macos, it will automatically detect whether the following paths exist:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>~/Library/Android/sdk/ndk-bundle
 </code></pre>
 </div>
 
-<p>We provide shorthand for each command, for example:</p>
+<p>This is the SDK directory automatically created by android studio after downloading the Mac, and the common place for the ndk.</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    xmake f -m debug
-    xmake
+<p>Or try to probe from the environment variable <code class="highlighter-rouge">ANDROID_NDK_HOME</code>, if it exists.</p>
+
+<p>If it can be detected, there is no need to configure it manually.</p>
+
+<h3 id="c-stl-library-configuration-switch">C++ STL library configuration switch</h3>
+
+<p>First, let’s introduce the three stl library versions provided by ndk.</p>
+
+<ul>
+  <li>stlport: the stl library built in early ndk, now basically obsolete</li>
+  <li>gnustl: stl library mainly used before ndk r16b, but since r16b, it has also been removed by google</li>
+  <li>llvm-c++: newer ndk built-in stl libraries after r16b</li>
+</ul>
+
+<p>Therefore, when we compile the android library, we need to choose stl and choose the appropriate ndk version according to our needs. Xmake usually uses the llvm-c++ library by default if possible. If it finds that the current ndk version is older, it will try to degrade Go to gnustl.</p>
+
+<p>Users can also manually modify the version of the stl library, for example:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake f -p android --ndk<span class="o">=</span>xxxx --ndk_cxxstl<span class="o">=</span>gnustl_shared
 </code></pre>
 </div>
 
-<p>Please run <code class="highlighter-rouge">xmake --help</code> to get more info about it.</p>
+<p>Specifically, for the configuration value of the ndk_cxxstl option, you can type help to view, <code class="highlighter-rouge">xmake f --help</code>, mainly:</p>
 
-<p>We need to describe them for the debug and release compile mode in xmake.lua file, for example:</p>
+<ul>
+  <li><code class="highlighter-rouge">llvmstl_static</code></li>
+  <li><code class="highlighter-rouge">llvmstl_shared</code></li>
+  <li><code class="highlighter-rouge">gnustl_static</code></li>
+  <li><code class="highlighter-rouge">gnustl_shared</code></li>
+  <li><code class="highlighter-rouge">stlport_static</code></li>
+  <li><code class="highlighter-rouge">stlport_shared</code></li>
+</ul>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    -- the debug mode
-    <span class="k">if </span>is_mode<span class="o">(</span><span class="s2">"debug"</span><span class="o">)</span> <span class="k">then</span>
-        
-        -- <span class="nb">enable </span>the debug symbols
-        set_symbols<span class="o">(</span><span class="s2">"debug"</span><span class="o">)</span>
+<h3 id="api-version-settings">API Version Settings</h3>
 
-        -- disable optimization
-        set_optimize<span class="o">(</span><span class="s2">"none"</span><span class="o">)</span>
+<p>If during the compilation process, some libc library symbols are not found, it is usually possible that the api version is not set correctly, because some libc functions exist only in higher version apis.</p>
 
-        -- add defines <span class="k">for </span>debug
-        add_defines<span class="o">(</span><span class="s2">"__tb_debug__"</span><span class="o">)</span>
-    end
+<p>At this time, we can solve it by trying to manually modify the api version:</p>
 
-    -- the release or profile modes
-    <span class="k">if </span>is_mode<span class="o">(</span><span class="s2">"release"</span>, <span class="s2">"profile"</span><span class="o">)</span> <span class="k">then</span>
-
-        -- the release mode
-        <span class="k">if </span>is_mode<span class="o">(</span><span class="s2">"release"</span><span class="o">)</span> <span class="k">then</span>
-            
-            -- <span class="nb">set </span>the symbols visibility: hidden
-            set_symbols<span class="o">(</span><span class="s2">"hidden"</span><span class="o">)</span>
-
-            -- strip all symbols
-            set_strip<span class="o">(</span><span class="s2">"all"</span><span class="o">)</span>
-
-            -- fomit the frame pointer
-            add_cxflags<span class="o">(</span><span class="s2">"-fomit-frame-pointer"</span><span class="o">)</span>
-            add_mxflags<span class="o">(</span><span class="s2">"-fomit-frame-pointer"</span><span class="o">)</span>
-
-        -- the profile mode
-        <span class="k">else</span>
-        
-            -- <span class="nb">enable </span>the debug symbols
-            set_symbols<span class="o">(</span><span class="s2">"debug"</span><span class="o">)</span>
-
-        end
-
-        -- <span class="k">for </span>pc
-        <span class="k">if </span>is_arch<span class="o">(</span><span class="s2">"i386"</span>, <span class="s2">"x86_64"</span><span class="o">)</span> <span class="k">then</span>
-     
-            -- <span class="nb">enable </span>fastest optimization
-            set_optimize<span class="o">(</span><span class="s2">"fastest"</span><span class="o">)</span>
-
-        -- <span class="k">for </span>embed
-        <span class="k">else</span>
-            -- <span class="nb">enable </span>smallest optimization
-            set_optimize<span class="o">(</span><span class="s2">"smallest"</span><span class="o">)</span>
-        end
-
-        -- attempt to add vector extensions 
-        add_vectorexts<span class="o">(</span><span class="s2">"sse2"</span>, <span class="s2">"sse3"</span>, <span class="s2">"ssse3"</span>, <span class="s2">"mmx"</span><span class="o">)</span>
-    end
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake f -p android --ndk<span class="o">=</span>xxx --ndk_sdkver<span class="o">=</span>16
 </code></pre>
 </div>
 
-<p>We can rebuild all targets：</p>
+<h3 id="arch-compilation-switch">arch compilation switch</h3>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>       xmake -r
-    or xmake --rebuild
+<p>At present xmake provides configuration of these architectures <code class="highlighter-rouge">armv7-a</code>,<code class="highlighter-rouge"> arm64-v8a</code>, <code class="highlighter-rouge">armv5te</code>,<code class="highlighter-rouge"> mips</code>, <code class="highlighter-rouge">mips64</code>,<code class="highlighter-rouge"> i386</code>, <code class="highlighter-rouge">x86_64</code>. If arch is not specified, then armv7 will be used by default. Architecture.</p>
+
+<p>Manually modify the arch as follows:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake f -p android --ndk<span class="o">=</span>xxx -a arm64-v8a
 </code></pre>
 </div>
 
-<p>And we can compile target with a gived architecture:</p>
+<h3 id="android-related-configuration-settings">Android related configuration settings</h3>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>       xmake f -a armv7
-    or xmake config --arch<span class="o">=</span>armv7
+<p>If the project needs to configure some compilation settings unique to the android platform, such as adding specific macro switches, link libraries, etc., you can use <code class="highlighter-rouge">is_plat("android")</code> to determine the processing in xmake.lua.</p>
 
-       xmake
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">target</span> <span class="p">(</span><span class="s2">"test"</span><span class="p">)</span>
+<span class="err">    </span><span class="n">set_kind</span> <span class="p">(</span><span class="s2">"shared"</span><span class="p">)</span>
+<span class="err">    </span><span class="n">add_files</span> <span class="p">(</span><span class="s2">"src/*. c"</span><span class="p">)</span>
+<span class="err">    </span><span class="k">if</span> <span class="n">is_plat</span> <span class="p">(</span><span class="s2">"android"</span><span class="p">)</span> <span class="k">then</span>
+<span class="err">        </span><span class="n">add_defines</span> <span class="p">(</span><span class="s2">"ANDROID"</span><span class="p">)</span>
+<span class="err">        </span><span class="n">add_syslinks</span> <span class="p">(</span><span class="s2">"log"</span><span class="p">)</span>
+<span class="err">    </span><span class="k">end</span>
 </code></pre>
 </div>
 
-<p>If you want to compile target for the iphoneos platform in macosx host, you can do it:</p>
+<h3 id="faq">FAQ</h3>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>       xmake f -p iphoneos
-    or xmake f --plat<span class="o">=</span>iphoneos
+<h4 id="what-should-i-do-if-i-cannot-find-some-libcstl-library-header-files">What should I do if I cannot find some libc/stl library header files?</h4>
 
-       xmake
+<p>You can try to modify the stl library version and api version to solve it. For example, ndk r16b recommends using the gnustl library, because this version of the llvmc++ library has just been integrated shortly, there are many problems, and it is easy to encounter various compilation problems during use.</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake f -p android --ndk<span class="o">=</span>xxxx --ndk_cxxstl<span class="o">=</span>gnustl_shared --ndk_sdkver<span class="o">=</span>16
 </code></pre>
 </div>
 
-<p>We need configure the NDK directory path for android platform.</p>
+<h4 id="the-compiled-executable-does-not-run-on-the-device">The compiled executable does not run on the device?</h4>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>       xmake f -p android --ndk<span class="o">=</span>xxxx
-       xmake
-</code></pre>
-</div>
-
-<p>Or we can configure the NDK path as global.</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>       xmake g --ndk<span class="o">=</span>xxxx
-    or xmake global --ndk<span class="o">=</span>xxx
-
-       xmake f -p android
-       xmake
-</code></pre>
-</div>
-
-<p>Please run <code class="highlighter-rouge">xmake f --help</code> to get more info about architecture and platform.</p>
-
-<p>We also can compile target using other cross-toolchains for the linux and android platfrom.</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>       xmake f -p android -a armv7-a --cross<span class="o">=</span>arm-linux-androideabi- --toolchains<span class="o">=</span>/xxxx/bin
-    or xmake f -p linux --cross<span class="o">=</span>arm-linux-androideabi- --toolchains<span class="o">=</span>/toolsdk/bin --ldflags<span class="o">=</span><span class="s2">"-arch armv7 -L/use/lib -lm -lc -lz"</span> --cxflags<span class="o">=</span><span class="s2">"-I/usr/include"</span>
-    or xmake f -p mingw --sdk<span class="o">=</span>/mingwsdk
-    or xmake f -p linux --sdk<span class="o">=</span>/toolsdk
-
-       xmake 
-</code></pre>
-</div>
-
-<p>Uses <code class="highlighter-rouge">--clean</code> argument for cleaning up all cached configuration</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>       xmake f -c
-    or xmake f --clean
-       xmake
-</code></pre>
-</div>
-
-<p>Or cleans target files</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    <span class="c"># clean targets only</span>
-    xmake -c
-    or xmake --clean
-
-    <span class="c"># clean all targets and temporary files </span>
-    or xmake --clean --all
-</code></pre>
-</div>
-
-<p>Please run <code class="highlighter-rouge">xmake f --help</code> for getting more configuration info</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    Usage: xmake config|f <span class="o">[</span>options] <span class="o">[</span>target]
-
-    Configure the project.
-
-    Options: 
-        -c, --clean                            Clean the cached configure and configure all again.
-                                               
-        -p PLAT, --plat<span class="o">=</span>PLAT                   Compile <span class="k">for </span>the given platform. <span class="o">(</span>default: macosx<span class="o">)</span>
-                                                   - android
-                                                   - iphoneos
-                                                   - linux
-                                                   - macosx
-                                                   - mingw
-                                                   - watchos
-                                                   - windows
-        -a ARCH, --arch<span class="o">=</span>ARCH                   Compile <span class="k">for </span>the given architecture. <span class="o">(</span>default: auto<span class="o">)</span>
-                                                   - android: armv5te armv6 armv7-a armv8-a arm64-v8a
-                                                   - iphoneos: armv7 armv7s arm64 i386 x86_64
-                                                   - linux: i386 x86_64
-                                                   - macosx: i386 x86_64
-                                                   - mingw: i386 x86_64
-                                                   - watchos: armv7 armv7s arm64 i386 x86_64
-                                                   - windows: x86 x64 amd64 x86_amd64
-        -m MODE, --mode<span class="o">=</span>MODE                   Compile <span class="k">for </span>the given mode. <span class="o">(</span>default: release<span class="o">)</span>
-                                                   - debug
-                                                   - release
-                                                   - profile
-        -k KIND, --kind<span class="o">=</span>KIND                   Compile <span class="k">for </span>the given target kind. <span class="o">(</span>default: static<span class="o">)</span>
-                                                   - static
-                                                   - shared
-                                                   - binary
-            --host<span class="o">=</span>HOST                        The current host environment. <span class="o">(</span>default: macosx<span class="o">)</span>
-                                               
-            --make<span class="o">=</span>MAKE                        Set the make path. <span class="o">(</span>default: auto<span class="o">)</span>
-            --ccache<span class="o">=</span>CCACHE                    Enable or disable the c/c++ compiler cache. <span class="o">(</span>default: auto<span class="o">)</span>
-                                               
-            --cross<span class="o">=</span>CROSS                      The cross toolchains prefix
-                                               .e.g
-                                                   - i386-mingw32-
-                                                   - arm-linux-androideabi-
-            --toolchains<span class="o">=</span>TOOLCHAINS            The cross toolchains directory
-                                               
-            --cc<span class="o">=</span>CC                            The C Compiler
-            --cxx<span class="o">=</span>CXX                          The C++ Compiler
-            --cflags<span class="o">=</span>CFLAGS                    The C Compiler Flags
-            --cxflags<span class="o">=</span>CXFLAGS                  The C/C++ compiler Flags
-            --cxxflags<span class="o">=</span>CXXFLAGS                The C++ Compiler Flags
-                                               
-            --as<span class="o">=</span>AS                            The Assembler
-            --asflags<span class="o">=</span>ASFLAGS                  The Assembler Flags
-                                               
-            --sc<span class="o">=</span>SC                            The Swift Compiler
-            --scflags<span class="o">=</span>SCFLAGS                  The Swift Compiler Flags
-                                               
-            --ld<span class="o">=</span>LD                            The Linker
-            --ldflags<span class="o">=</span>LDFLAGS                  The Binary Linker Flags
-                                               
-            --ar<span class="o">=</span>AR                            The Static Library Linker
-            --arflags<span class="o">=</span>ARFLAGS                  The Static Library Linker Flags
-                                               
-            --sh<span class="o">=</span>SH                            The Shared Library Linker
-            --shflags<span class="o">=</span>SHFLAGS                  The Shared Library Linker Flags
-                                               
-            --ndk<span class="o">=</span>NDK                          The NDK Directory
-            --ndk_sdkver<span class="o">=</span>NDK_SDKVER            The SDK Version <span class="k">for </span>NDK <span class="o">(</span>default: auto<span class="o">)</span>
-                                               
-            --mm<span class="o">=</span>MM                            The Objc Compiler
-            --mxx<span class="o">=</span>MXX                          The Objc++ Compiler
-            --mflags<span class="o">=</span>MFLAGS                    The Objc Compiler Flags
-            --mxflags<span class="o">=</span>MXFLAGS                  The Objc/c++ Compiler Flags
-            --mxxflags<span class="o">=</span>MXXFLAGS                The Objc++ Compiler Flags
-                                               
-            --xcode_dir<span class="o">=</span>XCODE_DIR              The Xcode Application Directory <span class="o">(</span>default: auto<span class="o">)</span>
-            --xcode_sdkver<span class="o">=</span>XCODE_SDKVER        The SDK Version <span class="k">for </span>Xcode <span class="o">(</span>default: auto<span class="o">)</span>
-            --target_minver<span class="o">=</span>TARGET_MINVER      The Target Minimal Version <span class="o">(</span>default: auto<span class="o">)</span>
-                                               
-            --mobileprovision<span class="o">=</span>MOBILEPROVISION  The Provisioning Profile File <span class="o">(</span>default: auto<span class="o">)</span>
-            --codesign<span class="o">=</span>CODESIGN                The Code Signing Indentity <span class="o">(</span>default: auto<span class="o">)</span>
-            --entitlements<span class="o">=</span>ENTITLEMENTS        The Code Signing Entitlements <span class="o">(</span>default: auto<span class="o">)</span>
-                                               
-            --vs<span class="o">=</span>VS                            The Microsoft Visual Studio <span class="o">(</span>default: auto<span class="o">)</span>
-                                               
-        -f FILE, --file<span class="o">=</span>FILE                   Read a given xmake.lua file. <span class="o">(</span>default: xmake.lua<span class="o">)</span>
-        -P PROJECT, --project<span class="o">=</span>PROJECT          Change to the given project directory.
-                                               Search priority:
-                                                   1. The Given Command Argument
-                                                   2. The Envirnoment Variable: XMAKE_PROJECT_DIR
-                                                   3. The Current Directory
-        -o BUILDIR, --buildir<span class="o">=</span>BUILDIR          Set the build directory. <span class="o">(</span>default: build<span class="o">)</span>
-                                               
-        -v, --verbose                          Print lots of verbose information.
-            --version                          Print the version number and exit.
-        -h, --help                             Print this <span class="nb">help </span>message and exit.
-                                               
-        target                                 Configure <span class="k">for </span>the given target. <span class="o">(</span>default: all<span class="o">)</span>
-</code></pre>
-</div>
+<p>Usually the api version is set too high, causing incompatibility issues, you can try to reduce the api version.</p>
 
         </article>
         <hr>
@@ -719,6 +594,18 @@
             
             
                 
+                    
+                    <h2 id="chinese">中文</h2>
+                    <ul>
+                    
+                    <li class="relatedPost">
+                        <a href="/cn/2019/11/15/quickstart-5-build-android/">xmake从入门到精通5：Android平台编译详解
+                        
+                        </a>
+                    </li>
+                    
+                    
+                
             
         
             
@@ -1644,10 +1531,14 @@
             
                 
             
+        
         
+            </ul>
         
 
         
+        
+            
         
             
         
@@ -1669,54 +1560,6 @@
                         <ul>
                         
                         <li class="relatedPost">
-                            <a href="/2019/11/15/quickstart-5-build-android/">Xmake Getting Started Tutorial 5: Introduction to Android platform compilation
-                            
-                            </a>
-                        </li>
-                        
-                        
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-            
-        
-            
-        
-            
-            
-            
-                
-                    
-                        
-                        <li class="relatedPost">
                             <a href="/2019/11/10/quickstart-4-basic-project-settings/">Xmake Getting Started Tutorial 4: C/C++ project description settings
                             
                             </a>
@@ -1729,12 +1572,6 @@
                 
                     
                 
-            
-                
-                    
-                
-                    
-                
                     
                 
             
@@ -1745,6 +1582,18 @@
                 
                     
                 
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
             
                 
                     
@@ -1753,7 +1602,11 @@
                 
                     
                 
+                    
+                
             
+                
+                    
                 
                     
                 
@@ -1785,23 +1638,11 @@
                 
                     
                 
-            
-                
-                    
-                
-                    
-                
                     
                 
             
                 
                     
-                
-                    
-                
-                    
-                
-            
                 
                     
                 
@@ -1817,7 +1658,31 @@
                 
                     
                 
+                    
+                
             
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
             
         
         
@@ -1833,7 +1698,15 @@
 
         
         
-        <p><strong>Prev Post</strong> <a href="/2016/06/26/a-simple-demo/">A simple xmake.lua</a></p>
+        
+
+        
+
+        
+
+        
+        
+        <p><strong>Prev Post</strong> <a href="/2019/11/10/quickstart-4-basic-project-settings/">Xmake Getting Started Tutorial 4: C/C++ project description settings</a></p>
         
     </div>
 
@@ -1845,7 +1718,1826 @@
 
         
         
-        <p><strong>Next Post</strong> <a href="/2016/06/26/create-project/">Create project</a></p>
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
+        
+
+        
+
+        
+        
+        
+
         
     </div>
 </div>
