@@ -7,11 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta http-equiv="Cache-Control" content="no-siteapp" />
 
-    <title>使用xmake编译工程</title>
-    <meta name="description" content="如果你只想编译当前主机环境的平台，例如在windows上编译windows版本，在macosx上编译macosx版本，那么你只需要敲以下命令即可：    xmake因为xmake默认会去检测当前的环境，默认编译当前主机的平台版本，不需要做额外的配置，并且默认编译的是release版本。如果工程里面有多个目标，那么...">
+    <title>xmake从入门到精通10：多个子工程目标的依赖配置</title>
+    <meta name="description" content="xmake是一个基于Lua的轻量级现代化c/c++的项目构建工具，主要特点是：语法简单易上手，提供更加可读的项目维护，实现跨平台行为一致的构建体验。本文主要详细讲解下，如果在一个项目中维护和生成多个目标文件的生成，以及它们之间的依赖关系设置。  项目源码  官方文档target到底是什么？xmake的概念定义里，...">
 
     
-    <meta name="keywords" content="xmake,编译,跨平台,tboox" /> 
+    <meta name="keywords" content="xmake,lua,交叉编译,tboox" /> 
 
     <!-- qq oauth -->
     <meta property="qc:admins" content="5211601217706727767255" />
@@ -28,7 +28,7 @@
 	
     <link rel="stylesheet" href=" /css/fontawesome/css/font-awesome.min.css ">
     <link rel="stylesheet" href=" /css/main.css ">
-    <link rel="canonical" href="http://www.tboox.org/cn/2016/02/04/project-compile/">
+    <link rel="canonical" href="http://www.tboox.org/cn/2019/12/13/quickstart-10-target-deps/">
     <link rel="alternate" type="application/rss+xml" title="TBOOX Open Source Project" href="http://www.tboox.org/feed.xml ">
     <link rel="alternate" hreflang="en" href="http://www.tboox.org/" />
     <link rel="alternate" hreflang="zh-Hans" href="http://www.tboox.org/cn/" />
@@ -336,11 +336,11 @@
 
         <div class="page clearfix" post>
     <div class="left">
-        <h1>使用xmake编译工程</h1>
+        <h1>xmake从入门到精通10：多个子工程目标的依赖配置</h1>
         <div class="label">
 
             <div class="label-card">
-                <i class="fa fa-calendar"></i>2016-02-04
+                <i class="fa fa-calendar"></i>2019-12-13
             </div>
 
             <div class="label-card">
@@ -380,11 +380,11 @@
         <!--a href="/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a-->
         <a href="/cn/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a>&nbsp;
     
-        <!--a href="/tag/#%E7%BC%96%E8%AF%91" title="Tag: 编译" rel="tag">编译</a-->
-        <a href="/cn/tag/#编译" title="Tag: 编译" rel="tag">编译</a>&nbsp;
+        <!--a href="/tag/#lua" title="Tag: lua" rel="tag">lua</a-->
+        <a href="/cn/tag/#lua" title="Tag: lua" rel="tag">lua</a>&nbsp;
     
-        <!--a href="/tag/#%E8%B7%A8%E5%B9%B3%E5%8F%B0" title="Tag: 跨平台" rel="tag">跨平台</a-->
-        <a href="/cn/tag/#跨平台" title="Tag: 跨平台" rel="tag">跨平台</a>
+        <!--a href="/tag/#%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91" title="Tag: 交叉编译" rel="tag">交叉编译</a-->
+        <a href="/cn/tag/#交叉编译" title="Tag: 交叉编译" rel="tag">交叉编译</a>
     
   
 
@@ -395,215 +395,191 @@
         </div>
         <hr>
         <article itemscope itemtype="http://schema.org/BlogPosting">
-        <p>如果你只想编译当前主机环境的平台，例如在windows上编译windows版本，在macosx上编译macosx版本，那么你只需要敲以下命令即可：</p>
+        <p>xmake是一个基于Lua的轻量级现代化c/c++的项目构建工具，主要特点是：语法简单易上手，提供更加可读的项目维护，实现跨平台行为一致的构建体验。</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    xmake
+<p>本文主要详细讲解下，如果在一个项目中维护和生成多个目标文件的生成，以及它们之间的依赖关系设置。</p>
+
+<ul>
+  <li><a href="https://github.com/xmake-io/xmake">项目源码</a></li>
+  <li><a href="https://xmake.io/#/zh-cn/">官方文档</a></li>
+</ul>
+
+<h3 id="target到底是什么">target到底是什么？</h3>
+
+<p>xmake的概念定义里，一个独立的项目工程可能会有多个子工程组织在一起，每个子工程对应只能生成一个唯一的目标文件，例如：可执行程序，静态库或者动态库等。</p>
+
+<p>而这里所说的每个子工程就是xmake里面所说的<code class="highlighter-rouge">target</code>，字面意思就是<code class="highlighter-rouge">目标子工程</code>。</p>
+
+<p>因此每个子工程，我们都可以通过新增一个target在xmake.lua里面维护，例如：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">target</span><span class="p">(</span><span class="s2">"test1"</span><span class="p">)</span>
+    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"binary"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"src/test1/*.c"</span><span class="p">)</span>
+    
+<span class="n">target</span><span class="p">(</span><span class="s2">"test2"</span><span class="p">)</span>
+    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"binary"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"src/test2/*.c"</span><span class="p">)</span>    
 </code></pre>
 </div>
 
-<p>因为xmake默认会去检测当前的环境，默认编译当前主机的平台版本，不需要做额外的配置，并且默认编译的是release版本。</p>
+<p>上面我们就定义了两个独立的子工程目标，编译时候会生成两个互不依赖的可执行文件。</p>
 
-<p>如果工程里面有多个目标，那么上面的命令，会去编译所有目标，如果只想编译指定一个目标，例如：test，那么只需执行：</p>
+<h3 id="从根域继承全局设置">从根域继承全局设置</h3>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    xmake <span class="nb">test</span>
+<p>暂时先不谈target间的依赖问题，如果我们有许多通用设置，每个target下都得设置一遍，那会非常冗余，也不好维护。</p>
+
+<p>因此，我们可以把这些配置移到target域的外面，也就是根作用域中去设置，这样对当前xmake.lua以及所有子xmake.lua中的target都会生效，例如：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">add_links</span><span class="p">(</span><span class="s2">"tbox"</span><span class="p">)</span>
+<span class="n">add_linkdirs</span><span class="p">(</span><span class="s2">"lib"</span><span class="p">)</span>
+<span class="n">add_includedirs</span><span class="p">(</span><span class="s2">"include"</span><span class="p">)</span>
+
+<span class="n">target</span><span class="p">(</span><span class="s2">"test1"</span><span class="p">)</span>
+    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"binary"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"src/test1/*.c"</span><span class="p">)</span>
+    
+<span class="n">target</span><span class="p">(</span><span class="s2">"test2"</span><span class="p">)</span>
+    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"binary"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"src/test2/*.c"</span><span class="p">)</span>    
 </code></pre>
 </div>
 
-<p>如果你想编译debug版本，那么需要做些简单的配置：</p>
+<p>比如这两target都需要链接tbox库，放置在外层根域设置，test1和test2都能加上对应links。</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    xmake config --mode<span class="o">=</span>debug
-    xmake
+<h3 id="目标间的依赖设置">目标间的依赖设置</h3>
+
+<p>那如果某个target需要用到另外一个tatget生成的静态库，应该怎么配置呢？</p>
+
+<p>一种方式就是通过<code class="highlighter-rouge">add_linkdirs</code>和<code class="highlighter-rouge">add_links</code>手动指定对应target最后生成的目录库所在目录，然后把链接加上。</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">target</span><span class="p">(</span><span class="s2">"foo"</span><span class="p">)</span>
+    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"static"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"foo/*.c"</span><span class="p">)</span>
+    <span class="n">add_defines</span><span class="p">(</span><span class="s2">"FOO"</span><span class="p">)</span>
+
+<span class="n">target</span><span class="p">(</span><span class="s2">"test1"</span><span class="p">)</span>
+    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"binary"</span><span class="p">)</span>
+    <span class="n">add_includedirs</span><span class="p">(</span><span class="s2">"foo/inc"</span><span class="p">)</span>
+    <span class="n">add_links</span><span class="p">(</span><span class="s2">"foo"</span><span class="p">)</span>
+    <span class="n">add_linkdirs</span><span class="p">(</span><span class="s2">"$(buildir)"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"test1/*.c"</span><span class="p">)</span>
+    <span class="n">add_defines</span><span class="p">(</span><span class="s2">"FOO"</span><span class="p">)</span>
+    
+<span class="n">target</span><span class="p">(</span><span class="s2">"test2"</span><span class="p">)</span>
+    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"binary"</span><span class="p">)</span>
+    <span class="n">add_includedirs</span><span class="p">(</span><span class="s2">"foo/inc"</span><span class="p">)</span>
+    <span class="n">add_links</span><span class="p">(</span><span class="s2">"foo"</span><span class="p">)</span>
+    <span class="n">add_linkdirs</span><span class="p">(</span><span class="s2">"$(buildir)"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"test2/*.c"</span><span class="p">)</span>
+    <span class="n">add_defines</span><span class="p">(</span><span class="s2">"FOO"</span><span class="p">)</span>
 </code></pre>
 </div>
 
-<p>xmake针对每个命令和参数，都提供了简写版本：</p>
+<p>上述配置中，test1和test2都会用到libfoo库，并且需要获取到libfoo库的头文件路径，库路径和链接，并且在使用过程中还需要额外设置<code class="highlighter-rouge">-DFOO</code>宏定义开关才行。</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    xmake f -m debug
-    xmake
+<p>看上去没啥，其实这么写有两个问题：</p>
+
+<ol>
+  <li>test目标和另外两个库目标之间是有编译顺序依赖的，如果test先编译就会提示链接库找不到</li>
+  <li>配置太过繁琐不好维护，test1和test2有很多冗余配置</li>
+</ol>
+
+<p>那有没有更加简单可靠的配置方式呢，其实我们只需要<code class="highlighter-rouge">add_deps</code>来对target间配置上依赖关系即可。</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">target</span><span class="p">(</span><span class="s2">"foo"</span><span class="p">)</span>
+    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"static"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"*.c"</span><span class="p">)</span>
+    <span class="n">add_defines</span><span class="p">(</span><span class="s2">"FOO"</span><span class="p">,</span> <span class="p">{</span><span class="n">public</span> <span class="o">=</span> <span class="kc">true</span><span class="p">})</span>
+    <span class="n">add_includedirs</span><span class="p">(</span><span class="s2">"foo/inc"</span><span class="p">,</span> <span class="p">{</span><span class="n">public</span> <span class="o">=</span> <span class="kc">true</span><span class="p">})</span>
+
+<span class="n">target</span><span class="p">(</span><span class="s2">"test1"</span><span class="p">)</span>
+    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"binary"</span><span class="p">)</span>
+    <span class="n">add_deps</span><span class="p">(</span><span class="s2">"foo"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"test1/*.c"</span><span class="p">)</span>
+    
+<span class="n">target</span><span class="p">(</span><span class="s2">"test2"</span><span class="p">)</span>
+    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"binary"</span><span class="p">)</span>
+    <span class="n">add_deps</span><span class="p">(</span><span class="s2">"foo"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"test2/*.c"</span><span class="p">)</span>
 </code></pre>
 </div>
 
-<p>注：为了提高灵活性，release版本和debug版本的编译选项设置，需要自己在工程描述文件中描述，如果没有设置的话，release和debug版本生成的程序是一样的。</p>
+<p>对比下，test1和test2的配置，是不是精简了好多？仅仅通过<code class="highlighter-rouge">add_deps("foo")</code>就继承了libfoo的所有导出设置：linkdirs, links, includedirs以及defines</p>
 
-<p>如果你想强制重新构建所有，可以执行：</p>
+<p>其中target自身生成的库默认就会自动导出链接设置，而includedirs和defines通过设置public属性，我们也将它们标记为导出，这样可以被test目标继承到。</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    xmake -r
-    xmake --rebuild
+<p>并且，现在有了依赖关系，xmake在编译的时候，会自动处理这些target之间的编译顺序，保证不会出现链接的时候，libfoo库还没有生成的问题。</p>
+
+<h3 id="依赖继承的进一步解析">依赖继承的进一步解析</h3>
+
+<h4 id="级联依赖继承">级联依赖继承</h4>
+
+<p>根据上文所说，target会自动继承依赖目标中的配置和属性，不需要额外调用<code class="highlighter-rouge">add_links</code>, <code class="highlighter-rouge">add_linkdirs</code>和<code class="highlighter-rouge">add_rpathdirs</code>等接口去关联依赖目标了。</p>
+
+<p>并且继承关系是支持级联的，例如：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">target</span><span class="p">(</span><span class="s2">"library1"</span><span class="p">)</span>
+    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"static"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"*.c"</span><span class="p">)</span>
+    <span class="n">add_includedirs</span><span class="p">(</span><span class="s2">"inc"</span><span class="p">)</span> <span class="c1">-- 默认私有头文件目录不会被继承</span>
+    <span class="n">add_includedirs</span><span class="p">(</span><span class="s2">"inc1"</span><span class="p">,</span> <span class="p">{</span><span class="n">public</span> <span class="o">=</span> <span class="kc">true</span><span class="p">})</span> <span class="c1">-- 此处的头文件相关目录也会被继承</span>
+
+<span class="n">target</span><span class="p">(</span><span class="s2">"library2"</span><span class="p">)</span>
+    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"static"</span><span class="p">)</span>
+    <span class="n">add_deps</span><span class="p">(</span><span class="s2">"library1"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"*.c"</span><span class="p">)</span>
+
+<span class="n">target</span><span class="p">(</span><span class="s2">"test"</span><span class="p">)</span>
+    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"binary"</span><span class="p">)</span>
+    <span class="n">add_deps</span><span class="p">(</span><span class="s2">"library2"</span><span class="p">)</span>
 </code></pre>
 </div>
 
-<p>如果要指定编译具体某个架构，可以这么进行编译：</p>
+<p>上面的配置中，test依赖library2，然后library2又依赖library1，那么通过<code class="highlighter-rouge">add_deps</code>仅仅添加library2的依赖，test就可以完整继承整个依赖链上的所有导出设置。</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    xmake f -a armv7
-    xmake
+<h4 id="禁用默认的继承行为">禁用默认的继承行为</h4>
+
+<p>那如果我们不想继承依赖target的任何配置，如何操作呢？</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">add_deps</span><span class="p">(</span><span class="s2">"dep1"</span><span class="p">,</span> <span class="s2">"dep2"</span><span class="p">,</span> <span class="p">{</span><span class="n">inherit</span> <span class="o">=</span> <span class="kc">false</span><span class="p">})</span>
 </code></pre>
 </div>
 
-<p>一般情况下，如果没有指定架构，默认会去使用指定平台的默认架构，例如：macosx下默认是x86_64，iphoneos下士armv7</p>
+<p>通过显式设置inherit配置，来告诉xmake，这两个依赖的配置是否需要被继承，如果不设置，默认就是启用继承的。</p>
 
-<p>如果想要指定编译其他平台，例如在macosx上编译iphoneos的版本，那么：</p>
+<h4 id="可继承的导出属性详解">可继承的导出属性详解</h4>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    xmake f -p iphoneos
-    xmake
-</code></pre>
-</div>
+<p>上文，我们还通过 <code class="highlighter-rouge">add_includedirs("inc1", {public = true})</code>, 设置public为true, 将includedirs的设置公开给其他依赖的子target继承。</p>
 
-<p>编译android版本：</p>
+<p>目前对于target的编译链接flags相关接口设置，都是支持继承属性的，可以人为控制是否需要导出给其他target来依赖继承，目前支持的属性有：</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    xmake f -p android --ndk<span class="o">=</span>xxxx
-    xmake
-</code></pre>
-</div>
+<table>
+  <thead>
+    <tr>
+      <th>属性</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>private</td>
+      <td>默认设置，作为当前target的私有配置，不会被依赖的其他target所继承</td>
+    </tr>
+    <tr>
+      <td>public</td>
+      <td>公有配置，当前target，依赖的子target都会被设置</td>
+    </tr>
+    <tr>
+      <td>interface</td>
+      <td>接口设置，仅被依赖的子target所继承设置，当前target不参与</td>
+    </tr>
+  </tbody>
+</table>
 
-<p>虽然配置完后，每次编译不需要重新配置，但是如果切换编译目标平台到ios、linux，那么之前ndk的设置就被清除了，下次得重新配置。</p>
+<p>这个其实参考借鉴了cmake的设计，目前xmake中只要跟target相关的所有编译链接设置接口，都是支持可见性导出的，例如：<code class="highlighter-rouge">add_includedirs</code>, <code class="highlighter-rouge">add_defines</code>, <code class="highlighter-rouge">add_cflags</code>等等。</p>
 
-<p>如果想要更加方便的不同平台间来回切换编译，可以将ndk设置到全局配置中，例如：</p>
+<p>关于这块的详细信息，可以看下：https://github.com/xmake-io/xmake/issues/368</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    -- 将ndk设置到全局配置中
-    xmake g --ndk<span class="o">=</span>xxx
-
-    -- 切换到android编译平台，不需要每次都设置ndk了
-    xmake f -p android
-    xmake -r
-
-    -- 切换到ios编译平台
-    xmake f -p iphoneos
-    xmake -r
-</code></pre>
-</div>
-
-<p>编译windows版本，很简单，只要你机子装了vs，xmake会去自动检测，不需要做额外的配置，只需要打开cmd，进入你的工程目录，
-然后执行xmake就行了。</p>
-
-<p>使用其他交叉工具链进行编译：</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    xmake f -p android -a armv7-a --cross<span class="o">=</span>arm-linux-androideabi- --toolchains<span class="o">=</span>/xxxx/bin
-    xmake
-</code></pre>
-</div>
-
-<p>默认在编译配置的时候，会去缓存上一次的配置，这样每次配置只需要修改部分参数就行了，不需要每次全部重新配置</p>
-
-<p>如果你想重新配置所有，清楚原有的缓存，可以加上–clean参数：</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    xmake f -c
-    xmake f --clean
-    xmake
-</code></pre>
-</div>
-
-<p>xmake在配置的时候，会去检测工程依赖的一些接口和链接库，如果你想要看具体详细的配置检测信息，可以加上–verbose参数，回显配置信息</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    xmake f -c -v
-    xmake f --clean --verbose
-    xmake
-</code></pre>
-</div>
-
-<p>xmake还支持在编译的时候，手动设置一些编译选项和工具，你可以执行<code class="highlighter-rouge">xmake f --help</code>看下：</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>    Usage: xmake config|f <span class="o">[</span>options] <span class="o">[</span>target]
-
-    Configure the project.
-
-    Options: 
-        -c, --clean                            Clean the cached configure and configure all again.
-                                               
-        -p PLAT, --plat<span class="o">=</span>PLAT                   Compile <span class="k">for </span>the given platform. <span class="o">(</span>default: macosx<span class="o">)</span>
-                                                   - android
-                                                   - iphoneos
-                                                   - iphonesimulator
-                                                   - linux
-                                                   - macosx
-                                                   - mingw
-                                                   - watchos
-                                                   - watchsimulator
-                                                   - windows
-        -a ARCH, --arch<span class="o">=</span>ARCH                   Compile <span class="k">for </span>the given architecture. <span class="o">(</span>default: auto<span class="o">)</span>
-                                                   - android: armv5te armv6 armv7-a armv8-a arm64-v8a
-                                                   - iphoneos: armv7 armv7s arm64
-                                                   - iphonesimulator: i386 x86_64
-                                                   - linux: i386 x86_64
-                                                   - macosx: i386 x86_64
-                                                   - mingw: i386 x86_64
-                                                   - watchos: armv7 armv7s arm64
-                                                   - watchsimulator: i386 x86_64
-                                                   - windows: x86 x64 amd64 x86_amd64
-        -m MODE, --mode<span class="o">=</span>MODE                   Compile <span class="k">for </span>the given mode. <span class="o">(</span>default: release<span class="o">)</span>
-                                                   - debug
-                                                   - release
-                                                   - profile
-        -k KIND, --kind<span class="o">=</span>KIND                   Compile <span class="k">for </span>the given target kind. <span class="o">(</span>default: static<span class="o">)</span>
-                                                   - static
-                                                   - shared
-                                                   - binary
-            --host<span class="o">=</span>HOST                        The current host environment. <span class="o">(</span>default: macosx<span class="o">)</span>
-                                               
-            --make<span class="o">=</span>MAKE                        Set the make path. <span class="o">(</span>default: auto<span class="o">)</span>
-            --ccache<span class="o">=</span>CCACHE                    Enable or disable the c/c++ compiler cache. <span class="o">(</span>default: auto<span class="o">)</span>
-                                               
-            --cross<span class="o">=</span>CROSS                      The cross toolchains prefix
-                                               .e.g
-                                                   - i386-mingw32-
-                                                   - arm-linux-androideabi-
-            --toolchains<span class="o">=</span>TOOLCHAINS            The cross toolchains directory
-                                               
-            --cc<span class="o">=</span>CC                            The C Compiler
-            --cxx<span class="o">=</span>CXX                          The C++ Compiler
-            --cflags<span class="o">=</span>CFLAGS                    The C Compiler Flags
-            --cxflags<span class="o">=</span>CXFLAGS                  The C/C++ compiler Flags
-            --cxxflags<span class="o">=</span>CXXFLAGS                The C++ Compiler Flags
-                                               
-            --as<span class="o">=</span>AS                            The Assembler
-            --asflags<span class="o">=</span>ASFLAGS                  The Assembler Flags
-                                               
-            --sc<span class="o">=</span>SC                            The Swift Compiler
-            --scflags<span class="o">=</span>SCFLAGS                  The Swift Compiler Flags
-                                               
-            --ld<span class="o">=</span>LD                            The Linker
-            --ldflags<span class="o">=</span>LDFLAGS                  The Binary Linker Flags
-                                               
-            --ar<span class="o">=</span>AR                            The Static Library Linker
-            --arflags<span class="o">=</span>ARFLAGS                  The Static Library Linker Flags
-                                               
-            --sh<span class="o">=</span>SH                            The Shared Library Linker
-            --shflags<span class="o">=</span>SHFLAGS                  The Shared Library Linker Flags
-                                               
-            --ndk<span class="o">=</span>NDK                          The NDK Directory
-            --ndk_sdkver<span class="o">=</span>NDK_SDKVER            The SDK Version <span class="k">for </span>NDK <span class="o">(</span>default: auto<span class="o">)</span>
-                                               
-            --mm<span class="o">=</span>MM                            The Objc Compiler
-            --mxx<span class="o">=</span>MXX                          The Objc++ Compiler
-            --mflags<span class="o">=</span>MFLAGS                    The Objc Compiler Flags
-            --mxflags<span class="o">=</span>MXFLAGS                  The Objc/c++ Compiler Flags
-            --mxxflags<span class="o">=</span>MXXFLAGS                The Objc++ Compiler Flags
-                                               
-            --xcode_dir<span class="o">=</span>XCODE_DIR              The Xcode Application Directory <span class="o">(</span>default: auto<span class="o">)</span>
-            --xcode_sdkver<span class="o">=</span>XCODE_SDKVER        The SDK Version <span class="k">for </span>Xcode <span class="o">(</span>default: auto<span class="o">)</span>
-            --target_minver<span class="o">=</span>TARGET_MINVER      The Target Minimal Version <span class="o">(</span>default: auto<span class="o">)</span>
-                                               
-            --mobileprovision<span class="o">=</span>MOBILEPROVISION  The Provisioning Profile File <span class="o">(</span>default: auto<span class="o">)</span>
-            --codesign<span class="o">=</span>CODESIGN                The Code Signing Indentity <span class="o">(</span>default: auto<span class="o">)</span>
-            --entitlements<span class="o">=</span>ENTITLEMENTS        The Code Signing Entitlements <span class="o">(</span>default: auto<span class="o">)</span>
-                                               
-            --vs<span class="o">=</span>VS                            The Microsoft Visual Studio <span class="o">(</span>default: auto<span class="o">)</span>
-                                               
-        -f FILE, --file<span class="o">=</span>FILE                   Read a given xmake.lua file. <span class="o">(</span>default: xmake.lua<span class="o">)</span>
-        -P PROJECT, --project<span class="o">=</span>PROJECT          Change to the given project directory.
-                                               Search priority:
-                                                   1. The Given Command Argument
-                                                   2. The Envirnoment Variable: XMAKE_PROJECT_DIR
-                                                   3. The Current Directory
-        -o BUILDIR, --buildir<span class="o">=</span>BUILDIR          Set the build directory. <span class="o">(</span>default: build<span class="o">)</span>
-                                               
-        -v, --verbose                          Print lots of verbose information.
-            --version                          Print the version number and exit.
-        -h, --help                             Print this <span class="nb">help </span>message and exit.
-                                               
-        target                                 Configure <span class="k">for </span>the given target. <span class="o">(</span>default: all<span class="o">)</span>
-
-</code></pre>
-</div>
 
         </article>
         <hr>
@@ -1349,44 +1325,6 @@
                         <ul>
                         
                         <li class="relatedPost">
-                            <a href="/cn/2019/12/13/quickstart-10-target-deps/">xmake从入门到精通10：多个子工程目标的依赖配置
-                            
-                            </a>
-                        </li>
-                        
-                        
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-            
-        
-            
-            
-            
-                
-                    
-                        
-                        <li class="relatedPost">
                             <a href="/cn/2019/12/05/quickstart-9-cross-compile/">xmake从入门到精通9：交叉编译详解
                             
                             </a>
@@ -1585,6 +1523,15 @@
             
                 
                     
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2019/11/10/quickstart-4-basic-project-settings/">xmake从入门到精通4：常用C/C++项目描述设置详解
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
                 
                     
                 
@@ -1662,6 +1609,8 @@
                     
                 
             
+            
+        
             
         
         
@@ -1677,7 +1626,7 @@
 
         
         
-        <p><strong>上一篇</strong> <a href="/cn/2016/02/04/project-add-files/">xmake中add_files的使用</a></p>
+        <p><strong>上一篇</strong> <a href="/cn/2019/12/05/quickstart-9-cross-compile/">xmake从入门到精通9：交叉编译详解</a></p>
         
     </div>
 
@@ -1688,8 +1637,1423 @@
         
 
         
+
         
-        <p><strong>下一篇</strong> <a href="/cn/2016/02/05/update-v1.5.1/">tbox v1.5.1 更新!</a></p>
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
         
     </div>
 </div>

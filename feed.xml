@@ -5,9 +5,212 @@
     <description>Focus on cross-platform development using c language</description>
     <link>http://www.tboox.org/</link>
     <atom:link href="http://www.tboox.org/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Sun, 08 Dec 2019 20:42:22 +0800</pubDate>
-    <lastBuildDate>Sun, 08 Dec 2019 20:42:22 +0800</lastBuildDate>
+    <pubDate>Fri, 13 Dec 2019 08:49:52 +0800</pubDate>
+    <lastBuildDate>Fri, 13 Dec 2019 08:49:52 +0800</lastBuildDate>
     <generator>Jekyll v3.1.0</generator>
+    
+      <item>
+        <title>xmake从入门到精通10：多个子工程目标的依赖配置</title>
+        <description>&lt;p&gt;xmake是一个基于Lua的轻量级现代化c/c++的项目构建工具，主要特点是：语法简单易上手，提供更加可读的项目维护，实现跨平台行为一致的构建体验。&lt;/p&gt;
+
+&lt;p&gt;本文主要详细讲解下，如果在一个项目中维护和生成多个目标文件的生成，以及它们之间的依赖关系设置。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;项目源码&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;target到底是什么&quot;&gt;target到底是什么？&lt;/h3&gt;
+
+&lt;p&gt;xmake的概念定义里，一个独立的项目工程可能会有多个子工程组织在一起，每个子工程对应只能生成一个唯一的目标文件，例如：可执行程序，静态库或者动态库等。&lt;/p&gt;
+
+&lt;p&gt;而这里所说的每个子工程就是xmake里面所说的&lt;code class=&quot;highlighter-rouge&quot;&gt;target&lt;/code&gt;，字面意思就是&lt;code class=&quot;highlighter-rouge&quot;&gt;目标子工程&lt;/code&gt;。&lt;/p&gt;
+
+&lt;p&gt;因此每个子工程，我们都可以通过新增一个target在xmake.lua里面维护，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/test1/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/test2/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;    
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;上面我们就定义了两个独立的子工程目标，编译时候会生成两个互不依赖的可执行文件。&lt;/p&gt;
+
+&lt;h3 id=&quot;从根域继承全局设置&quot;&gt;从根域继承全局设置&lt;/h3&gt;
+
+&lt;p&gt;暂时先不谈target间的依赖问题，如果我们有许多通用设置，每个target下都得设置一遍，那会非常冗余，也不好维护。&lt;/p&gt;
+
+&lt;p&gt;因此，我们可以把这些配置移到target域的外面，也就是根作用域中去设置，这样对当前xmake.lua以及所有子xmake.lua中的target都会生效，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_links&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;tbox&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_linkdirs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;lib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_includedirs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;include&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/test1/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/test2/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;    
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;比如这两target都需要链接tbox库，放置在外层根域设置，test1和test2都能加上对应links。&lt;/p&gt;
+
+&lt;h3 id=&quot;目标间的依赖设置&quot;&gt;目标间的依赖设置&lt;/h3&gt;
+
+&lt;p&gt;那如果某个target需要用到另外一个tatget生成的静态库，应该怎么配置呢？&lt;/p&gt;
+
+&lt;p&gt;一种方式就是通过&lt;code class=&quot;highlighter-rouge&quot;&gt;add_linkdirs&lt;/code&gt;和&lt;code class=&quot;highlighter-rouge&quot;&gt;add_links&lt;/code&gt;手动指定对应target最后生成的目录库所在目录，然后把链接加上。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;static&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_defines&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;FOO&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_includedirs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo/inc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_links&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_linkdirs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;$(buildir)&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test1/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_defines&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;FOO&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_includedirs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo/inc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_links&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_linkdirs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;$(buildir)&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test2/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_defines&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;FOO&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;上述配置中，test1和test2都会用到libfoo库，并且需要获取到libfoo库的头文件路径，库路径和链接，并且在使用过程中还需要额外设置&lt;code class=&quot;highlighter-rouge&quot;&gt;-DFOO&lt;/code&gt;宏定义开关才行。&lt;/p&gt;
+
+&lt;p&gt;看上去没啥，其实这么写有两个问题：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;test目标和另外两个库目标之间是有编译顺序依赖的，如果test先编译就会提示链接库找不到&lt;/li&gt;
+  &lt;li&gt;配置太过繁琐不好维护，test1和test2有很多冗余配置&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;那有没有更加简单可靠的配置方式呢，其实我们只需要&lt;code class=&quot;highlighter-rouge&quot;&gt;add_deps&lt;/code&gt;来对target间配置上依赖关系即可。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;static&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_defines&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;FOO&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_includedirs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo/inc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test1/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test2/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;对比下，test1和test2的配置，是不是精简了好多？仅仅通过&lt;code class=&quot;highlighter-rouge&quot;&gt;add_deps(&quot;foo&quot;)&lt;/code&gt;就继承了libfoo的所有导出设置：linkdirs, links, includedirs以及defines&lt;/p&gt;
+
+&lt;p&gt;其中target自身生成的库默认就会自动导出链接设置，而includedirs和defines通过设置public属性，我们也将它们标记为导出，这样可以被test目标继承到。&lt;/p&gt;
+
+&lt;p&gt;并且，现在有了依赖关系，xmake在编译的时候，会自动处理这些target之间的编译顺序，保证不会出现链接的时候，libfoo库还没有生成的问题。&lt;/p&gt;
+
+&lt;h3 id=&quot;依赖继承的进一步解析&quot;&gt;依赖继承的进一步解析&lt;/h3&gt;
+
+&lt;h4 id=&quot;级联依赖继承&quot;&gt;级联依赖继承&lt;/h4&gt;
+
+&lt;p&gt;根据上文所说，target会自动继承依赖目标中的配置和属性，不需要额外调用&lt;code class=&quot;highlighter-rouge&quot;&gt;add_links&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;add_linkdirs&lt;/code&gt;和&lt;code class=&quot;highlighter-rouge&quot;&gt;add_rpathdirs&lt;/code&gt;等接口去关联依赖目标了。&lt;/p&gt;
+
+&lt;p&gt;并且继承关系是支持级联的，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;library1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;static&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_includedirs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;inc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;-- 默认私有头文件目录不会被继承&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_includedirs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;inc1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;-- 此处的头文件相关目录也会被继承&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;library2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;static&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;library1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;library2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;上面的配置中，test依赖library2，然后library2又依赖library1，那么通过&lt;code class=&quot;highlighter-rouge&quot;&gt;add_deps&lt;/code&gt;仅仅添加library2的依赖，test就可以完整继承整个依赖链上的所有导出设置。&lt;/p&gt;
+
+&lt;h4 id=&quot;禁用默认的继承行为&quot;&gt;禁用默认的继承行为&lt;/h4&gt;
+
+&lt;p&gt;那如果我们不想继承依赖target的任何配置，如何操作呢？&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;dep1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;dep2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;inherit&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;通过显式设置inherit配置，来告诉xmake，这两个依赖的配置是否需要被继承，如果不设置，默认就是启用继承的。&lt;/p&gt;
+
+&lt;h4 id=&quot;可继承的导出属性详解&quot;&gt;可继承的导出属性详解&lt;/h4&gt;
+
+&lt;p&gt;上文，我们还通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;add_includedirs(&quot;inc1&quot;, {public = true})&lt;/code&gt;, 设置public为true, 将includedirs的设置公开给其他依赖的子target继承。&lt;/p&gt;
+
+&lt;p&gt;目前对于target的编译链接flags相关接口设置，都是支持继承属性的，可以人为控制是否需要导出给其他target来依赖继承，目前支持的属性有：&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;属性&lt;/th&gt;
+      &lt;th&gt;描述&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;private&lt;/td&gt;
+      &lt;td&gt;默认设置，作为当前target的私有配置，不会被依赖的其他target所继承&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;public&lt;/td&gt;
+      &lt;td&gt;公有配置，当前target，依赖的子target都会被设置&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;interface&lt;/td&gt;
+      &lt;td&gt;接口设置，仅被依赖的子target所继承设置，当前target不参与&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;这个其实参考借鉴了cmake的设计，目前xmake中只要跟target相关的所有编译链接设置接口，都是支持可见性导出的，例如：&lt;code class=&quot;highlighter-rouge&quot;&gt;add_includedirs&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;add_defines&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;add_cflags&lt;/code&gt;等等。&lt;/p&gt;
+
+&lt;p&gt;关于这块的详细信息，可以看下：https://github.com/xmake-io/xmake/issues/368&lt;/p&gt;
+
+</description>
+        <pubDate>Fri, 13 Dec 2019 00:00:00 +0800</pubDate>
+        <link>http://www.tboox.org/cn/2019/12/13/quickstart-10-target-deps/</link>
+        <guid isPermaLink="true">http://www.tboox.org/cn/2019/12/13/quickstart-10-target-deps/</guid>
+        
+        <category>xmake</category>
+        
+        <category>lua</category>
+        
+        <category>交叉编译</category>
+        
+        
+        <category>xmake</category>
+        
+      </item>
     
       <item>
         <title>xmake从入门到精通9：交叉编译详解</title>
@@ -2274,178 +2477,6 @@ hello&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;main:
         <category>运行</category>
         
         <category>调试</category>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>Xmake Getting Started Tutorial 2: Create and build project</title>
-        <description>&lt;p&gt;Xmake is a lightweight modern C/C++ project build tool based on Lua. Its main features are: easy to use syntax, more readable project maintenance, and a consistent build experience across platforms.&lt;/p&gt;
-
-&lt;p&gt;This article focuses on how to create a xmake-based project and compilation operations.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;Project Source&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://xmake.io/&quot;&gt;Official Document&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;creating-an-empty-project&quot;&gt;Creating an empty project&lt;/h3&gt;
-
-&lt;p&gt;Xmake provides the &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake create&lt;/code&gt; command, which makes it easy to quickly create empty projects in various languages such as c/c++, swift, objc, such as:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake create &lt;span class=&quot;nb&quot;&gt;test
-&lt;/span&gt;create &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt; ...
-  [+]: xmake.lua
-  [+]: src/main.cpp
-  [+]: .gitignore
-create ok!
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;By default, a c++ hello world project is created, and a xmake.lua is generated in the root directory to describe the project’s build rules.&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mode.debug&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mode.release&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;This is a very simple xmake.lua description, &lt;code class=&quot;highlighter-rouge&quot;&gt;target(&quot;test&quot;)&lt;/code&gt; defines a sub-project module test, each target will generate a corresponding object file, the binary type here, specify to create a basic executable file.&lt;/p&gt;
-
-&lt;p&gt;The top &lt;code class=&quot;highlighter-rouge&quot;&gt;mode.debug&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;mode.release&lt;/code&gt; rule settings are optional, but we usually recommend adding them so that the default two common build modes are available: debug and release.&lt;/p&gt;
-
-&lt;h3 id=&quot;execution-compilation&quot;&gt;Execution compilation&lt;/h3&gt;
-
-&lt;p&gt;Usually if we just compile the executable file of the current host environment, we only need to execute the xmake command:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
-checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the Xcode directory ... /Applications/Xcode.app
-assessment &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the SDK version of Xcode ... 10.15
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;0%]: ccache compiling.release src/main.cpp
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;100%]: linking.release &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;Xmake will detect the existing build environment of the current environment by default, such as the author’s current xcode environment, and then compile by default release mode. If the &lt;code class=&quot;highlighter-rouge&quot;&gt;mode.release&lt;/code&gt; rule is set, it will take effect.&lt;/p&gt;
-
-&lt;h3 id=&quot;compile-mode-switch&quot;&gt;Compile mode switch&lt;/h3&gt;
-
-&lt;p&gt;And if we want to cut to &lt;code class=&quot;highlighter-rouge&quot;&gt;mode.debug&lt;/code&gt; compile, we only need to:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -m debug
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;Among them, &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f&lt;/code&gt; is a shorthand for the &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake config&lt;/code&gt; command, which is used to quickly switch the configuration. If you start with it, it is more convenient to use shorthand. The shorthand for more commands can be executed by &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake --help&lt;/code&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;create-another-template-project&quot;&gt;Create another template project&lt;/h3&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake create&lt;/code&gt; can also be used to create various other types of engineering projects, we can type &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake create --help&lt;/code&gt; to see:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake create --help
-Usage: &lt;span class=&quot;nv&quot;&gt;$xmake&lt;/span&gt; create &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;options] &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;target]
-
-Create a new project.
-
-Options:
-                                           
-    -l LANGUAGE, --language&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;LANGUAGE The project language &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;default: c++&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-                                               - c++
-                                               - go
-                                               - dlang
-                                               - cuda
-                                               - rust
-                                               - swift
-                                               - objc
-                                               - c
-                                               - objc++
-    -t TEMPLATE, --template&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;TEMPLATE Select the project template id or name of the given language.
-                                           &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;default: console&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-                                               - console: c++, go, dlang, cuda, rust, swift, objc, c, objc++
-                                               - qt.console: c++
-                                               - qt.quickapp: c++
-                                               - qt.quickapp_static: c++
-                                               - qt.shared: c++
-                                               - qt.static: c++
-                                               - qt.widgetapp: c++
-                                               - qt.widgetapp_static: c++
-                                               - shared: c++, dlang, cuda, c
-                                               - static: c++, go, dlang, cuda, rust, c
-                                               - tbox.console: c++, c
-                                               - tbox.shared: c++, c
-                                               - tbox.static: c++, c
-                                           
-    Target Create the given target.
-                                           Uses the project name as target &lt;span class=&quot;k&quot;&gt;if &lt;/span&gt;not exists.
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;From the help menu above, we can probably understand that the engineering language can be specified by &lt;code class=&quot;highlighter-rouge&quot;&gt;-l/--language&lt;/code&gt;, and &lt;code class=&quot;highlighter-rouge&quot;&gt;-t/--template&lt;/code&gt; is used to specify the type of project template.&lt;/p&gt;
-
-&lt;p&gt;For example, let’s create a static library project based on c:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake create -l c -t static &lt;span class=&quot;nb&quot;&gt;test
-&lt;/span&gt;create &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt; ...
-  [+]: xmake.lua
-  [+]: src/interface.c
-  [+]: src/interface.h
-  [+]: src/test.c
-  [+]: src/main.cpp
-  [+]: .gitignore
-create ok!
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;We can also create qt-based quickapp projects:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake create -l c++ -t qt.quickapp &lt;span class=&quot;nb&quot;&gt;test
-&lt;/span&gt;create &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt; ...
-  [+]: xmake.lua
-  [+]: src/interface.c
-  [+]: src/main.qml
-  [+]: src/interface.h
-  [+]: src/test.c
-  [+]: src/main.cpp
-  [+]: src/qml.qrc
-  [+]: .gitignore
-create ok!
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;In addition to the c/c++ project, xmake also supports project compilation in other languages, but xmake focuses on c/c++. Other languages ​​are supported mainly to support mixed compilation with c/c++. After all, other languages ​​have official rust to rust. Provide a better build solution.&lt;/p&gt;
-
-&lt;p&gt;But we can still use xmake to try to compile them:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake create -l rust &lt;span class=&quot;nb&quot;&gt;test
-&lt;/span&gt;create &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt; ...
-  [+]: xmake.lua
-  [+]: src/main.rs
-  [+]: .gitignore
-create ok!
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
-checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the architecture ... x86_64
-checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the Xcode directory ... /Applications/Xcode.app
-assessment &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the SDK version of Xcode ... 10.15
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;0%]: linking.release &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-</description>
-        <pubDate>Sat, 09 Nov 2019 00:00:00 +0800</pubDate>
-        <link>http://www.tboox.org/2019/11/09/quickstart-2-create-and-build-project/</link>
-        <guid isPermaLink="true">http://www.tboox.org/2019/11/09/quickstart-2-create-and-build-project/</guid>
-        
-        <category>xmake</category>
-        
-        <category>lua</category>
-        
-        <category>c/c++</category>
         
         
         <category>xmake</category>
