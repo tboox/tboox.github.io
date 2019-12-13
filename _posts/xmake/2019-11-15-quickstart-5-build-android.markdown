@@ -101,7 +101,7 @@ At this time, we can solve it by trying to manually modify the api version:
 $ xmake f -p android --ndk=xxx --ndk_sdkver=16
 ```
 
-### arch compilation switch
+### Switch compilation architecture
 
 At present xmake provides configuration of these architectures `armv7-a`,` arm64-v8a`, `armv5te`,` mips`, `mips64`,` i386`, `x86_64`. If arch is not specified, then armv7 will be used by default. Architecture.
 
