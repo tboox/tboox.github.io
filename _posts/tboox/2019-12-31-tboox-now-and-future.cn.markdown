@@ -70,7 +70,7 @@ $ xmake project -k [vsxmake2010|vsxmake2013|vsxmake2015|..] -m "debug;release"
 
 毕竟是冷门项目，受众很小，今年tbox和xmake都涨了1k多我已经知足了。
 
-![](/static/img/xmake/xmake-history-2019.png)
+![](/static/img/xmake/star-history-2019.png)
 
 ### 一些使用了xmake的开源项目
 
