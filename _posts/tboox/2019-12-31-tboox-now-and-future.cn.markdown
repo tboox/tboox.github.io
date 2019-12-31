@@ -5,7 +5,9 @@ tags: tboox tbox xmake
 categories: tboox
 ---
 
-今年一年总体还是有不少收获的，尤其是[xmake](https://xmake.io)，今年大部分时间都花在这个项目上面，不过[tbox](https://github.com/tboox/tbox)也陆陆续续做了一些更新，还是有不少改进的地方。
+今年一年总体还是有不少收获的，尤其是[xmake](https://xmake.io)，今年大部分时间都花在这个项目上面，总共发了5个大版本，大小特性改动不下百处，新增1000多次commit，处理issues超过300个。
+
+不过[tbox](https://github.com/tboox/tbox)也陆陆续续做了一些更新，还是有不少改进的地方。
 
 关于今年整体的项目进展，这边也做个简单的总结吧，这里主要总结一些比较大的特性改进，一些零散的小模块改动就不一一列举了。
 
