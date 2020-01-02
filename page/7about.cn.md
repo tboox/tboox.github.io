@@ -38,7 +38,7 @@ icon: user
 
 不过英文站点页面只接受英文站点链接哦，中文站点我会放到中文首页上。
 
-||  [xmake.io](https://xmake.io/cn)    || [七空幻音](http://www.acgxt.com)   || [HyG](https://gaohaoyang.github.io)     || 
+||  [xmake.io](https://xmake.io/cn)    || [七空幻音](http://www.acgxt.com)   || [HyG](https://gaohaoyang.github.io)     || [达达知识](https://www.dadapush.com/) 
 
 ## 评论
 
