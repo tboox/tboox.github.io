@@ -26,12 +26,15 @@ TBOOX的所有项目都是属于个人开源项目，它的发展需要您的帮
 
 ## Bitcoin
 
-[17HDrR4boKQp5b1qxJrErrd2miiWVykx6X](https://www.blockchain.com/btc/payment_request?address=17HDrR4boKQp5b1qxJrErrd2miiWVykx6X)
+```
+bc1qstzyehpjsryh8qwj8kf95js4cjcj3p670s5j9fyd3gkj946qdt7qx0xjpa
+```
 
 ## 支持者
 
 <a href="https://opencollective.com/xmake#backers" target="_blank"><img src="https://opencollective.com/xmake/backers.svg?width=890"></a>
 
+|| 2020.02.19 || xmake || *鹏 || 微信 || ¥10 || ||
 || 2020.02.08 || tboox || *烨 || 支付宝 || ¥30 || ||
 || 2019.10.31 || xmake || 刘* || 支付宝 || ¥100 || xmake非常好用，期待持续更新，加油! ||
 || 2019.10.07 || xmake || 1m188 || 支付宝 || ¥50 || 相比cmake写起来要简单清晰一些 ||

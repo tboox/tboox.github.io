@@ -19,7 +19,9 @@ If you would like to support the development of these projects, welcome to donat
 
 ## Bitcoin
 
-[17HDrR4boKQp5b1qxJrErrd2miiWVykx6X](https://www.blockchain.com/btc/payment_request?address=17HDrR4boKQp5b1qxJrErrd2miiWVykx6X)
+```
+bc1qstzyehpjsryh8qwj8kf95js4cjcj3p670s5j9fyd3gkj946qdt7qx0xjpa
+```
 
 ## Backers
 
@@ -52,6 +54,7 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## Supporters
 
+|| 2020.02.19 || xmake || *鹏 || wechat || ¥10 || ||
 || 2020.02.08 || tboox || *烨 || alipay || ¥30 || ||
 || 2019.10.31 || xmake || 刘* || alipay || ¥100 || xmake非常好用，期待持续更新，加油! ||
 || 2019.10.07 || xmake || 1m188 || alipay || ¥50 || 相比cmake写起来要简单清晰一些 ||
