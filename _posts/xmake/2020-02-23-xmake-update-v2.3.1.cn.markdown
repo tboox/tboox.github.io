@@ -5,7 +5,7 @@ tags: xmake lua C/C++ autotools cmake ninja mingw msys
 categories: xmake
 ---
 
-疫情期间，宅家两月，对xmake内部做了不少的重构来改进，并且新增了不少实用的新特性，欢迎来体验。
+最近对xmake内部做了不少的重构来改进，并且新增了不少实用的新特性，欢迎来体验。
 
 * [项目源码](https://github.com/xmake-io/xmake)
 * [官方文档](https://xmake.io/#/zh-cn/)
