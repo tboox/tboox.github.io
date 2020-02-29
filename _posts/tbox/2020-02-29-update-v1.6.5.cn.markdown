@@ -1,0 +1,40 @@
+---
+layout: post.cn
+title:  "tbox v1.6.5 发布，改进协程调度支持"
+tags: tbox 协程
+categories: tbox
+---
+
+这个版本功能和特性改动并不多，主要是改进了下协程的调度模块，实现对process, socket，pipe这三种对象间的统一调度支持，我们可以在协程中同时操作进程，socket还有管道。
+
+这有赖于tbox提供的poller模块，统一封装了对epoll/kqueue/select/poll/iocp等接口，实现跨平台的等待socket/pipe对象事件，通过提供一致的reactor，实现了在协程中统一调度。
+
+* [项目源码](https://github.com/tboox/tbox)
+* [官方文档](https://tboox.io/#/zh-cn/)
+
+另外，poller还对进程事件的等待也加上了支持，可以通过相同的wait接口同时对process的退出事件进行等待，关于这块内部其实还是做了很多事的。
+
+例如：
+
+1. win上通过thread+WaitForMultipleObjects的方式来对接到poller
+2. unix上通过thread/waitpid的方式来对接到poller
+
+相关poller接口主要有下面四个，其中object可以是process/pipe/socket对象，然后设置上对应的事件就可以去同时wait了。
+
+```c
+tb_bool_t tb_poller_insert(tb_poller_ref_t poller, tb_poller_object_ref_t object, tb_size_t events, tb_cpointer_t priv);
+tb_bool_t tb_poller_remove(tb_poller_ref_t poller, tb_poller_object_ref_t object);
+tb_bool_t tb_poller_modify(tb_poller_ref_t poller, tb_poller_object_ref_t object, tb_size_t events, tb_cpointer_t priv);
+tb_long_t tb_poller_wait(tb_poller_ref_t poller,   tb_poller_event_func_t func, tb_long_t timeout);
+```
+
+### 新特性
+
+* [#112](https://github.com/tboox/tbox/issues/112): 新增unix socket支持，感谢[@Codehz](https://github.com/codehz)的贡献
+* 在协程和poller中支持同时等待和调度socket，pipe io和process
+
+### 改进
+
+* 改进uuid生成，实现uuid v4
+* 支持msys/mingw和cygwin/gcc上编译
+

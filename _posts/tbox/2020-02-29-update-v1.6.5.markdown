@@ -1,0 +1,40 @@
+---
+layout: post
+title:  "tbox v1.6.5 released, Improve coroutine scheduling support"
+tags: tbox coroutine 
+categories: tbox
+---
+
+There are not many changes in functions and features in this version. The main improvement is the scheduling module of the coroutine, which enables unified scheduling support for the three objects: process, socket, and pipe. We can operate processes in the coroutine at the same time. There are pipes.
+
+This relies on the poller module provided by tbox, which uniformly encapsulates interfaces such as epoll/kqueue/select/poll/iocp to achieve cross-platform wait for socket/pipe object events. By providing consistent reactors, unified dispatching in coroutines is achieved. .
+
+* [Github Repo](https://github.com/tboox/tbox)
+* [Online documents](https://tboox.io/)
+
+In addition, poller also adds support for waiting for process events. You can also wait for the exit event of the process at the same time through the same wait interface. Actually, there are still a lot of things about this.
+
+E.g:
+
+1. On windows, thread + WaitForMultipleObjects is used to connect to poller
+2. On unix, thread/waitpid to docker to poller
+
+The relevant poller interfaces mainly include the following four, where object can be a process/pipe/socket object, and then set the corresponding event to wait at the same time.
+
+```c
+tb_bool_t tb_poller_insert(tb_poller_ref_t poller, tb_poller_object_ref_t object, tb_size_t events, tb_cpointer_t priv);
+tb_bool_t tb_poller_remove(tb_poller_ref_t poller, tb_poller_object_ref_t object);
+tb_bool_t tb_poller_modify(tb_poller_ref_t poller, tb_poller_object_ref_t object, tb_size_t events, tb_cpointer_t priv);
+tb_long_t tb_poller_wait(tb_poller_ref_t poller,   tb_poller_event_func_t func, tb_long_t timeout);
+```
+
+### New features
+
+* [#112](https://github.com/tboox/tbox/issues/112): Support unix socket，thanks [@Codehz](https://github.com/codehz)
+* Support to wait pipe, socket and process in coroutine and poller at same time
+
+### Changes
+
+* improve uuid and improve uuid v4
+* support msys/mingw and cygwin/gcc toolchains
+
