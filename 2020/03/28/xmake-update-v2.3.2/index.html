@@ -7,11 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta http-equiv="Cache-Control" content="no-siteapp" />
 
-    <title>xmake v2.3.1 released, Seamless integration with other build systems</title>
-    <meta name="description" content="In the past two months, I have made a lot of refactorings to improve xmake and added a lot of useful new features. Welcome to try it.  Project Source  Offici...">
+    <title>xmake v2.3.2, Build as fast as ninja</title>
+    <meta name="description" content="This version focuses on refactoring and optimization of the internal parallel build mechanism, enabling parallel compilation of source files between multiple...">
 
     
-    <meta name="keywords" content="xmake,lua,C/C++,autotools,cmake,ninja,mingw,msys,tboox" /> 
+    <meta name="keywords" content="xmake,lua,C/C++,ninja,tboox" /> 
 
     <!-- qq oauth -->
     <meta property="qc:admins" content="5211601217706727767255" />
@@ -363,7 +363,7 @@
 
         <div class="page clearfix" post>
     <div class="left">
-        <h1>xmake v2.3.1 released, Seamless integration with other build systems</h1>
+        <h1>xmake v2.3.2, Build as fast as ninja</h1>
         <div class="label">
 
             <div class="label-card">
@@ -413,20 +413,8 @@
         <!--a href="/tag/#C%2FC%2B%2B" title="Tag: C/C++" rel="tag">C/C++</a-->
         <a href="/tag/#C/C++" title="Tag: C/C++" rel="tag">C/C++</a>&nbsp;
     
-        <!--a href="/tag/#autotools" title="Tag: autotools" rel="tag">autotools</a-->
-        <a href="/tag/#autotools" title="Tag: autotools" rel="tag">autotools</a>&nbsp;
-    
-        <!--a href="/tag/#cmake" title="Tag: cmake" rel="tag">cmake</a-->
-        <a href="/tag/#cmake" title="Tag: cmake" rel="tag">cmake</a>&nbsp;
-    
         <!--a href="/tag/#ninja" title="Tag: ninja" rel="tag">ninja</a-->
-        <a href="/tag/#ninja" title="Tag: ninja" rel="tag">ninja</a>&nbsp;
-    
-        <!--a href="/tag/#mingw" title="Tag: mingw" rel="tag">mingw</a-->
-        <a href="/tag/#mingw" title="Tag: mingw" rel="tag">mingw</a>&nbsp;
-    
-        <!--a href="/tag/#msys" title="Tag: msys" rel="tag">msys</a-->
-        <a href="/tag/#msys" title="Tag: msys" rel="tag">msys</a>
+        <a href="/tag/#ninja" title="Tag: ninja" rel="tag">ninja</a>
     
   
 
@@ -437,298 +425,139 @@
         </div>
         <hr>
         <article itemscope itemtype="http://schema.org/BlogPosting">
-        <p>In the past two months, I have made a lot of refactorings to improve xmake and added a lot of useful new features. Welcome to try it.</p>
+        <p>This version focuses on refactoring and optimization of the internal parallel build mechanism, enabling parallel compilation of source files between multiple targets, and support for parallel links. It also optimizes some internal losses of xmake and fixes some bugs that affect compilation speed.
+Through testing and comparison, the current overall build speed is basically the same as ninja. Compared to cmake/make, meson/ninja is much faster, because they have an extra step to generate makefile / build.ninja.</p>
+
+<p>In addition, xmake also adds support for the sdcc compilation toolchain for compiling embedded programs such as 51/stm8.</p>
 
 <ul>
-  <li><a href="https://github.com/xmake-io/xmake">Project Source</a></li>
-  <li><a href="https://xmake.io/">Official Document</a></li>
+  <li><a href="https://github.com/xmake-io/xmake">Github</a></li>
+  <li><a href="https://xmake.io/#/home">Documents</a></li>
 </ul>
 
-<p>Some new features:</p>
+<h2 id="some-optimizations">Some optimizations</h2>
 
 <ol>
-  <li>Compile other projects maintained by the build system with one click to achieve seamless docking and support cross compilation (such as fast cross compilation of autotools, see details below)</li>
-  <li>Added <code class="highlighter-rouge">xmake project -k ninja</code> project generation plugin to support generation of build.ninja build system files</li>
+  <li>All source files between multiple targets are built in parallel at the same time (previously, they cannot cross targets, and will be blocked by links in the middle of serialization)</li>
+  <li>Multiple independent target links can be executed in parallel (previously only one link could be executed)</li>
+  <li>Fix previous task scheduling bug, more fine-grained scheduling, make full use of CPU core resources</li>
+  <li>Optimize some losses on xmake’s internal api, this effect is also obvious</li>
 </ol>
 
-<p>Some improvements:</p>
-
-<ol>
-  <li>Improve command line parameter input, support *nix style parameter input, thanks <a href="https://github.com/OpportunityLiu">@OpportunityLiu</a> for contribution</li>
-  <li>Improve tab command completion, add command completion support for parameter values</li>
-  <li>Optimize get.sh installation and xmake update update scripts, add domestic mirror source, speed up download and install updates</li>
-  <li>gcc/clang compilation error output support native color highlighting support</li>
-  <li>Added msys/cygwin platform, and xmake source code also supports msys/mingw platform compilation</li>
-</ol>
-
-<p>Some invisible improvements:</p>
-
-<ol>
-  <li>Add socket and pipe modules and improve the process module</li>
-  <li>Refactor the whole process scheduler, better scheduling and parallel construction</li>
-  <li>Refactoring and improving the entire coroutine coroutine module, supporting simultaneous scheduling support for socket/pipe/process (preparing for subsequent remote compilation and distributed compilation)</li>
-</ol>
-
-<p>There are also some scattered bug fixes, see updates below.</p>
-
-<h2 id="introduction-of-new-features">Introduction of new features</h2>
-
-<h3 id="generate-buildninja-build-file">Generate build.ninja build file</h3>
-
-<p>xmake now supports the generation of ninja build files, allowing users to use ninja to quickly build projects maintained by xmake. I have to admit that in terms of build speed, ninja is indeed much faster than xmake. I will try to optimize the build speed of xmake in subsequent versions.</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake project -k ninja
-</code></pre>
-</div>
-
-<p>Then call ninja to build:</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>ninja
-</code></pre>
-</div>
-
-<p>Or use the xmake command directly to call the ninja build, see below.</p>
-
-<h3 id="try-building-with-another-build-system">Try building with another build system</h3>
-
-<p>xmake v2.3.1 and above directly interface with other third-party build systems. Even if other projects do not use xmake.lua for maintenance, xmake can directly call other build tools to complete the compilation.</p>
-
-<p>Then the user can directly use a third-party build tool to compile, so why use xmake to call it? The main benefits are:</p>
-
-<ol>
-  <li>Completely consistent behavior, simplifying the compilation process. No matter which other build system is used, you only need to execute the xmake command to compile. Users no longer need to study the different compilation processes of other tools</li>
-  <li>Docking the configuration environment of <code class="highlighter-rouge">xmake config</code>, reuse the platform detection and SDK environment detection of xmake, simplify the platform configuration</li>
-  <li>Docking cross-compilation environment, even for projects maintained with autotools, you can quickly cross-compile through xmake</li>
-</ol>
-
-<p>Build systems currently supported:</p>
-
-<ul>
-  <li>autotools (cross-compiling environment for xmake)</li>
-  <li>xcodebuild</li>
-  <li>cmake</li>
-  <li>make</li>
-  <li>msbuild</li>
-  <li>scons</li>
-  <li>meson</li>
-  <li>bazel</li>
-  <li>ndkbuild</li>
-  <li>ninja</li>
-</ul>
-
-<h4 id="automatically-detect-build-system-and-compile">Automatically detect build system and compile</h4>
-
-<p>For example, for a project maintained using cmake, executing xmake directly in the project root directory will automatically trigger a detection mechanism, detect CMakeLists.txt, and then prompt the user if cmake is needed to continue compiling.</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake 
-note: CMakeLists.txt found, try building it <span class="o">(</span>pass -y or --confirm<span class="o">=</span>y/n/d to skip confirm<span class="o">)</span>?
-please input: y <span class="o">(</span>y/n<span class="o">)</span>
--- Symbol prefix:
--- Configuring <span class="k">done</span>
--- Generating <span class="k">done</span>
--- Build files have been written to:/Users/ruki/Downloads/libpng-1.6.35/build
-<span class="o">[</span>  7%] Built target png-fix-itxt
-<span class="o">[</span> 21%] Built target genfiles
-<span class="o">[</span> 81%] Built target png
-<span class="o">[</span> 83%] Built target png_static
-...
-output to/Users/ruki/Downloads/libpng-1.6.35/build/artifacts
-build ok!
-</code></pre>
-</div>
-
-<h4 id="seamless-using-xmake-command">Seamless using xmake command</h4>
-
-<p>Currently supports common commands such as <code class="highlighter-rouge">xmake clean</code>,<code class="highlighter-rouge"> xmake --rebuild</code> and <code class="highlighter-rouge">xmake config</code> to seamlessly interface with third-party systems.</p>
-
-<p>We can directly clean the compiled output files of the cmake maintenance project</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake clean
-<span class="gp">$ </span>xmake clean --all
-</code></pre>
-</div>
-
-<p>If you bring <code class="highlighter-rouge">--all</code> to perform the cleanup, all files generated by autotools/cmake will be cleared, not only the object files.</p>
-
-<p>The default <code class="highlighter-rouge">xmake</code> is docked with incremental build behavior, but we can also force a quick rebuild:</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake --rebuild
-</code></pre>
-</div>
-
-<h4 id="manually-switch-the-specified-build-system">Manually switch the specified build system</h4>
-
-<p>If there are multiple build systems under maintenance in a project, such as the libpng project, which comes with autotools/cmake/makefile and other build system maintenance, xmake defaults to using autotools by default. If you want to force switch to other build systems, you can execute:</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake f --trybuild<span class="o">=[</span>autotools|cmake|make|msbuild|..]
-<span class="gp">$ </span>xmake
-</code></pre>
-</div>
-
-<p>In addition, the <code class="highlighter-rouge">--trybuild=</code> parameter is configured to manually specify the default build system, and the subsequent build process will not prompt the user for selection.</p>
-
-<h4 id="fastly-cross-compile">Fastly cross compile</h4>
-
-<p>As we all know, although many projects maintained by autotools support cross-compilation, the configuration process of cross-compilation is very complicated. There are still many differences in different toolchain processing methods, and many pits will be stepped in the middle.</p>
-
-<p>Even if you run through a toolchain’s cross-compilation, if you switch to another toolchain environment, it may take a long time, and if you use xmake, you usually only need two simple commands:</p>
-
-<p>!&gt; At present autotools supports cross-compilation of xmake, and other build systems such as cmake will be added later.</p>
-
-<h5 id="cross-compile-android-platform">Cross compile android platform</h5>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake f -p android --trybuild<span class="o">=</span>autotools <span class="o">[</span>--ndk<span class="o">=</span>xxx]
-<span class="gp">$ </span>xmake
-</code></pre>
-</div>
-
-<p>!&gt; Among them, the –ndk parameter configuration is optional. If the user sets the ANDROID_NDK_HOME environment variable, or if the ndk is placed in ~/Library/Android/sdk/ndk-bundle, xmake can automatically detect it.</p>
-
-<p>Is not it simple? If you think this is not much, then you can directly operate <code class="highlighter-rouge">./configure</code> to configure cross-compilation. You can see this document for comparison: [Using NDK with other compilation systems] (https://developer.android .com/ndk/guides/other_build_systems # autoconf)</p>
-
-<p>To put it bluntly, you probably have to do this, you may not be able to do it once:</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span><span class="nb">export </span><span class="nv">TOOLCHAIN</span><span class="o">=</span><span class="nv">$NDK</span>/toolchains/llvm/prebuilt/<span class="nv">$HOST_TAG</span>
-<span class="gp">$ </span><span class="nb">export </span><span class="nv">AR</span><span class="o">=</span><span class="nv">$TOOLCHAIN</span>/bin/aarch64-linux-android-ar
-<span class="gp">$ </span><span class="nb">export </span><span class="nv">AS</span><span class="o">=</span><span class="nv">$TOOLCHAIN</span>/bin/aarch64-linux-android-as
-<span class="gp">$ </span><span class="nb">export </span><span class="nv">CC</span><span class="o">=</span><span class="nv">$TOOLCHAIN</span>/bin/aarch64-linux-android21-clang
-<span class="gp">$ </span><span class="nb">export </span><span class="nv">CXX</span><span class="o">=</span><span class="nv">$TOOLCHAIN</span>/bin/aarch64-linux-android21-clang++
-<span class="gp">$ </span><span class="nb">export </span><span class="nv">LD</span><span class="o">=</span><span class="nv">$TOOLCHAIN</span>/bin/aarch64-linux-android-ld
-<span class="gp">$ </span><span class="nb">export </span><span class="nv">RANLIB</span><span class="o">=</span><span class="nv">$TOOLCHAIN</span>/bin/aarch64-linux-android-ranlib
-<span class="gp">$ </span><span class="nb">export </span><span class="nv">STRIP</span><span class="o">=</span><span class="nv">$TOOLCHAIN</span>/bin/aarch64-linux-android-strip
-<span class="gp">$ </span>./configure --host aarch64-linux-android
-<span class="gp">$ </span>make
-</code></pre>
-</div>
-
-<h5 id="cross-compile-iphoneos-platform">Cross compile iphoneos platform</h5>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake f -p iphoneos --trybuild<span class="o">=</span>autotools
-<span class="gp">$ </span>xmake
-</code></pre>
-</div>
-
-<h5 id="cross-compile-mingw-platform">Cross-compile mingw platform</h5>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake f -p mingw --trybuild<span class="o">=</span>autotools <span class="o">[</span>--mingw<span class="o">=</span>xxx]
-<span class="gp">$ </span>xmake
-</code></pre>
-</div>
-
-<h5 id="using-other-cross-compilation-toolchains">Using other cross-compilation toolchains</h5>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake f -p cross --trybuild<span class="o">=</span>autotools --sdk<span class="o">=</span>/xxxx
-<span class="gp">$ </span>xmake
-</code></pre>
-</div>
-
-<p>For more cross compilation configuration details, please refer to the document: <a href="https://xmake.io/#/guide/configuration?id=cross-compilation">Cross Compilation</a>, except for an additional <code class="highlighter-rouge">--trybuild=</code> parameter, all other cross-compilation configuration parameters are completely universal.</p>
-
-<h4 id="passing-user-configuration-parameters">Passing user configuration parameters</h4>
-
-<p>We can use <code class="highlighter-rouge">--tryconfigs=</code> to pass additional configuration parameters of the user to the corresponding third-party build system. For example: autotools will be passed to <code class="highlighter-rouge">. / Configure</code>, cmake will be passed to the<code class="highlighter-rouge"> cmake</code> command.</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake f --trybuild<span class="o">=</span>autotools --tryconfigs<span class="o">=</span><span class="s2">"-enable-shared=no"</span>
-<span class="gp">$ </span>xmake
-</code></pre>
-</div>
-
-<p>For example, the above command, pass <code class="highlighter-rouge">--enable-shared=no</code> to<code class="highlighter-rouge">./configure</code> to disable dynamic library compilation.</p>
-
-<p>In addition, for <code class="highlighter-rouge">--cflags</code>,<code class="highlighter-rouge"> --includedirs</code> and <code class="highlighter-rouge">--ldflags</code>, you don’t need to pass<code class="highlighter-rouge"> --tryconfigs</code>, you can pass the built-in parameters like <code class="highlighter-rouge">xmake config --cflags=</code> to pass through.</p>
-
-<h4 id="examples-of-compiling-other-build-system">Examples of compiling other build system</h4>
-
-<h5 id="general-compilation">General Compilation</h5>
-
-<p>In most cases, the compilation method after each docking system is consistent, except for the <code class="highlighter-rouge">--trybuild=</code> configuration parameter.</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake f --trybuild<span class="o">=[</span>autotools|cmake|meson|ninja|bazel|make|msbuild|xcodebuild]
-<span class="gp">$ </span>xmake
-</code></pre>
-</div>
-
-<p>!&gt; We also need to make sure that the build tool specified by –trybuild is installed and working properly.</p>
-
-<h5 id="building-android-jni-programs">Building Android jni programs</h5>
-
-<p>If <code class="highlighter-rouge">jni/Android.mk</code> exists in the current project, then xmake can directly call ndk-build to build the jni library.</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake f -p android --trybuild<span class="o">=</span>ndkbuild <span class="o">[</span>--ndk <span class="o">=]</span>
-<span class="gp">$ </span>xmake
-</code></pre>
-</div>
-
-<h3 id="nix-style-command-parameter-input">*nix style command parameter input</h3>
-
-<p>The current input specification is referenced from: <a href="https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html">https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html</a></p>
-
-<p>Thank you very much <a href="https://github.com/OpportunityLiu">@OpportunityLiu</a> for your contribution. The current input method can support the following writing:</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake -j8 -rvD
-</code></pre>
-</div>
-
-<p>Before, I could only write:</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake -j 8 -r -v -D
-</code></pre>
-</div>
-
-<h3 id="tab-command-completion">Tab command completion</h3>
-
-<p>In previous versions, only parameter names could be completed. You can now complete the parameter values and prompt the value list. For example, after typing the following command:</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake f --plat <span class="o">=</span> and
-</code></pre>
-</div>
-
-<p>Press the tab key to complete the platform parameters and become</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>xmake f --plat <span class="o">=</span> android
-</code></pre>
-</div>
-
-<h3 id="force-c-code-to-be-compiled-as-c-">Force C code to be compiled as C ++</h3>
-
-<p>xmake adds a configuration parameter that specifies the type of source file and forces it to compile as a corresponding source file, such as compiling c code as c ++.</p>
-
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">target</span><span class="p">(</span><span class="s2">"test"</span><span class="p">)</span>
-<span class="err">    </span><span class="n">set_kind</span><span class="p">(</span><span class="s2">"binary"</span><span class="p">)</span>
-<span class="err">    </span><span class="n">add_files</span><span class="p">(</span><span class="s2">"src/*.c"</span><span class="p">,</span> <span class="p">{</span><span class="n">sourcekind</span> <span class="o">=</span> <span class="s2">"cxx"</span><span class="p">})</span>
-</code></pre>
-</div>
-
-<h2 id="changelog">Changelog</h2>
+<p>For more optimization details, please see: <a href="https://github.com/xmake-io/xmake/issues/589">issue #589</a></p>
+
+<h2 id="build-speed-comparison">Build speed comparison</h2>
+
+<p>We did some comparison tests on termux and macOS. The test project is at: <a href="https://github.com/xmake-io/xmake/tree/master/core">xmake-core</a></p>
+
+<p>For a relatively large number of target projects, the new version of xmake improves its build speed even more.</p>
+
+<h3 id="multi-task-parallel-compilation">Multi-task parallel compilation</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>buildsystem</th>
+      <th>Termux (8core/-j12)</th>
+      <th>buildsystem</th>
+      <th>MacOS (8core/-j12)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>xmake</td>
+      <td>24.890s</td>
+      <td>xmake</td>
+      <td>12.264s</td>
+    </tr>
+    <tr>
+      <td>ninja</td>
+      <td>25.682s</td>
+      <td>ninja</td>
+      <td>11.327s</td>
+    </tr>
+    <tr>
+      <td>cmake(gen+make)</td>
+      <td>5.416s+28.473s</td>
+      <td>cmake(gen+make)</td>
+      <td>1.203s+14.030s</td>
+    </tr>
+    <tr>
+      <td>cmake(gen+ninja)</td>
+      <td>4.458s+24.842s</td>
+      <td>cmake(gen+ninja)</td>
+      <td>0.988s+11.644s</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="single-task-compilation">Single task compilation</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>buildsystem</th>
+      <th>Termux (-j1)</th>
+      <th>buildsystem</th>
+      <th>MacOS (-j1)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>xmake</td>
+      <td>1m57.707s</td>
+      <td>xmake</td>
+      <td>39.937s</td>
+    </tr>
+    <tr>
+      <td>ninja</td>
+      <td>1m52.845s</td>
+      <td>ninja</td>
+      <td>38.995s</td>
+    </tr>
+    <tr>
+      <td>cmake(gen+make)</td>
+      <td>5.416s+2m10.539s</td>
+      <td>cmake(gen+make)</td>
+      <td>1.203s+41.737s</td>
+    </tr>
+    <tr>
+      <td>cmake(gen+ninja)</td>
+      <td>4.458s+1m54.868s</td>
+      <td>cmake(gen+ninja)</td>
+      <td>0.988s+38.022s</td>
+    </tr>
+  </tbody>
+</table>
 
 <h3 id="new-features">New features</h3>
 
 <ul>
-  <li><a href="https://github.com/xmake-io/xmake/issues/675">#675</a>: Support to compile <code class="highlighter-rouge">*.c</code> as c++, <code class="highlighter-rouge">add_files("*.c", {sourcekind = "cxx"})</code>.</li>
-  <li><a href="https://github.com/xmake-io/xmake/issues/681">#681</a>: Support compile xmake on msys/cygwin and add msys/cygwin platform</li>
-  <li>Add socket/pipe io modules and support to schedule socket/process/pipe in coroutine</li>
-  <li><a href="https://github.com/xmake-io/xmake/issues/192">#192</a>: Try building project with the third-party buildsystem</li>
-  <li>Enable color diagnostics output for gcc/clang</li>
-  <li><a href="https://github.com/xmake-io/xmake/issues/588">#588</a>: Improve project generator, <code class="highlighter-rouge">xmake project -k ninja</code>, support for build.ninja</li>
+  <li>Add powershell theme for powershell terminal</li>
+  <li>Add <code class="highlighter-rouge">xmake --dry-run -v</code> to dry run building target and only show verbose build command.</li>
+  <li><a href="https://github.com/xmake-io/xmake/issues/712">#712</a>: Add sdcc platform and support sdcc compiler</li>
 </ul>
 
 <h3 id="change">Change</h3>
 
 <ul>
-  <li><a href="https://github.com/xmake-io/xmake/issues/665">#665</a>: Support to parse *nix style command options, thanks <a href="https://github.com/OpportunityLiu">@OpportunityLiu</a></li>
-  <li><a href="https://github.com/xmake-io/xmake/pull/673">#673</a>: Improve tab complete to support argument values</li>
-  <li><a href="https://github.com/xmake-io/xmake/issues/680">#680</a>: Improve get.sh scripts and add download mirrors</li>
-  <li>Improve process scheduler</li>
-  <li><a href="https://github.com/xmake-io/xmake/issues/651">#651</a>: Improve os/io module syserrors tips</li>
+  <li><a href="https://github.com/xmake-io/xmake/issues/589">#589</a>: Improve and optimize build speed, supports parallel compilation and linking across targets</li>
+  <li>Improve the ninja/cmake generator</li>
+  <li><a href="https://github.com/xmake-io/xmake/issues/728">#728</a>: Improve os.cp to support reserve source directory structure</li>
+  <li><a href="https://github.com/xmake-io/xmake/issues/732">#732</a>: Improve find_package to support <code class="highlighter-rouge">homebrew/cmake</code> pacakges</li>
+  <li><a href="https://github.com/xmake-io/xmake/issues/695">#695</a>: Improve android abi</li>
 </ul>
 
 <h3 id="bugs-fixed">Bugs fixed</h3>
 
 <ul>
-  <li>Fix incremental compilation for checking the dependent file</li>
-  <li>Fix log output for parsing xmake-vscode/problem info</li>
-  <li><a href="https://github.com/xmake-io/xmake/issues/684">#684</a>: Fix linker errors for android ndk on windows</li>
+  <li>Fix the link errors output issues for msvc</li>
+  <li><a href="https://github.com/xmake-io/xmake/issues/718">#718</a>: Fix download cache bug for package</li>
+  <li><a href="https://github.com/xmake-io/xmake/issues/722">#722</a>: Fix invalid package deps</li>
+  <li><a href="https://github.com/xmake-io/xmake/issues/719">#719</a>: Fix process exit bug</li>
+  <li><a href="https://github.com/xmake-io/xmake/issues/720">#720</a>: Fix compile_commands generator</li>
 </ul>
+
 
         </article>
         <hr>
@@ -1759,23 +1588,7 @@ build ok!
                 
                     
                 
-                    
-                
-                    
-                
-                    
-                
-                    
-                
             
-                
-                    
-                
-                    
-                
-                    
-                
-                    
                 
                     
                 
@@ -1814,23 +1627,7 @@ build ok!
                 
                     
                 
-                    
-                
-                    
-                
-                    
-                
-                    
-                
             
-                
-                    
-                
-                    
-                
-                    
-                
-                    
                 
                     
                 
@@ -1850,23 +1647,7 @@ build ok!
                 
                     
                 
-                    
-                
-                    
-                
-                    
-                
-                    
-                
             
-                
-                    
-                
-                    
-                
-                    
-                
-                    
                 
                     
                 
@@ -1886,23 +1667,7 @@ build ok!
                 
                     
                 
-                    
-                
-                    
-                
-                    
-                
-                    
-                
             
-                
-                    
-                
-                    
-                
-                    
-                
-                    
                 
                     
                 
@@ -1922,23 +1687,7 @@ build ok!
                 
                     
                 
-                    
-                
-                    
-                
-                    
-                
-                    
-                
             
-                
-                    
-                
-                    
-                
-                    
-                
-                    
                 
                     
                 
@@ -1976,23 +1725,7 @@ build ok!
                 
                     
                 
-                    
-                
-                    
-                
-                    
-                
-                    
-                
             
-                
-                    
-                
-                    
-                
-                    
-                
-                    
                 
                     
                 
@@ -2012,14 +1745,6 @@ build ok!
                 
                     
                 
-                    
-                
-                    
-                
-                    
-                
-                    
-                
             
                 
                     
@@ -2030,23 +1755,7 @@ build ok!
                 
                     
                 
-                    
-                
-                    
-                
-                    
-                
-                    
-                
             
-                
-                    
-                
-                    
-                
-                    
-                
-                    
                 
                     
                 
