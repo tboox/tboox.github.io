@@ -1,77 +1,39 @@
 ---
 layout: post
-title:  "xmake v2.2.3, Build as fast as ninja"
-tags: xmake lua C/C++ ninja
+title:  "xmake v2.2.3, A lot of new features support"
+tags: xmake lua C/C++ Package
 categories: xmake
 ---
 
-This version focuses on refactoring and optimization of the internal parallel build mechanism, enabling parallel compilation of source files between multiple targets, and support for parallel links. It also optimizes some internal losses of xmake and fixes some bugs that affect compilation speed.
-Through testing and comparison, the current overall build speed is basically the same as ninja. Compared to cmake/make, meson/ninja is much faster, because they have an extra step to generate makefile / build.ninja.
-
-In addition, xmake also adds support for the sdcc compilation toolchain for compiling embedded programs such as 51/stm8.
+This version is mainly to improve the remote dependency package management, fix a lot of details, and this version can already support the upgrade from my upgrade through `xmake update`, it will be more convenient to upgrade xmake later.
 
 * [Github](https://github.com/xmake-io/xmake)
 * [Documents](https://xmake.io/#/home)
 
-## Some optimizations
-
-1. All source files between multiple targets are built in parallel at the same time (previously, they cannot cross targets, and will be blocked by links in the middle of serialization)
-2. Multiple independent target links can be executed in parallel (previously only one link could be executed)
-3. Fix previous task scheduling bug, more fine-grained scheduling, make full use of CPU core resources
-4. Optimize some losses on xmake's internal api, this effect is also obvious
-
-For more optimization details, please see: [issue #589](https://github.com/xmake-io/xmake/issues/589)
-
-## Build speed comparison
-
-We did some comparison tests on termux and macOS. The test project is at: [xmake-core](https://github.com/xmake-io/xmake/tree/master/core)
-
-For a relatively large number of target projects, the new version of xmake improves its build speed even more.
-
-### Multi-task parallel compilation
-
-| buildsystem     | Termux (8core/-j12) | buildsystem      | MacOS (8core/-j12) |
-|-----            | ----                | ---              | ---                |
-|xmake            | 24.890s             | xmake            | 12.264s            |
-|ninja            | 25.682s             | ninja            | 11.327s            |
-|cmake(gen+make)  | 5.416s+28.473s      | cmake(gen+make)  | 1.203s+14.030s     |
-|cmake(gen+ninja) | 4.458s+24.842s      | cmake(gen+ninja) | 0.988s+11.644s     |
-
-### Single task compilation
-
-| buildsystem     | Termux (-j1)     | buildsystem      | MacOS (-j1)    |
-|-----            | ----             | ---              | ---            |
-|xmake            | 1m57.707s        | xmake            | 39.937s        |
-|ninja            | 1m52.845s        | ninja            | 38.995s        |
-|cmake(gen+make)  | 5.416s+2m10.539s | cmake(gen+make)  | 1.203s+41.737s |
-|cmake(gen+ninja) | 4.458s+1m54.868s | cmake(gen+ninja) | 0.988s+38.022s |
-
-
-
-
-
-
-
-
 ### New features
 
-* Add powershell theme for powershell terminal
-* Add `xmake --dry-run -v` to dry run building target and only show verbose build command.
-* [#712](https://github.com/xmake-io/xmake/issues/712): Add sdcc platform and support sdcc compiler
+* [#233](https://github.com/xmake-io/xmake/issues/233): Support windres for mingw platform
+* [#239](https://github.com/xmake-io/xmake/issues/239): Add cparser compiler support
+* Add plugin manager `xmake plugin --help`
+* Add `add_syslinks` api to add system libraries dependence
+* Add `xmake l time xmake [--rebuild]` to record compilation time
+* [#250](https://github.com/xmake-io/xmake/issues/250): Add `xmake f --vs_sdkver=10.0.15063.0` to change windows sdk version
+* Add `lib.luajit.ffi` and `lib.luajit.jit` extension modules
+* [#263](https://github.com/xmake-io/xmake/issues/263): Add new target kind: object to only compile object files
 
-### Change
+### Changes
 
-* [#589](https://github.com/xmake-io/xmake/issues/589): Improve and optimize build speed, supports parallel compilation and linking across targets
-* Improve the ninja/cmake generator
-* [#728](https://github.com/xmake-io/xmake/issues/728): Improve os.cp to support reserve source directory structure
-* [#732](https://github.com/xmake-io/xmake/issues/732): Improve find_package to support `homebrew/cmake` pacakges
-* [#695](https://github.com/xmake-io/xmake/issues/695): Improve android abi
+* [#229](https://github.com/xmake-io/xmake/issues/229): Improve to select toolset for vcproj plugin
+* Improve compilation dependences
+* Support *.xz for extractor
+* [#249](https://github.com/xmake-io/xmake/pull/249): revise progress formatting to space-leading three digit percentages 
+* [#247](https://github.com/xmake-io/xmake/pull/247): Add `-D` and `--diagnosis` instead of `--backtrace`
+* [#259](https://github.com/xmake-io/xmake/issues/259): Improve on_build, on_build_file and on_xxx for target and rule
+* [#269](https://github.com/xmake-io/xmake/issues/269): Clean up the temporary files at last 30 days
+* Improve remote package manager
+* Support to add packages with only header file
+* Support to modify builtin package links, e.g. `add_packages("xxx", {links = {}})`
 
 ### Bugs fixed
 
-* Fix the link errors output issues for msvc
-* [#718](https://github.com/xmake-io/xmake/issues/718): Fix download cache bug for package
-* [#722](https://github.com/xmake-io/xmake/issues/722): Fix invalid package deps
-* [#719](https://github.com/xmake-io/xmake/issues/719): Fix process exit bug
-* [#720](https://github.com/xmake-io/xmake/issues/720): Fix compile_commands generator
-
+* Fix state inconsistency after failed outage of installation dependency package

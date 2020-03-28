@@ -1,287 +1,77 @@
 ---
 layout: post
-title:  "xmake v2.3.1 released, Seamless integration with other build systems"
-tags: xmake lua C/C++ autotools cmake ninja mingw msys
+title:  "xmake v2.3.2, Build as fast as ninja"
+tags: xmake lua C/C++ ninja
 categories: xmake
 ---
 
-In the past two months, I have made a lot of refactorings to improve xmake and added a lot of useful new features. Welcome to try it.
+This version focuses on refactoring and optimization of the internal parallel build mechanism, enabling parallel compilation of source files between multiple targets, and support for parallel links. It also optimizes some internal losses of xmake and fixes some bugs that affect compilation speed.
+Through testing and comparison, the current overall build speed is basically the same as ninja. Compared to cmake/make, meson/ninja is much faster, because they have an extra step to generate makefile / build.ninja.
 
-* [Project Source](https://github.com/xmake-io/xmake)
-* [Official Document](https://xmake.io/)
+In addition, xmake also adds support for the sdcc compilation toolchain for compiling embedded programs such as 51/stm8.
 
-Some new features:
+* [Github](https://github.com/xmake-io/xmake)
+* [Documents](https://xmake.io/#/home)
 
-1. Compile other projects maintained by the build system with one click to achieve seamless docking and support cross compilation (such as fast cross compilation of autotools, see details below)
-2. Added `xmake project -k ninja` project generation plugin to support generation of build.ninja build system files
+## Some optimizations
 
-Some improvements:
+1. All source files between multiple targets are built in parallel at the same time (previously, they cannot cross targets, and will be blocked by links in the middle of serialization)
+2. Multiple independent target links can be executed in parallel (previously only one link could be executed)
+3. Fix previous task scheduling bug, more fine-grained scheduling, make full use of CPU core resources
+4. Optimize some losses on xmake's internal api, this effect is also obvious
 
-1. Improve command line parameter input, support *nix style parameter input, thanks [@OpportunityLiu](https://github.com/OpportunityLiu) for contribution
-2. Improve tab command completion, add command completion support for parameter values
-3. Optimize get.sh installation and xmake update update scripts, add domestic mirror source, speed up download and install updates
-4. gcc/clang compilation error output support native color highlighting support
-5. Added msys/cygwin platform, and xmake source code also supports msys/mingw platform compilation
+For more optimization details, please see: [issue #589](https://github.com/xmake-io/xmake/issues/589)
 
-Some invisible improvements:
+## Build speed comparison
 
-1. Add socket and pipe modules and improve the process module
-2. Refactor the whole process scheduler, better scheduling and parallel construction
-3. Refactoring and improving the entire coroutine coroutine module, supporting simultaneous scheduling support for socket/pipe/process (preparing for subsequent remote compilation and distributed compilation)
+We did some comparison tests on termux and macOS. The test project is at: [xmake-core](https://github.com/xmake-io/xmake/tree/master/core)
 
-There are also some scattered bug fixes, see updates below.
+For a relatively large number of target projects, the new version of xmake improves its build speed even more.
 
-## Introduction of new features
+### Multi-task parallel compilation
 
-### Generate build.ninja build file
+| buildsystem     | Termux (8core/-j12) | buildsystem      | MacOS (8core/-j12) |
+|-----            | ----                | ---              | ---                |
+|xmake            | 24.890s             | xmake            | 12.264s            |
+|ninja            | 25.682s             | ninja            | 11.327s            |
+|cmake(gen+make)  | 5.416s+28.473s      | cmake(gen+make)  | 1.203s+14.030s     |
+|cmake(gen+ninja) | 4.458s+24.842s      | cmake(gen+ninja) | 0.988s+11.644s     |
 
-xmake now supports the generation of ninja build files, allowing users to use ninja to quickly build projects maintained by xmake. I have to admit that in terms of build speed, ninja is indeed much faster than xmake. I will try to optimize the build speed of xmake in subsequent versions.
+### Single task compilation
 
-```bash
-$ xmake project -k ninja
-```
+| buildsystem     | Termux (-j1)     | buildsystem      | MacOS (-j1)    |
+|-----            | ----             | ---              | ---            |
+|xmake            | 1m57.707s        | xmake            | 39.937s        |
+|ninja            | 1m52.845s        | ninja            | 38.995s        |
+|cmake(gen+make)  | 5.416s+2m10.539s | cmake(gen+make)  | 1.203s+41.737s |
+|cmake(gen+ninja) | 4.458s+1m54.868s | cmake(gen+ninja) | 0.988s+38.022s |
 
-Then call ninja to build:
 
-```bash
-$ ninja
-```
 
-Or use the xmake command directly to call the ninja build, see below.
 
-### Try building with another build system
 
-xmake v2.3.1 and above directly interface with other third-party build systems. Even if other projects do not use xmake.lua for maintenance, xmake can directly call other build tools to complete the compilation.
 
-Then the user can directly use a third-party build tool to compile, so why use xmake to call it? The main benefits are:
 
-1. Completely consistent behavior, simplifying the compilation process. No matter which other build system is used, you only need to execute the xmake command to compile. Users no longer need to study the different compilation processes of other tools
-2. Docking the configuration environment of `xmake config`, reuse the platform detection and SDK environment detection of xmake, simplify the platform configuration
-3. Docking cross-compilation environment, even for projects maintained with autotools, you can quickly cross-compile through xmake
-
-Build systems currently supported:
-
-* autotools (cross-compiling environment for xmake)
-* xcodebuild
-* cmake
-* make
-* msbuild
-* scons
-* meson
-* bazel
-* ndkbuild
-* ninja
-
-#### Automatically detect build system and compile
-
-For example, for a project maintained using cmake, executing xmake directly in the project root directory will automatically trigger a detection mechanism, detect CMakeLists.txt, and then prompt the user if cmake is needed to continue compiling.
-
-```bash
-$ xmake 
-note: CMakeLists.txt found, try building it (pass -y or --confirm=y/n/d to skip confirm)?
-please input: y (y/n)
--- Symbol prefix:
--- Configuring done
--- Generating done
--- Build files have been written to:/Users/ruki/Downloads/libpng-1.6.35/build
-[  7%] Built target png-fix-itxt
-[ 21%] Built target genfiles
-[ 81%] Built target png
-[ 83%] Built target png_static
-...
-output to/Users/ruki/Downloads/libpng-1.6.35/build/artifacts
-build ok!
-```
-
-
-
-
-
-
-
-#### Seamless using xmake command
-
-Currently supports common commands such as `xmake clean`,` xmake --rebuild` and `xmake config` to seamlessly interface with third-party systems.
-
-We can directly clean the compiled output files of the cmake maintenance project
-
-```bash
-$ xmake clean
-$ xmake clean --all
-```
-
-If you bring `--all` to perform the cleanup, all files generated by autotools/cmake will be cleared, not only the object files.
-
-The default `xmake` is docked with incremental build behavior, but we can also force a quick rebuild:
-
-```bash
-$ xmake --rebuild
-```
-
-#### Manually switch the specified build system
-
-If there are multiple build systems under maintenance in a project, such as the libpng project, which comes with autotools/cmake/makefile and other build system maintenance, xmake defaults to using autotools by default. If you want to force switch to other build systems, you can execute:
-
-```bash
-$ xmake f --trybuild=[autotools|cmake|make|msbuild|..]
-$ xmake
-```
-
-In addition, the `--trybuild=` parameter is configured to manually specify the default build system, and the subsequent build process will not prompt the user for selection.
-
-#### Fastly cross compile
-
-As we all know, although many projects maintained by autotools support cross-compilation, the configuration process of cross-compilation is very complicated. There are still many differences in different toolchain processing methods, and many pits will be stepped in the middle.
-
-Even if you run through a toolchain's cross-compilation, if you switch to another toolchain environment, it may take a long time, and if you use xmake, you usually only need two simple commands:
-
-!> At present autotools supports cross-compilation of xmake, and other build systems such as cmake will be added later.
-
-##### Cross compile android platform
-
-```bash
-$ xmake f -p android --trybuild=autotools [--ndk=xxx]
-$ xmake
-```
-
-!> Among them, the --ndk parameter configuration is optional. If the user sets the ANDROID_NDK_HOME environment variable, or if the ndk is placed in ~/Library/Android/sdk/ndk-bundle, xmake can automatically detect it.
-
-Is not it simple? If you think this is not much, then you can directly operate `./configure` to configure cross-compilation. You can see this document for comparison: [Using NDK with other compilation systems] (https://developer.android .com/ndk/guides/other_build_systems # autoconf)
-
-To put it bluntly, you probably have to do this, you may not be able to do it once:
-
-```bash
-$ export TOOLCHAIN=$NDK/toolchains/llvm/prebuilt/$HOST_TAG
-$ export AR=$TOOLCHAIN/bin/aarch64-linux-android-ar
-$ export AS=$TOOLCHAIN/bin/aarch64-linux-android-as
-$ export CC=$TOOLCHAIN/bin/aarch64-linux-android21-clang
-$ export CXX=$TOOLCHAIN/bin/aarch64-linux-android21-clang++
-$ export LD=$TOOLCHAIN/bin/aarch64-linux-android-ld
-$ export RANLIB=$TOOLCHAIN/bin/aarch64-linux-android-ranlib
-$ export STRIP=$TOOLCHAIN/bin/aarch64-linux-android-strip
-$ ./configure --host aarch64-linux-android
-$ make
-```
-
-##### Cross compile iphoneos platform
-
-```bash
-$ xmake f -p iphoneos --trybuild=autotools
-$ xmake
-```
-
-##### Cross-compile mingw platform
-
-```bash
-$ xmake f -p mingw --trybuild=autotools [--mingw=xxx]
-$ xmake
-```
-
-##### Using other cross-compilation toolchains
-
-```bash
-$ xmake f -p cross --trybuild=autotools --sdk=/xxxx
-$ xmake
-```
-
-For more cross compilation configuration details, please refer to the document: [Cross Compilation](https://xmake.io/#/guide/configuration?id=cross-compilation), except for an additional `--trybuild=` parameter, all other cross-compilation configuration parameters are completely universal.
-
-#### Passing user configuration parameters
-
-We can use `--tryconfigs=` to pass additional configuration parameters of the user to the corresponding third-party build system. For example: autotools will be passed to `. / Configure`, cmake will be passed to the` cmake` command.
-
-```bash
-$ xmake f --trybuild=autotools --tryconfigs="-enable-shared=no"
-$ xmake
-```
-
-For example, the above command, pass `--enable-shared=no` to`./configure` to disable dynamic library compilation.
-
-In addition, for `--cflags`,` --includedirs` and `--ldflags`, you don't need to pass` --tryconfigs`, you can pass the built-in parameters like `xmake config --cflags=` to pass through.
-
-#### Examples of compiling other build system 
-
-##### General Compilation
-
-In most cases, the compilation method after each docking system is consistent, except for the `--trybuild=` configuration parameter.
-
-```bash
-$ xmake f --trybuild=[autotools|cmake|meson|ninja|bazel|make|msbuild|xcodebuild]
-$ xmake
-```
-
-!> We also need to make sure that the build tool specified by --trybuild is installed and working properly.
-
-##### Building Android jni programs
-
-If `jni/Android.mk` exists in the current project, then xmake can directly call ndk-build to build the jni library.
-
-```bash
-$ xmake f -p android --trybuild=ndkbuild [--ndk =]
-$ xmake
-```
-
-### *nix style command parameter input
-
-The current input specification is referenced from: [https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html)
-
-Thank you very much [@OpportunityLiu](https://github.com/OpportunityLiu) for your contribution. The current input method can support the following writing:
-
-```bash
-$ xmake -j8 -rvD
-```
-
-Before, I could only write:
-
-```bash
-$ xmake -j 8 -r -v -D
-```
-
-### Tab command completion
-
-In previous versions, only parameter names could be completed. You can now complete the parameter values and prompt the value list. For example, after typing the following command:
-
-```bash
-$ xmake f --plat = and
-```
-
-Press the tab key to complete the platform parameters and become
-
-```bash
-$ xmake f --plat = android
-```
-
-### Force C code to be compiled as C ++
-
-xmake adds a configuration parameter that specifies the type of source file and forces it to compile as a corresponding source file, such as compiling c code as c ++.
-
-```lua
-target("test")
-    set_kind("binary")
-    add_files("src/*.c", {sourcekind = "cxx"})
-```
-
-## Changelog
 
 ### New features
 
-* [#675](https://github.com/xmake-io/xmake/issues/675): Support to compile `*.c` as c++, `add_files("*.c", {sourcekind = "cxx"})`.
-* [#681](https://github.com/xmake-io/xmake/issues/681): Support compile xmake on msys/cygwin and add msys/cygwin platform
-* Add socket/pipe io modules and support to schedule socket/process/pipe in coroutine
-* [#192](https://github.com/xmake-io/xmake/issues/192): Try building project with the third-party buildsystem
-* Enable color diagnostics output for gcc/clang
-* [#588](https://github.com/xmake-io/xmake/issues/588): Improve project generator, `xmake project -k ninja`, support for build.ninja
+* Add powershell theme for powershell terminal
+* Add `xmake --dry-run -v` to dry run building target and only show verbose build command.
+* [#712](https://github.com/xmake-io/xmake/issues/712): Add sdcc platform and support sdcc compiler
 
 ### Change
 
-* [#665](https://github.com/xmake-io/xmake/issues/665): Support to parse *nix style command options, thanks [@OpportunityLiu](https://github.com/OpportunityLiu)
-* [#673](https://github.com/xmake-io/xmake/pull/673): Improve tab complete to support argument values
-* [#680](https://github.com/xmake-io/xmake/issues/680): Improve get.sh scripts and add download mirrors
-* Improve process scheduler
-* [#651](https://github.com/xmake-io/xmake/issues/651): Improve os/io module syserrors tips
+* [#589](https://github.com/xmake-io/xmake/issues/589): Improve and optimize build speed, supports parallel compilation and linking across targets
+* Improve the ninja/cmake generator
+* [#728](https://github.com/xmake-io/xmake/issues/728): Improve os.cp to support reserve source directory structure
+* [#732](https://github.com/xmake-io/xmake/issues/732): Improve find_package to support `homebrew/cmake` pacakges
+* [#695](https://github.com/xmake-io/xmake/issues/695): Improve android abi
 
 ### Bugs fixed
 
-* Fix incremental compilation for checking the dependent file 
-* Fix log output for parsing xmake-vscode/problem info
-* [#684](https://github.com/xmake-io/xmake/issues/684): Fix linker errors for android ndk on windows
+* Fix the link errors output issues for msvc
+* [#718](https://github.com/xmake-io/xmake/issues/718): Fix download cache bug for package
+* [#722](https://github.com/xmake-io/xmake/issues/722): Fix invalid package deps
+* [#719](https://github.com/xmake-io/xmake/issues/719): Fix process exit bug
+* [#720](https://github.com/xmake-io/xmake/issues/720): Fix compile_commands generator
+
