@@ -34,6 +34,8 @@ bc1qstzyehpjsryh8qwj8kf95js4cjcj3p670s5j9fyd3gkj946qdt7qx0xjpa
 
 <a href="https://opencollective.com/xmake#backers" target="_blank"><img src="https://opencollective.com/xmake/backers.svg?width=890"></a>
 
+|| 2020.04.07 || xmake || *子 || 微信 || ¥10 || 感谢你创造了xmake ||
+|| 2020.04.05 || tboox || 海* || 支付宝 || ¥25 || ||
 || 2020.02.19 || xmake || *鹏 || 微信 || ¥10 || ||
 || 2020.02.08 || tboox || *烨 || 支付宝 || ¥30 || ||
 || 2019.10.31 || xmake || 刘* || 支付宝 || ¥100 || xmake非常好用，期待持续更新，加油! ||
