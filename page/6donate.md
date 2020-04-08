@@ -54,6 +54,7 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## Supporters
 
+|| 2020.04.08 || xmake || *埃 || wechat || ¥20 || ||
 || 2020.04.07 || xmake || *子 || wechat || ¥10 || 感谢你创造了xmake ||
 || 2020.04.05 || tboox || 海* || alipay || ¥25 || ||
 || 2020.02.19 || xmake || *鹏 || wechat || ¥10 || ||
