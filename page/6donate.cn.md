@@ -34,6 +34,7 @@ bc1qstzyehpjsryh8qwj8kf95js4cjcj3p670s5j9fyd3gkj946qdt7qx0xjpa
 
 <a href="https://opencollective.com/xmake#backers" target="_blank"><img src="https://opencollective.com/xmake/backers.svg?width=890"></a>
 
+|| 2020.04.10 || xmake || C*g || 微信 || ¥20 || 拒绝白嫖，支持一下 ||
 || 2020.04.08 || xmake || *埃 || 微信 || ¥20 || ||
 || 2020.04.07 || xmake || *子 || 微信 || ¥10 || 感谢你创造了xmake ||
 || 2020.04.05 || tboox || 海* || 支付宝 || ¥25 || ||
