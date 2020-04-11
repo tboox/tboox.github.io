@@ -331,6 +331,8 @@
                 
                     
                 
+                    
+                
             </ul>
         </nav>
     </div>
@@ -345,6 +347,884 @@
         <hr />
 
         <ul>
+            
+              <li>
+                <h2>
+                  <a class="post-link" href="/cn/2019/06/17/xmake-update-v2.2.7/">xmake v2.2.7 发布, 改进Cuda项目构建</a>
+                </h2>
+                <div class="label">
+                    <div class="label-card">
+                        <i class="fa fa-calendar"></i>2019-06-17
+                    </div>
+                    <div class="label-card">
+                        
+                    </div>
+                    <div class="label-card">
+                        
+                    </div>
+
+                    <div class="label-card">
+                    
+
+
+<!-- <span class="point">•</span> -->
+<span class="categories">
+  <i class="fa fa-th-list"></i>
+  
+    
+        <a href="/category/#xmake" title="Category: xmake" rel="category">xmake</a>
+    
+  
+
+  <!-- <span class="point">•</span> -->
+</span>
+
+
+                    </div>
+
+                    <div class="label-card">
+                    
+<!-- <span class="point">•</span> -->
+<span class="pageTag">
+  <i class="fa fa-tags"></i>
+  
+    
+        <a href="/cn/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a>&nbsp;
+    
+        <a href="/cn/tag/#lua" title="Tag: lua" rel="tag">lua</a>&nbsp;
+    
+        <a href="/cn/tag/#C/C++" title="Tag: C/C++" rel="tag">C/C++</a>&nbsp;
+    
+        <a href="/cn/tag/#版本更新" title="Tag: 版本更新" rel="tag">版本更新</a>&nbsp;
+    
+        <a href="/cn/tag/#Cuda" title="Tag: Cuda" rel="tag">Cuda</a>
+    
+  
+
+</span>
+
+                    </div>
+                </div>
+                <div class="excerpt">
+                    <p>这个版本主要对Cuda项目的构建做了很多的改进，并且新增了对lex/yacc编译支持，同时也对target新增了<code class="highlighter-rouge">on_link</code>, <code class="highlighter-rouge">before_link</code>和<code class="highlighter-rouge">after_link</code>等链接阶段的定制化支持。</p>
+
+<p>这里，我还要感谢下@<a href="https://github.com/OpportunityLiu">OpportunityLiu</a>对xmake的支持，这个版本中<a href="https://github.com/OpportunityLiu">OpportunityLiu</a>贡献了大量的代码去改进Cuda的支持。
+此外，他还帮忙改进了xmake的整个单元测试框架，自更新程序，命令行tab补全以及ci脚本，使得xmake的更新迭代更加高效和稳定。</p>
+
+<ul>
+  <li><a href="https://github.com/xmake-io/xmake">项目源码</a></li>
+  <li><a href="https://xmake.io/#/zh-cn/">官方文档</a></li>
+</ul>
+
+<h2 id="新特性介绍">新特性介绍</h2>
+
+<h3 id="cuda项目构建改进">Cuda项目构建改进</h3>
+
+<h4 id="头文件依赖检测和增量编译">头文件依赖检测和增量编译</h4>
+
+<p>2.2.6之前的版本，对cuda的编译支持并不是很完善，至少连头文件依赖检测也是没有提供的，因此如果cuda代码一多，每次改动都会编译所有，并不能像c/c++代码那样做到检测改动，进行增量编译。</p>
+
+<p>而在新版本中，xmake对其进行了支持，现在已经可以很好的在不同平台下，处理依赖关系了，这对日常编译和开发效率也会有不少的提升。</p>
+
+<h4 id="新增gencodes设置相关api">新增gencodes设置相关api</h4>
+
+<p>之前的版本，添加gencodes配置非常的繁琐，并不简洁，可以看下之前的配置：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">target</span><span class="p">(</span><span class="s2">"cuda_console"</span><span class="p">)</span>
+    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"binary"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"src/*.cu"</span><span class="p">)</span>
+
+    <span class="n">add_cuflags</span><span class="p">(</span><span class="s2">"-gencode arch=compute_30,code=sm_30"</span><span class="p">,</span> <span class="s2">"-gencode arch=compute_35,code=sm_35"</span><span class="p">)</span>
+    <span class="n">add_cuflags</span><span class="p">(</span><span class="s2">"-gencode arch=compute_37,code=sm_37"</span><span class="p">,</span> <span class="s2">"-gencode arch=compute_50,code=sm_50"</span><span class="p">)</span>
+    <span class="n">add_cuflags</span><span class="p">(</span><span class="s2">"-gencode arch=compute_52,code=sm_52"</span><span class="p">,</span> <span class="s2">"-gencode arch=compute_60,code=sm_60"</span><span class="p">)</span>
+    <span class="n">add_cuflags</span><span class="p">(</span><span class="s2">"-gencode arch=compute_61,code=sm_61"</span><span class="p">,</span> <span class="s2">"-gencode arch=compute_70,code=sm_70"</span><span class="p">)</span>
+    <span class="n">add_cuflags</span><span class="p">(</span><span class="s2">"-gencode arch=compute_70,code=compute_70"</span><span class="p">)</span>
+
+    <span class="n">add_ldflags</span><span class="p">(</span><span class="s2">"-gencode arch=compute_30,code=sm_30"</span><span class="p">,</span> <span class="s2">"-gencode arch=compute_35,code=sm_35"</span><span class="p">)</span>
+    <span class="n">add_ldflags</span><span class="p">(</span><span class="s2">"-gencode arch=compute_37,code=sm_37"</span><span class="p">,</span> <span class="s2">"-gencode arch=compute_50,code=sm_50"</span><span class="p">)</span>
+    <span class="n">add_ldflags</span><span class="p">(</span><span class="s2">"-gencode arch=compute_52,code=sm_52"</span><span class="p">,</span> <span class="s2">"-gencode arch=compute_60,code=sm_60"</span><span class="p">)</span>
+    <span class="n">add_ldflags</span><span class="p">(</span><span class="s2">"-gencode arch=compute_61,code=sm_61"</span><span class="p">,</span> <span class="s2">"-gencode arch=compute_70,code=sm_70"</span><span class="p">)</span>
+    <span class="n">add_ldflags</span><span class="p">(</span><span class="s2">"-gencode arch=compute_70,code=compute_70"</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>因此为了精简xmake.lua的配置，针对cuda项目增加的<code class="highlighter-rouge">add_cugencodes</code>api来简化配置，改进后如下：</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">target</span><span class="p">(</span><span class="s2">"cuda_console"</span><span class="p">)</span>
+    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"binary"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"src/*.cu"</span><span class="p">)</span>
+
+    <span class="c1">-- generate SASS code for each SM architecture</span>
+    <span class="n">add_cugencodes</span><span class="p">(</span><span class="s2">"sm_30"</span><span class="p">,</span> <span class="s2">"sm_35"</span><span class="p">,</span> <span class="s2">"sm_37"</span><span class="p">,</span> <span class="s2">"sm_50"</span><span class="p">,</span> <span class="s2">"sm_52"</span><span class="p">,</span> <span class="s2">"sm_60"</span><span class="p">,</span> <span class="s2">"sm_61"</span><span class="p">,</span> <span class="s2">"sm_70"</span><span class="p">)</span>
+
+    <span class="c1">-- generate PTX code from the highest SM architecture to guarantee forward-compatibility</span>
+    <span class="n">add_cugencodes</span><span class="p">(</span><span class="s2">"compute_70"</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>另外当配置成<code class="highlighter-rouge">add_cugencodes("native")</code>的时候，xmake会自动探测当前设备支持的gencodes，自动添加进来，会更加的方便高效。</p>
+
+<p>这个，也要感谢下<a href="https://github.com/OpportunityLiu">OpportunityLiu</a>提供的探测代码以及对<code class="highlighter-rouge">add_cugencodes</code>的实现。</p>
+
+
+                </div>
+                <div class="read-all">
+ 
+                    
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                                
+                                <a href="/2019/06/17/xmake-update-v2.2.7/"><i class="fa fa-language"></i>Read English</a>
+                                
+                                
+                                
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+
+                    <a href="/cn/2019/06/17/xmake-update-v2.2.7/"><i class="fa fa-newspaper-o"></i>阅读全文</a>
+                </div>
+                <hr />
+              </li>
             
               <li>
                 <h2>
@@ -536,6 +1416,8 @@
                 <div class="read-all">
  
                     
+                    
+                        
                     
                         
                         
@@ -1407,6 +2289,8 @@ install ok!👌
                 <div class="read-all">
  
                     
+                    
+                        
                     
                         
                         
@@ -2306,6 +3190,8 @@ please input: y <span class="o">(</span>y/n<span class="o">)</span>
                     
                     
                         
+                    
+                        
                         
                             
                         
@@ -3186,6 +4072,8 @@ please input: y <span class="o">(</span>y/n<span class="o">)</span>
                     
                     
                         
+                    
+                        
                         
                             
                         
@@ -3937,872 +4825,6 @@ please input: y <span class="o">(</span>y/n<span class="o">)</span>
                 <hr />
               </li>
             
-              <li>
-                <h2>
-                  <a class="post-link" href="/cn/2018/11/30/xmake-update-v2.2.3/">xmake v2.2.3, 大量新特性支持</a>
-                </h2>
-                <div class="label">
-                    <div class="label-card">
-                        <i class="fa fa-calendar"></i>2018-11-30
-                    </div>
-                    <div class="label-card">
-                        
-                    </div>
-                    <div class="label-card">
-                        
-                    </div>
-
-                    <div class="label-card">
-                    
-
-
-<!-- <span class="point">•</span> -->
-<span class="categories">
-  <i class="fa fa-th-list"></i>
-  
-    
-        <a href="/category/#xmake" title="Category: xmake" rel="category">xmake</a>
-    
-  
-
-  <!-- <span class="point">•</span> -->
-</span>
-
-
-                    </div>
-
-                    <div class="label-card">
-                    
-<!-- <span class="point">•</span> -->
-<span class="pageTag">
-  <i class="fa fa-tags"></i>
-  
-    
-        <a href="/cn/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a>&nbsp;
-    
-        <a href="/cn/tag/#lua" title="Tag: lua" rel="tag">lua</a>&nbsp;
-    
-        <a href="/cn/tag/#C/C++" title="Tag: C/C++" rel="tag">C/C++</a>&nbsp;
-    
-        <a href="/cn/tag/#版本更新" title="Tag: 版本更新" rel="tag">版本更新</a>&nbsp;
-    
-        <a href="/cn/tag/#远程包管理" title="Tag: 远程包管理" rel="tag">远程包管理</a>&nbsp;
-    
-        <a href="/cn/tag/#包依赖" title="Tag: 包依赖" rel="tag">包依赖</a>&nbsp;
-    
-        <a href="/cn/tag/#自动构建" title="Tag: 自动构建" rel="tag">自动构建</a>
-    
-  
-
-</span>
-
-                    </div>
-                </div>
-                <div class="excerpt">
-                    <p>此版本主要是对远程依赖包管理进行了一些改进，并且新增了很多小特性，并且此版本已经可以支持通过<code class="highlighter-rouge">xmake update</code>来自我更新升级了，以后升级xmake将会更加方便。</p>
-
-<p>关于新特性的详细说明见文章下文。</p>
-
-<ul>
-  <li><a href="https://github.com/xmake-io/xmake">项目源码</a></li>
-  <li><a href="https://xmake.io/#/zh/">官方文档</a></li>
-</ul>
-
-<h2 id="更新内容">更新内容</h2>
-
-<h3 id="新特性">新特性</h3>
-
-<ul>
-  <li><a href="https://github.com/xmake-io/xmake/issues/233">#233</a>: 对mingw平台增加windres的支持</li>
-  <li><a href="https://github.com/xmake-io/xmake/issues/239">#239</a>: 添加cparser编译器支持</li>
-  <li>添加插件管理器，<code class="highlighter-rouge">xmake plugin --help</code></li>
-  <li>添加<code class="highlighter-rouge">add_syslinks</code>接口去设置系统库依赖，分离与<code class="highlighter-rouge">add_links</code>添加的库依赖之间的链接顺序</li>
-  <li>添加 <code class="highlighter-rouge">xmake l time xmake [--rebuild]</code> 去记录编译耗时</li>
-  <li><a href="https://github.com/xmake-io/xmake/issues/250">#250</a>: 添加<code class="highlighter-rouge">xmake f --vs_sdkver=10.0.15063.0</code>去改变windows sdk版本</li>
-  <li>添加<code class="highlighter-rouge">lib.luajit.ffi</code>和<code class="highlighter-rouge">lib.luajit.jit</code>扩展模块</li>
-  <li><a href="https://github.com/xmake-io/xmake/issues/263">#263</a>: 添加object目标类型，仅仅用于编译生成object对象文件</li>
-  <li><a href="https://github.com/xmake-io/xmake/issues/269">#269</a>: 每天第一次构建时候后台进程自动清理最近30天的临时文件</li>
-  <li>增加<code class="highlighter-rouge">xmake update</code>命令实现自我更新</li>
-</ul>
-
-<h3 id="改进">改进</h3>
-
-<ul>
-  <li><a href="https://github.com/xmake-io/xmake/issues/229">#229</a>: 改进vs toolset选择已经vcproj工程文件生成</li>
-  <li>改进编译依赖，对源文件列表的改动进行依赖判断</li>
-  <li>支持解压*.xz文件</li>
-  <li><a href="https://github.com/xmake-io/xmake/pull/249">#249</a>: 改进编译进度信息显示格式</li>
-  <li><a href="https://github.com/xmake-io/xmake/pull/247">#247</a>: 添加<code class="highlighter-rouge">-D</code>和<code class="highlighter-rouge">--diagnosis</code>去替换<code class="highlighter-rouge">--backtrace</code>，改进诊断信息显示</li>
-  <li><a href="https://github.com/xmake-io/xmake/issues/259">#259</a>: 改进 on_build, on_build_file 和 on_xxx 等接口</li>
-  <li>改进远程包管理器，更加方便的包依赖配置切换</li>
-  <li>支持only头文件依赖包的安装</li>
-  <li>支持对包内置links的手动调整，<code class="highlighter-rouge">add_packages("xxx", {links = {}})</code></li>
-</ul>
-
-<h3 id="bugs修复">Bugs修复</h3>
-
-<ul>
-  <li>修复安装依赖包失败中断后的状态不一致性问题</li>
-</ul>
-
-
-                </div>
-                <div class="read-all">
- 
-                    
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                                
-                                <a href="/2018/11/30/xmake-update-v2.2.3/"><i class="fa fa-language"></i>Read English</a>
-                                
-                                
-                                
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-
-                    <a href="/cn/2018/11/30/xmake-update-v2.2.3/"><i class="fa fa-newspaper-o"></i>阅读全文</a>
-                </div>
-                <hr />
-              </li>
-            
         </ul>
 
         <!-- baidu ads -->
@@ -4814,10 +4836,10 @@ please input: y <span class="o">(</span>y/n<span class="o">)</span>
             <a href="/cn/index.html" class="previous"><i class="fa fa-angle-double-left"></i></a>
             <a href="/cn/page4" class="previous"><i class="fa fa-angle-left"></i></a>
           
-          <span class="page_number ">5/33</span>
+          <span class="page_number ">5/34</span>
           
             <a href="/cn/page6" class="next"><i class="fa fa-angle-right"></i></a>
-            <a href="/cn/page33" class="next"><i class="fa fa-angle-double-right"></i></a>
+            <a href="/cn/page34" class="next"><i class="fa fa-angle-double-right"></i></a>
           
         </div>
     </div>
@@ -4834,6 +4856,13 @@ please input: y <span class="o">(</span>y/n<span class="o">)</span>
                     最近文章
                 </div>
                 <ul class="content-ul" recent="">
+                    
+                    
+                    
+                        
+                            <li><a href="/cn/2020/04/11/quickstart-11-subprojects/">xmake从入门到精通11：如何组织构建大型工程</a></li>
+                            
+                        
                     
                     
                     
@@ -4901,11 +4930,6 @@ please input: y <span class="o">(</span>y/n<span class="o">)</span>
                         
                     
                     
-                    
-                        
-                            <li><a href="/cn/2019/12/05/quickstart-8-switch-build-mode/">xmake从入门到精通8：切换编译模式</a></li>
-                            
-                        
                     
                     
                     
@@ -5413,6 +5437,13 @@ please input: y <span class="o">(</span>y/n<span class="o">)</span>
                      
                      
                      
+                      
+                      
+                      
+                      
+                      
+                      <a href="/cn/tag/#xmake" style="font-size: 18pt; color: #000;">xmake</a>
+                    
                     
                     
                      
@@ -6391,6 +6422,13 @@ please input: y <span class="o">(</span>y/n<span class="o">)</span>
                      
                      
                      
+                      
+                      
+                      
+                      
+                      
+                      <a href="/cn/tag/#lua" style="font-size: 14pt; color: #444;">lua</a>
+                    
                     
                     
                      
@@ -6762,6 +6800,10 @@ please input: y <span class="o">(</span>y/n<span class="o">)</span>
                      
                      
                     
+                    
+                     
+                    
+                     
                     
                      
                     
