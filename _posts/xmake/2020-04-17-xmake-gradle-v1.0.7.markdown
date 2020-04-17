@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "xmake-gradle v1.0.7 released, 集成xmake快速构建Android JNI程序"
+title:  "xmake-gradle v1.0.7 released, Integrate xmake to quickly build Android JNI program"
 tags: xmake lua C/C++ android jni
 categories: xmake
 ---
