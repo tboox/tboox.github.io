@@ -1,0 +1,170 @@
+---
+layout: post.cn
+title:  "一个静态注入动态库的工具: luject"
+tags: xmake lua C/C++ android luject 注入 逆向分析
+categories: luject
+---
+
+[luject](https://github.com/lanoox/luject)是一个静态注入动态库的工具，它可以实现对mac, ios, linux, windows的可执行程序，动态库程序进行修改，来插入指定动态库实现注入和加载。
+
+另外luject也实现了对ios的ipa包，android的apk包自己macOS的.app包的动态库注入，重打包和重签名支持。
+
+### 注入技术简介
+
+我们可以通过ptrace附加或启动一个程序，然后将指定的动态库注入进去，但很多情况下需要root权限才行。
+
+除了通过动态注入，我们也可以通过设置`DYLD_INSERT_LIBRARIES`等环境变量的方式，来注入指定的动态库，mac/ios程序就可以使用这种方式来简单快速地实现注入，例如：
+
+```console
+$DYLD_INSERT_LIBRARIES=inject.dylib ./test
+```
+
+不过这种方式在ios上也需要越狱后才可用，另外我们也可以在工程的Build Settings中找到Other Linker Flages 并添加下面的字段来限制这种加载方式，实现对可执行程序的注入保护。
+
+```
+-Wl,-sectcreate,__RESTRICT,__restrict,/dev/null
+```
+
+因此，也不是非常的通用，其实还有一种更加通用的方式，就是直接静态修改可执行文件，插入需要加载的动态库就可以了，简单暴力有效。
+
+Mayhem 在[Phrack](http://phrack.org/issues/61/8.html)中也详细解释了这一技术的原理，而LIEF库提供了一种跨平台的api，实现对MachO, ELF, PE等可执行文件格式的快速修改。
+
+这里luject就是利用了这个库，通过修改可执行文件，插入动态库加载路径，来实现静态注入，例如：
+
+```c
+auto elf_binary = std::unique_ptr<LIEF::ELF::Binary>{LIEF::ELF::Parser::parse("testapp")};
+elf_binary->add_library("libtest.so");
+elf_binary->write("testapp_injected");
+```
+
+
+
+
+
+
+### luject编译安装
+
+#### 准备工作
+
+我们需要先安装[xmake](https://github.com/xmake-io/xmake)来编译此项目。
+
+#### 编译
+
+```console
+$ xmake
+```
+
+#### 安装
+
+```console
+$ xmake install
+```
+
+### luject使用说明
+
+用法很简单，主要就是指定输入输出的文件路径就好：
+
+```console
+$ luject -i [input] -o [output] -p [libpattern] lib1 lib2 ..
+```
+
+最后面的lib列表，就是指定有哪些动态库需要被注入进去
+
+例如：
+
+```console
+$ luject -i app.apk lib1.so lib2.so
+$ luject -i app.ipa lib1.dylib lib2.dylib
+$ luject -i liba.so lib1.so lib2.so
+$ luject -i app.exe lib1.dll lib2.dll
+$ luject -i a.dll lib1.dll lib2.dll
+$ luject -i liba.dylib lib1.dylib lib2.dyib
+$ luject -i bin lib1.so lib2.so
+```
+
+当然，除了指定库路径，我们也可以指定`@loader_path`, `$ORIGIN`的路径进去，例如：
+
+```console
+$ luject -i libdemo.dylib @loader_path/libtest.dylib
+```
+
+上面的命令，我们就可以把`libtest.dylib`注入到另一个`libdemo.dylib`的动态库中去，如果`libdemo.dylib`被加载，那么就会从`@loader_path`也就是libdemo.dylib当前加载目录下
+找对应的`libtest.dylib`库，然后自动加载进来，我们也可以通过otool/ldd等工具也查看验证加载列表：
+
+```console
+$ otool -L libdemo.dylib
+libdemo.dylib:
+	@loader_path/libtest.dylib (compatibility version 0.0.0, current version 0.0.0)
+	/usr/lib/libz.1.dylib (compatibility version 1.0.0, current version 1.2.11)
+	/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 800.7.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1281.0.0)
+```
+
+可以看到，libtest库已经被成功插入进去了。
+
+### 注入libfrida-gadget.so到apk
+
+通常我们在使用frida系列工具对app进行动态分析时，如果不想root，那么可以通过luject将frida-gadget库静态注入到apk里面的so库中去，比如：
+
+```console
+$ luject -i app.apk -p libtest /tmp/libfrida-gadget.so
+```
+
+其中，libtest是指定apk中需要匹配注入的so库，并且支持模式匹配实现批量注入，例如：`libtest_*.so`，如果不指定`-p`参数，默认多所有so进行批量全注入。
+
+关于这块，我们也可以详细看下相关文章: [How to use frida on a non-rooted device](https://lief.quarkslab.com/doc/latest/tutorials/09_frida_lief.html)
+
+另外，luject重打包后，还会对apk进行重签名，来确保可以正常安装使用
+
+
+### 注入libfrida-gadget.dylib到ipa
+
+除了android的应用程序包，luject也支持对ios的ipa包进行注入，用法类似：
+
+```console
+$ luject -i app.ipa -p libtest /tmp/libfrida-gadget.dylib
+```
+
+luject也会对ipa包进行重签名，它会自动探测用户环境中的有效签名证书，来直接重签名，当然如果默认检测的签名不符合需求，我们也可以手动指定对应的签名信息：
+
+
+```console
+$ luject -i app.ipa -p libtest --codesign_identity='Apple Development: xxx@gmail.com (T3NA4MRVPU)' --mobile_provision='iOS Team Provisioning Profile: org.tboox.test' --bundle_identifier=org.tboox.test /tmp/libfrida-gadget.dylib
+```
+
+那如何知道我们需要的签名配置呢？一种就是在xcode里面查看，另外xmake也提供了一些辅助工具可以dump出当前可用的所有签名配置：
+
+```console
+$ xmake l private.tools.codesign.dump
+==================================== codesign identities ====================================
+{ 
+  "Apple Development: waruqi@gmail.com (T3NA4MRVPU)" = "AF73C231A0C35335B72761BD3759694739D34EB1" 
+}
+
+===================================== mobile provisions =====================================
+{ 
+  "iOS Team Provisioning Profile: org.tboox.test" = "<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AppIDName</key>
+	<string>XC org tboox test5</string>
+	<key>ApplicationIdentifierPrefix</key>
+	<array>
+	<string>43AAQM58X3</string>
+...
+```
+
+xmake也提供了其他辅助工具来对已有的ipa/app程序进行重签名，例如：
+
+```console
+$ xmake l utils.ipa.resign test.ipa|test.app [codesign_identity] [mobile_provision] [bundle_identifier]
+```
+
+其中，后面的签名参数都是可选的，如果没设置，那么默认会探测使用一个有效的签名：
+
+```console
+$ xmake l utils.ipa.resign test.ipa
+$ xmake l utils.ipa.resign test.app "Apple Development: waruqi@gmail.com (T3NA4MRVPU)"
+$ xmake l utils.ipa.resign test.ipa "Apple Development: waruqi@gmail.com (T3NA4MRVPU)" iOS Team Provisioning Profile: org.tboox.test" org.tboox.test
+```
