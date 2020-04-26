@@ -350,6 +350,888 @@
             
               <li>
                 <h2>
+                  <a class="post-link" href="/cn/2016/02/04/container-hash/">哈希容器的使用</a>
+                </h2>
+                <div class="label">
+                    <div class="label-card">
+                        <i class="fa fa-calendar"></i>2016-02-04
+                    </div>
+                    <div class="label-card">
+                        
+                    </div>
+                    <div class="label-card">
+                        
+                    </div>
+
+                    <div class="label-card">
+                    
+
+
+<!-- <span class="point">•</span> -->
+<span class="categories">
+  <i class="fa fa-th-list"></i>
+  
+    
+        <a href="/category/#tbox" title="Category: tbox" rel="category">tbox</a>
+    
+  
+
+  <!-- <span class="point">•</span> -->
+</span>
+
+
+                    </div>
+
+                    <div class="label-card">
+                    
+<!-- <span class="point">•</span> -->
+<span class="pageTag">
+  <i class="fa fa-tags"></i>
+  
+    
+        <a href="/cn/tag/#tbox" title="Tag: tbox" rel="tag">tbox</a>&nbsp;
+    
+        <a href="/cn/tag/#哈希" title="Tag: 哈希" rel="tag">哈希</a>&nbsp;
+    
+        <a href="/cn/tag/#容器" title="Tag: 容器" rel="tag">容器</a>
+    
+  
+
+</span>
+
+                    </div>
+                </div>
+                <div class="excerpt">
+                    <p>stl的容器库非常强大，但是为了要兼容各种元素类型，采用了模板进行泛化，这样的好处就是使用非常的方便，但是编译器会对使用到的每种类型都进行一遍实例化，用的类型太多的话不仅影响编译速度而且生成的可执行文件也很冗余。</p>
+
+<p>因此，TBOX在设计容器架构的时候，引入<code class="highlighter-rouge">tb_item_func_t</code>类型，来设置容器使用的成员类型，这样在实现容器通用性的同时，也不会产生过的冗余，而且容器接口操作上，同样相当的便利。</p>
+
+<p>可以先看个简单使用哈希的例子：</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code>    <span class="cm">/* 初始化hash, 哈希桶大小8
+     * 键：大小写敏感字符串
+     * 值：long整型
+     */</span>
+    <span class="n">tb_hash_map_ref_t</span> <span class="n">hash</span> <span class="o">=</span> <span class="n">tb_hash_map_init</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="n">tb_item_func_str</span><span class="p">(</span><span class="n">tb_true</span><span class="p">),</span> <span class="n">tb_item_func_long</span><span class="p">());</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">hash</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// 设置键值对："key" =&gt; 123
+</span>        <span class="n">tb_hash_map_set</span><span class="p">(</span><span class="n">hash</span><span class="p">,</span> <span class="s">"key"</span><span class="p">,</span> <span class="p">(</span><span class="n">tb_pointer_t</span><span class="p">)</span><span class="mi">123</span><span class="p">);</span>
+
+        <span class="c1">// 获取值
+</span>        <span class="n">tb_long_t</span> <span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_long_t</span><span class="p">)</span><span class="n">tb_hash_map_get</span><span class="p">(</span><span class="n">hash</span><span class="p">,</span> <span class="s">"key"</span><span class="p">);</span>
+
+        <span class="c1">// 退出hash
+</span>        <span class="n">tb_hash_map_exit</span><span class="p">(</span><span class="n">hash</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="cm">/* 初始化hash, 哈希桶大小: TB_hash_map_BULK_SIZE_MICRO
+     * 键：tb_struct_xxxx_t 结构体类型，内存数据由hash内部自己维护, 后面两个参数设置成员的释放回调函数
+     * 值：true类型，永远是tb_true, 这种hash相当于stl的set&lt;tb_struct_xxxx_t&gt;，内部会去优化掉value占用的内存
+     */</span>
+    <span class="n">tb_hash_map_ref_t</span> <span class="n">hash</span> <span class="o">=</span> <span class="n">tb_hash_map_init</span><span class="p">(</span><span class="n">TB_hash_map_BULK_SIZE_MICRO</span><span class="p">,</span> <span class="n">tb_item_func_mem</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">tb_struct_xxxx_t</span><span class="p">),</span> <span class="n">tb_null</span><span class="p">,</span> <span class="n">tb_null</span><span class="p">),</span> <span class="n">tb_item_func_true</span><span class="p">());</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">hash</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// 初始化tb_struct_xxxx_t
+</span>        <span class="n">tb_struct_xxxx_t</span> <span class="n">xxxx</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+
+        <span class="c1">// 设置键值对：xxxx =&gt; tb_true
+</span>        <span class="n">tb_hash_map_set</span><span class="p">(</span><span class="n">hash</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">xxxx</span><span class="p">,</span> <span class="p">(</span><span class="n">tb_pointer_t</span><span class="p">)</span><span class="n">tb_true</span><span class="p">);</span>
+
+        <span class="c1">// 判断键是否存在
+</span>        <span class="k">if</span> <span class="p">(</span><span class="n">tb_hash_map_get</span><span class="p">(</span><span class="n">hash</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">xxxx</span><span class="p">))</span> 
+        <span class="p">{</span>
+            <span class="c1">// ...
+</span>        <span class="p">}</span>
+
+        <span class="c1">// 退出hash
+</span>        <span class="n">tb_hash_map_exit</span><span class="p">(</span><span class="n">hash</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="cm">/* 初始化hash, 哈希桶大小使用默认大小: 0
+     * 键：大小写不敏感字符串
+     * 值：uint8整型
+     */</span>
+    <span class="n">tb_hash_map_ref_t</span> <span class="n">hash</span> <span class="o">=</span> <span class="n">tb_hash_map_init</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">tb_item_func_str</span><span class="p">(</span><span class="n">tb_false</span><span class="p">),</span> <span class="n">tb_item_func_uint8</span><span class="p">());</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">hash</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// 设置键值对："key" =&gt; 123
+</span>        <span class="n">tb_hash_map_set</span><span class="p">(</span><span class="n">hash</span><span class="p">,</span> <span class="s">"key"</span><span class="p">,</span> <span class="p">(</span><span class="n">tb_pointer_t</span><span class="p">)</span><span class="mi">123</span><span class="p">);</span>
+
+        <span class="c1">// 获取u位整型键值
+</span>        <span class="n">tb_uint8_t</span> <span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="n">tb_uint8_t</span><span class="p">)</span><span class="n">tb_hash_map_get</span><span class="p">(</span><span class="n">hash</span><span class="p">,</span> <span class="s">"key"</span><span class="p">);</span>
+
+        <span class="c1">// 退出hash
+</span>        <span class="n">tb_hash_map_exit</span><span class="p">(</span><span class="n">hash</span><span class="p">);</span>
+    <span class="p">}</span>
+</code></pre>
+</div>
+
+
+                </div>
+                <div class="read-all">
+ 
+                    
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+                        
+                        
+                            
+                        
+                    
+                        
+                    
+
+                    <a href="/cn/2016/02/04/container-hash/"><i class="fa fa-newspaper-o"></i>阅读全文</a>
+                </div>
+                <hr />
+              </li>
+            
+              <li>
+                <h2>
                   <a class="post-link" href="/cn/2016/02/04/algorithm-sort-find/">排序和查找算法的使用</a>
                 </h2>
                 <div class="label">
@@ -429,6 +1311,8 @@
                 <div class="read-all">
  
                     
+                    
+                        
                     
                         
                         
@@ -1266,6 +2150,8 @@
                 <div class="read-all">
  
                     
+                    
+                        
                     
                         
                         
@@ -2106,6 +2992,8 @@
                     
                     
                         
+                    
+                        
                         
                             
                         
@@ -2920,6 +3808,8 @@
                     
                     
                         
+                    
+                        
                         
                             
                         
@@ -3680,894 +4570,6 @@
                 <hr />
               </li>
             
-              <li>
-                <h2>
-                  <a class="post-link" href="/cn/docs/xmake/plugins/">插件开发</a>
-                </h2>
-                <div class="label">
-                    <div class="label-card">
-                        <i class="fa fa-calendar"></i>2000-02-22
-                    </div>
-                    <div class="label-card">
-                        
-                    </div>
-                    <div class="label-card">
-                        
-                    </div>
-
-                    <div class="label-card">
-                    
-
-
-<!-- <span class="point">•</span> -->
-<span class="categories">
-  <i class="fa fa-th-list"></i>
-  
-    
-        <a href="/category/#xmake" title="Category: xmake" rel="category">xmake</a>
-    
-  
-
-  <!-- <span class="point">•</span> -->
-</span>
-
-
-                    </div>
-
-                    <div class="label-card">
-                    
-<!-- <span class="point">•</span> -->
-<span class="pageTag">
-  <i class="fa fa-tags"></i>
-  
-    
-        <a href="/cn/tag/#xmake" title="Tag: xmake" rel="tag">xmake</a>&nbsp;
-    
-        <a href="/cn/tag/#文档" title="Tag: 文档" rel="tag">文档</a>&nbsp;
-    
-        <a href="/cn/tag/#插件" title="Tag: 插件" rel="tag">插件</a>
-    
-  
-
-</span>
-
-                    </div>
-                </div>
-                <div class="excerpt">
-                    <ul id="markdown-toc">
-  <li><a href="#插件开发" id="markdown-toc-插件开发">插件开发</a>    <ul>
-      <li><a href="#简介" id="markdown-toc-简介">简介</a></li>
-      <li><a href="#快速开始" id="markdown-toc-快速开始">快速开始</a></li>
-    </ul>
-  </li>
-</ul>
-
-<p>注：此处为镜像文档，最新在线文档请看：<a href="http://xmake.io/#/zh/plugins">http://xmake.io/#/zh/plugins</a></p>
-
-<h2 id="插件开发">插件开发</h2>
-
-<h4 id="简介">简介</h4>
-
-<p>XMake完全支持插件模式，我们可以很方便的扩展实现自己的插件，并且xmake也提供了一些内建的使用插件。</p>
-
-<p>我们可以执行下 <code class="highlighter-rouge">xmake -h</code> 看下当前支持的插件：</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>Plugins: 
-    l, lua                                 Run the lua script.
-    m, macro                               Run the given macro.
-       doxygen                             Generate the doxygen document.
-       hello                               Hello xmake!
-       project                             Create the project file.
-</code></pre>
-</div>
-
-<ul>
-  <li>lua: 运行lua脚本的插件</li>
-  <li>macro: 这个很实用，宏脚本插件，可以手动录制多条xmake命令并且回放，也可以通过脚本实现一些复杂的宏脚本，这个我们后续会更加详细的介绍</li>
-  <li>doxygen：一键生成doxygen文档的插件</li>
-  <li>hello: 插件demo，仅仅显示一句话：’hello xmake!’</li>
-  <li>project： 生成工程文件的插件，目前仅支持(makefile)，后续还会支持(vs,xcode等工程)的生成</li>
-</ul>
-
-<h4 id="快速开始">快速开始</h4>
-
-<p>接下来我们介绍下本文的重点，一个简单的hello xmake插件的开发，代码如下：</p>
-
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="c1">-- 定义一个名叫hello的插件任务</span>
-<span class="n">task</span><span class="p">(</span><span class="s2">"hello"</span><span class="p">)</span>
-
-    <span class="c1">-- 设置类型为插件</span>
-    <span class="n">set_category</span><span class="p">(</span><span class="s2">"plugin"</span><span class="p">)</span>
-
-    <span class="c1">-- 插件运行的入口</span>
-    <span class="n">on_run</span><span class="p">(</span><span class="k">function</span> <span class="p">()</span>
-
-        <span class="c1">-- 显示hello xmake!</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">"hello xmake!"</span><span class="p">)</span>
-
-    <span class="k">end</span><span class="p">)</span>
-
-    <span class="c1">-- 设置插件的命令行选项，这里没有任何参数选项，仅仅显示插件描述</span>
-    <span class="n">set_menu</span> <span class="p">{</span>
-                <span class="c1">-- usage</span>
-                <span class="n">usage</span> <span class="o">=</span> <span class="s2">"xmake hello [options]"</span>
-
-                <span class="c1">-- description</span>
-            <span class="p">,</span>   <span class="n">description</span> <span class="o">=</span> <span class="s2">"Hello xmake!"</span>
-
-                <span class="c1">-- options</span>
-            <span class="p">,</span>   <span class="n">options</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="p">}</span> 
-</code></pre>
-</div>
-
-
-                </div>
-                <div class="read-all">
- 
-                    
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                                
-                                <a href="/docs/xmake/plugins/"><i class="fa fa-language"></i>Read English</a>
-                                
-                                
-                                
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-                        
-                        
-                            
-                        
-                    
-                        
-                    
-
-                    <a href="/cn/docs/xmake/plugins/"><i class="fa fa-newspaper-o"></i>阅读全文</a>
-                </div>
-                <hr />
-              </li>
-            
         </ul>
 
         <!-- baidu ads -->
@@ -4599,6 +4601,13 @@
                     最近文章
                 </div>
                 <ul class="content-ul" recent="">
+                    
+                    
+                    
+                        
+                            <li><a href="/cn/2020/04/26/luject/">一个静态注入动态库的工具: luject</a></li>
+                            
+                        
                     
                     
                     
@@ -4670,11 +4679,6 @@
                         
                     
                     
-                    
-                        
-                            <li><a href="/cn/2019/12/13/quickstart-10-target-deps/">xmake从入门到精通10：多个子工程目标的依赖配置</a></li>
-                            
-                        
                     
                     
                     
@@ -5186,6 +5190,13 @@
                      
                      
                      
+                      
+                      
+                      
+                      
+                      
+                      <a href="/cn/tag/#xmake" style="font-size: 18pt; color: #000;">xmake</a>
+                    
                     
                     
                      
@@ -5508,6 +5519,13 @@
                      
                      
                      
+                      
+                      
+                      
+                      
+                      
+                      <a href="/cn/tag/#android" style="font-size: 9.5pt; color: #999;">android</a>
+                    
                     
                     
                      
@@ -5865,6 +5883,16 @@
                     
                     
                      
+                     
+                     
+                      
+                      
+                      
+                      
+                      
+                      <a href="/cn/tag/#逆向分析" style="font-size: 9pt; color: #999;">逆向分析</a>
+                    
+                    
                     
                      
                     
@@ -6164,6 +6192,13 @@
                      
                      
                      
+                      
+                      
+                      
+                      
+                      
+                      <a href="/cn/tag/#lua" style="font-size: 14pt; color: #444;">lua</a>
+                    
                     
                     
                      
@@ -6410,6 +6445,13 @@
                      
                      
                      
+                      
+                      
+                      
+                      
+                      
+                      <a href="/cn/tag/#C/C++" style="font-size: 10pt; color: #888;">C/C++</a>
+                    
                     
                     
                      
@@ -6535,6 +6577,10 @@
                      
                      
                     
+                    
+                     
+                    
+                     
                     
                      
                     

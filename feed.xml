@@ -5,9 +5,191 @@
     <description>Focus on cross-platform development using c language</description>
     <link>http://www.tboox.org/</link>
     <atom:link href="http://www.tboox.org/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Fri, 17 Apr 2020 11:20:30 +0800</pubDate>
-    <lastBuildDate>Fri, 17 Apr 2020 11:20:30 +0800</lastBuildDate>
+    <pubDate>Sun, 26 Apr 2020 23:08:40 +0800</pubDate>
+    <lastBuildDate>Sun, 26 Apr 2020 23:08:40 +0800</lastBuildDate>
     <generator>Jekyll v3.1.0</generator>
+    
+      <item>
+        <title>一个静态注入动态库的工具: luject</title>
+        <description>&lt;p&gt;&lt;a href=&quot;https://github.com/lanoox/luject&quot;&gt;luject&lt;/a&gt;是一个静态注入动态库的工具，它可以实现对mac, ios, linux, windows的可执行程序，动态库程序进行修改，来插入指定动态库实现注入和加载。&lt;/p&gt;
+
+&lt;p&gt;另外luject也实现了对ios的ipa包，android的apk包自己macOS的.app包的动态库注入，重打包和重签名支持。&lt;/p&gt;
+
+&lt;h3 id=&quot;注入技术简介&quot;&gt;注入技术简介&lt;/h3&gt;
+
+&lt;p&gt;我们可以通过ptrace附加或启动一个程序，然后将指定的动态库注入进去，但很多情况下需要root权限才行。&lt;/p&gt;
+
+&lt;p&gt;除了通过动态注入，我们也可以通过设置&lt;code class=&quot;highlighter-rouge&quot;&gt;DYLD_INSERT_LIBRARIES&lt;/code&gt;等环境变量的方式，来注入指定的动态库，mac/ios程序就可以使用这种方式来简单快速地实现注入，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$DYLD_INSERT_LIBRARIES=inject.dylib ./test
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;不过这种方式在ios上也需要越狱后才可用，另外我们也可以在工程的Build Settings中找到Other Linker Flages 并添加下面的字段来限制这种加载方式，实现对可执行程序的注入保护。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;-Wl,-sectcreate,__RESTRICT,__restrict,/dev/null
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;因此，也不是非常的通用，其实还有一种更加通用的方式，就是直接静态修改可执行文件，插入需要加载的动态库就可以了，简单暴力有效。&lt;/p&gt;
+
+&lt;p&gt;Mayhem 在&lt;a href=&quot;http://phrack.org/issues/61/8.html&quot;&gt;Phrack&lt;/a&gt;中也详细解释了这一技术的原理，而LIEF库提供了一种跨平台的api，实现对MachO, ELF, PE等可执行文件格式的快速修改。&lt;/p&gt;
+
+&lt;p&gt;这里luject就是利用了这个库，通过修改可执行文件，插入动态库加载路径，来实现静态注入，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;auto&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;elf_binary&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;unique_ptr&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LIEF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ELF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Binary&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LIEF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ELF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Parser&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;parse&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;testapp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)};&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;elf_binary&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add_library&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;libtest.so&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;elf_binary&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;testapp_injected&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;luject编译安装&quot;&gt;luject编译安装&lt;/h3&gt;
+
+&lt;h4 id=&quot;准备工作&quot;&gt;准备工作&lt;/h4&gt;
+
+&lt;p&gt;我们需要先安装&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;xmake&lt;/a&gt;来编译此项目。&lt;/p&gt;
+
+&lt;h4 id=&quot;编译&quot;&gt;编译&lt;/h4&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;安装&quot;&gt;安装&lt;/h4&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; install
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;luject使用说明&quot;&gt;luject使用说明&lt;/h3&gt;
+
+&lt;p&gt;用法很简单，主要就是指定输入输出的文件路径就好：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;luject&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -i [input] -o [output] -p [libpattern] lib1 lib2 ..
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;最后面的lib列表，就是指定有哪些动态库需要被注入进去&lt;/p&gt;
+
+&lt;p&gt;例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;luject&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -i app.apk lib1.so lib2.so
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;luject&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -i app.ipa lib1.dylib lib2.dylib
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;luject&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -i liba.so lib1.so lib2.so
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;luject&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -i app.exe lib1.dll lib2.dll
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;luject&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -i a.dll lib1.dll lib2.dll
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;luject&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -i liba.dylib lib1.dylib lib2.dyib
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;luject&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -i bin lib1.so lib2.so
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;当然，除了指定库路径，我们也可以指定&lt;code class=&quot;highlighter-rouge&quot;&gt;@loader_path&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;$ORIGIN&lt;/code&gt;的路径进去，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;luject&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -i libdemo.dylib @loader_path/libtest.dylib
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;上面的命令，我们就可以把&lt;code class=&quot;highlighter-rouge&quot;&gt;libtest.dylib&lt;/code&gt;注入到另一个&lt;code class=&quot;highlighter-rouge&quot;&gt;libdemo.dylib&lt;/code&gt;的动态库中去，如果&lt;code class=&quot;highlighter-rouge&quot;&gt;libdemo.dylib&lt;/code&gt;被加载，那么就会从&lt;code class=&quot;highlighter-rouge&quot;&gt;@loader_path&lt;/code&gt;也就是libdemo.dylib当前加载目录下
+找对应的&lt;code class=&quot;highlighter-rouge&quot;&gt;libtest.dylib&lt;/code&gt;库，然后自动加载进来，我们也可以通过otool/ldd等工具也查看验证加载列表：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;otool&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -L libdemo.dylib
+&lt;/span&gt;libdemo.dylib:
+	@loader_path/libtest.dylib (compatibility version 0.0.0, current version 0.0.0)
+	/usr/lib/libz.1.dylib (compatibility version 1.0.0, current version 1.2.11)
+	/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 800.7.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1281.0.0)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;可以看到，libtest库已经被成功插入进去了。&lt;/p&gt;
+
+&lt;h3 id=&quot;注入libfrida-gadgetso到apk&quot;&gt;注入libfrida-gadget.so到apk&lt;/h3&gt;
+
+&lt;p&gt;通常我们在使用frida系列工具对app进行动态分析时，如果不想root，那么可以通过luject将frida-gadget库静态注入到apk里面的so库中去，比如：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;luject&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -i app.apk -p libtest /tmp/libfrida-gadget.so
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;其中，libtest是指定apk中需要匹配注入的so库，并且支持模式匹配实现批量注入，例如：&lt;code class=&quot;highlighter-rouge&quot;&gt;libtest_*.so&lt;/code&gt;，如果不指定&lt;code class=&quot;highlighter-rouge&quot;&gt;-p&lt;/code&gt;参数，默认多所有so进行批量全注入。&lt;/p&gt;
+
+&lt;p&gt;关于这块，我们也可以详细看下相关文章: &lt;a href=&quot;https://lief.quarkslab.com/doc/latest/tutorials/09_frida_lief.html&quot;&gt;How to use frida on a non-rooted device&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;另外，luject重打包后，还会对apk进行重签名，来确保可以正常安装使用&lt;/p&gt;
+
+&lt;h3 id=&quot;注入libfrida-gadgetdylib到ipa&quot;&gt;注入libfrida-gadget.dylib到ipa&lt;/h3&gt;
+
+&lt;p&gt;除了android的应用程序包，luject也支持对ios的ipa包进行注入，用法类似：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;luject&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -i app.ipa -p libtest /tmp/libfrida-gadget.dylib
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;luject也会对ipa包进行重签名，它会自动探测用户环境中的有效签名证书，来直接重签名，当然如果默认检测的签名不符合需求，我们也可以手动指定对应的签名信息：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;luject&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -i app.ipa -p libtest --codesign_identity=&#39;Apple Development: xxx@gmail.com (T3NA4MRVPU)&#39; --mobile_provision=&#39;iOS Team Provisioning Profile: org.tboox.test&#39; --bundle_identifier=org.tboox.test /tmp/libfrida-gadget.dylib
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;那如何知道我们需要的签名配置呢？一种就是在xcode里面查看，另外xmake也提供了一些辅助工具可以dump出当前可用的所有签名配置：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; l private.tools.codesign.dump
+&lt;/span&gt;==================================== codesign identities ====================================
+{ 
+  &quot;Apple Development: waruqi@gmail.com (T3NA4MRVPU)&quot; = &quot;AF73C231A0C35335B72761BD3759694739D34EB1&quot; 
+}
+
+===================================== mobile provisions =====================================
+{ 
+  &quot;iOS Team Provisioning Profile: org.tboox.test&quot; = &quot;&amp;lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&amp;gt;
+&amp;lt;!DOCTYPE plist PUBLIC &quot;-//Apple//DTD PLIST 1.0//EN&quot; &quot;http://www.apple.com/DTDs/PropertyList-1.0.dtd&quot;&amp;gt;
+&amp;lt;plist version=&quot;1.0&quot;&amp;gt;
+&amp;lt;dict&amp;gt;
+	&amp;lt;key&amp;gt;AppIDName&amp;lt;/key&amp;gt;
+	&amp;lt;string&amp;gt;XC org tboox test5&amp;lt;/string&amp;gt;
+	&amp;lt;key&amp;gt;ApplicationIdentifierPrefix&amp;lt;/key&amp;gt;
+	&amp;lt;array&amp;gt;
+	&amp;lt;string&amp;gt;43AAQM58X3&amp;lt;/string&amp;gt;
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;xmake也提供了其他辅助工具来对已有的ipa/app程序进行重签名，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; l utils.ipa.resign test.ipa|test.app [codesign_identity] [mobile_provision] [bundle_identifier]
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;其中，后面的签名参数都是可选的，如果没设置，那么默认会探测使用一个有效的签名：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; l utils.ipa.resign test.ipa
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; l utils.ipa.resign test.app &quot;Apple Development: waruqi@gmail.com (T3NA4MRVPU)&quot;
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; l utils.ipa.resign test.ipa &quot;Apple Development: waruqi@gmail.com (T3NA4MRVPU)&quot; iOS Team Provisioning Profile: org.tboox.test&quot; org.tboox.test
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+</description>
+        <pubDate>Sun, 26 Apr 2020 00:00:00 +0800</pubDate>
+        <link>http://www.tboox.org/cn/2020/04/26/luject/</link>
+        <guid isPermaLink="true">http://www.tboox.org/cn/2020/04/26/luject/</guid>
+        
+        <category>xmake</category>
+        
+        <category>lua</category>
+        
+        <category>C/C++</category>
+        
+        <category>android</category>
+        
+        <category>luject</category>
+        
+        <category>注入</category>
+        
+        <category>逆向分析</category>
+        
+        
+        <category>luject</category>
+        
+      </item>
     
       <item>
         <title>xmake-gradle v1.0.7 released, Integrate xmake to quickly build Android JNI program</title>
@@ -1778,128 +1960,6 @@ build ok!
         
         
         <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>TBOOX开源工程2019总结和明年规划</title>
-        <description>&lt;p&gt;今年一年总体还是有不少收获的，尤其是&lt;a href=&quot;https://xmake.io&quot;&gt;xmake&lt;/a&gt;，今年大部分时间都花在这个项目上面，总共发了5个大版本，大小特性改动不下百处，新增1000多次commit，处理issues超过300个。&lt;/p&gt;
-
-&lt;p&gt;不过&lt;a href=&quot;https://github.com/tboox/tbox&quot;&gt;tbox&lt;/a&gt;也陆陆续续做了一些更新，还是有不少改进的地方。&lt;/p&gt;
-
-&lt;p&gt;关于今年整体的项目进展，这边也做个简单的总结吧，这里主要总结一些比较大的特性改进，一些零散的小模块改动就不一一列举了。&lt;/p&gt;
-
-&lt;h3 id=&quot;完成了远程包依赖管理&quot;&gt;完成了远程包依赖管理&lt;/h3&gt;
-
-&lt;p&gt;这也是是今年最大的收获了，毕竟陆陆续续耗时了将近一年时间，虽然还有不少需要改进的地方，自建的包仓库也还不是很丰富，明年我会继续去完善它。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;libuv master&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;ffmpeg&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;zlib 1.20.*&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;tbox &amp;gt;1.6.1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;optional&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;debug&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;libuv&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;ffmpeg&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;tbox&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://xmake.io/assets/img/index/package_arch.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;新增vsxmake生成插件&quot;&gt;新增vsxmake生成插件&lt;/h3&gt;
-
-&lt;p&gt;新版本xmake重新实现了一个vs工程的生成插件（非常感谢@OpportunityLiu的贡献），跟之前的生成vs的插件处理模式上有很大的不同，原先生成的vs工程是把所有源文件展开后，转交给vs来处理编译。&lt;/p&gt;
-
-&lt;p&gt;但是像rules和自定义脚本这种是没法支持的，因为xmake的rules里面用了很多的on_build此类自定义脚本，无法展开，所以像qt， wdk此类的项目就没法支持导出到vs里面进行编译了。&lt;/p&gt;
-
-&lt;p&gt;因此，为了解决这个问题，新版本的vs生成插件通过在vs下直接调用xmake命令，去执行编译操作，并且对intellsence和定义跳转，还有断点调试也做了支持。&lt;/p&gt;
-
-&lt;p&gt;具体使用方式跟老版本类似：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake project -k &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;vsxmake2010|vsxmake2013|vsxmake2015|..] -m &lt;span class=&quot;s2&quot;&gt;&quot;debug;release&quot;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://xmake.io/assets/img/manual/qt_vs.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;上线了新版的文档站点&quot;&gt;上线了新版的文档站点&lt;/h3&gt;
-
-&lt;p&gt;由于之前的docute文档站仅支持单页markdown，随着文档的不断增多，维护起来越来越臃肿，因此今年我整体切到了docsify来管理。&lt;/p&gt;
-
-&lt;p&gt;文档站点：&lt;a href=&quot;https://xmake.io/#/zh-cn/&quot;&gt;https://xmake.io/#/zh-cn/&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/xmake/xmake-docs.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;xmake日活用户翻了10倍&quot;&gt;xmake日活用户翻了10倍&lt;/h3&gt;
-
-&lt;p&gt;其实也就只有50多个日活用户（比较惨 = =），不过相比去年每天仅仅只有5个独立用户在使用xmake来构建，今年算是有了不少起色，借助github traffics的粗略统计，每天有超过50个用户在使用xmake来构建自己的项目，每天构建的项目数超过100个。&lt;/p&gt;
-
-&lt;p&gt;明年继续，哈哈~&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/xmake/xmake-stats-2019.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;github-star数也增长了不少&quot;&gt;github star数也增长了不少&lt;/h3&gt;
-
-&lt;p&gt;毕竟是冷门项目，受众很小，今年tbox和xmake都涨了1k多我已经知足了。&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/xmake/star-history-2019.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;一些使用了xmake的开源项目&quot;&gt;一些使用了xmake的开源项目&lt;/h3&gt;
-
-&lt;p&gt;今年也有了一些知名的第三方开源项目使用了xmake来维护构建，主要有：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/acl-dev/acl&quot;&gt;libacl&lt;/a&gt;: An advanced C/C++ Network library&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/acl-dev/libfiber&quot;&gt;libfiber&lt;/a&gt;: The high performance coroutine library for Linux/FreeBSD/Windows, supporting select/poll/epoll/kqueue/iocp/windows GUI&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/idealvin/co&quot;&gt;co&lt;/a&gt;: An elegant and efficient C++ basic library for Linux, Windows and Mac.&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/fasiondog/hikyuu&quot;&gt;hikyuu&lt;/a&gt;: Hikyuu Quant Framework 基于C++/Python的开源量化交易研究框架&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/lc-ui/lcui.css&quot;&gt;LCUI.css&lt;/a&gt;: A UI component framework for building LCUI application.&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/lc-soft/LC-Finder&quot;&gt;LC-Finder&lt;/a&gt;: A simple pciture resource manager, support tag search and thumbnail preview.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;这里有个项目列表，里面是我收集到一些使用了xmake的项目：&lt;a href=&quot;https://github.com/xmake-io/awesome-xmake#projects&quot;&gt;https://github.com/xmake-io/awesome-xmake#projects&lt;/a&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;明年xmake相关的一些计划&quot;&gt;明年xmake相关的一些计划&lt;/h3&gt;
-
-&lt;p&gt;明年的重点主要是在远程编译和分布式编译上，为此最近我正在改进tbox的协程支持，并且正在对xmake的lua协程做进一步封装，实现对pipe，socket和process的统一调度支持，为后续的远程编译做准备。&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;实现跨平台的远程编译&lt;/li&gt;
-  &lt;li&gt;实现跨平台的分布式编译&lt;/li&gt;
-  &lt;li&gt;继续完善xmake与编辑器/IDE的集成&lt;/li&gt;
-  &lt;li&gt;完善远程依赖包管理，自建仓库增加更多常用依赖包&lt;/li&gt;
-  &lt;li&gt;继续封装lua的io协程调度模块，实现对pipe，socket和process的统一调度支持&lt;/li&gt;
-  &lt;li&gt;提供对xcode工程的生成插件&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h3 id=&quot;tbox的一些特性改进&quot;&gt;tbox的一些特性改进&lt;/h3&gt;
-
-&lt;p&gt;今年没花太多时间在tbox上面，总共也就发了一个版本，大部分特性改动主要还是服务于xmake，例如：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;添加stdfile接口去读写stdin, stdout和stderr。&lt;/li&gt;
-  &lt;li&gt;添加对进程和线程的cpu亲缘性设置和获取&lt;/li&gt;
-  &lt;li&gt;添加filelock文件锁跨平台api接口&lt;/li&gt;
-  &lt;li&gt;添加匿名管道，命名管道支持&lt;/li&gt;
-  &lt;li&gt;改进字符集编码转换，以及增加对ANSI编码的支持&lt;/li&gt;
-  &lt;li&gt;改进原子操作，并增加c11风格原子接口&lt;/li&gt;
-  &lt;li&gt;新增进程输出重定向到管道&lt;/li&gt;
-  &lt;li&gt;针对协程栈使用虚拟内存&lt;/li&gt;
-  &lt;li&gt;改进基于openssl/mbedtls的https访问&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;不过明年我会进一步改进和实现协程、网络相关的模块，提供更多实用的基础功能。&lt;/p&gt;
-</description>
-        <pubDate>Tue, 31 Dec 2019 00:00:00 +0800</pubDate>
-        <link>http://www.tboox.org/cn/2019/12/31/tboox-now-and-future/</link>
-        <guid isPermaLink="true">http://www.tboox.org/cn/2019/12/31/tboox-now-and-future/</guid>
-        
-        <category>tboox</category>
-        
-        <category>tbox</category>
-        
-        <category>xmake</category>
-        
-        
-        <category>tboox</category>
         
       </item>
     

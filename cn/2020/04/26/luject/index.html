@@ -7,11 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta http-equiv="Cache-Control" content="no-siteapp" />
 
-    <title>利用debug库实现对lua的性能分析</title>
-    <meta name="description" content="之前在给xmake做构建的效率优化的时候，需要对lua脚本的api调用性能进行分析，分析出最耗时一些lua调用api，找出性能瓶颈，来针对性地进行优化，那么问题来了，如果对lua脚本像c程序那样进行profile呢？我们现在看下最后实现完的最终效果： 4.681,  98.84%,       1, anonym...">
+    <title>一个静态注入动态库的工具: luject</title>
+    <meta name="description" content="luject是一个静态注入动态库的工具，它可以实现对mac, ios, linux, windows的可执行程序，动态库程序进行修改，来插入指定动态库实现注入和加载。另外luject也实现了对ios的ipa包，android的apk包自己macOS的.app包的动态库注入，重打包和重签名支持。注入技术简介我们可以...">
 
     
-    <meta name="keywords" content="xmake,lua,性能分析,tboox" /> 
+    <meta name="keywords" content="xmake,lua,C/C++,android,luject,注入,逆向分析,tboox" /> 
 
     <!-- qq oauth -->
     <meta property="qc:admins" content="5211601217706727767255" />
@@ -28,7 +28,7 @@
 	
     <link rel="stylesheet" href=" /css/fontawesome/css/font-awesome.min.css ">
     <link rel="stylesheet" href=" /css/main.css ">
-    <link rel="canonical" href="http://www.tboox.org/cn/2017/01/12/lua-profiler/">
+    <link rel="canonical" href="http://www.tboox.org/cn/2020/04/26/luject/">
     <link rel="alternate" type="application/rss+xml" title="TBOOX Open Source Project" href="http://www.tboox.org/feed.xml ">
     <link rel="alternate" hreflang="en" href="http://www.tboox.org/" />
     <link rel="alternate" hreflang="zh-Hans" href="http://www.tboox.org/cn/" />
@@ -342,11 +342,11 @@
 
         <div class="page clearfix" post>
     <div class="left">
-        <h1>利用debug库实现对lua的性能分析</h1>
+        <h1>一个静态注入动态库的工具: luject</h1>
         <div class="label">
 
             <div class="label-card">
-                <i class="fa fa-calendar"></i>2017-01-12
+                <i class="fa fa-calendar"></i>2020-04-26
             </div>
 
             <div class="label-card">
@@ -366,7 +366,7 @@
   <i class="fa fa-th-list"></i>
   
     
-        <a href="/category/#xmake" title="Category: xmake" rel="category">xmake</a>
+        <a href="/category/#luject" title="Category: luject" rel="category">luject</a>
     
   
 
@@ -389,8 +389,20 @@
         <!--a href="/tag/#lua" title="Tag: lua" rel="tag">lua</a-->
         <a href="/cn/tag/#lua" title="Tag: lua" rel="tag">lua</a>&nbsp;
     
-        <!--a href="/tag/#%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90" title="Tag: 性能分析" rel="tag">性能分析</a-->
-        <a href="/cn/tag/#性能分析" title="Tag: 性能分析" rel="tag">性能分析</a>
+        <!--a href="/tag/#C%2FC%2B%2B" title="Tag: C/C++" rel="tag">C/C++</a-->
+        <a href="/cn/tag/#C/C++" title="Tag: C/C++" rel="tag">C/C++</a>&nbsp;
+    
+        <!--a href="/tag/#android" title="Tag: android" rel="tag">android</a-->
+        <a href="/cn/tag/#android" title="Tag: android" rel="tag">android</a>&nbsp;
+    
+        <!--a href="/tag/#luject" title="Tag: luject" rel="tag">luject</a-->
+        <a href="/cn/tag/#luject" title="Tag: luject" rel="tag">luject</a>&nbsp;
+    
+        <!--a href="/tag/#%E6%B3%A8%E5%85%A5" title="Tag: 注入" rel="tag">注入</a-->
+        <a href="/cn/tag/#注入" title="Tag: 注入" rel="tag">注入</a>&nbsp;
+    
+        <!--a href="/tag/#%E9%80%86%E5%90%91%E5%88%86%E6%9E%90" title="Tag: 逆向分析" rel="tag">逆向分析</a-->
+        <a href="/cn/tag/#逆向分析" title="Tag: 逆向分析" rel="tag">逆向分析</a>
     
   
 
@@ -401,316 +413,162 @@
         </div>
         <hr>
         <article itemscope itemtype="http://schema.org/BlogPosting">
-        <p>之前在给<a href="/cn/project">xmake</a>做构建的效率优化的时候，需要对lua脚本的api调用性能进行分析，分析出最耗时一些lua调用api，
-找出性能瓶颈，来针对性地进行优化，那么问题来了，如果对lua脚本像c程序那样进行profile呢？</p>
+        <p><a href="https://github.com/lanoox/luject">luject</a>是一个静态注入动态库的工具，它可以实现对mac, ios, linux, windows的可执行程序，动态库程序进行修改，来插入指定动态库实现注入和加载。</p>
 
-<p>我们现在看下最后实现完的最终效果：</p>
+<p>另外luject也实现了对ios的ipa包，android的apk包自己macOS的.app包的动态库注入，重打包和重签名支持。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code> 4.681,  98.84%,       1, anonymous                     : actions/build/main.lua: 36
- 3.314,  69.98%,       1, anonymous                     : actions/build/main.lua: 66
- 3.314,  69.98%,       1, build                         : actions/build/builder.lua: 127
- 3.298,  69.65%,       2, _build_target                 : actions/build/builder.lua: 41
- 3.298,  69.65%,       2, script                        : actions/build/builder.lua: 30
- 2.590,  54.70%,       2, buildall                      : actions/build/kinds/object.lua: 174
- 2.239,  47.27%,     468, resume                        : core/sandbox/modules/coroutine.lua: 40
- 2.226,  47.00%,     468, anonymous                     : actions/build/kinds/object.lua: 242
- 2.073,  43.77%,       3, _build_target_and_deps        : actions/build/builder.lua: 64
- 2.047,  43.22%,     468, _build                        : actions/build/kinds/object.lua: 79
- 2.034,  42.96%,       1, build                         : actions/build/kinds/static.lua: 31
- 1.190,  25.13%,       1, build                         : actions/build/kinds/binary.lua: 31
- 0.806,  17.03%,       8, load                          : core/base/interpreter.lua: 527
- 0.766,  16.18%,       2, run                           : core/project/task.lua: 393
- 0.711,  15.01%,       1, anonymous                     : actions/config/main.lua: 132
- 0.615,  12.99%,    2117, vformat                       : core/sandbox/modules/string.lua: 40
- 0.593,  12.53%,      16, defaults                      : core/base/option.lua: 803
- 0.593,  12.52%,       1, save                          : core/base/option.lua: 131
- 0.475,  10.03%,       2, anonymous                     : /Users/ruki/projects/personal/tbox/xmake.lua: 0
+<h3 id="注入技术简介">注入技术简介</h3>
+
+<p>我们可以通过ptrace附加或启动一个程序，然后将指定的动态库注入进去，但很多情况下需要root权限才行。</p>
+
+<p>除了通过动态注入，我们也可以通过设置<code class="highlighter-rouge">DYLD_INSERT_LIBRARIES</code>等环境变量的方式，来注入指定的动态库，mac/ios程序就可以使用这种方式来简单快速地实现注入，例如：</p>
+
+<div class="language-console highlighter-rouge"><pre class="highlight"><code>$DYLD_INSERT_LIBRARIES=inject.dylib ./test
 </code></pre>
 </div>
 
-<p>其中第一列为当前调用的耗时（单位：cpu时钟数），第二列为耗时占比，第三列为调用次数，然后是函数名和源代码位置。</p>
+<p>不过这种方式在ios上也需要越狱后才可用，另外我们也可以在工程的Build Settings中找到Other Linker Flages 并添加下面的字段来限制这种加载方式，实现对可执行程序的注入保护。</p>
 
-<h4 id="debugsethook简介">debug.sethook简介</h4>
-
-<p>其实lua自带的debug就可以做到：</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>debug库提供了一种hook的方式，可以通过注册一个handler函数，在lua脚本运行到某个调用时，会触发这个handler，
-获取到相应的执行信息，并且给你一个记录和数据维护的机会。
+<div class="highlighter-rouge"><pre class="highlight"><code>-Wl,-sectcreate,__RESTRICT,__restrict,/dev/null
 </code></pre>
 </div>
 
-<p>它主要有四种事件会触发这个handler的调用：</p>
+<p>因此，也不是非常的通用，其实还有一种更加通用的方式，就是直接静态修改可执行文件，插入需要加载的动态库就可以了，简单暴力有效。</p>
 
-<ol>
-  <li>当调用一个lua函数的时候，会触发call事件</li>
-  <li>当函数返回的时候，会触发一个return事件</li>
-  <li>当执行下一行代码的时候，会触发一个line事件</li>
-  <li>当运行指定数目的指令后，会触发count事件</li>
-</ol>
+<p>Mayhem 在<a href="http://phrack.org/issues/61/8.html">Phrack</a>中也详细解释了这一技术的原理，而LIEF库提供了一种跨平台的api，实现对MachO, ELF, PE等可执行文件格式的快速修改。</p>
 
-<p>我们可以通过<code class="highlighter-rouge">debug.sethook</code>这个函数来注册一个hook的handler，他有三个参数：</p>
+<p>这里luject就是利用了这个库，通过修改可执行文件，插入动态库加载路径，来实现静态注入，例如：</p>
 
-<ol>
-  <li>handler的处理函数，hook事件触发后被调用</li>
-  <li>描述需要hook的事件类型，call、return和line事件分别对应：’c’, ‘r’, ‘l’，可以互相组合成一个字符串</li>
-  <li>获取count事件的频率（可选）</li>
-</ol>
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="k">auto</span> <span class="n">elf_binary</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">LIEF</span><span class="o">::</span><span class="n">ELF</span><span class="o">::</span><span class="n">Binary</span><span class="o">&gt;</span><span class="p">{</span><span class="n">LIEF</span><span class="o">::</span><span class="n">ELF</span><span class="o">::</span><span class="n">Parser</span><span class="o">::</span><span class="n">parse</span><span class="p">(</span><span class="s">"testapp"</span><span class="p">)};</span>
+<span class="n">elf_binary</span><span class="o">-&gt;</span><span class="n">add_library</span><span class="p">(</span><span class="s">"libtest.so"</span><span class="p">);</span>
+<span class="n">elf_binary</span><span class="o">-&gt;</span><span class="n">write</span><span class="p">(</span><span class="s">"testapp_injected"</span><span class="p">);</span>
+</code></pre>
+</div>
 
-<p>如果需要</p>
+<h3 id="luject编译安装">luject编译安装</h3>
 
-<p>要想关掉hooks，只需要不带参数地调用sethook即可。</p>
+<h4 id="准备工作">准备工作</h4>
+
+<p>我们需要先安装<a href="https://github.com/xmake-io/xmake">xmake</a>来编译此项目。</p>
+
+<h4 id="编译">编译</h4>
+
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">xmake</span><span class="kv">
+</span></code></pre>
+</div>
+
+<h4 id="安装">安装</h4>
+
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">xmake</span><span class="kv"> install
+</span></code></pre>
+</div>
+
+<h3 id="luject使用说明">luject使用说明</h3>
+
+<p>用法很简单，主要就是指定输入输出的文件路径就好：</p>
+
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">luject</span><span class="kv"> -i [input] -o [output] -p [libpattern] lib1 lib2 ..
+</span></code></pre>
+</div>
+
+<p>最后面的lib列表，就是指定有哪些动态库需要被注入进去</p>
 
 <p>例如：</p>
 
-<p>最简单的trace，仅仅打印每条执行语句的行号：</p>
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">luject</span><span class="kv"> -i app.apk lib1.so lib2.so
+</span><span class="w">$ </span><span class="nc">luject</span><span class="kv"> -i app.ipa lib1.dylib lib2.dylib
+</span><span class="w">$ </span><span class="nc">luject</span><span class="kv"> -i liba.so lib1.so lib2.so
+</span><span class="w">$ </span><span class="nc">luject</span><span class="kv"> -i app.exe lib1.dll lib2.dll
+</span><span class="w">$ </span><span class="nc">luject</span><span class="kv"> -i a.dll lib1.dll lib2.dll
+</span><span class="w">$ </span><span class="nc">luject</span><span class="kv"> -i liba.dylib lib1.dylib lib2.dyib
+</span><span class="w">$ </span><span class="nc">luject</span><span class="kv"> -i bin lib1.so lib2.so
+</span></code></pre>
+</div>
 
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="nb">debug.sethook</span><span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="s2">"l"</span><span class="p">)</span>
+<p>当然，除了指定库路径，我们也可以指定<code class="highlighter-rouge">@loader_path</code>, <code class="highlighter-rouge">$ORIGIN</code>的路径进去，例如：</p>
+
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">luject</span><span class="kv"> -i libdemo.dylib @loader_path/libtest.dylib
+</span></code></pre>
+</div>
+
+<p>上面的命令，我们就可以把<code class="highlighter-rouge">libtest.dylib</code>注入到另一个<code class="highlighter-rouge">libdemo.dylib</code>的动态库中去，如果<code class="highlighter-rouge">libdemo.dylib</code>被加载，那么就会从<code class="highlighter-rouge">@loader_path</code>也就是libdemo.dylib当前加载目录下
+找对应的<code class="highlighter-rouge">libtest.dylib</code>库，然后自动加载进来，我们也可以通过otool/ldd等工具也查看验证加载列表：</p>
+
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">otool</span><span class="kv"> -L libdemo.dylib
+</span>libdemo.dylib:
+	@loader_path/libtest.dylib (compatibility version 0.0.0, current version 0.0.0)
+	/usr/lib/libz.1.dylib (compatibility version 1.0.0, current version 1.2.11)
+	/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 800.7.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1281.0.0)
 </code></pre>
 </div>
 
-<p>显示结果如下：</p>
+<p>可以看到，libtest库已经被成功插入进去了。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>line	136
-line	113
-line	76
-line	77
-line	113
-line	118
+<h3 id="注入libfrida-gadgetso到apk">注入libfrida-gadget.so到apk</h3>
+
+<p>通常我们在使用frida系列工具对app进行动态分析时，如果不想root，那么可以通过luject将frida-gadget库静态注入到apk里面的so库中去，比如：</p>
+
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">luject</span><span class="kv"> -i app.apk -p libtest /tmp/libfrida-gadget.so
+</span></code></pre>
+</div>
+
+<p>其中，libtest是指定apk中需要匹配注入的so库，并且支持模式匹配实现批量注入，例如：<code class="highlighter-rouge">libtest_*.so</code>，如果不指定<code class="highlighter-rouge">-p</code>参数，默认多所有so进行批量全注入。</p>
+
+<p>关于这块，我们也可以详细看下相关文章: <a href="https://lief.quarkslab.com/doc/latest/tutorials/09_frida_lief.html">How to use frida on a non-rooted device</a></p>
+
+<p>另外，luject重打包后，还会对apk进行重签名，来确保可以正常安装使用</p>
+
+<h3 id="注入libfrida-gadgetdylib到ipa">注入libfrida-gadget.dylib到ipa</h3>
+
+<p>除了android的应用程序包，luject也支持对ios的ipa包进行注入，用法类似：</p>
+
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">luject</span><span class="kv"> -i app.ipa -p libtest /tmp/libfrida-gadget.dylib
+</span></code></pre>
+</div>
+
+<p>luject也会对ipa包进行重签名，它会自动探测用户环境中的有效签名证书，来直接重签名，当然如果默认检测的签名不符合需求，我们也可以手动指定对应的签名信息：</p>
+
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">luject</span><span class="kv"> -i app.ipa -p libtest --codesign_identity='Apple Development: xxx@gmail.com (T3NA4MRVPU)' --mobile_provision='iOS Team Provisioning Profile: org.tboox.test' --bundle_identifier=org.tboox.test /tmp/libfrida-gadget.dylib
+</span></code></pre>
+</div>
+
+<p>那如何知道我们需要的签名配置呢？一种就是在xcode里面查看，另外xmake也提供了一些辅助工具可以dump出当前可用的所有签名配置：</p>
+
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">xmake</span><span class="kv"> l private.tools.codesign.dump
+</span>==================================== codesign identities ====================================
+{ 
+  "Apple Development: waruqi@gmail.com (T3NA4MRVPU)" = "AF73C231A0C35335B72761BD3759694739D34EB1" 
+}
+
+===================================== mobile provisions =====================================
+{ 
+  "iOS Team Provisioning Profile: org.tboox.test" = "&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"&gt;
+&lt;plist version="1.0"&gt;
+&lt;dict&gt;
+	&lt;key&gt;AppIDName&lt;/key&gt;
+	&lt;string&gt;XC org tboox test5&lt;/string&gt;
+	&lt;key&gt;ApplicationIdentifierPrefix&lt;/key&gt;
+	&lt;array&gt;
+	&lt;string&gt;43AAQM58X3&lt;/string&gt;
+...
 </code></pre>
 </div>
 
-<p>我们也可以自定义一个handler，传入第一个参数，通过debug库的getinfo获取正在执行的代码文件路径：</p>
+<p>xmake也提供了其他辅助工具来对已有的ipa/app程序进行重签名，例如：</p>
 
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="nb">debug.sethook</span><span class="p">(</span><span class="k">function</span> <span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="nb">debug.getinfo</span><span class="p">(</span><span class="mi">2</span><span class="p">).</span><span class="n">short_src</span> <span class="o">..</span> <span class="s2">":"</span> <span class="o">..</span> <span class="n">line</span><span class="p">)</span>
-<span class="k">end</span><span class="p">,</span> <span class="s2">"l"</span><span class="p">)</span>
-</code></pre>
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">xmake</span><span class="kv"> l utils.ipa.resign test.ipa|test.app [codesign_identity] [mobile_provision] [bundle_identifier]
+</span></code></pre>
 </div>
 
-<p>显示结果如下：</p>
+<p>其中，后面的签名参数都是可选的，如果没设置，那么默认会探测使用一个有效的签名：</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>/usr/local/share/xmake/core/base/path.lua:46
-/usr/local/share/xmake/core/base/path.lua:47
-/usr/local/share/xmake/core/base/path.lua:56
-/usr/local/share/xmake/core/base/string.lua:32
-/usr/local/share/xmake/core/base/string.lua:33
-/usr/local/share/xmake/core/base/string.lua:34
-/usr/local/share/xmake/core/base/string.lua:35
-/usr/local/share/xmake/core/base/string.lua:36
-/usr/local/share/xmake/core/base/string.lua:38
-/usr/local/share/xmake/core/base/string.lua:33
-</code></pre>
+<div class="language-console highlighter-rouge"><pre class="highlight"><code><span class="w">$ </span><span class="nc">xmake</span><span class="kv"> l utils.ipa.resign test.ipa
+</span><span class="w">$ </span><span class="nc">xmake</span><span class="kv"> l utils.ipa.resign test.app "Apple Development: waruqi@gmail.com (T3NA4MRVPU)"
+</span><span class="w">$ </span><span class="nc">xmake</span><span class="kv"> l utils.ipa.resign test.ipa "Apple Development: waruqi@gmail.com (T3NA4MRVPU)" iOS Team Provisioning Profile: org.tboox.test" org.tboox.test
+</span></code></pre>
 </div>
-
-<p>如果需要禁用之前的hook，只需要调用：</p>
-
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="nb">debug.sethook</span><span class="p">()</span>
-</code></pre>
-</div>
-
-<h4 id="profiler性能分析器的实现">profiler性能分析器的实现</h4>
-
-<p>实现一个profiler类，通过下面的方式进行记录：</p>
-
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code>
-<span class="c1">-- 开始记录</span>
-<span class="n">profiler</span><span class="p">.</span><span class="n">start</span><span class="p">()</span>
-
-<span class="c1">-- TODO</span>
-<span class="c1">-- ...</span>
-
-<span class="c1">-- 结束记录</span>
-<span class="n">profiler</span><span class="p">.</span><span class="n">stop</span><span class="p">()</span>
-</code></pre>
-</div>
-
-<p>相关实现代码如下：</p>
-
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="c1">-- start profiling</span>
-<span class="k">function</span> <span class="nf">profiler</span><span class="p">:</span><span class="n">start</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
-
-    <span class="c1">-- 初始化报告</span>
-    <span class="n">self</span><span class="p">.</span><span class="n">_REPORTS</span>           <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">self</span><span class="p">.</span><span class="n">_REPORTS_BY_TITLE</span>  <span class="o">=</span> <span class="p">{}</span>
-
-    <span class="c1">-- 记录开始时间</span>
-    <span class="n">self</span><span class="p">.</span><span class="n">_STARTIME</span> <span class="o">=</span> <span class="nb">os.clock</span><span class="p">()</span>
-
-    <span class="c1">-- 开始hook，注册handler，记录call和return事件</span>
-    <span class="nb">debug.sethook</span><span class="p">(</span><span class="n">profiler</span><span class="p">.</span><span class="n">_profiling_handler</span><span class="p">,</span> <span class="s1">'cr'</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-<span class="k">end</span>
-
-<span class="c1">-- stop profiling</span>
-<span class="k">function</span> <span class="nf">profiler</span><span class="p">:</span><span class="n">stop</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
-
-    <span class="c1">-- 记录结束时间</span>
-    <span class="n">self</span><span class="p">.</span><span class="n">_STOPTIME</span> <span class="o">=</span> <span class="nb">os.clock</span><span class="p">()</span>
-
-    <span class="c1">-- 停止hook</span>
-    <span class="nb">debug.sethook</span><span class="p">()</span>
-
-    <span class="c1">-- 记录总耗时</span>
-    <span class="kd">local</span> <span class="n">totaltime</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="n">_STOPTIME</span> <span class="o">-</span> <span class="n">self</span><span class="p">.</span><span class="n">_STARTIME</span>
-
-    <span class="c1">-- 排序报告</span>
-    <span class="nb">table.sort</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">_REPORTS</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">a</span><span class="p">.</span><span class="n">totaltime</span> <span class="o">&gt;</span> <span class="n">b</span><span class="p">.</span><span class="n">totaltime</span>
-    <span class="k">end</span><span class="p">)</span>
-
-    <span class="c1">-- 格式化报告输出</span>
-    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">report</span> <span class="k">in</span> <span class="nb">ipairs</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">_REPORTS</span><span class="p">)</span> <span class="k">do</span>
-        
-        <span class="c1">-- calculate percent</span>
-        <span class="kd">local</span> <span class="n">percent</span> <span class="o">=</span> <span class="p">(</span><span class="n">report</span><span class="p">.</span><span class="n">totaltime</span> <span class="o">/</span> <span class="n">totaltime</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
-        <span class="k">if</span> <span class="n">percent</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="k">then</span>
-            <span class="k">break</span>
-        <span class="k">end</span>
-
-        <span class="c1">-- trace</span>
-        <span class="n">utils</span><span class="p">.</span><span class="n">print</span><span class="p">(</span><span class="s2">"%6.3f, %6.2f%%, %7d, %s"</span><span class="p">,</span> <span class="n">report</span><span class="p">.</span><span class="n">totaltime</span><span class="p">,</span> <span class="n">percent</span><span class="p">,</span> <span class="n">report</span><span class="p">.</span><span class="n">callcount</span><span class="p">,</span> <span class="n">report</span><span class="p">.</span><span class="n">title</span><span class="p">)</span>
-    <span class="k">end</span>
-<span class="k">end</span>
-</code></pre>
-</div>
-
-<p>实现很简单，主要就是记录开始和结束时间，然后排序下最终的报表，进行格式化打印输出。</p>
-
-<p>其中，计时函数使用了<code class="highlighter-rouge">os.clock</code>接口，返回一个程序使用CPU时间的一个近似值，不是毫秒哦，我们这边仅仅是为了分析性能瓶颈。</p>
-
-<p>就算不获取精确毫秒数，也是可以的（其实用毫秒也没什么意义，这种debug.sethook的方式原本就不是很精确），只要通过耗时占比就可以分析。</p>
-
-<p>接下来，就是handler函数中，对call和return事件，进行分别处理，累计每个函数的调用总时间，调用总次数。</p>
-
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="c1">-- profiling call</span>
-<span class="k">function</span> <span class="nf">profiler</span><span class="p">:</span><span class="n">_profiling_call</span><span class="p">(</span><span class="n">funcinfo</span><span class="p">)</span>
-
-    <span class="c1">-- 获取当前函数对应的报告，如果不存在则初始化下</span>
-    <span class="kd">local</span> <span class="n">report</span> <span class="o">=</span> <span class="n">self</span><span class="p">:</span><span class="n">_func_report</span><span class="p">(</span><span class="n">funcinfo</span><span class="p">)</span>
-    <span class="nb">assert</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
-
-    <span class="c1">-- 记录这个函数的起始调用事件</span>
-    <span class="n">report</span><span class="p">.</span><span class="n">calltime</span>    <span class="o">=</span> <span class="nb">os.clock</span><span class="p">()</span>
-
-    <span class="c1">-- 累加这个函数的调用次数</span>
-    <span class="n">report</span><span class="p">.</span><span class="n">callcount</span>   <span class="o">=</span> <span class="n">report</span><span class="p">.</span><span class="n">callcount</span> <span class="o">+</span> <span class="mi">1</span>
-
-<span class="k">end</span>
-
-<span class="c1">-- profiling return</span>
-<span class="k">function</span> <span class="nf">profiler</span><span class="p">:</span><span class="n">_profiling_return</span><span class="p">(</span><span class="n">funcinfo</span><span class="p">)</span>
-
-    <span class="c1">-- 记录这个函数的返回时间</span>
-    <span class="kd">local</span> <span class="n">stoptime</span> <span class="o">=</span> <span class="nb">os.clock</span><span class="p">()</span>
-
-    <span class="c1">-- 获取当前函数的报告</span>
-    <span class="kd">local</span> <span class="n">report</span> <span class="o">=</span> <span class="n">self</span><span class="p">:</span><span class="n">_func_report</span><span class="p">(</span><span class="n">funcinfo</span><span class="p">)</span>
-    <span class="nb">assert</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
-
-    <span class="c1">-- 计算和累加当前函数的调用总时间</span>
-    <span class="k">if</span> <span class="n">report</span><span class="p">.</span><span class="n">calltime</span> <span class="ow">and</span> <span class="n">report</span><span class="p">.</span><span class="n">calltime</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">then</span>
-		<span class="n">report</span><span class="p">.</span><span class="n">totaltime</span> <span class="o">=</span> <span class="n">report</span><span class="p">.</span><span class="n">totaltime</span> <span class="o">+</span> <span class="p">(</span><span class="n">stoptime</span> <span class="o">-</span> <span class="n">report</span><span class="p">.</span><span class="n">calltime</span><span class="p">)</span>
-        <span class="n">report</span><span class="p">.</span><span class="n">calltime</span> <span class="o">=</span> <span class="mi">0</span>
-	<span class="k">end</span>
-<span class="k">end</span>
-
-<span class="c1">-- the profiling handler</span>
-<span class="k">function</span> <span class="nc">profiler</span><span class="p">.</span><span class="nf">_profiling_handler</span><span class="p">(</span><span class="n">hooktype</span><span class="p">)</span>
-
-    <span class="c1">-- 获取当前函数信息</span>
-    <span class="kd">local</span> <span class="n">funcinfo</span> <span class="o">=</span> <span class="nb">debug.getinfo</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s1">'nS'</span><span class="p">)</span>
-
-    <span class="c1">-- 根据事件类型，分别处理 </span>
-    <span class="k">if</span> <span class="n">hooktype</span> <span class="o">==</span> <span class="s2">"call"</span> <span class="k">then</span>
-        <span class="n">profiler</span><span class="p">:</span><span class="n">_profiling_call</span><span class="p">(</span><span class="n">funcinfo</span><span class="p">)</span>
-    <span class="k">elseif</span> <span class="n">hooktype</span> <span class="o">==</span> <span class="s2">"return"</span> <span class="k">then</span>
-        <span class="n">profiler</span><span class="p">:</span><span class="n">_profiling_return</span><span class="p">(</span><span class="n">funcinfo</span><span class="p">)</span>
-    <span class="k">end</span>
-<span class="k">end</span>
-</code></pre>
-</div>
-
-<p>简单吧，最后就是通过函数，获取指定的报告了，这个就不多说了，简单贴下代码吧：</p>
-
-<div class="language-lua highlighter-rouge"><pre class="highlight"><code>
-<span class="c1">-- get the function title</span>
-<span class="k">function</span> <span class="nf">profiler</span><span class="p">:</span><span class="n">_func_title</span><span class="p">(</span><span class="n">funcinfo</span><span class="p">)</span>
-
-    <span class="c1">-- check</span>
-    <span class="nb">assert</span><span class="p">(</span><span class="n">funcinfo</span><span class="p">)</span>
-
-    <span class="c1">-- the function name</span>
-    <span class="kd">local</span> <span class="n">name</span> <span class="o">=</span> <span class="n">funcinfo</span><span class="p">.</span><span class="n">name</span> <span class="ow">or</span> <span class="s1">'anonymous'</span>
-
-    <span class="c1">-- the function line</span>
-    <span class="kd">local</span> <span class="n">line</span> <span class="o">=</span> <span class="nb">string.format</span><span class="p">(</span><span class="s2">"%d"</span><span class="p">,</span> <span class="n">funcinfo</span><span class="p">.</span><span class="n">linedefined</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">)</span>
-
-    <span class="c1">-- the function source</span>
-    <span class="kd">local</span> <span class="n">source</span> <span class="o">=</span> <span class="n">funcinfo</span><span class="p">.</span><span class="n">short_src</span> <span class="ow">or</span> <span class="s1">'C_FUNC'</span>
-    <span class="k">if</span> <span class="n">os</span><span class="p">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">source</span><span class="p">)</span> <span class="k">then</span>
-        <span class="n">source</span> <span class="o">=</span> <span class="n">path</span><span class="p">.</span><span class="n">relative</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">xmake</span><span class="p">.</span><span class="n">_PROGRAM_DIR</span><span class="p">)</span>
-    <span class="k">end</span>
-
-    <span class="c1">-- make title</span>
-    <span class="k">return</span> <span class="nb">string.format</span><span class="p">(</span><span class="s2">"%-30s: %s: %s"</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
-<span class="k">end</span>
-
-<span class="c1">-- get the function report</span>
-<span class="k">function</span> <span class="nf">profiler</span><span class="p">:</span><span class="n">_func_report</span><span class="p">(</span><span class="n">funcinfo</span><span class="p">)</span>
-
-    <span class="c1">-- get the function title</span>
-    <span class="kd">local</span> <span class="n">title</span> <span class="o">=</span> <span class="n">self</span><span class="p">:</span><span class="n">_func_title</span><span class="p">(</span><span class="n">funcinfo</span><span class="p">)</span>
-
-    <span class="c1">-- get the function report</span>
-    <span class="kd">local</span> <span class="n">report</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="n">_REPORTS_BY_TITLE</span><span class="p">[</span><span class="n">title</span><span class="p">]</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">report</span> <span class="k">then</span>
-        
-        <span class="c1">-- init report</span>
-        <span class="n">report</span> <span class="o">=</span> 
-        <span class="p">{</span>
-            <span class="n">title</span>       <span class="o">=</span> <span class="n">self</span><span class="p">:</span><span class="n">_func_title</span><span class="p">(</span><span class="n">funcinfo</span><span class="p">)</span>
-        <span class="p">,</span>   <span class="n">callcount</span>   <span class="o">=</span> <span class="mi">0</span>
-        <span class="p">,</span>   <span class="n">totaltime</span>   <span class="o">=</span> <span class="mi">0</span>
-        <span class="p">}</span>
-
-        <span class="c1">-- save it</span>
-        <span class="n">self</span><span class="p">.</span><span class="n">_REPORTS_BY_TITLE</span><span class="p">[</span><span class="n">title</span><span class="p">]</span> <span class="o">=</span> <span class="n">report</span>
-        <span class="nb">table.insert</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">_REPORTS</span><span class="p">,</span> <span class="n">report</span><span class="p">)</span>
-    <span class="k">end</span>
-
-    <span class="c1">-- ok?</span>
-    <span class="k">return</span> <span class="n">report</span>
-<span class="k">end</span>
-</code></pre>
-</div>
-
-<p>需要注意的是，通过debug.sethook的方式，进行hook计时本身也是有性能损耗的，因此不可能完全精确，如果改用c实现也许会好些。</p>
-
-<p>不过，对于平常的性能瓶颈分析，应该够用了。。</p>
-
-<h4 id="结语">结语</h4>
-
-<p>这里只是一个简单的例子，稍微扩展下，还是可以实现lua脚本的api实时调用追踪（也就是trace）。</p>
-
-<p>完整代码，可以到xmake的源码中翻看：<a href="https://github.com/xmake-io/xmake/blob/master/xmake/core/base/profiler.lua">profiler代码</a></p>
-
-<p>里面除了性能分析，trace调用也有实现。</p>
-
-<p>最后，如果大家想快速体验下这个profiler的效果，可以直接运行xmake：</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>xmake --profile
-</code></pre>
-</div>
-
-<p>这个<code class="highlighter-rouge">--profile</code>是给xmake调试分析的时候使用，一般也就我自己用用，发现某些xmake操作很慢，想要查找问题原因的时候，不需要改代码，只需要快速的加上这个参数，重跑下就行了。。</p>
-
-<p>顺带的提下，xmake另外两个调试相关的参数：</p>
-
-<ol>
-  <li><code class="highlighter-rouge">-v/--verbose</code>：显示详细输出信息，编译时还会显示详细警告信息。</li>
-  <li><code class="highlighter-rouge">--backtrace</code>：出错的时候，显示详细栈信息，用于快速issues反馈，辅助定位问题。</li>
-</ol>
-
-<p>lua的debug库还是非常强大的，有兴趣的同学可以进一步去挖掘debug的各种特性哦。</p>
 
         </article>
         <hr>
@@ -1493,6 +1351,8 @@ line	118
         
         
             
+        
+            
             
             
                 
@@ -1500,78 +1360,6 @@ line	118
                         
                         <h2 id="similar_posts">相关文章</h2>
                         <ul>
-                        
-                        <li class="relatedPost">
-                            <a href="/cn/2020/04/26/luject/">一个静态注入动态库的工具: luject
-                            
-                            </a>
-                        </li>
-                        
-                        
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-                
-                    
-                
-                    
-                
-                    
-                
-            
-            
-        
-            
-        
-            
-            
-            
-                
-                    
                         
                         <li class="relatedPost">
                             <a href="/cn/2020/04/17/xmake-gradle-v1.0.7/">xmake-gradle v1.0.7 发布, 集成xmake快速构建Android JNI程序
@@ -1586,15 +1374,7 @@ line	118
                 
                     
                 
-            
-                
                     
-                
-                    
-                
-                    
-                
-            
                 
                     
                 
@@ -1610,7 +1390,55 @@ line	118
                 
                     
                 
+                    
+                
+                    
+                
+                    
+                
+                    
+                
             
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
                 
                     
                 
@@ -1640,15 +1468,7 @@ line	118
                 
                     
                 
-            
-                
                     
-                
-                    
-                
-                    
-                
-            
                 
                     
                 
@@ -1657,6 +1477,46 @@ line	118
                     
                 
             
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
                 
                     
                 
@@ -1688,15 +1548,7 @@ line	118
                 
                     
                 
-            
-                
                     
-                
-                    
-                
-                    
-                
-            
                 
                     
                 
@@ -1712,7 +1564,55 @@ line	118
                 
                     
                 
+                    
+                
+                    
+                
+                    
+                
+                    
+                
             
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
                 
                     
                 
@@ -1735,7 +1635,23 @@ line	118
                 
                     
                 
+                    
+                
+                    
+                
+                    
+                
+                    
+                
             
+                
+                    
+                
+                    
+                
+                    
+                
+                    
                 
                     
                 
@@ -1767,15 +1683,7 @@ line	118
                 
                     
                 
-            
-                
                     
-                
-                    
-                
-                    
-                
-            
                 
                     
                 
@@ -1791,15 +1699,7 @@ line	118
                 
                     
                 
-            
-                
                     
-                
-                    
-                
-                    
-                
-            
                 
                     
                 
@@ -1815,7 +1715,149 @@ line	118
                 
                     
                 
+                    
+                
+                    
+                
+                    
+                
+                    
+                
             
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+            
+        
+            
+            
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            
+                
+                    
+                        
+                        <li class="relatedPost">
+                            <a href="/cn/2019/12/31/tboox-now-and-future/">TBOOX开源工程2019总结和明年规划
+                            
+                            </a>
+                        </li>
+                        
+                        
+                    
+                
+                    
+                
+                    
+                
+                    
                 
                     
                 
@@ -1847,7 +1889,7 @@ line	118
 
         
         
-        <p><strong>上一篇</strong> <a href="/cn/2017/01/08/license-changed/">TBOOX更新License为Apache License 2.0</a></p>
+        <p><strong>上一篇</strong> <a href="/cn/2020/04/17/xmake-gradle-v1.0.7/">xmake-gradle v1.0.7 发布, 集成xmake快速构建Android JNI程序</a></p>
         
     </div>
 
@@ -1858,8 +1900,1507 @@ line	118
         
 
         
+
         
-        <p><strong>下一篇</strong> <a href="/cn/2017/01/18/usage-demo/">xmake使用演示</a></p>
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
         
     </div>
 </div>
