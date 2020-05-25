@@ -24,6 +24,10 @@ TBOOX的所有项目都是属于个人开源项目，它的发展需要您的帮
 
 [![Paypal Me](/static/img/paypal.png)](http://paypal.me/tboox/5)
 
+## Github Sponsor
+
+[Become a sponsor to waruqi](https://github.com/sponsors/waruqi)
+
 ## Bitcoin
 
 ```
@@ -34,6 +38,7 @@ bc1qstzyehpjsryh8qwj8kf95js4cjcj3p670s5j9fyd3gkj946qdt7qx0xjpa
 
 <a href="https://opencollective.com/xmake#backers" target="_blank"><img src="https://opencollective.com/xmake/backers.svg?width=890"></a>
 
+|| 2020.05.25 || xmake || 魔之左手 || 微信 || ¥100 || ||
 || 2020.05.20 || xmake || Russell Haley || paypal || $10CAD || ||
 || 2020.05.15 || xmake || Russell Haley || paypal || $10CAD || ||
 || 2020.04.10 || xmake || C*g || 微信 || ¥20 || 拒绝白嫖，支持一下 ||

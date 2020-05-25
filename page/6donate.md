@@ -17,6 +17,10 @@ If you would like to support the development of these projects, welcome to donat
 
 [![Paypal Me](/static/img/paypal.png)](http://paypal.me/tboox/5)
 
+## Github Sponsor
+
+[Become a sponsor to waruqi](https://github.com/sponsors/waruqi)
+
 ## Bitcoin
 
 ```
@@ -54,6 +58,7 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## Supporters
 
+|| 2020.05.25 || xmake || 魔之左手 || wechat || ¥100 || ||
 || 2020.05.20 || xmake || Russell Haley || paypal || $10CAD || ||
 || 2020.05.15 || xmake || Russell Haley || paypal || $10CAD || ||
 || 2020.04.10 || xmake || C*g || wechat || ¥20 || 拒绝白嫖，支持一下 ||
