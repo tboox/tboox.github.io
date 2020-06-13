@@ -58,6 +58,7 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## Supporters
 
+|| 2020.06.11 || xmake || c*o || wechat || ¥100 || ||
 || 2020.06.09 || xmake || w*; || wechat || ¥50 || 我用过的最舒心的工具 ||
 || 2020.06.09 || tboox || 凌风 || alipay || ¥0.01 || ||
 || 2020.05.25 || xmake || 魔之左手 || wechat || ¥100 || ||
