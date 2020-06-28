@@ -5,9 +5,509 @@
     <description>Focus on cross-platform development using c language</description>
     <link>http://www.tboox.org/</link>
     <atom:link href="http://www.tboox.org/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Wed, 24 Jun 2020 22:21:02 +0800</pubDate>
-    <lastBuildDate>Wed, 24 Jun 2020 22:21:02 +0800</lastBuildDate>
+    <pubDate>Sun, 28 Jun 2020 20:17:22 +0800</pubDate>
+    <lastBuildDate>Sun, 28 Jun 2020 20:17:22 +0800</lastBuildDate>
     <generator>Jekyll v3.1.0</generator>
+    
+      <item>
+        <title>xmake v2.3.5 released, Multi-toolchain flexible switching support</title>
+        <description>&lt;p&gt;The main work of this version is to continue to improve the support of the tool chain. Although the previous version achieved modular tool chain extension through refactoring, for one compilation, I want to flexibly switch the compilation on the cross tool chain/Host tool chain. Not very good support, so this version focuses on improving the support of this piece.&lt;/p&gt;
+
+&lt;p&gt;In addition, this version also improves the problem of slow downloading of remote dependent packages integrated using &lt;code class=&quot;highlighter-rouge&quot;&gt;add_requires&lt;/code&gt;, adding proxy settings and local package retrieval multiplexing support to improve this problem. Of course, the best way is to get a domestic CDN to speed up the download, but this cost is too high, for the time being not toss.&lt;/p&gt;
+
+&lt;p&gt;There are some minor changes and bug fixes, you can see the updated content at the bottom of the article.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;Github&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/home&quot;&gt;Documents&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;introduction-of-new-features&quot;&gt;Introduction of New Features&lt;/h2&gt;
+
+&lt;h3 id=&quot;multi-toolchain-flexible-switching&quot;&gt;Multi-toolchain flexible switching&lt;/h3&gt;
+
+&lt;p&gt;For an example of this, please refer to the luajit project. The compilation process needs to first compile the two targets minilua/buildvm under the host platform, and then generate the jit code corresponding to the target platform through minilua/buildvm to participate in the compilation of the overall luajit library.&lt;/p&gt;
+
+&lt;p&gt;Therefore, the entire compilation process needs to use the host tool chain for a specific target, and then use the cross tool chain to complete the compilation for other targets.&lt;/p&gt;
+
+&lt;p&gt;So how should we configure xmake.lua to achieve this way, one is to set the specified host toolchain for a specific target through the &lt;code class=&quot;highlighter-rouge&quot;&gt;set_toolchains&lt;/code&gt; interface, for example:&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;buildvm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_toolchains&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;xcode&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;plat&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;host&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;arch&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;arch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()})&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;luajit&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;static&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;buildvm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;If you are currently in cross-compilation mode, even if you execute the following command to configure the android compilation platform, its buildvm is still using xcode to compile the macOS target program, only the luajit library is compiled using the ndk toolchain:&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f -p android --ndk=/xxxx
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;However, this is not particularly convenient, especially when cross-platform compilation, pc tool chains of different platforms are different, there are msvc, xcode, clang, etc., you need to judge the platform to specify.&lt;/p&gt;
+
+&lt;p&gt;We can also continue to generalize and let xmake automatically select the currently available Host toolchain for different platforms, instead of explicitly specifying a specific toolchain, and improve it to the following version:&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;buildvm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_plat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;host&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_host&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;arch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;luajit&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;static&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;buildvm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;By using &lt;a href=&quot;https://xmake.io/#/manual/project_target?id=targetset_plat&quot;&gt;set_plat&lt;/a&gt; and &lt;a href=&quot;https://xmake.io/#/manual/project_target?id=targetset_arch&quot;&gt;set_arch&lt;/a&gt; interface, directly set a specific target to the host platform, you can automatically select the host tool chain internally.&lt;/p&gt;
+
+&lt;p&gt;For a complete configuration example of this piece, you can refer to: https://github.com/xmake-io/xmake-repo/blob/master/packages/l/luajit/port/xmake.lua&lt;/p&gt;
+
+&lt;h2 id=&quot;remote-package-download-optimization&quot;&gt;Remote package download optimization&lt;/h2&gt;
+
+&lt;p&gt;If the download package is slow or fails due to an unstable network, we can use the following methods to resolve it.&lt;/p&gt;
+
+&lt;h3 id=&quot;manual-download&quot;&gt;Manual download&lt;/h3&gt;
+
+&lt;p&gt;By default, xmake will call curl, wget and other tools to download, users can also manually download with their own downloader (you can also use an agent), and put the downloaded package in their own directory, for example: &lt;code class=&quot;highlighter-rouge&quot;&gt;/download/packages/zlib -v1.0.tar.gz&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Then use the following command to set the search directory for package download:&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; g --pkg_searchdirs=&quot;/download/packages&quot;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Then re-execute xmake to compile, xmake will first look for the source package from &lt;code class=&quot;highlighter-rouge&quot;&gt;/download/packages&lt;/code&gt;, and then use it directly, no longer download it yourself.&lt;/p&gt;
+
+&lt;p&gt;As for the package name you are looking for, you can check it by the following command:&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; require --info zlib
+&lt;/span&gt;-&amp;gt; searchdirs: /download/packages
+-&amp;gt; searchnames: zlib-1.2.11.tar.gz
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;We can see the corresponding search directory and the searched package name.&lt;/p&gt;
+
+&lt;h3 id=&quot;proxy-download&quot;&gt;Proxy download&lt;/h3&gt;
+
+&lt;p&gt;If manual downloading is still troublesome, we can also let xmake go directly to the agent.&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; g --proxy=&quot;socks5://127.0.0.1:1086&quot;
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; g --help
+&lt;/span&gt;    -x PROXY, --proxy=PROXY Use proxy on given port. [PROTOCOL://]HOST[:PORT]
+                                 e.g.
+                                 -xmake g --proxy=&#39;http://host:port&#39;
+                                 -xmake g --proxy=&#39;https://host:port&#39;
+                                 -xmake g --proxy=&#39;socks5://host:port&#39;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;--proxy&lt;/code&gt; parameter specifies the proxy protocol and address. The specific syntax can refer to curl. Usually, it can support http, https, socks5 and other protocols, but the actual support depends on curl, wget and git. For example, wget does not support the socks5 protocol.&lt;/p&gt;
+
+&lt;p&gt;We can use the following parameters to specify which hosts go to the proxy. If not set, the default is to go global.&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;--proxy_hosts=PROXY_HOSTS Only enable proxy for the given hosts list, it will enable all if be unset,
+                             and we can pass match pattern to list:
+                                 e.g.
+                                 -xmake g --proxy_hosts=&#39;github.com,gitlab.*,*.xmake.io&#39;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;If the hosts list is set, then the matching hosts in this list will go to the proxy. .&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;--proxy_host&lt;/code&gt; supports multiple hosts settings, separated by commas, and supports basic pattern matching *.github.com, and other lua pattern matching rules are also supported&lt;/p&gt;
+
+&lt;p&gt;If we feel that the above hosts mode configuration is not flexible enough, we can also follow pac’s automatic proxy configuration rules:&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;--proxy_pac=PROXY_PAC Set the auto proxy configuration file. (default: pac.lua)
+                                     e.g.
+                                     -xmake g --proxy_pac=pac.lua (in /Users/ruki/.xmake or absolute path)
+                                     -function main(url, host)
+                                           if host ==&#39;github.com&#39; then
+                                                return true
+                                           end
+                                       end
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;!&amp;gt; If there are proxy_hosts, host configuration is preferred, otherwise, pac configuration is used.&lt;/p&gt;
+
+&lt;p&gt;The default path of pac: ~/.xmake/pac.lua, if –proxy is set, and this file exists, it will automatically go to pac. If it does not exist, and there are no hosts, then the proxy will take effect globally.&lt;/p&gt;
+
+&lt;p&gt;You can also manually specify the pac full path&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; g --proxy_pac=/xxxx/xxxxx_pac.lua
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Configuration rule description:&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;host&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;host&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;find&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;bintray.com&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;If it returns true, then the url and host are the proxy to go, not to return or return false, it is not to proxy.&lt;/p&gt;
+
+&lt;p&gt;For specific details of this section, please see: &lt;a href=&quot;https://github.com/xmake-io/xmake/issues/854&quot;&gt;https://github.com/xmake-io/xmake/issues/854&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;!&amp;gt; In addition, in addition to relying on package downloads, other commands related to network downloads also support proxies, such as: &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake update&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;other-small-changes&quot;&gt;Other small changes&lt;/h2&gt;
+
+&lt;h3 id=&quot;rc-header-file-depends-on-compilation-support&quot;&gt;rc header file depends on compilation support&lt;/h3&gt;
+
+&lt;p&gt;Although the rc compiler in msvc does not natively support the export of the &lt;code class=&quot;highlighter-rouge&quot;&gt;#include &amp;lt;xxx.h&amp;gt;&lt;/code&gt; header file list in the .rc file, xmake still directly extracts the .rc source file by parsing it in a disguised way. The list is also extracted to achieve header file dependent compilation support.&lt;/p&gt;
+
+&lt;p&gt;Although it may not be accurate enough (the macro cannot be processed yet), it is basically usable.&lt;/p&gt;
+
+&lt;h3 id=&quot;improve-modeminsizerel-compilation-mode&quot;&gt;Improve mode.minsizerel compilation mode&lt;/h3&gt;
+
+&lt;p&gt;The new version has the minimum compilation under msvc, and the &lt;code class=&quot;highlighter-rouge&quot;&gt;/GL&lt;/code&gt; compilation option is turned on by default. The size of the target file is further optimized, and the optimization effect is relatively obvious.&lt;/p&gt;
+
+&lt;p&gt;For details about this, please refer to: &lt;a href=&quot;https://github.com/xmake-io/xmake/issues/835&quot;&gt;https://github.com/xmake-io/xmake/issues/835&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;improve-protobuf-rule-support&quot;&gt;Improve protobuf rule support&lt;/h3&gt;
+
+&lt;p&gt;The built-in &lt;code class=&quot;highlighter-rouge&quot;&gt;protobuf.cpp&lt;/code&gt; compilation rule of xmake also supports the case of importing multi-level subdirectories in &lt;code class=&quot;highlighter-rouge&quot;&gt;*.proto&lt;/code&gt;. Previously, only proto files at the same level could be used.&lt;/p&gt;
+
+&lt;p&gt;This is the case for &lt;code class=&quot;highlighter-rouge&quot;&gt;import common-files/b.proto&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;proto-files
+    a.proto
+    common-files
+        b.proto
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;The corresponding xmake.lua configuration is as follows:&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;protobuf-cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_languages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;c++11&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;protobuf-cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;proto/**.proto&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rules&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;protobuf.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;proto_rootdir&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;proto&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Compared to before, an additional &lt;code class=&quot;highlighter-rouge&quot;&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;proto_rootdir&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&quot;&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;}&lt;/span&gt;&lt;/code&gt; configuration needs to be passed to specify the root directory of all protos relative to the import.&lt;/p&gt;
+
+&lt;p&gt;For details about this, see: &lt;a href=&quot;https://github.com/xmake-io/xmake/issues/828&quot;&gt;https://github.com/xmake-io/xmake/issues/828&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;changlog&quot;&gt;Changlog&lt;/h2&gt;
+
+&lt;h3 id=&quot;new-features&quot;&gt;New features&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Add &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake show -l envs&lt;/code&gt; to show all builtin envirnoment variables&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/861&quot;&gt;#861&lt;/a&gt;: Support search local package file to install remote package&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/854&quot;&gt;#854&lt;/a&gt;: Support global proxy settings for curl, wget and git&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;change&quot;&gt;Change&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/828&quot;&gt;#828&lt;/a&gt;: Support to import sub-directory files for protobuf rules&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/835&quot;&gt;#835&lt;/a&gt;: Improve mode.minsizerel to add /GL flags for msvc&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/828&quot;&gt;#828&lt;/a&gt;: Support multi-level directories for protobuf/import&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/838#issuecomment-643570920&quot;&gt;#838&lt;/a&gt;: Support to override builtin-rules for &lt;code class=&quot;highlighter-rouge&quot;&gt;add_files(&quot;src/*.c&quot;, {rules = {&quot;xx&quot;, override = true}})&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/847&quot;&gt;#847&lt;/a&gt;: Support to parse include deps for rc file&lt;/li&gt;
+  &lt;li&gt;Improve msvc tool chain, remove the dependence of global environment variables&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/857&quot;&gt;#857&lt;/a&gt;: Improved &lt;code class=&quot;highlighter-rouge&quot;&gt;set_toolchains()&lt;/code&gt; when cross-compilation is supported, specific target can be switched to host toolchain and compiled at the same time&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;bugs-fixed&quot;&gt;Bugs fixed&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Fix the progress bug for theme&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/829&quot;&gt;#829&lt;/a&gt;: Fix invalid sysroot path for macOS&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/832&quot;&gt;#832&lt;/a&gt;: Fix find_packages bug for the debug mode&lt;/li&gt;
+&lt;/ul&gt;
+
+</description>
+        <pubDate>Sun, 28 Jun 2020 00:00:00 +0800</pubDate>
+        <link>http://www.tboox.org/2020/06/28/xmake-update-v2.3.5/</link>
+        <guid isPermaLink="true">http://www.tboox.org/2020/06/28/xmake-update-v2.3.5/</guid>
+        
+        <category>xmake</category>
+        
+        <category>lua</category>
+        
+        <category>C/C++</category>
+        
+        <category>toolchains</category>
+        
+        <category>cross-compilation</category>
+        
+        
+        <category>xmake</category>
+        
+      </item>
+    
+      <item>
+        <title>xmake v2.3.5 发布, 多工具链灵活切换支持</title>
+        <description>&lt;p&gt;这个版本主要工作还是继续改进对工具链的支持，上个版本虽然通过重构实现了模块化的工具链扩展，但是对于一次编译想要灵活地在交叉工具链/Host工具链上切换编译，还不能很好的支持，因此这个版本重点改进了这块的支持力度。&lt;/p&gt;
+
+&lt;p&gt;另外，此版本还对使用&lt;code class=&quot;highlighter-rouge&quot;&gt;add_requires&lt;/code&gt;集成的远程依赖包下载慢的问题做了改进，增加了代理设置、本地包检索复用的支持来改善此问题。当然，最好的方式还是搞个国内的cdn来加速下载，但是这个成本过高，暂时就不折腾了。&lt;/p&gt;
+
+&lt;p&gt;还有一些小改动和bug修复，可以看下文章最下面的更新内容。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;项目源码&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;新特性介绍&quot;&gt;新特性介绍&lt;/h2&gt;
+
+&lt;h3 id=&quot;多工具链灵活切换&quot;&gt;多工具链灵活切换&lt;/h3&gt;
+
+&lt;p&gt;关于这块的一个example，可以参考luajit项目，里面的编译流程需要先编译host平台下minilua/buildvm两个target，然后再通过minilua/buildvm生成对应目标平台的jit代码参与整体luajit库的编译。&lt;/p&gt;
+
+&lt;p&gt;因此整个编译过程需要先对特定target采用host工具链，然后对其他target再使用交叉工具链完成编译。&lt;/p&gt;
+
+&lt;p&gt;那我们应该如何配置xmake.lua去实现这种方式呢，一种就是通过&lt;code class=&quot;highlighter-rouge&quot;&gt;set_toolchains&lt;/code&gt;接口，对特定target设置指定的host工具链，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;buildvm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_toolchains&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;xcode&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;plat&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;host&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;arch&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;arch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()})&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;luajit&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;static&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;buildvm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;如果当前是在交叉编译模式，即使执行下面的命令配置成android编译平台，其buildvm实际还是在使用xcode编译macOS目标程序，仅仅luajit库是采用ndk工具链编译：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f -p android --ndk=/xxxx
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;但是，这还不是特别方便，尤其是跨平台编译时候，不同平台的pc工具链都是不同的，有msvc, xcode, clang等，还需要判断平台来指定。&lt;/p&gt;
+
+&lt;p&gt;我们还可以继续通用化，让xmake针对不同平台自动选用当前可用的Host工具链，而不是显式指定特定工具链，改进成下面的版本：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;buildvm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_plat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;host&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_host&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;arch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;luajit&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;static&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;buildvm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;通过使用&lt;a href=&quot;https://xmake.io/#/zh-cn/manual/project_target?id=targetset_plat&quot;&gt;set_plat&lt;/a&gt;和&lt;a href=&quot;https://xmake.io/#/zh-cn/manual/project_target?id=targetset_arch&quot;&gt;set_arch&lt;/a&gt;接口，直接设置特定target到主机平台，就可以内部自动选择host工具链了。&lt;/p&gt;
+
+&lt;p&gt;关于这块的完整配置例子，可以参考：https://github.com/xmake-io/xmake-repo/blob/master/packages/l/luajit/port/xmake.lua&lt;/p&gt;
+
+&lt;h2 id=&quot;远程包下载优化&quot;&gt;远程包下载优化&lt;/h2&gt;
+
+&lt;p&gt;如果由于网络不稳定，导致下载包速度很慢或者下载失败，我们可以通过的下面的一些方式来解决。&lt;/p&gt;
+
+&lt;h3 id=&quot;手动下载&quot;&gt;手动下载&lt;/h3&gt;
+
+&lt;p&gt;默认xmake会调用curl, wget等工具来下载，用户也可以手动用自己的下载器下载（也可以使用代理），把下载后的包放到自己的目录下，比如: &lt;code class=&quot;highlighter-rouge&quot;&gt;/download/packages/zlib-v1.0.tar.gz&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;然后使用下面的命令，设置包下载的搜索目录：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; g --pkg_searchdirs=&quot;/download/packages&quot;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;然后重新执行xmake编译时候，xmake会优先从&lt;code class=&quot;highlighter-rouge&quot;&gt;/download/packages&lt;/code&gt;找寻源码包，然后直接使用，不再自己下载了。&lt;/p&gt;
+
+&lt;p&gt;至于找寻的包名是怎样的呢，可以通过下面的命令查看：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; require --info zlib
+&lt;/span&gt;-&amp;gt; searchdirs: /download/packages
+-&amp;gt; searchnames: zlib-1.2.11.tar.gz
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;我们可以看到对应的搜索目录以及搜索的包名。&lt;/p&gt;
+
+&lt;h3 id=&quot;设置代理&quot;&gt;设置代理&lt;/h3&gt;
+
+&lt;p&gt;如果觉得手动下载还是麻烦，我们也可以让xmake直接走代理。&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; g --proxy=&quot;socks5://127.0.0.1:1086&quot;
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; g --help
+&lt;/span&gt;    -x PROXY, --proxy=PROXY  Use proxy on given port. [PROTOCOL://]HOST[:PORT]
+                                 e.g.
+                                 - xmake g --proxy=&#39;http://host:port&#39;
+                                 - xmake g --proxy=&#39;https://host:port&#39;
+                                 - xmake g --proxy=&#39;socks5://host:port&#39;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;--proxy&lt;/code&gt;参数指定代理协议和地址，具体语法可以参考curl的，通常可以支持http, https, socks5等协议，但实际支持力度依赖curl, wget和git，比如wget就不支持socks5协议。&lt;/p&gt;
+
+&lt;p&gt;我们可以通过下面的参数指定哪些host走代理，如果没设置，默认全局走代理。&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;--proxy_hosts=PROXY_HOSTS    Only enable proxy for the given hosts list, it will enable all if be unset,
+                             and we can pass match pattern to list:
+                                 e.g.
+                                 - xmake g --proxy_hosts=&#39;github.com,gitlab.*,*.xmake.io&#39;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;如果设置了hosts列表，那么之后这个列表里面匹配的host才走代理。。&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;--proxy_host&lt;/code&gt;支持多个hosts设置，逗号分隔，并且支持基础的模式匹配 *.github.com， 以及其他lua模式匹配规则也支持&lt;/p&gt;
+
+&lt;p&gt;如果觉得上面的hosts模式配置还不够灵活，我们也可以走pac的自动代理配置规则：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;--proxy_pac=PROXY_PAC    Set the auto proxy configuration file. (default: pac.lua)
+                                     e.g.
+                                     - xmake g --proxy_pac=pac.lua (in /Users/ruki/.xmake or absolute path)
+                                     - function main(url, host)
+                                           if host == &#39;github.com&#39; then
+                                                return true
+                                           end
+                                       end
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;!&amp;gt; 如果有proxy_hosts优先走hosts配置，没有的话才走pac配置。&lt;/p&gt;
+
+&lt;p&gt;pac的默认路径：~/.xmake/pac.lua，如果–proxy被设置，并且这个文件存在，就会自动走pac，如果不存在，也没hosts，那就全局生效代理。&lt;/p&gt;
+
+&lt;p&gt;也可以手动指定pac全路径&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; g --proxy_pac=/xxxx/xxxxx_pac.lua
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;配置规则描述：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;host&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;host&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;find&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;bintray.com&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;如果返回true，那么这个url和host就是走的代理，不返回或者返回false，就是不走代理。&lt;/p&gt;
+
+&lt;p&gt;这块的具体详情见：&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/854&quot;&gt;https://github.com/xmake-io/xmake/issues/854&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;!&amp;gt; 另外，除了依赖包下载，其他涉及网络下载的命令也都支持代理，比如：&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake update&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;其他的小改动&quot;&gt;其他的小改动&lt;/h2&gt;
+
+&lt;h3 id=&quot;rc文件头文件依赖编译支持&quot;&gt;rc文件头文件依赖编译支持&lt;/h3&gt;
+
+&lt;p&gt;虽然msvc里面的rc编译器原生并不支持导出.rc文件里面&lt;code class=&quot;highlighter-rouge&quot;&gt;#include &amp;lt;xxx.h&amp;gt;&lt;/code&gt;头文件列表，不过xmake还是通过直接解析提取.rc源文件的方式，变相的把里面的头文件列表也提取了出来，实现头文件依赖编译支持。&lt;/p&gt;
+
+&lt;p&gt;虽然也许不够精准（还不能对宏进行处理），但也基本可用。&lt;/p&gt;
+
+&lt;h3 id=&quot;改进modeminsizerel编译模式&quot;&gt;改进mode.minsizerel编译模式&lt;/h3&gt;
+
+&lt;p&gt;新版本对msvc下的最小编译，默认开启了&lt;code class=&quot;highlighter-rouge&quot;&gt;/GL&lt;/code&gt;编译选项，进一步的优化目标文件的大小，优化效果还是比较明显的。&lt;/p&gt;
+
+&lt;p&gt;关于这块详情，可以参考下：&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/835&quot;&gt;https://github.com/xmake-io/xmake/issues/835&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;改进protobuf规则支持&quot;&gt;改进protobuf规则支持&lt;/h3&gt;
+
+&lt;p&gt;xmake内置的&lt;code class=&quot;highlighter-rouge&quot;&gt;protobuf.cpp&lt;/code&gt;编译规则针对&lt;code class=&quot;highlighter-rouge&quot;&gt;*.proto&lt;/code&gt;里面import多级子目录的情况，也进行了支持，之前只能使用同级下的proto文件。&lt;/p&gt;
+
+&lt;p&gt;也就是对&lt;code class=&quot;highlighter-rouge&quot;&gt;import common-files/b.proto&lt;/code&gt;的这种情况：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;proto-files
+    a.proto
+    common-files
+        b.proto
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;对应的xmake.lua配置如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;protobuf-cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_languages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;c++11&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;protobuf-cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;proto/**.proto&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rules&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;protobuf.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;proto_rootdir&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;proto&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;相比之前，需要额外传递一个&lt;code class=&quot;highlighter-rouge&quot;&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;proto_rootdir&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&quot;&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;}&lt;/span&gt;&lt;/code&gt;配置，来指定相对于import的所有proto的根目录才行。&lt;/p&gt;
+
+&lt;p&gt;关于这块的详情，见：&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/828&quot;&gt;https://github.com/xmake-io/xmake/issues/828&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;更新内容&quot;&gt;更新内容&lt;/h2&gt;
+
+&lt;h3 id=&quot;新特性&quot;&gt;新特性&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;添加&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake show -l envs&lt;/code&gt;去显示xmake内置的环境变量列表&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/861&quot;&gt;#861&lt;/a&gt;: 支持从指定目录搜索本地包去直接安装远程依赖包&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/854&quot;&gt;#854&lt;/a&gt;: 针对wget, curl和git支持全局代理设置&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;改进&quot;&gt;改进&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/828&quot;&gt;#828&lt;/a&gt;: 针对protobuf规则增加导入子目录proto文件支持&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/835&quot;&gt;#835&lt;/a&gt;: 改进mode.minsizerel模式，针对msvc增加/GL支持，进一步优化目标程序大小&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/828&quot;&gt;#828&lt;/a&gt;: protobuf规则支持import多级子目录&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/838#issuecomment-643570920&quot;&gt;#838&lt;/a&gt;: 支持完全重写内置的构建规则，&lt;code class=&quot;highlighter-rouge&quot;&gt;add_files(&quot;src/*.c&quot;, {rules = {&quot;xx&quot;, override = true}})&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/847&quot;&gt;#847&lt;/a&gt;: 支持rc文件的头文件依赖解析&lt;/li&gt;
+  &lt;li&gt;改进msvc工具链，去除全局环境变量的依赖&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/857&quot;&gt;#857&lt;/a&gt;: 改进&lt;code class=&quot;highlighter-rouge&quot;&gt;set_toolchains()&lt;/code&gt;支持交叉编译的时候，特定target可以切换到host工具链同时编译&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;bugs修复&quot;&gt;Bugs修复&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;修复进度字符显示&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/829&quot;&gt;#829&lt;/a&gt;: 修复由于macOS大小写不敏感系统导致的sysroot无效路径问题&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/832&quot;&gt;#832&lt;/a&gt;: 修复find_packages在debug模式下找不到的问题&lt;/li&gt;
+&lt;/ul&gt;
+
+</description>
+        <pubDate>Sun, 28 Jun 2020 00:00:00 +0800</pubDate>
+        <link>http://www.tboox.org/cn/2020/06/28/xmake-update-v2.3.5/</link>
+        <guid isPermaLink="true">http://www.tboox.org/cn/2020/06/28/xmake-update-v2.3.5/</guid>
+        
+        <category>xmake</category>
+        
+        <category>lua</category>
+        
+        <category>C/C++</category>
+        
+        <category>toolchains</category>
+        
+        <category>交叉编译</category>
+        
+        
+        <category>xmake</category>
+        
+      </item>
     
       <item>
         <title>xmake v2.3.4 released, better toolchain support</title>
@@ -2365,509 +2865,6 @@ apply plugin: &quot;org.tboox.gradle-xmake-plugin&quot;
         <category>android</category>
         
         <category>jni</category>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>xmake-gradle v1.0.7 发布, 集成xmake快速构建Android JNI程序</title>
-        <description>&lt;p&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake-gradle&quot;&gt;xmake-gradle&lt;/a&gt;是一个无缝整合 xmake 的 gradle 插件。&lt;/p&gt;
-
-&lt;p&gt;目前在 gradle 中做 android jni 相关集成开发，有两种方式，通过 ndkBuild 或者 CMake 来支持，gradle 也内置了这两工具的集成&lt;/p&gt;
-
-&lt;p&gt;但是维护 Android.mk 还是非常繁琐的，尤其是对于大型项目会比较痛苦，而 cmake 的 dsl 语法不够简洁直观，我个人也不是很喜欢，因此我先前整了 xmake 来实现跨平台开发，优势就是: 简单，快速，对新手友好，另外功能也很强大，具体有那些功能，大家可以到 xmake 项目主页看下相关介绍。&lt;/p&gt;
-
-&lt;p&gt;而之前想要用 xmake 编译 android so 库，只能通过命令行的方式比如:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake f -p android --ndk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;xxxx
-xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;虽然已经很简单了，但是如果要跟 android apk/aar 一起打包集成，还是需要很多额外的工作，为了提高开发者的效率，我最近新整了这个 grafle 插件，来无缝集成到 gradle 的整个构建体系中去。&lt;/p&gt;
-
-&lt;p&gt;这样，用户就可以在 android studio 方便的用 xmake 来编译 jni 库，以及自动集成了。&lt;/p&gt;
-
-&lt;p&gt;另外，相关 gradle 配置基本跟 cmake 和 ndkbuild 的保持一致，大部分都是兼容的，切换成本也会降低很多。&lt;/p&gt;
-
-&lt;p&gt;欢迎大家来试试哦，新鲜出炉的插件，如果你想要了解更多，请参考：中&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake-gradle&quot;&gt;项目源码&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/plugin/more_plugins?id=gradle%e6%8f%92%e4%bb%b6%ef%bc%88jni%ef%bc%89&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;准备工作&quot;&gt;准备工作&lt;/h2&gt;
-
-&lt;p&gt;我们需要先安装好对应的xmake命令行工具，关于安装说明见：&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;xmake&lt;/a&gt;。&lt;/p&gt;
-
-&lt;h2 id=&quot;应用插件&quot;&gt;应用插件&lt;/h2&gt;
-
-&lt;h3 id=&quot;通过插件dsl集成&quot;&gt;通过插件DSL集成&lt;/h3&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;plugins {
-  id &#39;org.tboox.gradle-xmake-plugin&#39; version &#39;1.0.7&#39;
-}
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;被废弃的插件集成方式&quot;&gt;被废弃的插件集成方式&lt;/h3&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;buildscript {
-  repositories {
-    maven {
-      url &quot;https://plugins.gradle.org/m2/&quot;
-    }
-  }
-  dependencies {
-    classpath &#39;org.tboox:gradle-xmake-plugin:1.0.7&#39;
-  }
-  repositories {
-    mavenCentral()
-  }
-}
-
-apply plugin: &quot;org.tboox.gradle-xmake-plugin&quot;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h2 id=&quot;配置&quot;&gt;配置&lt;/h2&gt;
-
-&lt;h3 id=&quot;最简单的配置示例&quot;&gt;最简单的配置示例&lt;/h3&gt;
-
-&lt;p&gt;如果我们添加&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake.lua&lt;/code&gt;文件到&lt;code class=&quot;highlighter-rouge&quot;&gt;projectdir/jni/xmake.lua&lt;/code&gt;，那么我们只需要在build.gradle中启用生效了xmake指定下对应的JNI工程路径即可。&lt;/p&gt;
-
-&lt;h4 id=&quot;buildgradle&quot;&gt;build.gradle&lt;/h4&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;android {
-    externalNativeBuild {
-        xmake {
-            path &quot;jni/xmake.lua&quot;
-        }
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;jni&quot;&gt;JNI&lt;/h4&gt;
-
-&lt;p&gt;JNI工程结构&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;projectdir
-  - src
-    - main
-      - java
-  - jni
-    - xmake.lua
-    - *.cpp
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;xmake.lua:&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mode.debug&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mode.release&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;nativelib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;shared&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;nativelib.cc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;更多gradle配置说明&quot;&gt;更多Gradle配置说明&lt;/h3&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;android {
-    defaultConfig {
-        externalNativeBuild {
-            xmake {
-                // 追加设置全局c编译flags
-                cFlags &quot;-DTEST&quot;
-
-                // 追加设置全局c++编译flags
-                cppFlags &quot;-DTEST&quot;, &quot;-DTEST2&quot;
-
-                // 设置切换编译模式，与`xmake f -m debug`的配置对应，具体模式值根据自己的xmake.lua设置而定
-                buildMode &quot;debug&quot;
-
-                // 设置需要编译的abi列表，支持：armeabi, armeabi-v7a, arm64-v8a, x86, x86_64
-                // 如果没有设置的话，我们也支持从defaultConfig.ndk.abiFilters中获取abiFilters
-                abiFilters &quot;armeabi-v7a&quot;, &quot;arm64-v8a&quot;
-            }
-        }
-    }
-
-    externalNativeBuild {
-        xmake {
-            // 设置jni工程中xmake.lua根文件路径，这是必须的，不设置就不会启用jni编译
-            path &quot;jni/xmake.lua&quot;
-
-            // 启用详细输出，会显示完整编译命令行参数，其他值：verbose, warning, normal
-            logLevel &quot;verbose&quot;
-
-            // 指定c++ stl库，默认不指定会使用c++_static，其他值：c++_static/c++_shared, gnustl_static/gnustl_shared, stlport_static/stlport_shared
-            stl &quot;c++_shared&quot;
-
-            // 设置xmake可执行程序路径（通常不用设置）
-            // program /usr/local/bin/xmake
-
-            // 禁用stdc++库，默认是启用的
-            // stdcxx false
-
-            // 设置其他指定的ndk目录路径 （这是可选的，默认xmake会自动从$ANDROID_NDK_HOME或者`~/Library/Android/sdk/ndk-bundle`中检测）
-            // 当然如果用户通过`xmake g --ndk=xxx`配置了全局设置，也会自动从这个里面检测
-            // ndk &quot;/Users/ruki/files/android-ndk-r20b/&quot;
-
-            // 设置ndk中sdk版本
-            // sdkver 21
-        }
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h2 id=&quot;编译jni&quot;&gt;编译JNI&lt;/h2&gt;
-
-&lt;h3 id=&quot;编译jni并且生成apk&quot;&gt;编译JNI并且生成APK&lt;/h3&gt;
-
-&lt;p&gt;当&lt;code class=&quot;highlighter-rouge&quot;&gt;gradle-xmake-plugin&lt;/code&gt;插件被应用生效后，&lt;code class=&quot;highlighter-rouge&quot;&gt;xmakeBuild&lt;/code&gt;任务会自动注入到现有的&lt;code class=&quot;highlighter-rouge&quot;&gt;assemble&lt;/code&gt;任务中去，自动执行jni库编译和集成。&lt;/p&gt;
-
-&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;./gradlew&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; app:assembleDebug
-&lt;/span&gt;&amp;gt; Task :nativelib:xmakeConfigureForArm64
-&amp;gt; Task :nativelib:xmakeBuildForArm64
-&amp;gt;&amp;gt; xmake build
-[ 50%]: ccache compiling.debug nativelib.cc
-[ 75%]: linking.debug libnativelib.so
-[100%]: build ok!
-&amp;gt;&amp;gt; install artifacts to /Users/ruki/projects/personal/xmake-gradle/nativelib/libs/arm64-v8a
-&amp;gt; Task :nativelib:xmakeConfigureForArmv7
-&amp;gt; Task :nativelib:xmakeBuildForArmv7
-&amp;gt;&amp;gt; xmake build
-[ 50%]: ccache compiling.debug nativelib.cc
-[ 75%]: linking.debug libnativelib.so
-[100%]: build ok!
-&amp;gt;&amp;gt; install artifacts to /Users/ruki/projects/personal/xmake-gradle/nativelib/libs/armeabi-v7a
-&amp;gt; Task :nativelib:preBuild
-&amp;gt; Task :nativelib:assemble
-&amp;gt; Task :app:assembleDebug
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;强制重建jni&quot;&gt;强制重建JNI&lt;/h3&gt;
-
-&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;./gradlew&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; nativelib:xmakeRebuild
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-</description>
-        <pubDate>Fri, 17 Apr 2020 00:00:00 +0800</pubDate>
-        <link>http://www.tboox.org/cn/2020/04/17/xmake-gradle-v1.0.7/</link>
-        <guid isPermaLink="true">http://www.tboox.org/cn/2020/04/17/xmake-gradle-v1.0.7/</guid>
-        
-        <category>xmake</category>
-        
-        <category>lua</category>
-        
-        <category>C/C++</category>
-        
-        <category>android</category>
-        
-        <category>jni</category>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>xmake从入门到精通11：如何组织构建大型工程</title>
-        <description>&lt;p&gt;xmake是一个基于Lua的轻量级现代化c/c++的项目构建工具，主要特点是：语法简单易上手，提供更加可读的项目维护，实现跨平台行为一致的构建体验。&lt;/p&gt;
-
-&lt;p&gt;本文主要详细讲解下，如何通过配置子工程模块，来组织构建一个大规模的工程项目。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;项目源码&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;维护简单的项目结构&quot;&gt;维护简单的项目结构&lt;/h3&gt;
-
-&lt;p&gt;对于一些轻量型的小工程，通常只需要单个xmake.lua文件就能搞定，大体结构如下：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;projectdir
-  - xmake.lua
-  - src
-    - test
-      - *.c
-    - demo
-      - *.c
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;源码下面层级简单，通常只需要在项目根目录维护一个xmake.lua来定义所有target就能完成构建，看上去并不是很复杂，也很清晰。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;-- 在根域设置通用配置，当前所有targets都会生效&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;add_defines&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;COMMON&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;static&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/test/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_defines&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;TEST&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;demo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;static&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/demo/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_defines&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;DEMO&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;维护复杂的项目结构&quot;&gt;维护复杂的项目结构&lt;/h3&gt;
-
-&lt;p&gt;但是对于一些大型项目，通常的组织结构层次很多也很深，需要编译的target目标也可能有十几甚至上百个，这个时候如果还是都在根xmake.lua文件中维护，就有点吃不消了。&lt;/p&gt;
-
-&lt;p&gt;这个时候，我们就需要通过在每个子工程模块里面，单独创建xmake.lua来维护他们，然后使用xmake提供的includes接口，将他们按层级关系包含进来，最终变成一个树状结构：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;projectdir
-  - xmake.lua
-  - src
-    - test
-      - xmake.lua
-      - test1
-        - xmake.lua
-      - test2
-        - xmake.lua
-      - test3
-        - xmake.lua
-    - demo
-      - xmake.lua
-      - demo1
-        - xmake.lua
-      - demo2
-        - xmake.lua
-    ...
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;然后，根xmake.lua会将所有子工程的xmake.lua通过层级includes全部引用进来，那么所有定义在子工程的target配置也会完全引用进来，我们在编译的时候永远不需要单独去切到某个子工程目录下操作，只需要：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake build test1
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake run test3
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake install demo1
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;就可以编译，运行，打包以及安装指定的子工程target，所以除非特殊情况，平常不推荐来回切换目录到子工程下单独编译，非常的繁琐。&lt;/p&gt;
-
-&lt;h3 id=&quot;根xmakelua文件配置&quot;&gt;根xmake.lua文件配置&lt;/h3&gt;
-
-&lt;p&gt;通常推荐的做法就是在根xmake.lua中仅仅配置一些对所有target都通用的设置，以及includes对子工程的引用，不放置对targets的定义，例如：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;-- define project&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;set_project&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;tbox&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;set_xmakever&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;2.3.2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;set_version&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;1.6.5&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;build&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;%Y%m%d%H%M&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-
-&lt;span class=&quot;c1&quot;&gt;-- set common flags&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;set_warnings&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;all&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;error&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;set_languages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;c99&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;add_cxflags&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;-Wno-error=deprecated-declarations&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;-fno-strict-aliasing&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;-Wno-error=expansion-to-defined&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;add_mxflags&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;-Wno-error=deprecated-declarations&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;-fno-strict-aliasing&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;-Wno-error=expansion-to-defined&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;c1&quot;&gt;-- add build modes&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mode.release&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mode.debug&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;c1&quot;&gt;-- includes sub-projects&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;includes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;demo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;xmake里面所有的设置都是按tree状继承的，根xmake.lua中的root域设置会对所有includes的子xmake.lua里面的targets生效，
-但反过来不会，子xmake.lua里面的root域设置仅对它下面的子xmake.lua生效，不会影响到父xmake.lua中定义的targets。&lt;/p&gt;
-
-&lt;h3 id=&quot;子xmakelua文件配置&quot;&gt;子xmake.lua文件配置&lt;/h3&gt;
-
-&lt;p&gt;所以，我们可以在每个子工程目录中，单独配置xmake.lua，里面的所有配置不会干扰父xmake.lua，只对它下面的更细粒度的子工程生效，就这样一层层按tree状生效下去。&lt;/p&gt;
-
-&lt;p&gt;由于，已经在根xmake.lua配置了大部分通用配置，那么我们可以在test子工程下，专心配置只对test有用的设置，例如对于&lt;code class=&quot;highlighter-rouge&quot;&gt;projectdir/test/xmake.lua&lt;/code&gt;：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_defines&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;TEST&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;static&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test1/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_defines&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;TEST1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;static&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test2/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_defines&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;TEST2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;我们可以在这里定义test的所有target，当然也可以继续分层，在每个test1, test2目录下单独维护xmake.lua，这个看自己项目的规模来决定。&lt;/p&gt;
-
-&lt;p&gt;比如：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_defines&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;TEST&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;includes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;test2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;test1/xmake.lua&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;static&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test1/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_defines&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;TEST1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;test2/xmake.lua&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;static&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test2/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_defines&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;TEST2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;而这里面的&lt;code class=&quot;highlighter-rouge&quot;&gt;add_defines(&quot;TEST&quot;)&lt;/code&gt;在root域，会对test1/test2两个target都生效，但是对于demo目录的target不生效，因为它们是平级的，没有tree状继承关系。&lt;/p&gt;
-
-&lt;h3 id=&quot;跨xmakelua间目标依赖&quot;&gt;跨xmake.lua间目标依赖&lt;/h3&gt;
-
-&lt;p&gt;虽然，&lt;code class=&quot;highlighter-rouge&quot;&gt;projectdir/test/xmake.lua&lt;/code&gt;和&lt;code class=&quot;highlighter-rouge&quot;&gt;projectdir/demo/xmake.lua&lt;/code&gt;两个子工程目录是平级关系，配置无法相互干扰，但是targets是可以跨xmake.lua访问的，来实现目标间的依赖。&lt;/p&gt;
-
-&lt;p&gt;比如demo需要依赖test静态库，进行链接使用，那么demo下xmake.lua可以这么写：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;demo1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;demo1/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;只要通过&lt;code class=&quot;highlighter-rouge&quot;&gt;add_deps(&quot;test1&quot;)&lt;/code&gt;关联上对应其他子工程目标作为依赖即可，test1静态库会优先编译，并且demo可执行程序会自动link上它生成的libtest1.a库。&lt;/p&gt;
-
-&lt;h3 id=&quot;文件路径的层级关系&quot;&gt;文件路径的层级关系&lt;/h3&gt;
-
-&lt;p&gt;我们需要记住，所有跟路径相关的配置接口，比如&lt;code class=&quot;highlighter-rouge&quot;&gt;add_files&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;add_includedirs&lt;/code&gt;等都是相对于当前子工程xmake.lua所在的目录的，所以只要添加的文件不跨模块，那么设置起来只需要考虑当前的相对路径就行了。&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;projectdir
-  - test
-    - xmake.lua
-    - test1/*.c
-    - test2/*.c
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;比如，这里添加的源文件路径，都是相对于test子工程目录的，我们不需要去设置绝对路径，这样会简化很多。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test1/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test2/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;当然，如果我们有特殊需求，非要设置工程其他子模块下的文件路径呢？两种办法，通过&lt;code class=&quot;highlighter-rouge&quot;&gt;../../&lt;/code&gt;的方式一层层绕出去，另外一种就是使用&lt;code class=&quot;highlighter-rouge&quot;&gt;$(projectdir)&lt;/code&gt;内置变量，它表示项目全局根目录。&lt;/p&gt;
-
-&lt;p&gt;比如在demo子工程下：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;demo1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;demo1/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;../../test/test1/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;或者：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;demo1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;demo1/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;$(projectdir)/test/test1/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;includes接口使用进阶&quot;&gt;includes接口使用进阶&lt;/h3&gt;
-
-&lt;h4 id=&quot;错误的使用方式&quot;&gt;错误的使用方式&lt;/h4&gt;
-
-&lt;p&gt;includes这个接口属于全局接口，不隶属于任何target，所以请不要在target内部调用，下面是错误的用法：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;static&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;includes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;test2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;正确的用法是：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;includes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;test2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;static&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;或者：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;static&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;target_end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-
-&lt;span class=&quot;c1&quot;&gt;-- 在下面调用，需要先显式退出target作用域&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;includes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;test2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;引用目录或文件&quot;&gt;引用目录或文件&lt;/h4&gt;
-
-&lt;p&gt;另外，includes既可以引用目录，也可以直接引用文件，如果test1目录下存在xmake.lua，那么可以直接&lt;code class=&quot;highlighter-rouge&quot;&gt;includes(&quot;test1&quot;)&lt;/code&gt;来引用目录。&lt;/p&gt;
-
-&lt;p&gt;如果test1目录下是其他xxxx.lua命令的项目文件，可以通过指定文件来引用：&lt;code class=&quot;highlighter-rouge&quot;&gt;includes(&quot;test1/xxxx.lua&quot;)&lt;/code&gt;，效果一样的。&lt;/p&gt;
-
-&lt;h4 id=&quot;模式匹配进行批量导入&quot;&gt;模式匹配进行批量导入&lt;/h4&gt;
-
-&lt;p&gt;includes还支持通过模式匹配的方式来批量导入多个子工程，比如：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;includes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test/*/xmake.lua&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;可以导入test目录下，所有test1, test2等子工程目录下的配置，如果是&lt;code class=&quot;highlighter-rouge&quot;&gt;**&lt;/code&gt;还支持递归多级匹配&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;includes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test/**/xmake.lua&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;通过模式匹配，我们只需要在test/xmake.lua一处地方进行includes，以后用户在新增其他子工程xmake.lua，就会自动导入进来，非常方便。&lt;/p&gt;
-
-&lt;h4 id=&quot;注意事项&quot;&gt;注意事项&lt;/h4&gt;
-
-&lt;p&gt;另外，在使用includes的过程中，需要注意的一点是，它不是c语言的&lt;code class=&quot;highlighter-rouge&quot;&gt;#include&lt;/code&gt;，因此在当前配置中includes子配置，当前配置是不会有任何影响的，比如：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;includes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;xxx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;c1&quot;&gt;-- ...&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;上面includes了一些子工程，但是这些子工程的配置是不会干扰当前test目标程序的。&lt;/p&gt;
-</description>
-        <pubDate>Sat, 11 Apr 2020 00:00:00 +0800</pubDate>
-        <link>http://www.tboox.org/cn/2020/04/11/quickstart-11-subprojects/</link>
-        <guid isPermaLink="true">http://www.tboox.org/cn/2020/04/11/quickstart-11-subprojects/</guid>
-        
-        <category>xmake</category>
-        
-        <category>lua</category>
-        
-        <category>子工程</category>
-        
-        <category>子模块</category>
         
         
         <category>xmake</category>
