@@ -5,9 +5,190 @@
     <description>Focus on cross-platform development using c language</description>
     <link>http://www.tboox.org/</link>
     <atom:link href="http://www.tboox.org/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Sun, 28 Jun 2020 20:17:22 +0800</pubDate>
-    <lastBuildDate>Sun, 28 Jun 2020 20:17:22 +0800</lastBuildDate>
+    <pubDate>Sat, 04 Jul 2020 13:03:22 +0800</pubDate>
+    <lastBuildDate>Sat, 04 Jul 2020 13:03:22 +0800</lastBuildDate>
     <generator>Jekyll v3.1.0</generator>
+    
+      <item>
+        <title>一个静态注入动态库的工具: luject</title>
+        <description>&lt;h2 id=&quot;简介&quot;&gt;简介&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/hack0z/byOpen&quot;&gt;byOpen&lt;/a&gt;是一个绕过移动端系统限制的dlopen库。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/hack0z/byOpen&quot;&gt;项目源码&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;支持特性&quot;&gt;支持特性&lt;/h2&gt;
+
+&lt;h3 id=&quot;android&quot;&gt;Android&lt;/h3&gt;
+
+&lt;p&gt;支持App中加载和使用Android系统库接口（即使maps中还没有被加载也支持）。&lt;/p&gt;
+
+&lt;p&gt;Android 7以上dlopen, System.load都是被限制调用的，虽然目前网上有&lt;a href=&quot;https://github.com/avs333/Nougat_dlfunctions&quot;&gt;Nougat_dlfunctions&lt;/a&gt;等库通过从maps中找so库来绕过加载限制。&lt;/p&gt;
+
+&lt;p&gt;不过对于app中还没被加载到maps的so库，这种方式就不行了。&lt;/p&gt;
+
+&lt;p&gt;而byOpen不仅支持fake dlopen方式从maps加载，还可以将还没加载到maps的so库绕过系统限制强行加载进来使用，实现更加通用化得dlopen。&lt;/p&gt;
+
+&lt;p&gt;注：目前的实现方式理论上还是比较通用的，至少我这Android 10上测试ok，但还没完整详细测试过，是否使用请自行评估。&lt;/p&gt;
+
+&lt;h4 id=&quot;相关原理&quot;&gt;相关原理&lt;/h4&gt;
+
+&lt;p&gt;具体实现原理还是比较简单的，主要还是借鉴了&lt;a href=&quot;http://weishu.me/2018/06/07/free-reflection-above-android-p/&quot;&gt;一种绕过Android P对非SDK接口限制的简单方法&lt;/a&gt;的思想和实现方式。&lt;/p&gt;
+
+&lt;p&gt;虽然这篇文章中主要目的是为了绕过hide api，不过它里面使用的将自己假装成系统调用的方式，一样可以用到&lt;code class=&quot;highlighter-rouge&quot;&gt;System.loadLibrary&lt;/code&gt;上去，让系统以为是系统自身在调用&lt;code class=&quot;highlighter-rouge&quot;&gt;System.loadLibrary&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;从而绕过Android N的classloader-namespace限制，将系统/system/lib中任意so库加载到maps中，然后再通过fake dlopen的方式去dlsym。&lt;/p&gt;
+
+&lt;h4 id=&quot;增强版fake-dlopen&quot;&gt;增强版fake dlopen&lt;/h4&gt;
+
+&lt;p&gt;关于fake dlopen的方式实现，网上已有很多实现，比如：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/avs333/Nougat_dlfunctions&quot;&gt;Nougat_dlfunctions&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/turing-technician/Enhanced_dlfunctions&quot;&gt;Enhanced_dlfunctions&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;byOpen参考了里面的实现，重新实现了一遍，并且做了一些小改进：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;不在/proc/self/maps中的系统库，也能绕过限制强行加载进来使用&lt;/li&gt;
+  &lt;li&gt;除了从.dynsym中检索符号，还支持从.symtab中检索符号（参考：Enhanced_dlfunctions，顺带修复了里面的一些bug）&lt;/li&gt;
+  &lt;li&gt;整个dlopen过程只有一次malloc分配（省去整个符号表的内存分配和copy）&lt;/li&gt;
+  &lt;li&gt;兼容原始dlopen，如果是低版本android系统，没有限制，还是会优先切到原生dlopen上去直接调用&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;android例子&quot;&gt;Android例子&lt;/h4&gt;
+
+&lt;p&gt;Android相关测试App例子在：&lt;a href=&quot;https://github.com/hack0z/byOpen/tree/master/src/android&quot;&gt;Android Sample&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;注：目前自带的App测试例子里面的系统库我写死了，有些系统版本上有可能不存在，请先改成用户自己的库和符号名，再编译测试&lt;/p&gt;
+
+&lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;MainActivity&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AppCompatActivity&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SYSTEM_LIBRARY&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;curl&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SYMBOL_NAME&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;curl_version&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;除了Native版本dlopen接口，byOpen额外提供了java版本的&lt;a href=&quot;https://github.com/hack0z/byOpen/blob/master/src/android/lib/src/main/java/dyopen/lib/SystemLoader.java&quot;&gt;System.loadLibrary&lt;/a&gt;接口在java层直接绕过系统库加载。&lt;/p&gt;
+
+&lt;p&gt;关键代码如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;boolean&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;loadLibrary&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;libraryName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;Method&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;forName&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getDeclaredMethod&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;forName&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;Method&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;getDeclaredMethod&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getDeclaredMethod&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;getDeclaredMethod&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[].&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;Class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;?&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;systemClass&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;?&amp;gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;forName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;invoke&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;java.lang.System&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;Method&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loadLibrary&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Method&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;getDeclaredMethod&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;invoke&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;systemClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;loadLibrary&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[]{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;});&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;loadLibrary&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;invoke&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;systemClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;libraryName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;而native版本的&lt;a href=&quot;https://github.com/hack0z/byOpen/blob/master/src/native/byopen_android.c&quot;&gt;dlopen_android.c&lt;/a&gt;实现中，我将这段绕过的系统加载的方式，通过jni重新实现了一遍，然后和fake dlopen无缝结合到了一起。&lt;/p&gt;
+
+&lt;h3 id=&quot;ios&quot;&gt;iOS&lt;/h3&gt;
+
+&lt;p&gt;虽然ios可以直接使用dlopen，但是审核上会有风险，苹果有可能会对提交AppStore的app扫描相关dlopen/dlsym等调用，来判断是否存在一些敏感的私有调用。&lt;/p&gt;
+
+&lt;p&gt;为了在通过调用一些私有接口的时候避免被苹果检测到，byOpen也通过自己实现dlopen/dlsym直接从已经加载进来的images列表里面直接查找对应symbol地址来调用。&lt;/p&gt;
+
+&lt;p&gt;当然，为了更加安全，相关调用的库符号硬编码字符串等，用户可以自行做层变换加密，不要直接编译进app。&lt;/p&gt;
+
+&lt;h2 id=&quot;接口用法&quot;&gt;接口用法&lt;/h2&gt;
+
+&lt;p&gt;相关静态库和接口在：&lt;a href=&quot;https://github.com/hack0z/byOpen/blob/master/src/native/byopen.h&quot;&gt;dlopen.h&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;相关使用方式跟原生dlopen完全相同：&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;by_char_t&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;curl_version_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)();&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;by_pointer_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;handle&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;by_dlopen&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;libcurl.so&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BY_RTLD_LAZY&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;handle&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;by_pointer_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;addr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;by_dlsym&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;handle&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;curl_version&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;addr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;curl_version_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;curl_version&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;curl_version_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;addr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;by_print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;curl_version: %s&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;curl_version&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;());&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;by_dlclose&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;handle&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;编译&quot;&gt;编译&lt;/h2&gt;
+
+&lt;p&gt;编译需要先安装：&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;xmake&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;android-1&quot;&gt;Android&lt;/h3&gt;
+
+&lt;h4 id=&quot;直接编译库&quot;&gt;直接编译库&lt;/h4&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f -p android --ndk=~/file/android-ndk-r20b
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;通过gradle编译测试apk&quot;&gt;通过gradle编译测试Apk&lt;/h4&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; src/android
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;./gradlew&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; app:assembleDebug
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;通过xmake直接编译apk&quot;&gt;通过xmake直接编译apk&lt;/h4&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; apk_build
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;通过xmake直接安装测试apk&quot;&gt;通过xmake直接安装测试apk&lt;/h4&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; apk_test
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;ios-1&quot;&gt;iOS&lt;/h3&gt;
+
+&lt;h4 id=&quot;直接编译库-1&quot;&gt;直接编译库&lt;/h4&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f -p iphoneos -a [armv7|arm64]
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;macos&quot;&gt;MacOS&lt;/h3&gt;
+
+&lt;p&gt;我们也可以在macOS下编译测试，也是支持的：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; run
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+</description>
+        <pubDate>Sat, 04 Jul 2020 00:00:00 +0800</pubDate>
+        <link>http://www.tboox.org/cn/2020/07/04/byopen/</link>
+        <guid isPermaLink="true">http://www.tboox.org/cn/2020/07/04/byopen/</guid>
+        
+        <category>xmake</category>
+        
+        <category>lua</category>
+        
+        <category>C/C++</category>
+        
+        <category>android</category>
+        
+        <category>luject</category>
+        
+        <category>注入</category>
+        
+        <category>逆向分析</category>
+        
+        
+        <category>luject</category>
+        
+      </item>
     
       <item>
         <title>xmake v2.3.5 released, Multi-toolchain flexible switching support</title>
@@ -2662,212 +2843,6 @@ xmake install
         
         
         <category>luject</category>
-        
-      </item>
-    
-      <item>
-        <title>xmake-gradle v1.0.7 released, Integrate xmake to quickly build Android JNI program</title>
-        <description>&lt;p&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake-gradle&quot;&gt;xmake-gradle&lt;/a&gt; is a gradle plugin that integrates xmake seamlessly.&lt;/p&gt;
-
-&lt;p&gt;At present, there are two ways to do integrated development of android jni in gradle. It is supported by ndkBuild or CMake. Gradle also has built-in integration of these two tools.&lt;/p&gt;
-
-&lt;p&gt;However, maintaining Android.mk is still very tedious, especially for large projects, and the dsl syntax of cmake is not simple and intuitive, and I personally don’t like it very much. Therefore, I have used xmake to implement cross-platform development. It’s simple, fast, friendly to novices, and it’s also very powerful. You can go to the xmake project homepage to see the introduction.&lt;/p&gt;
-
-&lt;p&gt;In the past, if you want to use xmake to compile the android so library, you can only use the command line, such as:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;xmake f -p android --ndk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;xxxx
-xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;Although it is very simple, but if you want to package and integrate with android apk/aar, still need a lot of extra work. In order to improve the efficiency of developers, I recently reorganized this gradle plugin to seamlessly integrate into the entire gradle build System.&lt;/p&gt;
-
-&lt;p&gt;In this way, users can easily use xmake to compile the jni library in android studio, and automatic integration.&lt;/p&gt;
-
-&lt;p&gt;In addition, the relevant gradle configuration is basically the same as cmake and ndkbuild, most of them are compatible, and the switching cost will also be reduced a lot.&lt;/p&gt;
-
-&lt;p&gt;Everyone is welcome to try it, the newly released plugin, if you want to know more, please refer to:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake-gradle&quot;&gt;项目源码&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/plugin/more_plugins?id=gradle%e6%8f%92%e4%bb%b6%ef%bc%88jni%ef%bc%89&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;prerequisites&quot;&gt;Prerequisites&lt;/h2&gt;
-
-&lt;p&gt;XMake installed on the system. Available &lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;apply-the-plugin&quot;&gt;Apply the plugin&lt;/h2&gt;
-
-&lt;h3 id=&quot;plugins-dsl&quot;&gt;plugins DSL&lt;/h3&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;plugins {
-  id &#39;org.tboox.gradle-xmake-plugin&#39; version &#39;1.0.7&#39;
-}
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;legacy-plugin-application&quot;&gt;Legacy plugin application&lt;/h3&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;buildscript {
-  repositories {
-    maven {
-      url &quot;https://plugins.gradle.org/m2/&quot;
-    }
-  }
-  dependencies {
-    classpath &#39;org.tboox:gradle-xmake-plugin:1.0.7&#39;
-  }
-  repositories {
-    mavenCentral()
-  }
-}
-
-apply plugin: &quot;org.tboox.gradle-xmake-plugin&quot;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h2 id=&quot;configuation&quot;&gt;Configuation&lt;/h2&gt;
-
-&lt;h3 id=&quot;simplest-example&quot;&gt;Simplest Example&lt;/h3&gt;
-
-&lt;p&gt;We add &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake.lua&lt;/code&gt; to &lt;code class=&quot;highlighter-rouge&quot;&gt;projectdir/jni/xmake.lua&lt;/code&gt; and enable xmake in build.gradle.&lt;/p&gt;
-
-&lt;h4 id=&quot;buildgradle&quot;&gt;build.gradle&lt;/h4&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;android {
-    externalNativeBuild {
-        xmake {
-            path &quot;jni/xmake.lua&quot;
-        }
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;jni&quot;&gt;JNI&lt;/h4&gt;
-
-&lt;p&gt;The JNI project structure:&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;projectdir
-  - src
-    - main
-      - java
-  - jni
-    - xmake.lua
-    - *.cpp
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;xmake.lua:&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mode.debug&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mode.release&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;nativelib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;shared&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;nativelib.cc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;more-gradle-configuations&quot;&gt;More Gradle Configuations&lt;/h3&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;android {
-    defaultConfig {
-        externalNativeBuild {
-            xmake {
-                // append the global cflags (optional)
-                cFlags &quot;-DTEST&quot;
-
-                // append the global cppflags (optional)
-                cppFlags &quot;-DTEST&quot;, &quot;-DTEST2&quot;
-
-                // switch the build mode to `debug` for `xmake f -m debug` (optional)
-                buildMode &quot;debug&quot;
-
-                // set abi filters (optional), e.g. armeabi, armeabi-v7a, arm64-v8a, x86, x86_64
-                // we can also get abiFilters from defaultConfig.ndk.abiFilters
-                abiFilters &quot;armeabi-v7a&quot;, &quot;arm64-v8a&quot;
-            }
-        }
-    }
-
-    externalNativeBuild {
-        xmake {
-            // enable xmake and set xmake.lua project file path
-            path &quot;jni/xmake.lua&quot;
-
-            // enable verbose output (optional), e.g. verbose, warning, normal
-            logLevel &quot;verbose&quot;
-
-            // set c++stl (optional), e.g. c++_static/c++_shared, gnustl_static/gnustl_shared, stlport_static/stlport_shared
-            stl &quot;c++_shared&quot;
-
-            // set the given xmake program path (optional)
-            // program /usr/local/bin/xmake
-
-            // disable stdc++ library (optional)
-            // stdcxx false
-
-            // set the given ndk directory path (optional)
-            // ndk &quot;/Users/ruki/files/android-ndk-r20b/&quot;
-
-            // set sdk version of ndk (optional)
-            // sdkver 21
-        }
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h2 id=&quot;build&quot;&gt;Build&lt;/h2&gt;
-
-&lt;h3 id=&quot;build-jni-and-generate-apk&quot;&gt;Build JNI and generate apk&lt;/h3&gt;
-
-&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;xmakeBuild&lt;/code&gt; will be injected to &lt;code class=&quot;highlighter-rouge&quot;&gt;assemble&lt;/code&gt; task automatically if the gradle-xmake-plugin has been applied.&lt;/p&gt;
-
-&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;./gradlew&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; app:assembleDebug
-&lt;/span&gt;&amp;gt; Task :nativelib:xmakeConfigureForArm64
-&amp;gt; Task :nativelib:xmakeBuildForArm64
-&amp;gt;&amp;gt; xmake build
-[ 50%]: ccache compiling.debug nativelib.cc
-[ 75%]: linking.debug libnativelib.so
-[100%]: build ok!
-&amp;gt;&amp;gt; install artifacts to /Users/ruki/projects/personal/xmake-gradle/nativelib/libs/arm64-v8a
-&amp;gt; Task :nativelib:xmakeConfigureForArmv7
-&amp;gt; Task :nativelib:xmakeBuildForArmv7
-&amp;gt;&amp;gt; xmake build
-[ 50%]: ccache compiling.debug nativelib.cc
-[ 75%]: linking.debug libnativelib.so
-[100%]: build ok!
-&amp;gt;&amp;gt; install artifacts to /Users/ruki/projects/personal/xmake-gradle/nativelib/libs/armeabi-v7a
-&amp;gt; Task :nativelib:preBuild
-&amp;gt; Task :nativelib:assemble
-&amp;gt; Task :app:assembleDebug
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;force-to-rebuild-jni&quot;&gt;Force to rebuild JNI&lt;/h3&gt;
-
-&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;./gradlew&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; nativelib:xmakeRebuild
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-</description>
-        <pubDate>Fri, 17 Apr 2020 00:00:00 +0800</pubDate>
-        <link>http://www.tboox.org/2020/04/17/xmake-gradle-v1.0.7/</link>
-        <guid isPermaLink="true">http://www.tboox.org/2020/04/17/xmake-gradle-v1.0.7/</guid>
-        
-        <category>xmake</category>
-        
-        <category>lua</category>
-        
-        <category>C/C++</category>
-        
-        <category>android</category>
-        
-        <category>jni</category>
-        
-        
-        <category>xmake</category>
         
       </item>
     
