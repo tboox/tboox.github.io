@@ -185,8 +185,6 @@ function main()
 
     -- 运行任务和插件
     task.run("hello")
-    project.task.run("hello")
-    core.base.task.run("hello")
 end
 ```
 
