@@ -5,9 +5,705 @@
     <description>Focus on cross-platform development using c language</description>
     <link>https://tboox.org/</link>
     <atom:link href="https://tboox.org/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Fri, 10 Jul 2020 12:46:48 +0800</pubDate>
-    <lastBuildDate>Fri, 10 Jul 2020 12:46:48 +0800</lastBuildDate>
+    <pubDate>Sat, 18 Jul 2020 12:10:23 +0800</pubDate>
+    <lastBuildDate>Sat, 18 Jul 2020 12:10:23 +0800</lastBuildDate>
     <generator>Jekyll v3.1.0</generator>
+    
+      <item>
+        <title>xmake从入门到精通12：通过自定义脚本实现更灵活地配置</title>
+        <description>&lt;p&gt;xmake是一个基于Lua的轻量级现代化c/c++的项目构建工具，主要特点是：语法简单易上手，提供更加可读的项目维护，实现跨平台行为一致的构建体验。&lt;/p&gt;
+
+&lt;p&gt;本文主要详细讲解下，如何通过添加自定义的脚本，在脚本域实现更加复杂灵活的定制。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;项目源码&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;配置分离&quot;&gt;配置分离&lt;/h3&gt;
+
+&lt;p&gt;xmake.lua采用二八原则实现了描述域、脚本域两层分离式配置。&lt;/p&gt;
+
+&lt;p&gt;什么是二八原则呢，简单来说，大部分项目的配置，80%的情况下，都是些基础的常规配置，比如：&lt;code class=&quot;highlighter-rouge&quot;&gt;add_cxflags&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;add_links&lt;/code&gt;等，
+只有剩下不到20%的地方才需要额外做些复杂来满足一些特殊的配置需求。&lt;/p&gt;
+
+&lt;p&gt;而这剩余的20%的配置通常比较复杂，如果直接充斥在整个xmake.lua里面，会把整个项目的配置整个很混乱，非常不可读。&lt;/p&gt;
+
+&lt;p&gt;因此，xmake通过描述域、脚本域两种不同的配置方式，来隔离80%的简单配置以及20%的复杂配置，使得整个xmake.lua看起来非常的清晰直观，可读性和可维护性都达到最佳。&lt;/p&gt;
+
+&lt;h3 id=&quot;描述域&quot;&gt;描述域&lt;/h3&gt;
+
+&lt;p&gt;对于刚入门的新手用户，或者仅仅是维护一些简单的小项目，通过完全在描述配置就已经完全满足需求了，那什么是描述域呢？它长这样：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_defines&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;DEBUG&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_syslinks&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;pthread&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;一眼望去，其实就是个 &lt;code class=&quot;highlighter-rouge&quot;&gt;set_xxx&lt;/code&gt;/&lt;code class=&quot;highlighter-rouge&quot;&gt;add_xxx&lt;/code&gt;的配置集，对于新手，完全可以不把它当做lua脚本，仅仅作为普通的，但有一些基础规则的配置文件就行了。&lt;/p&gt;
+
+&lt;p&gt;这是不是看着更像配置文件了？其实描述域就是配置文件，类似像json等key/values的配置而已，所以即使完全不会lua的新手，也是能很快上手的。&lt;/p&gt;
+
+&lt;p&gt;而且，对于通常的项目，仅通过&lt;code class=&quot;highlighter-rouge&quot;&gt;set_xxx/add_xxx&lt;/code&gt;去配置各种项目设置，已经完全满足需求了。&lt;/p&gt;
+
+&lt;p&gt;这也就是开头说的：80%的情况下，可以用最简单的配置规则去简化项目的配置，提高可读性和可维护性，这样对用户和开发者都会非常的友好，也更加直观。&lt;/p&gt;
+
+&lt;p&gt;如果我们要针对不同平台，架构做一些条件判断怎么办？没关系，描述域除了基础配置，也是支持条件判断，以及for循环的：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_defines&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;DEBUG&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;is_plat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;linux&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;macosx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;add_links&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;pthread&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;m&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;dl&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_defines&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;DEBUG&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;ipairs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;pthread&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;m&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;dl&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;add_links&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这是不是看着有点像lua了？虽说，平常可以把它当做普通配置问题，但是xmake毕竟基于lua，所以描述域还是支持lua的基础语言特性的。&lt;/p&gt;
+
+&lt;p&gt;!&amp;gt; 不过需要注意的是，描述域虽然支持lua的脚本语法，但在描述域尽量不要写太复杂的lua脚本，比如一些耗时的函数调用和for循环&lt;/p&gt;
+
+&lt;p&gt;并且在描述域，主要目的是为了设置配置项，因此xmake并没有完全开放所有的模块接口，很多接口在描述域是被禁止调用的，
+即使开放出来的一些可调用接口，也是完全只读的，不耗时的安全接口，比如：&lt;code class=&quot;highlighter-rouge&quot;&gt;os.getenv()&lt;/code&gt;等读取一些常规的系统信息，用于配置逻辑的控制。&lt;/p&gt;
+
+&lt;p&gt;!&amp;gt; 另外需要注意一点，xmake.lua是会被多次解析的，用于在不同阶段解析不同的配置域：比如：&lt;code class=&quot;highlighter-rouge&quot;&gt;option()&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;target()&lt;/code&gt;等域。&lt;/p&gt;
+
+&lt;p&gt;因此，不要想着在xmake.lua的描述域，写复杂的lua脚本，也不要在描述域调用print去显示信息，因为会被执行多遍，记住：会被执行多遍！！！&lt;/p&gt;
+
+&lt;h3 id=&quot;脚本域&quot;&gt;脚本域&lt;/h3&gt;
+
+&lt;p&gt;限制描述域写复杂的lua，各种lua模块和接口都用不了？怎么办？这个时候就是脚本域出场的时候了。&lt;/p&gt;
+
+&lt;p&gt;如果用户已经完全熟悉了xmake的描述域配置，并且感觉有些满足不了项目上的一些特殊配置维护了，那么我们可以在脚本域做更加复杂的配置逻辑：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;on_load&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;is_plat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;linux&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;macosx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;links&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;pthread&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;m&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;dl&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;after_build&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;core.project.config&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;targetfile&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;targetfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;targetfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;join&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;buildir&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;filename&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;targetfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)))&lt;/span&gt;
+        &lt;span class=&quot;nb&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;build %s&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;targetfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;只要是类似：&lt;code class=&quot;highlighter-rouge&quot;&gt;on_xxx&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;after_xxx&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;before_xxx&lt;/code&gt;等字样的function body内部的脚本，都属于脚本域。&lt;/p&gt;
+
+&lt;p&gt;在脚本域中，用户可以干任何事，xmake提供了import接口可以导入xmake内置的各种lua模块，也可以导入用户提供的lua脚本。&lt;/p&gt;
+
+&lt;p&gt;我们可以在脚本域实现你想实现的任意功能，甚至写个独立项目出来都是可以的。&lt;/p&gt;
+
+&lt;p&gt;对于一些脚本片段，不是很臃肿的话，像上面这么内置写写就足够了，如果需要实现更加复杂的脚本，不想充斥在一个xmake.lua里面，可以把脚本分离到独立的lua文件中去维护。&lt;/p&gt;
+
+&lt;p&gt;例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;on_load&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;modules.test.load&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;on_install&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;modules.test.install&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;我们可以吧自定义的脚本放置到xmake.lua对应目录下，&lt;code class=&quot;highlighter-rouge&quot;&gt;modules/test/load.lua&lt;/code&gt;和&lt;code class=&quot;highlighter-rouge&quot;&gt;modules/test/install.lua&lt;/code&gt;中独立维护。&lt;/p&gt;
+
+&lt;p&gt;单独的lua脚本文件以main作为主入口，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;-- 我们也可以在此处导入一些内置模块或者自己的扩展模块来使用&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;core.project.config&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mymodule&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;is_plat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;linux&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;macosx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;links&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;pthread&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;m&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;dl&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这些独立的lua脚本里面，我们还可以通过&lt;a href=&quot;https://xmake.io/#/zh-cn/manual/builtin_modules?id=import&quot;&gt;import&lt;/a&gt;导入各种内置模块和自定义模块进来使用，就跟平常写lua, java没啥区别。&lt;/p&gt;
+
+&lt;p&gt;而对于脚本的域的不同阶段，&lt;code class=&quot;highlighter-rouge&quot;&gt;on_load&lt;/code&gt;主要用于target加载时候，做一些动态化的配置，这里不像描述域，只会执行一遍哦!!!&lt;/p&gt;
+
+&lt;p&gt;其他阶段，还有很多，比如：&lt;code class=&quot;highlighter-rouge&quot;&gt;on/after/before&lt;/code&gt;_&lt;code class=&quot;highlighter-rouge&quot;&gt;build/install/package/run&lt;/code&gt;等，我们下面会详细描述。&lt;/p&gt;
+
+&lt;h3 id=&quot;import&quot;&gt;import&lt;/h3&gt;
+
+&lt;h4 id=&quot;导入扩展摸块&quot;&gt;导入扩展摸块&lt;/h4&gt;
+
+&lt;p&gt;在讲解各个脚本域之前，我们先来简单介绍下xmake的模块导入和使用方式，xmake采用import来引入其他的扩展模块，以及用户自己定义的模块，它可以在下面一些地方使用：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;自定义脚本(&lt;a href=&quot;https://xmake.io/#/zh-cn/manual/project_target?id=targeton_build&quot;&gt;on_build&lt;/a&gt;, &lt;a href=&quot;https://xmake.io/#/zh-cn/manual/project_target?id=targeton_run&quot;&gt;on_run&lt;/a&gt; ..)&lt;/li&gt;
+  &lt;li&gt;插件开发&lt;/li&gt;
+  &lt;li&gt;模板开发&lt;/li&gt;
+  &lt;li&gt;平台扩展&lt;/li&gt;
+  &lt;li&gt;自定义任务task&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;导入机制如下：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;优先从当前脚本目录下导入&lt;/li&gt;
+  &lt;li&gt;再从扩展类库中导入&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;导入的语法规则：&lt;/p&gt;
+
+&lt;p&gt;基于&lt;code class=&quot;highlighter-rouge&quot;&gt;.&lt;/code&gt;的类库路径规则，例如：&lt;/p&gt;
+
+&lt;p&gt;导入core核心扩展模块&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;core.base.option&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;core.project&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;core.base.task&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;core&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    
+    &lt;span class=&quot;c1&quot;&gt;-- 获取参数选项&lt;/span&gt;
+    &lt;span class=&quot;nb&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;version&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 运行任务和插件&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;task&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;run&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;hello&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;导入当前目录下的自定义模块：&lt;/p&gt;
+
+&lt;p&gt;目录结构：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;plugin
+  - xmake.lua
+  - main.lua
+  - modules
+    - hello1.lua
+    - hello2.lua
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;在main.lua中导入modules&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;modules.hello1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;modules.hello2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;导入后就可以直接使用里面的所有公有接口，私有接口用&lt;code class=&quot;highlighter-rouge&quot;&gt;_&lt;/code&gt;前缀标示，表明不会被导出，不会被外部调用到。。&lt;/p&gt;
+
+&lt;p&gt;除了当前目录，我们还可以导入其他指定目录里面的类库，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;hello3&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rootdir&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;/home/xxx/modules&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;为了防止命名冲突，导入后还可以指定的别名：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;core.platform.platform&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alias&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;p&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;-- 这样我们就可以使用p来调用platform模块的plats接口，获取所有xmake支持的平台列表了&lt;/span&gt;
+    &lt;span class=&quot;nb&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;plats&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;2.1.5版本新增两个新属性：&lt;code class=&quot;highlighter-rouge&quot;&gt;import(&quot;xxx.xxx&quot;, {try = true, anonymous = true})&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;try为true，则导入的模块不存在的话，仅仅返回nil，并不会抛异常后中断xmake.
+anonymous为true，则导入的模块不会引入当前作用域，仅仅在import接口返回导入的对象引用。&lt;/p&gt;
+
+&lt;h3 id=&quot;测试扩展模块&quot;&gt;测试扩展模块&lt;/h3&gt;
+
+&lt;p&gt;一种方式我们可以在on_load等脚本中，直接调用print去打印模块的调用结果信息，来测试和验证。&lt;/p&gt;
+
+&lt;p&gt;不过xmake还提供了&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake lua&lt;/code&gt;插件可以更加灵活方便的测试脚本。&lt;/p&gt;
+
+&lt;h4 id=&quot;运行指定的脚本文件&quot;&gt;运行指定的脚本文件&lt;/h4&gt;
+
+&lt;p&gt;比如，我们可以直接指定lua脚本来加载运行，这对于想要快速测试一些接口模块，验证自己的某些思路，都是一个不错的方式。&lt;/p&gt;
+
+&lt;p&gt;我们先写个简单的lua脚本：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;nb&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;hello xmake!&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;然后直接运行它就行了：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; lua /tmp/test.lua
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;直接调用扩展模块&quot;&gt;直接调用扩展模块&lt;/h4&gt;
+
+&lt;p&gt;所有内置模块和扩展模块的接口，我们都可以通过&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake lua&lt;/code&gt;直接调用，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; lua lib.detect.find_tool gcc
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;上面的命令，我们直接调用了&lt;code class=&quot;highlighter-rouge&quot;&gt;import(&quot;lib.detect.find_tool&quot;)&lt;/code&gt;模块接口来快速执行。&lt;/p&gt;
+
+&lt;h4 id=&quot;运行交互命令-repl&quot;&gt;运行交互命令 (REPL)&lt;/h4&gt;
+
+&lt;p&gt;有时候在交互模式下，运行命令更加的方便测试和验证一些模块和api，也更加的灵活，不需要再去额外写一个脚本文件来加载。&lt;/p&gt;
+
+&lt;p&gt;我们先看下，如何进入交互模式：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;ni&quot;&gt;# &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;不带任何参数执行，就可以进入&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; lua
+&lt;/span&gt;&amp;gt;
+
+&lt;span class=&quot;ni&quot;&gt;# &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;进行表达式计算&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt;
+&lt;/span&gt;&amp;gt; 1 + 2
+3
+
+&lt;span class=&quot;ni&quot;&gt;# &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;赋值和打印变量值&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt;
+&lt;/span&gt;&amp;gt; a = 1
+&amp;gt; a
+1
+
+&lt;span class=&quot;ni&quot;&gt;# &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;多行输入和执行&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt;
+&lt;/span&gt;&amp;gt; for _, v in pairs({1, 2, 3}) do
+&amp;gt;&amp;gt; print(v)
+&amp;gt;&amp;gt; end
+1
+2
+3
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;我们也能够通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;import&lt;/code&gt; 来导入扩展模块：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt; task = import(&quot;core.project.task&quot;)
+&amp;gt; task.run(&quot;hello&quot;)
+hello xmake!
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;如果要中途取消多行输入，只需要输入字符：&lt;code class=&quot;highlighter-rouge&quot;&gt;q&lt;/code&gt; 就行了&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt; for _, v in ipairs({1, 2}) do
+&amp;gt;&amp;gt; print(v)
+&amp;gt;&amp;gt; q             &amp;lt;--  取消多行输入，清空先前的输入数据
+&amp;gt; 1 + 2
+3
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;targeton_load&quot;&gt;target:on_load&lt;/h3&gt;
+
+&lt;h4 id=&quot;自定义目标加载脚本&quot;&gt;自定义目标加载脚本&lt;/h4&gt;
+
+&lt;p&gt;在target初始化加载的时候，将会执行此脚本，在里面可以做一些动态的目标配置，实现更灵活的目标描述定义，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;on_load&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;defines&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;DEBUG&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;TEST=\&quot;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hello&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;linkdirs&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;/usr/lib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;/usr/local/lib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;includedirs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;/usr/include&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;links&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;pthread&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;可以在&lt;code class=&quot;highlighter-rouge&quot;&gt;on_load&lt;/code&gt;里面，通过&lt;code class=&quot;highlighter-rouge&quot;&gt;target:set&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;target:add&lt;/code&gt; 来动态添加各种target属性，所有描述域的&lt;code class=&quot;highlighter-rouge&quot;&gt;set_&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;add_&lt;/code&gt;配置都可以通过这种方式动态配置。&lt;/p&gt;
+
+&lt;p&gt;另外，我们可以调用target的一些接口，获取和设置一些基础信息，比如：&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;target接口&lt;/th&gt;
+      &lt;th&gt;描述&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;target:name()&lt;/td&gt;
+      &lt;td&gt;获取目标名&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;target:targetfile()&lt;/td&gt;
+      &lt;td&gt;获取目标文件路径&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;target:targetkind()&lt;/td&gt;
+      &lt;td&gt;获取目标的构建类型&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;target:get(“defines”)&lt;/td&gt;
+      &lt;td&gt;获取目标的宏定义&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;target:get(“xxx”)&lt;/td&gt;
+      &lt;td&gt;其他通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;set_/add_&lt;/code&gt;接口设置的target信息，都可以通过此接口来获取&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;target:add(“links”, “pthread”)&lt;/td&gt;
+      &lt;td&gt;添加目标设置&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;target:set(“links”, “pthread”, “z”)&lt;/td&gt;
+      &lt;td&gt;覆写目标设置&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;target:deps()&lt;/td&gt;
+      &lt;td&gt;获取目标的所有依赖目标&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;target:dep(“depname”)&lt;/td&gt;
+      &lt;td&gt;获取指定的依赖目标&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;target:opts()&lt;/td&gt;
+      &lt;td&gt;获取目标的所有关联选项&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;target:opt(“optname”)&lt;/td&gt;
+      &lt;td&gt;获取指定的关联选项&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;target:pkgs()&lt;/td&gt;
+      &lt;td&gt;获取目标的所有关联依赖包&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;target:pkg(“pkgname”)&lt;/td&gt;
+      &lt;td&gt;获取指定的关联依赖包&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;target:sourcebatches()&lt;/td&gt;
+      &lt;td&gt;获取目标的所有源文件列表&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&quot;targeton_link&quot;&gt;target:on_link&lt;/h3&gt;
+
+&lt;h4 id=&quot;自定义链接脚本&quot;&gt;自定义链接脚本&lt;/h4&gt;
+
+&lt;p&gt;这个是在v2.2.7之后新加的接口，用于定制化处理target的链接过程。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;on_link&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
+        &lt;span class=&quot;nb&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;link it&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;targeton_build&quot;&gt;target:on_build&lt;/h3&gt;
+
+&lt;h4 id=&quot;自定义编译脚本&quot;&gt;自定义编译脚本&lt;/h4&gt;
+
+&lt;p&gt;覆盖target目标默认的构建行为，实现自定义的编译过程，一般情况下，并不需要这么做，除非确实需要做一些xmake默认没有提供的编译操作。&lt;/p&gt;
+
+&lt;p&gt;你可以通过下面的方式覆盖它，来自定义编译操作：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 设置自定义编译脚本&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;on_build&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
+        &lt;span class=&quot;nb&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;build it&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;注：2.1.5版本之后，所有target的自定义脚本都可以针对不同平台和架构，分别处理，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;on_build&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;iphoneos|arm*&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;nb&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;build for iphoneos and arm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;其中如果第一个参数为字符串，那么就是指定这个脚本需要在哪个&lt;code class=&quot;highlighter-rouge&quot;&gt;平台|架构&lt;/code&gt;下，才会被执行，并且支持模式匹配，例如&lt;code class=&quot;highlighter-rouge&quot;&gt;arm*&lt;/code&gt;匹配所有arm架构。&lt;/p&gt;
+
+&lt;p&gt;当然也可以只设置平台，不设置架构，这样就是匹配指定平台下，执行脚本：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;on_build&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;windows&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;nb&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;build for windows&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;注：一旦对这个target目标设置了自己的build过程，那么xmake默认的构建过程将不再被执行。&lt;/p&gt;
+
+&lt;h3 id=&quot;targeton_build_file&quot;&gt;target:on_build_file&lt;/h3&gt;
+
+&lt;h4 id=&quot;自定义编译脚本-实现单文件构建&quot;&gt;自定义编译脚本, 实现单文件构建&lt;/h4&gt;
+
+&lt;p&gt;通过此接口，可以用来hook指定target内置的构建过程，自己重新实现每个源文件编译过程：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;on_build_file&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourcefile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;opt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;targeton_build_files&quot;&gt;target:on_build_files&lt;/h3&gt;
+
+&lt;h4 id=&quot;自定义编译脚本-实现多文件构建&quot;&gt;自定义编译脚本, 实现多文件构建&lt;/h4&gt;
+
+&lt;p&gt;通过此接口，可以用来hook指定target内置的构建过程，替换一批同类型源文件编译过程：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;on_build_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourcebatch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;opt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;设置此接口后，对应源文件列表中文件，就不会出现在自定义的target.on_build_file了，因为这个是包含关系。&lt;/p&gt;
+
+&lt;p&gt;其中sourcebatch描述了这批同类型源文件：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;sourcebatch.sourcekind&lt;/code&gt;: 获取这批源文件的类型，比如：cc, as, ..&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;sourcebatch.sourcefiles()&lt;/code&gt;: 获取源文件列表&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;sourcebatch.objectfiles()&lt;/code&gt;: 获取对象文件列表&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;sourcebatch.dependfiles()&lt;/code&gt;: 获取对应依赖文件列表，存有源文件中编译依赖信息，例如：xxx.d&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;targeton_clean&quot;&gt;target:on_clean&lt;/h3&gt;
+
+&lt;h4 id=&quot;自定义清理脚本&quot;&gt;自定义清理脚本&lt;/h4&gt;
+
+&lt;p&gt;覆盖target目标的&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake [c|clean}&lt;/code&gt;的清理操作，实现自定义清理过程。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 设置自定义清理脚本&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;on_clean&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
+
+        &lt;span class=&quot;c1&quot;&gt;-- 仅删掉目标文件&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;targetfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;targeton_package&quot;&gt;target:on_package&lt;/h3&gt;
+
+&lt;h4 id=&quot;自定义打包脚本&quot;&gt;自定义打包脚本&lt;/h4&gt;
+
+&lt;p&gt;覆盖target目标的&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake [p|package}&lt;/code&gt;的打包操作，实现自定义打包过程，如果你想对指定target打包成自己想要的格式，可以通过这个接口自定义它。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;demo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;shared&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;jni/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;on_package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
+        &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;exec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;./gradlew app:assembleDebug&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;当然这个例子有点老了，这里只是举例说明下用法而已，现在xmake提供了专门的&lt;a href=&quot;https://github.com/xmake-io/xmake-gradle&quot;&gt;xmake-gradle&lt;/a&gt;插件，来与gradle更好的集成。&lt;/p&gt;
+
+&lt;h3 id=&quot;targeton_install&quot;&gt;target:on_install&lt;/h3&gt;
+
+&lt;h4 id=&quot;自定义安装脚本&quot;&gt;自定义安装脚本&lt;/h4&gt;
+
+&lt;p&gt;覆盖target目标的&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake [i|install}&lt;/code&gt;的安装操作，实现自定义安装过程。&lt;/p&gt;
+
+&lt;p&gt;例如，将生成的apk包，进行安装。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 设置自定义安装脚本，自动安装apk文件&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;on_install&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
+
+        &lt;span class=&quot;c1&quot;&gt;-- 使用adb安装打包生成的apk文件&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;run&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;adb install -r ./bin/Demo-debug.apk&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;targeton_uninstall&quot;&gt;target:on_uninstall&lt;/h3&gt;
+
+&lt;h4 id=&quot;自定义卸载脚本&quot;&gt;自定义卸载脚本&lt;/h4&gt;
+
+&lt;p&gt;覆盖target目标的&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake [u|uninstall}&lt;/code&gt;的卸载操作，实现自定义卸载过程。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;on_uninstall&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
+        &lt;span class=&quot;o&quot;&gt;...&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;targeton_run&quot;&gt;target:on_run&lt;/h3&gt;
+
+&lt;h4 id=&quot;自定义运行脚本&quot;&gt;自定义运行脚本&lt;/h4&gt;
+
+&lt;p&gt;覆盖target目标的&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake [r|run}&lt;/code&gt;的运行操作，实现自定义运行过程。&lt;/p&gt;
+
+&lt;p&gt;例如，运行安装好的apk程序：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;-- 设置自定义运行脚本，自动运行安装好的app程序，并且自动获取设备输出信息&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;on_run&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
+        &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;run&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;adb shell am start -n com.demo/com.demo.DemoTest&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;run&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;adb logcat&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;before_xxx和after_xxx&quot;&gt;before_xxx和after_xxx&lt;/h3&gt;
+
+&lt;p&gt;需要注意的是，target:on_xxx的所有接口都覆盖内部默认实现，通常我们并不需要完全复写，只是额外挂接自己的一些逻辑，那么可以使用&lt;code class=&quot;highlighter-rouge&quot;&gt;target:before_xxx&lt;/code&gt;和&lt;code class=&quot;highlighter-rouge&quot;&gt;target:after_xxx&lt;/code&gt;系列脚本就行了。&lt;/p&gt;
+
+&lt;p&gt;所有的on_xxx都有对应的before_和after_xx版本，参数也完全一致，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;before_build&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;nb&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;内置模块&quot;&gt;内置模块&lt;/h3&gt;
+
+&lt;p&gt;在自定义脚本中，除了使用import接口导入各种扩展模块使用，xmake还提供了很多基础的内置模块，比如：os，io等基础操作，实现更加跨平台的处理系统接口。&lt;/p&gt;
+
+&lt;h4 id=&quot;oscp&quot;&gt;os.cp&lt;/h4&gt;
+
+&lt;p&gt;os.cp的行为和shell中的&lt;code class=&quot;highlighter-rouge&quot;&gt;cp&lt;/code&gt;命令类似，不过更加强大，不仅支持模式匹配（使用的是lua模式匹配），而且还确保目的路径递归目录创建、以及支持xmake的内置变量。&lt;/p&gt;
+
+&lt;p&gt;例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;$(scriptdir)/*.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;$(buildir)/inc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;$(projectdir)/src/test/**.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;$(buildir)/inc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;上面的代码将：当前&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake.lua&lt;/code&gt;目录下的所有头文件、工程源码test目录下的头文件全部复制到&lt;code class=&quot;highlighter-rouge&quot;&gt;$(buildir)&lt;/code&gt;输出目录中。&lt;/p&gt;
+
+&lt;p&gt;其中&lt;code class=&quot;highlighter-rouge&quot;&gt;$(scriptdir)&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;$(projectdir)&lt;/code&gt; 这些变量是xmake的内置变量，具体详情见：&lt;a href=&quot;https://xmake.io/mirror/zh-cn/manual/builtin_variables.html&quot;&gt;内置变量&lt;/a&gt;的相关文档。&lt;/p&gt;
+
+&lt;p&gt;而&lt;code class=&quot;highlighter-rouge&quot;&gt;*.h&lt;/code&gt;和&lt;code class=&quot;highlighter-rouge&quot;&gt;**.h&lt;/code&gt;中的匹配模式，跟&lt;a href=&quot;https://xmake.io/#/zh-cn/manual/project_target?id=targetadd_files&quot;&gt;add_files&lt;/a&gt;中的类似，前者是单级目录匹配，后者是递归多级目录匹配。&lt;/p&gt;
+
+&lt;p&gt;上面的复制，会把所有文件全部展开复制到指定目录，丢失源目录层级，如果要按保持原有的目录结构复制，可以设置rootdir参数：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/**.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;/tmp/&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rootdir&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;src&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;上面的脚本可以按&lt;code class=&quot;highlighter-rouge&quot;&gt;src&lt;/code&gt;根目录，将src下的所有子文件保持目录结构复制过去。&lt;/p&gt;
+
+&lt;p&gt;注：尽量使用&lt;code class=&quot;highlighter-rouge&quot;&gt;os.cp&lt;/code&gt;接口，而不是&lt;code class=&quot;highlighter-rouge&quot;&gt;os.run(&quot;cp ..&quot;)&lt;/code&gt;，这样更能保证平台一致性，实现跨平台构建描述。&lt;/p&gt;
+
+&lt;h4 id=&quot;osrun&quot;&gt;os.run&lt;/h4&gt;
+
+&lt;p&gt;此接口会安静运行原生shell命令，用于执行第三方的shell命令，但不会回显输出，仅仅在出错后，高亮输出错误信息。&lt;/p&gt;
+
+&lt;p&gt;此接口支持参数格式化、内置变量，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;-- 格式化参数传入&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;run&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;echo hello %s!&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;xmake&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;-- 列举构建目录文件&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;run&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;ls -l $(buildir)&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;osexecv&quot;&gt;os.execv&lt;/h4&gt;
+
+&lt;p&gt;此接口相比os.run，在执行过程中还会回显输出，并且参数是通过列表方式传入，更加的灵活。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;execv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;echo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;hello&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;xmake!&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;另外，此接口还支持一个可选的参数，用于传递设置：重定向输出，执行环境变量设置，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;execv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;echo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;hello&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;xmake!&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;stdout&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;outfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stderr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;errfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;envs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;PATH&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;xxx;xx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CFLAGS&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;xx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;curdir&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;/tmp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;其中，stdout和stderr参数用于传递重定向输出和错误输出，可以直接传入文件路径，也可以传入io.open打开的文件对象。&lt;/p&gt;
+
+&lt;p&gt;另外，如果想在这次执行中临时设置和改写一些环境变量，可以传递envs参数，里面的环境变量设置会替换已有的设置，但是不影响外层的执行环境，只影响当前命令。&lt;/p&gt;
+
+&lt;p&gt;我们也可以通过&lt;code class=&quot;highlighter-rouge&quot;&gt;os.getenvs()&lt;/code&gt;接口获取当前所有的环境变量，然后改写部分后传入envs参数。&lt;/p&gt;
+
+&lt;p&gt;另外，还能通过curdir参数设置，在执行过程中修改子进程的工作目录。&lt;/p&gt;
+
+&lt;p&gt;其相关类似接口还有，os.runv, os.exec, os.execv, os.iorun, os.iorunv等等，比如os.iorun可以获取运行的输出内容。&lt;/p&gt;
+
+&lt;p&gt;这块的具体详情和差异，还有更多os接口，都可以到：&lt;a href=&quot;https://xmake.io/#/zh-cn/manual/builtin_modules?id=os&quot;&gt;os接口文档&lt;/a&gt; 查看。&lt;/p&gt;
+
+&lt;h4 id=&quot;ioreadfile&quot;&gt;io.readfile&lt;/h4&gt;
+
+&lt;p&gt;此接口，从指定路径文件读取所有内容，我们可在不打开文件的情况下，直接读取整个文件的内容，更加的方便，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;io&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;xxx.txt&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;iowritefile&quot;&gt;io.writefile&lt;/h4&gt;
+
+&lt;p&gt;此接口写入所有内容到指定路径文件，我们可在不打开文件的情况下，直接写入整个文件的内容，更加的方便，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;io&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;writefile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;xxx.txt&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;all data&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;pathjoin&quot;&gt;path.join&lt;/h4&gt;
+
+&lt;p&gt;此接口实现跨平台地路径拼接操作，将多个路径项进行追加拼接，由于&lt;code class=&quot;highlighter-rouge&quot;&gt;windows/unix&lt;/code&gt;风格的路径差异，使用api来追加路径更加跨平台，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;join&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;$(tmpdir)&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;dir1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;dir2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;file.txt&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;上述拼接在unix上相当于：&lt;code class=&quot;highlighter-rouge&quot;&gt;$(tmpdir)/dir1/dir2/file.txt&lt;/code&gt;，而在windows上相当于：&lt;code class=&quot;highlighter-rouge&quot;&gt;$(tmpdir)\\dir1\\dir2\\file.txt&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;更多内置模块详情见：&lt;a href=&quot;https://xmake.io/#/zh-cn/manual/builtin_modules&quot;&gt;内置模块文档&lt;/a&gt;&lt;/p&gt;
+</description>
+        <pubDate>Sat, 18 Jul 2020 00:00:00 +0800</pubDate>
+        <link>https://tboox.org/cn/2020/07/18/quickstart-12-custom-scripts/</link>
+        <guid isPermaLink="true">https://tboox.org/cn/2020/07/18/quickstart-12-custom-scripts/</guid>
+        
+        <category>xmake</category>
+        
+        <category>lua</category>
+        
+        <category>子工程</category>
+        
+        <category>子模块</category>
+        
+        
+        <category>xmake</category>
+        
+      </item>
     
       <item>
         <title>一个绕过移动端系统限制的dlopen库: byOpen</title>
@@ -2663,188 +3359,6 @@ xmake install
         
         
         <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>一个静态注入动态库的工具: luject</title>
-        <description>&lt;p&gt;&lt;a href=&quot;https://github.com/lanoox/luject&quot;&gt;luject&lt;/a&gt;是一个静态注入动态库的工具，它可以实现对mac, ios, linux, windows, android的可执行程序，动态库程序进行修改，来插入指定动态库实现注入和加载。&lt;/p&gt;
-
-&lt;p&gt;另外luject也实现了对ios的ipa包，android的apk包自己macOS的.app包的动态库注入，重打包和重签名支持。&lt;/p&gt;
-
-&lt;h3 id=&quot;注入技术简介&quot;&gt;注入技术简介&lt;/h3&gt;
-
-&lt;p&gt;我们可以通过ptrace附加或启动一个程序，然后将指定的动态库注入进去，但很多情况下需要root权限才行。&lt;/p&gt;
-
-&lt;p&gt;除了通过动态注入，我们也可以通过设置&lt;code class=&quot;highlighter-rouge&quot;&gt;DYLD_INSERT_LIBRARIES&lt;/code&gt;等环境变量的方式，来注入指定的动态库，mac/ios程序就可以使用这种方式来简单快速地实现注入，例如：&lt;/p&gt;
-
-&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$DYLD_INSERT_LIBRARIES=inject.dylib ./test
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;不过这种方式在ios上也需要越狱后才可用，另外我们也可以在工程的Build Settings中找到Other Linker Flages 并添加下面的字段来限制这种加载方式，实现对可执行程序的注入保护。&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;-Wl,-sectcreate,__RESTRICT,__restrict,/dev/null
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;因此，也不是非常的通用，其实还有一种更加通用的方式，就是直接静态修改可执行文件，插入需要加载的动态库就可以了，简单暴力有效。&lt;/p&gt;
-
-&lt;p&gt;Mayhem 在&lt;a href=&quot;http://phrack.org/issues/61/8.html&quot;&gt;Phrack&lt;/a&gt;中也详细解释了这一技术的原理，而LIEF库提供了一种跨平台的api，实现对MachO, ELF, PE等可执行文件格式的快速修改。&lt;/p&gt;
-
-&lt;p&gt;这里luject就是利用了这个库，通过修改可执行文件，插入动态库加载路径，来实现静态注入，例如：&lt;/p&gt;
-
-&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;auto&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;elf_binary&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;unique_ptr&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LIEF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ELF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Binary&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LIEF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ELF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Parser&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;parse&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;testapp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)};&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;elf_binary&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add_library&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;libtest.so&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;elf_binary&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;testapp_injected&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;luject编译安装&quot;&gt;luject编译安装&lt;/h3&gt;
-
-&lt;h4 id=&quot;准备工作&quot;&gt;准备工作&lt;/h4&gt;
-
-&lt;p&gt;我们需要先安装&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;xmake&lt;/a&gt;来编译此项目。&lt;/p&gt;
-
-&lt;h4 id=&quot;编译&quot;&gt;编译&lt;/h4&gt;
-
-&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt;
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;安装&quot;&gt;安装&lt;/h4&gt;
-
-&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; install
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;luject使用说明&quot;&gt;luject使用说明&lt;/h3&gt;
-
-&lt;p&gt;用法很简单，主要就是指定输入输出的文件路径就好：&lt;/p&gt;
-
-&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;luject&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -i [input] -o [output] -p [libpattern] lib1 lib2 ..
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;最后面的lib列表，就是指定有哪些动态库需要被注入进去&lt;/p&gt;
-
-&lt;p&gt;例如：&lt;/p&gt;
-
-&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;luject&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -i app.apk lib1.so lib2.so
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;luject&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -i app.ipa lib1.dylib lib2.dylib
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;luject&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -i liba.so lib1.so lib2.so
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;luject&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -i app.exe lib1.dll lib2.dll
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;luject&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -i a.dll lib1.dll lib2.dll
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;luject&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -i liba.dylib lib1.dylib lib2.dyib
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;luject&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -i bin lib1.so lib2.so
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;当然，除了指定库路径，我们也可以指定&lt;code class=&quot;highlighter-rouge&quot;&gt;@loader_path&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;$ORIGIN&lt;/code&gt;的路径进去，例如：&lt;/p&gt;
-
-&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;luject&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -i libdemo.dylib @loader_path/libtest.dylib
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;上面的命令，我们就可以把&lt;code class=&quot;highlighter-rouge&quot;&gt;libtest.dylib&lt;/code&gt;注入到另一个&lt;code class=&quot;highlighter-rouge&quot;&gt;libdemo.dylib&lt;/code&gt;的动态库中去，如果&lt;code class=&quot;highlighter-rouge&quot;&gt;libdemo.dylib&lt;/code&gt;被加载，那么就会从&lt;code class=&quot;highlighter-rouge&quot;&gt;@loader_path&lt;/code&gt;也就是libdemo.dylib当前加载目录下
-找对应的&lt;code class=&quot;highlighter-rouge&quot;&gt;libtest.dylib&lt;/code&gt;库，然后自动加载进来，我们也可以通过otool/ldd等工具也查看验证加载列表：&lt;/p&gt;
-
-&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;otool&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -L libdemo.dylib
-&lt;/span&gt;libdemo.dylib:
-	@loader_path/libtest.dylib (compatibility version 0.0.0, current version 0.0.0)
-	/usr/lib/libz.1.dylib (compatibility version 1.0.0, current version 1.2.11)
-	/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 800.7.0)
-	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1281.0.0)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;可以看到，libtest库已经被成功插入进去了。&lt;/p&gt;
-
-&lt;h3 id=&quot;注入libfrida-gadgetso到apk&quot;&gt;注入libfrida-gadget.so到apk&lt;/h3&gt;
-
-&lt;p&gt;通常我们在使用frida系列工具对app进行动态分析时，如果不想root，那么可以通过luject将frida-gadget库静态注入到apk里面的so库中去，比如：&lt;/p&gt;
-
-&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;luject&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -i app.apk -p libtest /tmp/libfrida-gadget.so
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;其中，libtest是指定apk中需要匹配注入的so库，并且支持模式匹配实现批量注入，例如：&lt;code class=&quot;highlighter-rouge&quot;&gt;libtest_*.so&lt;/code&gt;，如果不指定&lt;code class=&quot;highlighter-rouge&quot;&gt;-p&lt;/code&gt;参数，默认多所有so进行批量全注入。&lt;/p&gt;
-
-&lt;p&gt;关于这块，我们也可以详细看下相关文章: &lt;a href=&quot;https://lief.quarkslab.com/doc/latest/tutorials/09_frida_lief.html&quot;&gt;How to use frida on a non-rooted device&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;另外，luject重打包后，还会对apk进行重签名，来确保可以正常安装使用&lt;/p&gt;
-
-&lt;h3 id=&quot;注入libfrida-gadgetdylib到ipa&quot;&gt;注入libfrida-gadget.dylib到ipa&lt;/h3&gt;
-
-&lt;p&gt;除了android的应用程序包，luject也支持对ios的ipa包进行注入，用法类似：&lt;/p&gt;
-
-&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;luject&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -i app.ipa -p libtest /tmp/libfrida-gadget.dylib
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;luject也会对ipa包进行重签名，它会自动探测用户环境中的有效签名证书，来直接重签名，当然如果默认检测的签名不符合需求，我们也可以手动指定对应的签名信息：&lt;/p&gt;
-
-&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;luject&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -i app.ipa -p libtest --codesign_identity=&#39;Apple Development: xxx@gmail.com (T3NA4MRVPU)&#39; --mobile_provision=&#39;iOS Team Provisioning Profile: org.tboox.test&#39; --bundle_identifier=org.tboox.test /tmp/libfrida-gadget.dylib
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;那如何知道我们需要的签名配置呢？一种就是在xcode里面查看，另外xmake也提供了一些辅助工具可以dump出当前可用的所有签名配置：&lt;/p&gt;
-
-&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; l private.tools.codesign.dump
-&lt;/span&gt;==================================== codesign identities ====================================
-{ 
-  &quot;Apple Development: waruqi@gmail.com (T3NA4MRVPU)&quot; = &quot;AF73C231A0C35335B72761BD3759694739D34EB1&quot; 
-}
-
-===================================== mobile provisions =====================================
-{ 
-  &quot;iOS Team Provisioning Profile: org.tboox.test&quot; = &quot;&amp;lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&amp;gt;
-&amp;lt;!DOCTYPE plist PUBLIC &quot;-//Apple//DTD PLIST 1.0//EN&quot; &quot;http://www.apple.com/DTDs/PropertyList-1.0.dtd&quot;&amp;gt;
-&amp;lt;plist version=&quot;1.0&quot;&amp;gt;
-&amp;lt;dict&amp;gt;
-	&amp;lt;key&amp;gt;AppIDName&amp;lt;/key&amp;gt;
-	&amp;lt;string&amp;gt;XC org tboox test5&amp;lt;/string&amp;gt;
-	&amp;lt;key&amp;gt;ApplicationIdentifierPrefix&amp;lt;/key&amp;gt;
-	&amp;lt;array&amp;gt;
-	&amp;lt;string&amp;gt;43AAQM58X3&amp;lt;/string&amp;gt;
-...
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;xmake也提供了其他辅助工具来对已有的ipa/app程序进行重签名，例如：&lt;/p&gt;
-
-&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; l utils.ipa.resign test.ipa|test.app [codesign_identity] [mobile_provision] [bundle_identifier]
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;其中，后面的签名参数都是可选的，如果没设置，那么默认会探测使用一个有效的签名：&lt;/p&gt;
-
-&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; l utils.ipa.resign test.ipa
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; l utils.ipa.resign test.app &quot;Apple Development: waruqi@gmail.com (T3NA4MRVPU)&quot;
-&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; l utils.ipa.resign test.ipa &quot;Apple Development: waruqi@gmail.com (T3NA4MRVPU)&quot; iOS Team Provisioning Profile: org.tboox.test&quot; org.tboox.test
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-</description>
-        <pubDate>Sun, 26 Apr 2020 00:00:00 +0800</pubDate>
-        <link>https://tboox.org/cn/2020/04/26/luject/</link>
-        <guid isPermaLink="true">https://tboox.org/cn/2020/04/26/luject/</guid>
-        
-        <category>xmake</category>
-        
-        <category>lua</category>
-        
-        <category>C/C++</category>
-        
-        <category>android</category>
-        
-        <category>luject</category>
-        
-        <category>注入</category>
-        
-        <category>逆向分析</category>
-        
-        
-        <category>luject</category>
         
       </item>
     
