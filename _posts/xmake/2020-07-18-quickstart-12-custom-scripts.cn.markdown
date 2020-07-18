@@ -1,7 +1,7 @@
 ---
 layout: post.cn
 title:  "xmake从入门到精通12：通过自定义脚本实现更灵活地配置"
-tags: xmake lua 子工程 子模块
+tags: xmake lua 子工程 子模块 自定义脚本
 categories: xmake
 ---
 
@@ -170,13 +170,9 @@ end
 
 基于`.`的类库路径规则，例如：
 
-导入core核心扩展模块
-
 ```lua
 import("core.base.option")
-import("core.project")
 import("core.base.task")
-import("core")
 
 function main()
     
