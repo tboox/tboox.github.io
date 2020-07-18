@@ -175,7 +175,7 @@ end
 ```lua
 import("core.base.option")
 import("core.project")
-import("core.base.task") -- 2.1.5 以前是 core.project.task
+import("core.base.task")
 import("core")
 
 function main()
