@@ -38,6 +38,7 @@ bc1qstzyehpjsryh8qwj8kf95js4cjcj3p670s5j9fyd3gkj946qdt7qx0xjpa
 
 <a href="https://opencollective.com/xmake#backers" target="_blank"><img src="https://opencollective.com/xmake/backers.svg?width=890"></a>
 
+|| 2020.07.21 || xmake || 简单 || 微信 || ¥100 || ||
 || 2020.06.24 || xmake || *三 || 微信 || ¥10 || xmake很好用 ||
 || 2020.06.13 || xmake || Ronald || 支付宝 || ¥10 || 方便，专业，谢谢 ||
 || 2020.06.11 || xmake || c*o || 微信 || ¥100 || ||
