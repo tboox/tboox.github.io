@@ -21,12 +21,6 @@ If you would like to support the development of these projects, welcome to donat
 
 [Become a sponsor to waruqi](https://github.com/sponsors/waruqi)
 
-## Bitcoin
-
-```
-bc1qstzyehpjsryh8qwj8kf95js4cjcj3p670s5j9fyd3gkj946qdt7qx0xjpa
-```
-
 ## Backers
 
 Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/xmake#backer)]
@@ -58,6 +52,7 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## Supporters
 
+|| 2020.09.05 || xmake || M*x || wechat || ¥100 || ||
 || 2020.07.21 || xmake || 简单 || wechat || ¥100 || ||
 || 2020.06.24 || xmake || *三 || wechat || ¥10 || xmake很好用 ||
 || 2020.06.13 || xmake || Ronald || alipay || ¥10 || 方便，专业，谢谢 ||

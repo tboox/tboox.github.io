@@ -28,16 +28,11 @@ TBOOX的所有项目都是属于个人开源项目，它的发展需要您的帮
 
 [Become a sponsor to waruqi](https://github.com/sponsors/waruqi)
 
-## Bitcoin
-
-```
-bc1qstzyehpjsryh8qwj8kf95js4cjcj3p670s5j9fyd3gkj946qdt7qx0xjpa
-```
-
 ## 支持者
 
 <a href="https://opencollective.com/xmake#backers" target="_blank"><img src="https://opencollective.com/xmake/backers.svg?width=890"></a>
 
+|| 2020.09.05 || xmake || M*x || 微信 || ¥100 || ||
 || 2020.07.21 || xmake || 简单 || 微信 || ¥100 || ||
 || 2020.06.24 || xmake || *三 || 微信 || ¥10 || xmake很好用 ||
 || 2020.06.13 || xmake || Ronald || 支付宝 || ¥10 || 方便，专业，谢谢 ||
