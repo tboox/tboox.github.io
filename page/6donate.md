@@ -52,6 +52,9 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## Supporters
 
+|| 2020.09.13 || xmake || Cartesian Technology || Paypal  || 5 EUR  ||
+|| 2020.09.11 || xmake || Cartesian Technology || Paypal  || 5 EUR  ||
+|| 2020.09.11 || xmake || 复刻回忆 || alipay  || ¥25    || 加油！||
 || 2020.09.05 || xmake || M*x || wechat || ¥100 || ||
 || 2020.07.21 || xmake || 简单 || wechat || ¥100 || ||
 || 2020.06.24 || xmake || *三 || wechat || ¥10 || xmake很好用 ||

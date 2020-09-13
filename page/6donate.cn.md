@@ -32,6 +32,9 @@ TBOOX的所有项目都是属于个人开源项目，它的发展需要您的帮
 
 <a href="https://opencollective.com/xmake#backers" target="_blank"><img src="https://opencollective.com/xmake/backers.svg?width=890"></a>
 
+|| 2020.09.13 || xmake || Cartesian Technology || Paypal  || 5 EUR  ||
+|| 2020.09.11 || xmake || Cartesian Technology || Paypal  || 5 EUR  ||
+|| 2020.09.11 || xmake || 复刻回忆 || 支付宝  || ¥25    || 加油！||
 || 2020.09.05 || xmake || M*x || 微信 || ¥100 || ||
 || 2020.07.21 || xmake || 简单 || 微信 || ¥100 || ||
 || 2020.06.24 || xmake || *三 || 微信 || ¥10 || xmake很好用 ||
