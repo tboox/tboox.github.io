@@ -31,7 +31,7 @@ categories: xmake
 #### Winget 安装
 
 ```bash
-winget install
+winget install xmake
 ```
 
 #### Ubuntu PPA 安装
@@ -54,6 +54,12 @@ xmake
 ```
 
 我们还在新版本中，额外提供了两个安装包，内置集成了 TinyC 编译环境，整个安装包只需要 5M，还包含了 winsdk api。
+
+安装包可以在 xmake 的 github/releases 目录下找到。
+
+* [xmake-tinyc-v2.3.7.win64.exe](https://github.com/xmake-io/xmake/releases/download/v2.3.7/xmake-tinyc-v2.3.7.win64.exe)
+* [xmake-tinyc-v2.3.7.win32.exe](https://github.com/xmake-io/xmake/releases/download/v2.3.7/xmake-tinyc-v2.3.7.win32.exe)
+
 
 通过这个安装包，我们编译开发 C 程序就可以完全摆脱臃肿的 vs 开发环境（好几个 G），实现一键安装，开箱即用，对于我们平常刷刷 leetcode，写点 C 测试代码还是非常有用的，没必要为此特定安装整个 vs 进来。
 

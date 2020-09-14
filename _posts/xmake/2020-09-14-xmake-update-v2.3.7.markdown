@@ -31,7 +31,7 @@ In the new version, we submitted the xmake installation package to windows winge
 #### Winget installation
 
 ```bash
-winget install
+winget install xmake
 ```
 
 #### Ubuntu PPA installation
@@ -54,6 +54,11 @@ xmake
 ```
 
 In the new version, we also provide two additional installation packages, built-in and integrated TinyC compilation environment, the entire installation package only needs 5M, and also contains winsdk api.
+
+The installation package can be found in the github/releases directory of xmake.
+
+* [xmake-tinyc-v2.3.7.win64.exe](https://github.com/xmake-io/xmake/releases/download/v2.3.7/xmake-tinyc-v2.3.7.win64.exe)
+* [xmake-tinyc-v2.3.7.win32.exe](https://github.com/xmake-io/xmake/releases/download/v2.3.7/xmake-tinyc-v2.3.7.win32.exe)
 
 Through this installation package, we can completely get rid of the bloated vs development environment (several G) by compiling and developing C programs, realize one-click installation, and use it out of the box. It is very useful for us to brush leetcode and write some C test code. Yes, there is no need to install the entire vs for this particular installation.
 
