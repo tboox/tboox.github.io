@@ -614,7 +614,101 @@ xmake
 
 <p>In addition, you can quickly switch the build architecture by <code class="highlighter-rouge">xmake f -p iphoneos -a arm64 --trybuild=cmake</code>.</p>
 
-<p>Finally, we need to explain that although the trybuild mode can greatly help.</p>
+<p>Finally, we need to explain that although trybuild mode can greatly help users save compilation and configuration operations, if the conditions are run, we still hope that everyone can directly use xmake.lua to maintain their projects.</p>
+
+<p>In this way, there is no need to compile with trybuild, and xmake will support cross-compilation more perfectly, because internal xmake will directly compile the project without calling cmake, autotools and other tools, for example:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>xmake f -p iphoneos
+xmake
+</code></pre>
+</div>
+
+<p>or</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>xmake f -p android --ndk<span class="o">=</span>/xxx
+xmake
+</code></pre>
+</div>
+
+<p>As you can see, this time we omit the <code class="highlighter-rouge">--trybuild=cmake</code> parameter, because we don’t need it, we compile directly. At this time, xmake is equivalent to independent make/ninja and does not rely on make at all, and the compilation speed is also Can be completely comparable to ninja.</p>
+
+<h3 id="improve-the-integration-of-remote-dependency-packages">Improve the integration of remote dependency packages</h3>
+
+<h4 id="cross-compilation-support">Cross compilation support</h4>
+
+<p>xmake not only supports mingw/autotools cross-compilation support for trybuild, but also supports cross-compilation installation and integration for third parties maintained by cmake/autotools in remote package warehouses.</p>
+
+<p>E.g:</p>
+
+<div class="language-lua highlighter-rouge"><pre class="highlight"><code><span class="n">add_requires</span><span class="p">(</span><span class="s2">"pcre2"</span><span class="p">)</span>
+
+<span class="n">target</span><span class="p">(</span><span class="s2">"test"</span><span class="p">)</span>
+    <span class="n">set_kind</span><span class="p">(</span><span class="s2">"binary"</span><span class="p">)</span>
+    <span class="n">add_files</span><span class="p">(</span><span class="s2">"src/*.cpp"</span><span class="p">)</span>
+    <span class="n">add_packages</span><span class="p">(</span><span class="s2">"pcre2"</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>Then by switching to the iphoneos platform, you can quickly integrate and install the pcre2 package of the iphoneos platform, and then compile and link it, even if the pcre2 package is maintained by autotools/cmake.</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>xmake f -p iphoneos
+xmake
+</code></pre>
+</div>
+
+<h4 id="private-network-package-warehouse">Private network package warehouse</h4>
+
+<p>In this version, we have also made some improvements to the integration of remote dependency packages. For example, you can switch to private network mode by configuring <code class="highlighter-rouge">xmake g --network=private</code>.</p>
+
+<p>This is mainly used for some company’s internal network through xmake’s self-built package management warehouse to achieve closed C/C++ dependency package integration, and will not rely on packages from the official warehouse provided by xmake.</p>
+
+<h4 id="recursively-export-installed-packages">Recursively export installed packages</h4>
+
+<p>xmake previously provided a command to export all third-party dependency packages installed by xmake.</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>xmake require --export
+</code></pre>
+</div>
+
+<p>However, the previous version corresponds to some packages that have dependencies. When exporting, only itself will be exported, and all its dependencies will not be exported. In this version, we have improved it and will also perform all corresponding dependent packages.了export.</p>
+
+<h3 id="improve-support-for-qt-sdk-environment">Improve support for Qt SDK environment</h3>
+
+<p>In addition, this version also provides better support for the Qt SDK toolchain environment. For example, the Qt SDK toolchain installed by the apt command under the ubuntu system is also supported, while the previous version can only support downloading and installing from the Qt official website The Qt SDK environment.</p>
+
+<h2 id="changelog">Changelog</h2>
+
+<h3 id="new-features">New features</h3>
+
+<ul>
+  <li><a href="https://github.com/microsoft/winget-pkgs/pull/2941">#2941</a>: Add support for winget</li>
+  <li>Add xmake-tinyc installer without msvc compiler for windows</li>
+  <li>Add tinyc compiler toolchain</li>
+  <li>Add emcc compiler toolchain (emscripten) to compiling to asm.js and WebAssembly</li>
+  <li><a href="https://github.com/xmake-io/xmake/issues/947">#947</a>: Add <code class="highlighter-rouge">xmake g --network=private</code> to enable the private network</li>
+</ul>
+
+<h3 id="change">Change</h3>
+
+<ul>
+  <li><a href="https://github.com/xmake-io/xmake/issues/907">#907</a>: Improve to the linker optimization for msvc</li>
+  <li>Improve to detect qt sdk environment</li>
+  <li><a href="https://github.com/xmake-io/xmake/pull/918">#918</a>: Improve to support cuda11 toolchains</li>
+  <li>Improve Qt support for ubuntu/apt</li>
+  <li>Improve CMake project generator</li>
+  <li><a href="https://github.com/xmake-io/xmake/issues/931">#931</a>: Support to export packages with all dependences</li>
+  <li><a href="https://github.com/xmake-io/xmake/issues/930">#930</a>: Support to download package without version list directly</li>
+  <li><a href="https://github.com/xmake-io/xmake/issues/927">#927</a>: Support to switch arm/thumb mode for android ndk</li>
+  <li>Improve trybuild/cmake to support android/mingw/iphoneos/watchos toolchains</li>
+</ul>
+
+<h3 id="bugs-fixed">Bugs fixed</h3>
+
+<ul>
+  <li><a href="https://github.com/xmake-io/xmake/issues/903">#903</a>: Fix install vcpkg packages fails</li>
+  <li><a href="https://github.com/xmake-io/xmake/issues/912">#912</a>: Fix the custom toolchain</li>
+  <li><a href="https://github.com/xmake-io/xmake/issues/914">#914</a>: Fix bad light userdata pointer for lua on some aarch64 devices</li>
+</ul>
 
         </article>
         <hr>
