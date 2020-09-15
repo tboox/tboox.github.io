@@ -174,4 +174,92 @@ The user does not need to be concerned. If you use cmake to transfer the configu
 
 In addition, you can quickly switch the build architecture by `xmake f -p iphoneos -a arm64 --trybuild=cmake`.
 
-Finally, we need to explain that although the trybuild mode can greatly help.
+Finally, we need to explain that although trybuild mode can greatly help users save compilation and configuration operations, if the conditions are run, we still hope that everyone can directly use xmake.lua to maintain their projects.
+
+In this way, there is no need to compile with trybuild, and xmake will support cross-compilation more perfectly, because internal xmake will directly compile the project without calling cmake, autotools and other tools, for example:
+
+```bash
+xmake f -p iphoneos
+xmake
+```
+
+or
+
+```bash
+xmake f -p android --ndk=/xxx
+xmake
+```
+
+As you can see, this time we omit the `--trybuild=cmake` parameter, because we don’t need it, we compile directly. At this time, xmake is equivalent to independent make/ninja and does not rely on make at all, and the compilation speed is also Can be completely comparable to ninja.
+
+### Improve the integration of remote dependency packages
+
+#### Cross compilation support
+
+xmake not only supports mingw/autotools cross-compilation support for trybuild, but also supports cross-compilation installation and integration for third parties maintained by cmake/autotools in remote package warehouses.
+
+E.g:
+
+```lua
+add_requires("pcre2")
+
+target("test")
+    set_kind("binary")
+    add_files("src/*.cpp")
+    add_packages("pcre2")
+```
+
+Then by switching to the iphoneos platform, you can quickly integrate and install the pcre2 package of the iphoneos platform, and then compile and link it, even if the pcre2 package is maintained by autotools/cmake.
+
+```bash
+xmake f -p iphoneos
+xmake
+```
+
+#### Private network package warehouse
+
+In this version, we have also made some improvements to the integration of remote dependency packages. For example, you can switch to private network mode by configuring `xmake g --network=private`.
+
+This is mainly used for some company's internal network through xmake's self-built package management warehouse to achieve closed C/C++ dependency package integration, and will not rely on packages from the official warehouse provided by xmake.
+
+#### Recursively export installed packages
+
+xmake previously provided a command to export all third-party dependency packages installed by xmake.
+
+```bash
+xmake require --export
+```
+
+However, the previous version corresponds to some packages that have dependencies. When exporting, only itself will be exported, and all its dependencies will not be exported. In this version, we have improved it and will also perform all corresponding dependent packages.了export.
+
+### Improve support for Qt SDK environment
+
+In addition, this version also provides better support for the Qt SDK toolchain environment. For example, the Qt SDK toolchain installed by the apt command under the ubuntu system is also supported, while the previous version can only support downloading and installing from the Qt official website The Qt SDK environment.
+
+## Changelog
+
+### New features
+
+* [#2941](https://github.com/microsoft/winget-pkgs/pull/2941): Add support for winget
+* Add xmake-tinyc installer without msvc compiler for windows
+* Add tinyc compiler toolchain
+* Add emcc compiler toolchain (emscripten) to compiling to asm.js and WebAssembly
+* [#947](https://github.com/xmake-io/xmake/issues/947): Add `xmake g --network=private` to enable the private network
+
+### Change
+
+* [#907](https://github.com/xmake-io/xmake/issues/907): Improve to the linker optimization for msvc
+* Improve to detect qt sdk environment
+* [#918](https://github.com/xmake-io/xmake/pull/918): Improve to support cuda11 toolchains
+* Improve Qt support for ubuntu/apt
+* Improve CMake project generator
+* [#931](https://github.com/xmake-io/xmake/issues/931): Support to export packages with all dependences
+* [#930](https://github.com/xmake-io/xmake/issues/930): Support to download package without version list directly 
+* [#927](https://github.com/xmake-io/xmake/issues/927): Support to switch arm/thumb mode for android ndk
+* Improve trybuild/cmake to support android/mingw/iphoneos/watchos toolchains
+
+### Bugs fixed
+
+* [#903](https://github.com/xmake-io/xmake/issues/903): Fix install vcpkg packages fails
+* [#912](https://github.com/xmake-io/xmake/issues/912): Fix the custom toolchain
+* [#914](https://github.com/xmake-io/xmake/issues/914): Fix bad light userdata pointer for lua on some aarch64 devices
