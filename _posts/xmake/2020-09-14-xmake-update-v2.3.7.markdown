@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "xmake v2.3.7 released, Add tinyc/emscripten toolchains"
+title:  "xmake v2.3.7 released, Add tinyc and emscripten toolchains"
 tags: xmake lua C/C++ toolchains tinyc emscripten qt cuda 
 categories: xmake
 ---
