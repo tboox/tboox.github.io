@@ -52,6 +52,7 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## Supporters
 
+|| 2020.09.22 || xmake || Russell Haley || paypal || $25CAD || ||
 || 2020.09.13 || xmake || Cartesian Technology || Paypal  || 5 EUR  ||
 || 2020.09.11 || xmake || Cartesian Technology || Paypal  || 5 EUR  ||
 || 2020.09.11 || xmake || 复刻回忆 || alipay  || ¥25    || 加油！||
