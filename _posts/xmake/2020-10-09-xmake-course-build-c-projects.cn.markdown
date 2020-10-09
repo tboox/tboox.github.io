@@ -38,4 +38,4 @@ categories: xmake
 
 我们也可以通过扫描下方二维码进入课程：
 
-![](/assets/img/xmake_course.png)
+![](https://xmake.io/assets/img/xmake_course.png)
