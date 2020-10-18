@@ -141,6 +141,18 @@ layout: default.cn
             </script>
             {% endif %}
 
+            <!-- xmake courses -->
+            <br>
+            <div class="side">
+                <div>
+                    <i class="fa fa-external-link"></i>
+                    xmake 入门课程
+                </div>
+                <a href="https://xmake.io/#/zh-cn/about/course" target="_blank">
+                <img src="/static/img/xmake-course.png" alt="course" width="256" height="193">
+                </a>
+            </div> 
+
             <!-- wechat public -->
             <br>
             <div class="side">
@@ -148,7 +160,7 @@ layout: default.cn
                     <i class="fa fa-external-link"></i>
                     微信公众号
                 </div>
-                <img src="/static/img/weixin_public.jpg" alt="qqgroup" width="256" height="284">
+                <img src="/static/img/weixin_public.jpg" alt="wechat" width="256" height="284">
             </div> 
 
             <!-- 其他div框放到这里 -->
