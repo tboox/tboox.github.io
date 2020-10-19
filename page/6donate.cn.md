@@ -32,6 +32,7 @@ TBOOX的所有项目都是属于个人开源项目，它的发展需要您的帮
 
 <a href="https://opencollective.com/xmake#backers" target="_blank"><img src="https://opencollective.com/xmake/backers.svg?width=890"></a>
 
+|| 2020.10.19 || xmake || Cartesian Technology || Paypal  || 5 EUR  ||
 || 2020.10.05 || tbox || l*r || 微信 || ¥200 || 愿成为国产平台标准库 ||
 || 2020.09.22 || xmake || Russell Haley || paypal || $25CAD || ||
 || 2020.09.13 || xmake || Cartesian Technology || Paypal  || 5 EUR  ||
