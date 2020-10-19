@@ -1,0 +1,180 @@
+---
+layout: post
+title:  "LTUI v2.2 released, A cross-platform terminal ui library based on Lua"
+tags: ltui curses lua xmake ui
+categories: ltui 
+---
+
+LTUI is a lua-based cross-platform character terminal UI interface library.
+
+This framework is derived from the requirement of graphical menu configuration in [xmake](https://github.com/xmake-io/xmake), similar to the menuconf of linux kernel to configure compilation parameters, so based on curses and lua, a complete set of cross- The character terminal ui library of the platform.
+And the style style basically refers to kconfig-frontends, of course, users can also customize different ui styles.
+
+In addition, LTUI is completely cross-platform, and the terminal terminal on windows is also fully supported. On windows, ltui will use pdcurses to draw windows.
+
+* [Github](https://github.com/tboox/ltui)
+
+### Changelog
+
+In the new version, we mainly added support for mouse events. In addition to curses/ncurses, we also support pdcurses on windows. Here we are very grateful for the contribution of [@laelnasan](https://github.com/laelnasan) .
+
+In addition, we have added a test case of `tests/events.lua` to test various input events.
+
+```console
+$ xmake run test events
+```
+
+We can get and display all mouse input events of the user through this test example.
+
+<img src="https://tboox.org/static/img/ltui/mouses.png" width="70%" />
+
+We can override ʻon_event` on a custom view to get all event input, including all mouse input events:
+
+```lua
+local demo = application()
+
+function demo:init()
+    application.init(self, "demo")
+    self:background_set("black")
+end
+
+function demo:on_event(e)
+    if e.type == "btn_code" then
+        print(e.btn_name, e.x, e.y)
+    end
+    application.on_event(self, e)
+end
+
+demo:run()
+```
+
+
+
+
+
+
+### Installation and usage
+
+`` `console
+$ luarocks install ltui
+`` `
+
+If you want to run the built-in test, you need to install [lua](https://www.lua.org/) or [luajit](http://luajit.org/) program to load and run the ltui source repository test program:
+
+```console
+$ lua tests/dialog.lua
+$ lua tests/window.lua
+$ lua tests/desktop.lua
+$ lua tests/inputdialog.lua
+$ lua tests/mconfdialog.lua
+```
+
+Or
+
+```console
+$ luajit tests/dialog.lua
+$ luajit tests/window.lua
+$ luajit tests/desktop.lua
+$ luajit tests/inputdialog.lua
+$ luajit tests/mconfdialog.lua
+```
+
+### Source compilation
+
+Usually as long as luarocks is installed, it can be used. If you want to debug locally, you can also run the test directly after the source code is compiled. First, we need to install the cross-platform build tool: [xmake](https://github.com/xmake-io/xmake)
+
+```console
+$ xmake
+```
+
+xmake will automatically download lua, ncurses and other related dependencies, then we can directly load related test programs through `xmake run`:
+
+```console
+$ xmake run test dialog
+$ xmake run test window
+$ xmake run test desktop
+$ xmake run test inputdialog
+$ xmake run test mconfdialog
+```
+
+
+### Application
+
+```lua
+local ltui        = require("ltui")
+local application = ltui.application
+local event       = ltui.event
+local rect        = ltui.rect
+local window      = ltui.window
+local demo        = application()
+
+function demo:init()
+    application.init(self, "demo")
+    self:background_set("blue")
+    self:insert(window:new("window.main", rect {1, 1, self:width() - 1, self:height() - 1}, "main window", true))
+end
+
+demo:run()
+```
+
+### Label 
+
+```lua
+local lab = label:new("title", rect {0, 0, 12, 1}, "hello ltui!"):textattr_set("white")
+```
+
+### Button
+
+```lua
+local btn = button:new("yes", rect {0, 1, 7, 2}, "< Yes >"):textattr_set("white")
+```
+
+### Input
+
+```lua
+function demo:init()
+    -- ...
+
+    local dialog_input = inputdialog:new("dialog.input", rect {0, 0, 50, 8})
+    dialog_input:text():text_set("please input text:")
+    dialog_input:button_add("no", "< No >", function (v) dialog_input:quit() end)
+    dialog_input:button_add("yes", "< Yes >", function (v) dialog_input:quit() end)
+    self:insert(dialog_input, {centerx = true, centery = true})
+end
+```
+
+### Widgets
+
+| Views     | Dialogs      | Other       |
+| -------   | ------       | ------      |
+| view      | dialog       | event       |
+| panel     | boxdialog    | action      |
+| label     | textdialog   | canvas      |
+| button    | inputdialog  | curses      |
+| border    | mconfdialog  | program     |
+| window    | choicedialog | application |
+| menubar   |              | point       |
+| menuconf  |              | rect        |
+| textedit  |              | object      |
+| textarea  |              |             |
+| statusbar |              |             |
+| choicebox |              |             |
+| desktop   |              |             |
+
+
+### Menu configuration
+
+<img src="https://tboox.org/static/img/ltui/menuconf.png" width="70%" />
+
+### Input
+
+<img src="https://tboox.org/static/img/ltui/inputdialog.png" width="70%" />
+
+### Textarea
+
+<img src="https://tboox.org/static/img/ltui/textarea.png" width="70%" />
+
+### Windows
+
+<img src="https://tboox.org/static/img/ltui/windows.png" width="70%" />
+
