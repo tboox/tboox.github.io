@@ -52,6 +52,7 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## Supporters
 
+|| 2020.11.11 || xmake || Cartesian Technology || Paypal  || $50 CAD  ||
 || 2020.10.23 || xmake || Cartesian Technology || Paypal  || 5 EUR  ||
 || 2020.10.19 || xmake || Cartesian Technology || Paypal  || 5 EUR  ||
 || 2020.10.05 || tbox || l*r || wechat || ¥200 || 愿成为国产平台标准库 ||
