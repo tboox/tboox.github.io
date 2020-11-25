@@ -18,7 +18,7 @@ categories: xmake
 
 ## 入门课程
 
-近期，我们也上线了官方的 xmake 入门课程，[Xmake 带你轻松构建 C/C++ 项目](ttps://xmake.io/#/zh-cn/about/course) 以边学边做实验的方式快速学习 xmake 的使用。
+近期，我们也上线了官方的 xmake 入门课程，[Xmake 带你轻松构建 C/C++ 项目](https://xmake.io/#/zh-cn/about/course) 以边学边做实验的方式快速学习 xmake 的使用。
 
 ## 新特性介绍
 

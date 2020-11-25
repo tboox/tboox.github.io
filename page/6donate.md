@@ -52,6 +52,7 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## Supporters
 
+|| 2020.11.25 || xmake || 小弧光 || wechat  || ¥10 ||
 || 2020.11.20 || xmake || Cartesian Technology || Paypal  || $25 CAD  ||
 || 2020.11.11 || xmake || Cartesian Technology || Paypal  || $50 CAD  ||
 || 2020.10.23 || xmake || Cartesian Technology || Paypal  || 5 EUR  ||
