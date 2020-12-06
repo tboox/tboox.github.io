@@ -32,6 +32,10 @@ TBOOX的所有项目都是属于个人开源项目，它的发展需要您的帮
 
 <a href="https://opencollective.com/xmake#backers" target="_blank"><img src="https://opencollective.com/xmake/backers.svg?width=890"></a>
 
+|| 2020.12.05 || 知而无知 || 微信 || ¥50 ||
+|| 2020.12.05 || fghuh || 支付宝 || ¥10 ||
+|| 2020.12.05 || @ || 微信 || ¥5 ||
+|| 2020.11.27 || 少东 || 支付宝 || ¥2.33 ||
 || 2020.11.25 || xmake || 小弧光 || 微信  || ¥10 ||
 || 2020.11.20 || xmake || Cartesian Technology || Paypal  || $25 CAD  ||
 || 2020.11.11 || xmake || Cartesian Technology || Paypal  || $50 CAD  ||
