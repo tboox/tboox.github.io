@@ -26,7 +26,7 @@ categories: xmake
 
 Discord (discord.com) 是一个非常不错的全端即时交流平台，我们在上面创建了中文和英文两个不同的频道，界面大概长这样。
 
-![](https://tboox.org/static/img/discord.png)
+![](https://tboox.org/static/img/xmake/discord.png)
 
 最近，我们在 Discord 上新创建了 xmake 技术交流频道，欢迎大家加入。
 
@@ -34,7 +34,7 @@ Discord (discord.com) 是一个非常不错的全端即时交流平台，我们�
 
 另外，在 xmake 支持 Zig Language 项目编译的过程中，我们也有幸邀请到了 Zig 作者 Andrewrk 进入我们的社区频道。
 
-![](https://tboox.org/static/img/zig_author.png)
+![](https://tboox.org/static/img/xmake/zig_author.png)
 
 ### 其他平台社区
 
