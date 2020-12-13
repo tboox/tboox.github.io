@@ -10,13 +10,16 @@ icon: user
 
 ## 联系方式
 
-* [邮箱](waruqi@gmail.com)
-* [Twitter](https://twitter.com/waruqi)
-* [Github组织](https://github.com/tboox)
-* [社区论坛](https://www.reddit.com/r/tboox/)
-* [Gitter聊天室](https://gitter.im/tboox/tboox?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-* [Telegram群组](https://t.me/tbooxorg)
-* [QQ群(343118190)](https://jq.qq.com/?_wv=1027&k=5hpwWFv)
+* 邮箱：[waruqi@gmail.com](mailto:waruqi@gmail.com)
+* 主页：[xmake.io](https://xmake.io/#/zh-cn/)
+* 社区
+  - [Reddit论坛](https://www.reddit.com/r/xmake/)
+  - [Telegram群组](https://t.me/tbooxorg)
+  - [Gitter聊天室](https://gitter.im/xmake-io/xmake?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+  - [Discord聊天室](https://discord.gg/aY7RVeKdG7)
+  - QQ群：343118190(技术支持), 662147501
+* 源码：[Github](https://github.com/xmake-io/xmake), [Gitee](https://gitee.com/tboox/xmake)
+* 微信公众号：tboox-os
 
 ## 微信公众号
 
