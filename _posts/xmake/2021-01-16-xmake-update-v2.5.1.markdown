@@ -388,6 +388,38 @@ build = {
 
 You only need to set the current switch to xmake compilation, and use the xmake.lua rules file built into the lua module project.
 
+### Support for deploying Qt programs on windows
+
+Thank you very much for the contribution of @SirLynix, xmake can already support the deployment and installation of Qt applications on windows.
+
+We only need to maintain a Qt program normally, for example:
+
+```lua
+add_rules("mode.debug", "mode.release")
+
+target("demo")
+     add_rules("qt.quickapp")
+     add_headerfiles("src/*.h")
+     add_files("src/*.cpp")
+     add_files("src/qml.qrc")
+```
+
+Then, we only need to execute the following compile and install commands, and xmake will automatically call the windeployqt.exe program to install and deploy our Qt application.
+
+```bash
+$ xmake
+$ xmake install -o d:\installdir
+```
+
+Related patches: [#1145](https://github.com/xmake-io/xmake/pull/1145)
+
+In addition, in the previous version, xmake has also supported the deployment and packaging of Qt programs for macOS and android versions. Each time only normal compilation commands are required, the QT .app/.apk installation package can be generated.
+
+```bash
+$ xmake f -p android --ndk=/xxx/android-ndk-r20b --sdk=/xxx
+$ xmake
+```
+
 ### Some bug fixes
 
 We have also fixed many problems reported by users. Here we introduce some more important bug fixes, such as:

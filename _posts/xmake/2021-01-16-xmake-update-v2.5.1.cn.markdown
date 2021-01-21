@@ -391,6 +391,38 @@ build = {
 
 只需要设置当前切换到 xmake 编译，完全使用 lua 模块项目内置的 xmake.lua 规则文件。
 
+### 支持在 windows 安装部署 Qt 程序
+
+非常感谢 @SirLynix 的贡献，xmake 已经可以支持在 windows 上部署安装 Qt 应用程序。
+
+我们只需要正常维护一个 Qt 程序，例如：
+
+```lua
+add_rules("mode.debug", "mode.release")
+
+target("demo")
+    add_rules("qt.quickapp")
+    add_headerfiles("src/*.h")
+    add_files("src/*.cpp")
+    add_files("src/qml.qrc")
+```
+
+然后，我们只需要执行下面的编译安装命令，xmake 就会自动调用 windeployqt.exe 程序去安装部署我们的 Qt 应用。
+
+```bash
+$ xmake
+$ xmake install -o d:\installdir
+```
+
+相关补丁：[#1145](https://github.com/xmake-io/xmake/pull/1145)
+
+另外，在之前的版本中，xmake 也已经支持对 macOS 和 android 版本的 Qt 程序进行部署打包，每次只需要正常的编译命令，就可以生成 QT .app/.apk 安装包。
+
+```bash
+$ xmake f -p android --ndk=/xxx/android-ndk-r20b --sdk=/xxx
+$ xmake
+```
+
 
 ### 一些问题修复
 
