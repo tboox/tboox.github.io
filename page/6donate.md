@@ -52,6 +52,8 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## Supporters
 
+|| 2021.02.07 || xmake || 抚* || wechat || ¥66 || xmake牛批！||
+|| 2021.02.05 || xmake || *_ || alipay || ¥5 ||
 || 2020.12.05 || 知而无知 || wechat || ¥50 ||
 || 2020.12.05 || fghuh || alipay || ¥10 ||
 || 2020.12.05 || @ || wechat || ¥5 ||
