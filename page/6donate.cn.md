@@ -33,6 +33,7 @@ TBOOX的所有项目都是属于个人开源项目，它的发展需要您的帮
 <a href="https://opencollective.com/xmake#backers" target="_blank"><img src="https://opencollective.com/xmake/backers.svg?width=890"></a>
 
 
+|| 2021.03.18 || xmake || *博 || 微信 || ¥50  ||
 || 2021.03.17 || xmake || *博 || 微信 || ¥100  ||
 || 2021.03.14 || xmake || Gavin Ray || OpenCollective || $10 ||
 || 2021.02.07 || xmake || 抚* || 微信 || ¥66 || xmake牛批！||

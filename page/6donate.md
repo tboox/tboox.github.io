@@ -52,6 +52,7 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## Supporters
 
+|| 2021.03.18 || xmake || *博 || wechat || ¥50  ||
 || 2021.03.17 || xmake || *博 || wechat || ¥100  ||
 || 2021.03.14 || xmake || Gavin Ray || OpenCollective || $10 ||
 || 2021.02.07 || xmake || 抚* || wechat || ¥66 || xmake牛批！||
