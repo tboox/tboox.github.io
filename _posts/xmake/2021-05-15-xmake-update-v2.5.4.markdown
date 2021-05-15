@@ -7,11 +7,11 @@ categories: xmake
 
 [xmake](https://github.com/xmake-io/xmake) is a lightweight cross-platform build tool based on Lua. It uses xmake.lua to maintain project builds. Compared with makefile/CMakeLists.txt, the configuration syntax is more Concise and intuitive, it is very friendly to novices, and you can get started quickly in a short time, allowing users to focus more on actual project development.
 
-In version 2.5.3, we have been able to build linux and android bpf programs.
+In version 2.5.4, we added support for Apt and Portable package managers. On Ubuntu/Gentoo, we can also use `add_requires` to quickly integrate the packages they provide.
 
-Although bpf has certain requirements for the compilation toolchain, such as the newer llvm/clang and android ndk toolchains, xmake can automatically pull a specific version of llvm/ndk for compilation, and it can also automatically pull libbpf dependencies. Library.
+And we have also improved the support for the Vcpkg package manager, and added support for the installation of arm/arm64 architecture packages.
 
-In addition, in the new version we have added support for the integration of C/C++ packages from Conda.
+In addition, we have also enhanced the `xrepo env shell` environment. You can load a shell environment with a specific package configuration by configuring a series of `add_requires` package configurations in `xmake.lua`.
 
 * [Github](https://github.com/xmake-io/xmake)
 * [Document](https://xmake.io/)
