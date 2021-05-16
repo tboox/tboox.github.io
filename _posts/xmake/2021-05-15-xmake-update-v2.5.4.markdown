@@ -1,13 +1,13 @@
 ---
 layout: post
-title:  "xmake v2.5.4 Released, Support apt/portable package manager and improve xrepo shell"
-tags: xmake lua C/C++ apt portable shell package
+title:  "xmake v2.5.4 Released, Support apt/portage package manager and improve xrepo shell"
+tags: xmake lua C/C++ apt portage shell package
 categories: xmake
 ---
 
 [xmake](https://github.com/xmake-io/xmake) is a lightweight cross-platform build tool based on Lua. It uses xmake.lua to maintain project builds. Compared with makefile/CMakeLists.txt, the configuration syntax is more Concise and intuitive, it is very friendly to novices, and you can get started quickly in a short time, allowing users to focus more on actual project development.
 
-In version 2.5.4, we added support for Apt and Portable package managers. On Ubuntu/Gentoo, we can also use `add_requires` to quickly integrate the packages they provide.
+In version 2.5.4, we added support for Apt and Portage package managers. On Ubuntu/Gentoo, we can also use `add_requires` to quickly integrate the packages they provide.
 
 And we have also improved the support for the Vcpkg package manager, and added support for the installation of arm/arm64 architecture packages.
 
@@ -33,12 +33,12 @@ target("test")
     add_packages("zlib")
 ```
 
-#### Add gentoo/portable dependency package
+#### Add gentoo/portage dependency package
 
-We also support the use of Portable to integrate dependency packages, and will automatically find packages already installed on the Gentoo system.
+We also support the use of Portage to integrate dependency packages, and will automatically find packages already installed on the Gentoo system.
 
 ```lua
-add_requires("portable::libhandy", {alias = "libhandy"})
+add_requires("portage::libhandy", {alias = "libhandy"})
 
 target("test")
     set_kind("binary")

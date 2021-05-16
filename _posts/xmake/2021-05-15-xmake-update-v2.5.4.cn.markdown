@@ -1,13 +1,13 @@
 ---
 layout: post.cn
-title:  "xmake v2.5.4 发布，支持 apt/portable 包管理器，改进 xrepo shell 环境"
-tags: xmake lua C/C++ apt portable shell package
+title:  "xmake v2.5.4 发布，支持 apt/portage 包管理器，改进 xrepo shell 环境"
+tags: xmake lua C/C++ apt portage shell package
 categories: xmake
 ---
 
 [xmake](https://github.com/xmake-io/xmake) 是一个基于 Lua 的轻量级跨平台构建工具，使用 xmake.lua 维护项目构建，相比 makefile/CMakeLists.txt，配置语法更加简洁直观，对新手非常友好，短时间内就能快速入门，能够让用户把更多的精力集中在实际的项目开发上。
 
-在 2.5.4 版本中，我们新增了对 Apt、Portable 这两个包管理器的支持，在 Ubuntu/Gentoo 上我们也可以使用 `add_requires` 可以快速集成它们提供的包。
+在 2.5.4 版本中，我们新增了对 Apt、Portage 这两个包管理器的支持，在 Ubuntu/Gentoo 上我们也可以使用 `add_requires` 可以快速集成它们提供的包。
 
 并且我们也改进支持了 Vcpkg 包管理器的支持，新增对 arm/arm64 架构包的安装支持。
 
@@ -36,12 +36,12 @@ target("test")
     add_packages("zlib")
 ```
 
-#### 添加 gentoo/portable 的依赖包
+#### 添加 gentoo/portage 的依赖包
 
-我们也支持了使用 Portable 集成依赖包，并且也会自动查找 Gentoo 系统上已经安装的包。
+我们也支持了使用 Portage 集成依赖包，并且也会自动查找 Gentoo 系统上已经安装的包。
 
 ```lua
-add_requires("portable::libhandy", {alias = "libhandy"})
+add_requires("portage::libhandy", {alias = "libhandy"})
 
 target("test")
     set_kind("binary")
