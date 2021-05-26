@@ -52,6 +52,9 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## Supporters
 
+|| 2021.05.26 || xmake || jerry || 支付宝 || ¥100 ||
+|| 2021.05.02 || xmake || 乐 || 支付宝 || ¥20 ||
+|| 2021.04.26 || xmake || 灿辉 || 支付宝 || ¥20 ||
 || 2021.04.04 || xmake || *烨 || wechat || ¥50  ||
 || 2021.03.31 || xmake || *晨 || wechat || ¥10  ||
 || 2021.03.18 || xmake || *博 || wechat || ¥50  ||
