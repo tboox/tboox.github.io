@@ -5,9 +5,904 @@
     <description>Focus on cross-platform development using c language</description>
     <link>https://tboox.org/</link>
     <atom:link href="https://tboox.org/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Wed, 30 Jun 2021 18:03:59 +0800</pubDate>
-    <lastBuildDate>Wed, 30 Jun 2021 18:03:59 +0800</lastBuildDate>
+    <pubDate>Thu, 01 Jul 2021 09:54:22 +0800</pubDate>
+    <lastBuildDate>Thu, 01 Jul 2021 09:54:22 +0800</lastBuildDate>
     <generator>Jekyll v3.1.0</generator>
+    
+      <item>
+        <title>xmake v2.5.5 released, Support to download and install precompiled image packages</title>
+        <description>&lt;p&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;xmake&lt;/a&gt; is a lightweight cross-platform build tool based on Lua. It uses xmake.lua to maintain project builds. Compared with makefile/CMakeLists.txt, the configuration syntax is more Concise and intuitive, it is very friendly to novices, and you can get started quickly in a short time, allowing users to focus more on actual project development.&lt;/p&gt;
+
+&lt;p&gt;In version 2.5.5, we continue to improve the experience of remote package integration, realize the pre-compiled package in the cloud, and then directly download the integrated pre-compiled binary package. This can greatly reduce the installation time of some packages that are very slow to compile.&lt;/p&gt;
+
+&lt;p&gt;In addition, in the new version, we have also re-implemented the new version of the local package generation scheme, which fully supports &lt;code class=&quot;highlighter-rouge&quot;&gt;add_requires&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;add_packages&lt;/code&gt; seamlessly. From then on, remote packages and local packages can be maintained in a unified way.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;Github&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://xmake.io/&quot;&gt;Document&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;new-feature-introduction&quot;&gt;New feature introduction&lt;/h2&gt;
+
+&lt;h3 id=&quot;download-and-install-the-pre-compiled-package&quot;&gt;Download and install the pre-compiled package&lt;/h3&gt;
+
+&lt;p&gt;Each time you install a package by the built-in package manager of xmake, you must download the corresponding package source code, and then perform local compilation and installation integration. This is for some large packages that compile very slowly, and some packages that rely on a lot of compilation tools. It will be very slow.&lt;/p&gt;
+
+&lt;p&gt;Especially on windows, not only the dependence of the third party package on the compilation environment is more complicated, but also many packages and compilation are very slow, such as boost, openssl and so on.&lt;/p&gt;
+
+&lt;p&gt;To this end, we implement cloud pre-compilation of packages based on github action, and pre-compile all commonly used packages, and then store them in &lt;a href=&quot;https://github.com/xmake-mirror/build- artifacts&quot;&gt;build-artifacts&lt;/a&gt; under Releases of the repository.&lt;/p&gt;
+
+&lt;p&gt;Then, when we install the package, we will automatically download it from the binary image package source to achieve rapid integration (currently only pre-compiled windows packages are supported, and will be gradually released to other platforms in the future).&lt;/p&gt;
+
+&lt;p&gt;We will pre-compile various configuration combinations such as plat/arch/MT/MD/static/shared of each package, and accurately pull the packages that users actually need according to the unique buildhash. All compiled products will be compressed and packaged with 7zip, as follows Picture:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/static/img/xmake/build-artifacts.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;configure-mirror-source-to-accelerate-download&quot;&gt;Configure mirror source to accelerate download&lt;/h4&gt;
+
+&lt;p&gt;Since our pre-compiled products are all placed on github, for Chinese users, considering that access to github is not very stable, we can also use the xmake mirror proxy function to automatically switch the actual download to fastgit and other mirror sites to speed up the download.&lt;/p&gt;
+
+&lt;p&gt;We can configure mirror proxy rules through a pac.lua file, for example, access to all github.com domain names is switched to the hub.fastgit.org domain name to speed up downloading packages.&lt;/p&gt;
+
+&lt;p&gt;pac.lua configuration:&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;mirror&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gsub&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;github.com&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;hub.fastgit.org&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Then we set this pac.lua file, the default path is &lt;code class=&quot;highlighter-rouge&quot;&gt;~/.xmake/pac.lua&lt;/code&gt;, or you can manually configure pac.lua using the specified location.&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; g --proxy_pac=/tmp/pac.lua
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Then, when we install the package, if we encounter the package source under the github.com domain name, it will automatically switch to the fastgit mirror to accelerate the download when downloading.&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xrepo&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; install libpng
+&lt;/span&gt;&amp;gt; curl https://hub.fastgit.org/glennrp/libpng/archive/v1.6.37.zip -o v1.6.37.zip
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Therefore, all downloads of pre-compiled products will also be speeded up. Of course, more than Fastgit provides github mirror acceleration in China, and users can also switch to other mirror sources, such as cnpmjs.org and so on.&lt;/p&gt;
+
+&lt;h4 id=&quot;how-to-trigger-cloud-pre-compilation&quot;&gt;How to trigger cloud pre-compilation&lt;/h4&gt;
+
+&lt;p&gt;By default, xmake will not actively perform cloud pre-compilation and caching of all packages, which is too time-consuming and labor-intensive. Currently, only the pr is submitted to &lt;a href=&quot;https://github.com/xmake-io/xmake- repo&quot;&gt;xmake-repo&lt;/a&gt; The official package repository, when a new package is included or the package version is updated, the cloud pre-compilation behavior of the corresponding package will be automatically triggered.&lt;/p&gt;
+
+&lt;p&gt;Therefore, if users want to contribute packages to our warehouse, they can basically be precompiled and cached (except for headeronly libraries), and if users do not want to contribute packages, but also want to get the precompilation acceleration of the corresponding package, it is also possible.&lt;/p&gt;
+
+&lt;p&gt;Just submit pr to the build branch of the &lt;a href=&quot;https://github.com/xmake-mirror/build-artifacts&quot;&gt;build-artifacts&lt;/a&gt; repository, edit &lt;a href=&quot;https://github.com/xmake-mirror /build-artifacts/blob/build/build.txt&quot;&gt;build.txt&lt;/a&gt; file, just modify the package name and version list that needs to trigger pre-compilation, for example:&lt;/p&gt;
+
+&lt;p&gt;build.txt&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;asmjit&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;versions&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;s2&quot;&gt;&quot;2021.06.27&quot;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;As long as pr is merged, it will automatically trigger the pre-compilation behavior, and then generate the final compilation product to releases.&lt;/p&gt;
+
+&lt;h4 id=&quot;mandatory-source-code-compilation-and-installation&quot;&gt;Mandatory source code compilation and installation&lt;/h4&gt;
+
+&lt;p&gt;Although we provide a pre-compilation, download and installation method, if users still want to compile and install from source code, we can also manually pass in the &lt;code class=&quot;highlighter-rouge&quot;&gt;--build&lt;/code&gt; parameter to the xrepo command to force switch to source code compilation and installation mode.&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xrepo&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; install --build openssl
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;In xmake.lua, we can also support source code compilation and installation.&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;openssl&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;build&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;If it is not specified, then xmake will automatically try to download and install the precompiled package first.&lt;/p&gt;
+
+&lt;h4 id=&quot;add-a-private-pre-compiled-package-warehouse&quot;&gt;Add a private pre-compiled package warehouse&lt;/h4&gt;
+
+&lt;p&gt;Our official pre-compiled package repository is at: &lt;a href=&quot;https://github.com/xmake-mirror/build-artifacts&quot;&gt;build-artifacts&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Similarly, we can also configure and add our own pre-compiled warehouse, the way to add is similar:&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; repo --add local-repo git@github.com:xmake-mirror/myrepo-artifacts.git
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;You can also add in xmake.lua:&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_repositories&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;local-repo git@github.com:xmake-mirror/myrepo-artifacts.git&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;new-version-of-the-land-package-plan&quot;&gt;New version of the land package plan&lt;/h3&gt;
+
+&lt;h4 id=&quot;default-packaging-format&quot;&gt;Default packaging format&lt;/h4&gt;
+
+&lt;p&gt;In the new version, we provide a new local package packaging solution that will seamlessly connect &lt;code class=&quot;highlighter-rouge&quot;&gt;add_requires&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;add_packages&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;We can execute the &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake package&lt;/code&gt; command to generate the default new version of the packaging format.&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; package
+&lt;/span&gt;package(foo): build/packages/f/foo generated
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;It will generate the file &lt;code class=&quot;highlighter-rouge&quot;&gt;build/packages/f/foo/xmake.lua&lt;/code&gt; with the following content:&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_description&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;The foo package&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_license&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Apache-2.0&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;add&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;sub&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;on_load&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;installdir&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;join&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;scriptdir&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;plat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;arch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()))&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;on_fetch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{}&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;links&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;linkdirs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;installdir&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;lib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;includedirs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;installdir&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;include&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;In fact, it uses &lt;code class=&quot;highlighter-rouge&quot;&gt;package()&lt;/code&gt; to define and describe local packages, just like remote packages.&lt;/p&gt;
+
+&lt;p&gt;The generated directory structure is as follows:&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;tree&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; build/packages/f/foo/
+&lt;/span&gt;build/packages/f/foo/
+├── macosx
+│ └── x86_64
+│ └── release
+│ ├── include
+│ │ └── foo.h
+│ └── lib
+│ └── libfoo.a
+└── xmake.lua
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;We can also use the &lt;code class=&quot;highlighter-rouge&quot;&gt;add_requires&lt;/code&gt;/&lt;code class=&quot;highlighter-rouge&quot;&gt;add_repositories&lt;/code&gt; interface to seamlessly integrate this package.&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mode.debug&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mode.release&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;add_repositories&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;local-repo build&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;bar&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Among them, the &lt;code class=&quot;highlighter-rouge&quot;&gt;add_repositories&lt;/code&gt; configuration specifies the warehouse root directory of the local package, and then this package can be referenced through &lt;code class=&quot;highlighter-rouge&quot;&gt;add_requires&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;In addition, the generated local package has another feature, which is to support &lt;code class=&quot;highlighter-rouge&quot;&gt;target/add_deps&lt;/code&gt;, which automatically associates the dependencies of multiple packages, and automatically connects all dependency links during integration.&lt;/p&gt;
+
+&lt;p&gt;Here is the complete &lt;a href=&quot;https://github.com/xmake-io/xmake/blob/dev/tests/actions/package/localpkg/test.lua&quot;&gt;test example&lt;/a&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&quot;/usr/bin/xcrun -sdk macosx clang++&quot; -o build/macosx/x86_64/release/bar build/.objs/bar/macosx/x86_64/release/src/main.cpp.o -arch x86_64 -mmacosx-version -min=10.15 -isysroot
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.0.sdk -stdlib=libc++
+ -L/Users/ruki/projects/personal/xmake/tests/actions/package/localpkg/bar/build/packages/f/foo/macosx/x86_64/release/lib
+ -L/Users/ruki/projects/personal/xmake/tests/actions/package/localpkg/bar/build/packages/s/sub/macosx/x86_64/release/lib
+ -L/Users/ruki/projects/personal/xmake/tests/actions/package/localpkg/bar/build/packages/a/add/macosx/x86_64/release/lib
+ -Wl,-x -lfoo -lsub -ladd -lz
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Note: The previous old version of the local packaging format is an early product and will still be retained, but it is not recommended to continue to use. If you want to continue to use it, you can execute the following command to package:&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; package -f oldpkg
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;generate-remote-package&quot;&gt;Generate remote package&lt;/h4&gt;
+
+&lt;p&gt;In addition to the local package format, &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake package&lt;/code&gt; now also supports generating remote packages, so that users can quickly submit them to remote warehouses.&lt;/p&gt;
+
+&lt;p&gt;We only need to modify the package format when packaging.&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; package -f remote
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;He will also generate packages/f/foo/xmake.lua file.&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_description&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;The foo package&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_license&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Apache-2.0&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;add&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;sub&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;add_urls&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;https://github.com/myrepo/foo.git&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_versions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;1.0&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;shasum256 or gitcommit&amp;gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;on_install&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{}&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;shared&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kind&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;shared&quot;&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;package.tools.xmake&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;install&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;on_test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TODO&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;check&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;includes&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;interfaces&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;assert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;has_cfuncs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;includes&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;foo.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Compared with the local package, the package definition configuration has more actual installation logic, as well as the settings of urls and versions,&lt;/p&gt;
+
+&lt;p&gt;We can also modify urls, versions and other configuration values through additional parameters, for example:&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; package -f remote --url=https://xxxx/xxx.tar.gz --shasum=xxxxx --homepage=xxxxx`
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;xmake will also read the relevant configuration information from the target’s &lt;code class=&quot;highlighter-rouge&quot;&gt;set_license&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;set_version&lt;/code&gt; configurations.&lt;/p&gt;
+
+&lt;h3 id=&quot;search-for-packages-from-third-party-warehouses&quot;&gt;Search for packages from third-party warehouses&lt;/h3&gt;
+
+&lt;p&gt;The built-in xrepo package manager command of xmake previously supported searching the built-in packages in the xmake-repo repository.&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xrepo&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; search zlib &quot;pcr*&quot;
+&lt;/span&gt;    zlib:
+      -&amp;gt; zlib: A Massively Spiffy Yet Delicately Unobtrusive Compression Library (in xmake-repo)
+    pcr*:
+      -&amp;gt; pcre2: A Perl Compatible Regular Expressions Library (in xmake-repo)
+      -&amp;gt; pcre: A Perl Compatible Regular Expressions Library (in xmake-repo)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;And now, we can also search for their packages from third-party package managers such as vcpkg, conan, conda and apt, just add the corresponding package namespace, for example:&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xrepo&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; search vcpkg::pcre
+&lt;/span&gt;The package names:
+    vcpkg::pcre:
+      -&amp;gt; vcpkg::pcre-8.44#8: Perl Compatible Regular Expressions
+      -&amp;gt; vcpkg::pcre2-10.35#2: PCRE2 is a re-working of the original Perl Compatible Regular Expressions library
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xrepo&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; search conan::openssl
+&lt;/span&gt;The package names:
+    conan::openssl:
+      -&amp;gt; conan::openssl/1.1.1g:
+      -&amp;gt; conan::openssl/1.1.1h:
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;modify-the-target-file-name&quot;&gt;Modify the target file name&lt;/h3&gt;
+
+&lt;p&gt;We know that for the modification of the target file name, we can use &lt;code class=&quot;highlighter-rouge&quot;&gt;set_basename&lt;/code&gt; or use the &lt;code class=&quot;highlighter-rouge&quot;&gt;set_filename&lt;/code&gt; interface to configure the implementation. The former modifies the name of the &lt;code class=&quot;highlighter-rouge&quot;&gt;xxx&lt;/code&gt; part of &lt;code class=&quot;highlighter-rouge&quot;&gt;libxxx.so&lt;/code&gt; and the latter can modify the complete file name.&lt;/p&gt;
+
+&lt;p&gt;But in some cases, we just want to modify: extension &lt;code class=&quot;highlighter-rouge&quot;&gt;.so&lt;/code&gt;, prefix name &lt;code class=&quot;highlighter-rouge&quot;&gt;lib&lt;/code&gt;, or adding suffix name such as: &lt;code class=&quot;highlighter-rouge&quot;&gt;libxxx-d.so&lt;/code&gt; will be very troublesome, or use &lt;code class=&quot;highlighter-rouge&quot;&gt;set_filename&lt;/code&gt; for complete modification.&lt;/p&gt;
+
+&lt;p&gt;Now, we newly provide three independent interfaces &lt;code class=&quot;highlighter-rouge&quot;&gt;set_prefixname&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;set_suffixname&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;set_extension&lt;/code&gt; to configure them more flexibly.&lt;/p&gt;
+
+&lt;h4 id=&quot;set-the-leading-name-of-the-target-file&quot;&gt;Set the leading name of the target file&lt;/h4&gt;
+
+&lt;p&gt;For example, change the default: &lt;code class=&quot;highlighter-rouge&quot;&gt;libtest.so&lt;/code&gt; to &lt;code class=&quot;highlighter-rouge&quot;&gt;test.so&lt;/code&gt;&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_prefixname&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;set-the-postname-of-the-target-file&quot;&gt;Set the postname of the target file&lt;/h4&gt;
+
+&lt;p&gt;For example, change the default: &lt;code class=&quot;highlighter-rouge&quot;&gt;libtest.so&lt;/code&gt; to &lt;code class=&quot;highlighter-rouge&quot;&gt;libtest-d.so&lt;/code&gt;&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_suffixname&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;-d&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;set-the-extension-of-the-target-file&quot;&gt;Set the extension of the target file&lt;/h4&gt;
+
+&lt;p&gt;For example, change the default: &lt;code class=&quot;highlighter-rouge&quot;&gt;libtest.so&lt;/code&gt; to &lt;code class=&quot;highlighter-rouge&quot;&gt;test.dll&lt;/code&gt;&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_prefixname&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_extension&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;.dll&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;default-target-type&quot;&gt;Default target type&lt;/h3&gt;
+
+&lt;p&gt;In the new version, if the user does not specify the target type in the target setting &lt;code class=&quot;highlighter-rouge&quot;&gt;set_kind&lt;/code&gt;, then the default is the binary program.&lt;/p&gt;
+
+&lt;p&gt;Therefore, we can achieve smaller configurations, such as:&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Compilation of some small projects can be completed in just two lines, or even shorter:&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;files&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;new-appletvos-compilation-platform&quot;&gt;New appletvos compilation platform&lt;/h3&gt;
+
+&lt;p&gt;We have also added a new appletvos compilation platform to support the compilation of programs on Apple’s TVOS system. All you need is:&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f -p appletvos
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;import-and-export-compile-configuration&quot;&gt;Import and export compile configuration&lt;/h3&gt;
+
+&lt;p&gt;We can also import and export the configured configuration set to facilitate the rapid migration of the configuration.&lt;/p&gt;
+
+&lt;h4 id=&quot;export-configuration&quot;&gt;Export configuration&lt;/h4&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f --export=/tmp/config.txt
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f -m debug --xxx=y --export=/tmp/config.txt
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;import-configuration&quot;&gt;Import configuration&lt;/h4&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f --import=/tmp/config.txt
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f -m debug --xxx=y --import=/tmp/config.txt
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;export-configuration-with-menu&quot;&gt;Export configuration (with menu)&lt;/h4&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f --menu --export=/tmp/config.txt
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f --menu -m debug --xxx=y --export=/tmp/config.txt
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;import-configuration-with-menu&quot;&gt;Import configuration (with menu)&lt;/h4&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f --menu --import=/tmp/config.txt
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f --menu -m debug --xxx=y --import=/tmp/config.txt
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;vs2022-support&quot;&gt;vs2022 support&lt;/h3&gt;
+
+&lt;p&gt;In addition, in the new version, we have also added support for the preview version of vs2020.&lt;/p&gt;
+
+&lt;h3 id=&quot;improve-xrepo-shell-environment&quot;&gt;Improve xrepo shell environment&lt;/h3&gt;
+
+&lt;p&gt;In the last version, we supported customizing some package configurations by adding the xmake.lua file in the current directory, and then entering a specific package shell environment.&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib 1.2.11&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;python 3.x&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;luajit&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xrepo&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; env shell
+&lt;/span&gt;&amp;gt; python --version
+&amp;gt; luajit --version
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;And now, we can also configure and load the corresponding toolchain environment in xmake.lua, for example, load the VS compilation environment.&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;set_toolchains&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;msvc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;changelog&quot;&gt;Changelog&lt;/h2&gt;
+
+&lt;h3 id=&quot;new-features&quot;&gt;New features&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1421&quot;&gt;#1421&lt;/a&gt;: Add prefix, suffix and extension options for target names&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1422&quot;&gt;#1422&lt;/a&gt;: Support search packages from vcpkg, conan&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1424&quot;&gt;#1424&lt;/a&gt;: Set binary as default target kind&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1140&quot;&gt;#1140&lt;/a&gt;: Add a way to ask xmake to try to download dependencies from a certain package manager&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1339&quot;&gt;#1339&lt;/a&gt;: Improve &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake package&lt;/code&gt; to generate new local/remote packages&lt;/li&gt;
+  &lt;li&gt;Add &lt;code class=&quot;highlighter-rouge&quot;&gt;appletvos&lt;/code&gt; platform support for AppleTV, &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f -p appletvos&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1437&quot;&gt;#1437&lt;/a&gt;: Add headeronly library type for package to ignore &lt;code class=&quot;highlighter-rouge&quot;&gt;vs_runtime&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1351&quot;&gt;#1351&lt;/a&gt;: Support export/import current configs&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1454&quot;&gt;#1454&lt;/a&gt;: Support to download and install precompiled image packages from xmake-mirror&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;change&quot;&gt;Change&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1425&quot;&gt;#1425&lt;/a&gt;: Improve tools/meson to load msvc envirnoments&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1442&quot;&gt;#1442&lt;/a&gt;: Support to clone package resources from git url&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1389&quot;&gt;#1389&lt;/a&gt;: Support to add toolchain envs to &lt;code class=&quot;highlighter-rouge&quot;&gt;xrepo env&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1453&quot;&gt;#1453&lt;/a&gt;: Support to export protobuf includedirs&lt;/li&gt;
+  &lt;li&gt;Support vs2022&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;bugs-fixed&quot;&gt;Bugs fixed&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1413&quot;&gt;#1413&lt;/a&gt;: Fix hangs on fetching packages&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1420&quot;&gt;#1420&lt;/a&gt;: Fix config and packages cache&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1445&quot;&gt;#1445&lt;/a&gt;: Fix WDK driver sign error&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1465&quot;&gt;#1465&lt;/a&gt;: Fix missing link directory&lt;/li&gt;
+&lt;/ul&gt;
+
+</description>
+        <pubDate>Wed, 30 Jun 2021 00:00:00 +0800</pubDate>
+        <link>https://tboox.org/2021/06/30/xmake-update-v2.5.5/</link>
+        <guid isPermaLink="true">https://tboox.org/2021/06/30/xmake-update-v2.5.5/</guid>
+        
+        <category>xmake</category>
+        
+        <category>lua</category>
+        
+        <category>C/C++</category>
+        
+        <category>mirror</category>
+        
+        <category>package</category>
+        
+        
+        <category>xmake</category>
+        
+      </item>
+    
+      <item>
+        <title>xmake v2.5.5 发布，支持下载集成二进制镜像包</title>
+        <description>&lt;p&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;xmake&lt;/a&gt; 是一个基于 Lua 的轻量级跨平台构建工具，使用 xmake.lua 维护项目构建，相比 makefile/CMakeLists.txt，配置语法更加简洁直观，对新手非常友好，短时间内就能快速入门，能够让用户把更多的精力集中在实际的项目开发上。&lt;/p&gt;
+
+&lt;p&gt;2.5.5 版本中，我们继续改进远程包集成的体验，实现在云端预编译包，然后直接下载集成预编译的二进制包。这对于一些编译非常慢的包，可以极大的减少包的安装时间。&lt;/p&gt;
+
+&lt;p&gt;另外，新版本中，我们还重新实现了新版的本地包生成方案，完全无缝支持 &lt;code class=&quot;highlighter-rouge&quot;&gt;add_requires&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;add_packages&lt;/code&gt;，从此远程包和本地包可以使用统一的集成方式来维护。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;项目源码&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/about/course&quot;&gt;入门课程&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;新特性介绍&quot;&gt;新特性介绍&lt;/h2&gt;
+
+&lt;h3 id=&quot;下载安装预编译包&quot;&gt;下载安装预编译包&lt;/h3&gt;
+
+&lt;p&gt;之前 xmake 内置的包管理器每次安装包，都必须下载对应的包源码，然后执行本地编译安装集成，这对于一些编译非常慢的大包，以及一些依赖的编译工具非常多的包，安装起来会非常的慢。&lt;/p&gt;
+
+&lt;p&gt;尤其是在 windows 上，不仅三方包对编译环境的依赖更加复杂，而且很多打包编译非常慢，例如：boost, openssl 等等。&lt;/p&gt;
+
+&lt;p&gt;为此，我们基于 github action 实现对包的云端预编译，会将常用配置的包都去预编译一遍，然后存储到 &lt;a href=&quot;https://github.com/xmake-mirror/build-artifacts&quot;&gt;build-artifacts&lt;/a&gt; 仓库的 Releases 下。&lt;/p&gt;
+
+&lt;p&gt;然后，我们在安装包的时候，会自动从二进制镜像包源下载，实现快速集成（目前仅支持预编译 windows 包，后期会逐步放开到其他平台）。&lt;/p&gt;
+
+&lt;p&gt;我们会预编译每个包的 plat/arch/MT/MD/static/shared 等各种配置组合，根据唯一的 buildhash 来精确拉取用户实际需要的包，所有的编译产物都会用 7zip 压缩打包，如下图：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/static/img/xmake/build-artifacts.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;配置镜像源加速下载&quot;&gt;配置镜像源加速下载&lt;/h4&gt;
+
+&lt;p&gt;由于我们的预编译产物都放置在 github 上，对于国内用户，考虑到访问 github 并不是很稳定，我们也可以借助 xmake 镜像代理功能，将实际的下载自动切换到 fastgit 等镜像站点加速下载。&lt;/p&gt;
+
+&lt;p&gt;我们可以通过一个 pac.lua 文件，配置镜像代理规则，比如对所有 github.com 域名的访问切到 hub.fastgit.org 域名，实现加速下载包。&lt;/p&gt;
+
+&lt;p&gt;pac.lua 配置：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;mirror&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gsub&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;github.com&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;hub.fastgit.org&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;然后我们设置这个 pac.lua 文件，默认路径在 &lt;code class=&quot;highlighter-rouge&quot;&gt;~/.xmake/pac.lua&lt;/code&gt;，也可以手动配置使用指定位置的 pac.lua 。&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; g --proxy_pac=/tmp/pac.lua
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;然后，我们安装包的时候，如果遇到 github.com 域名下的包源，下载时候会自动切到 fastgit 镜像加速下载。&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xrepo&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; install libpng
+&lt;/span&gt;&amp;gt; curl https://hub.fastgit.org/glennrp/libpng/archive/v1.6.37.zip -o v1.6.37.zip
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;因此，所有走预编译产物的下载也会得到提速，当然国内提供 github 镜像加速的不止 fastgit 一家，用户也可以切换到其他镜像源，比如 cnpmjs.org 等等。&lt;/p&gt;
+
+&lt;h4 id=&quot;如何触发云端预编译&quot;&gt;如何触发云端预编译&lt;/h4&gt;
+
+&lt;p&gt;默认情况下，xmake 不会主动进行所有包的云端预编译缓存，这样太耗时耗力，目前仅仅只有提交 pr 到 &lt;a href=&quot;https://github.com/xmake-io/xmake-repo&quot;&gt;xmake-repo&lt;/a&gt; 官方包仓库，进行新包收录或者包版本更新时候，才会自动触发对应包的云端预编译行为。&lt;/p&gt;
+
+&lt;p&gt;所以，如果用户想要贡献包进我们的仓库，基本上都是可以被预编译缓存的（除了 headeronly 库），而如果用户不想贡献包，也想获取对应包的预编译加速，也是可以的。&lt;/p&gt;
+
+&lt;p&gt;只需要提交 pr 到 &lt;a href=&quot;https://github.com/xmake-mirror/build-artifacts&quot;&gt;build-artifacts&lt;/a&gt; 仓库的 build 分支，编辑 &lt;a href=&quot;https://github.com/xmake-mirror/build-artifacts/blob/build/build.txt&quot;&gt;build.txt&lt;/a&gt; 文件，修改里面需要触发预编译的包名和版本列表就行了，例如：&lt;/p&gt;
+
+&lt;p&gt;build.txt&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;asmjit&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;versions&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;s2&quot;&gt;&quot;2021.06.27&quot;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;只要 pr 被 merge 之后，就会自动触发预编译行为，然后生成最终的编译产物到 releases 。&lt;/p&gt;
+
+&lt;h4 id=&quot;强制源码编译安装&quot;&gt;强制源码编译安装&lt;/h4&gt;
+
+&lt;p&gt;尽管我们提供了预编译下载安装的方式，但是如果用户还是想源码编译安装，我们也可以手动传入 &lt;code class=&quot;highlighter-rouge&quot;&gt;--build&lt;/code&gt; 参数给 xrepo 命令，来强制切换到源码编译安装模式。&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xrepo&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; install --build openssl
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;在 xmake.lua 中，我们也可以同样支持源码编译安装。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;openssl&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;build&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;如果没有指定，那么 xmake 会自动优先尝试走预编译包的下载安装。&lt;/p&gt;
+
+&lt;h4 id=&quot;添加私有预编译包仓库&quot;&gt;添加私有预编译包仓库&lt;/h4&gt;
+
+&lt;p&gt;我们的官方预编译包仓库在：&lt;a href=&quot;https://github.com/xmake-mirror/build-artifacts&quot;&gt;build-artifacts&lt;/a&gt;。&lt;/p&gt;
+
+&lt;p&gt;同样，我们也可以配置添加自有的预编译仓库，添加方式类似：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; repo --add local-repo git@github.com:xmake-mirror/myrepo-artifacts.git
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;也可以在 xmake.lua 中添加：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_repositories&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;local-repo git@github.com:xmake-mirror/myrepo-artifacts.git&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;新版本地包方案&quot;&gt;新版本地包方案&lt;/h3&gt;
+
+&lt;h4 id=&quot;默认打包格式&quot;&gt;默认打包格式&lt;/h4&gt;
+
+&lt;p&gt;新版本中，我们提供了一种新的本地包打包方案，将会更加无缝的对接 &lt;code class=&quot;highlighter-rouge&quot;&gt;add_requires&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;add_packages&lt;/code&gt;。&lt;/p&gt;
+
+&lt;p&gt;我们执行 &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake package&lt;/code&gt; 命令就能够生成默认的新版打包格式。&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; package
+&lt;/span&gt;package(foo): build/packages/f/foo generated
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;它将会产生 &lt;code class=&quot;highlighter-rouge&quot;&gt;build/packages/f/foo/xmake.lua&lt;/code&gt; 文件，内容如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_description&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;The foo package&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_license&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Apache-2.0&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;add&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;sub&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;on_load&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;installdir&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;join&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;scriptdir&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;plat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;arch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()))&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;on_fetch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{}&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;links&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;linkdirs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;installdir&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;lib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;includedirs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;installdir&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;include&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;其实就是采用 &lt;code class=&quot;highlighter-rouge&quot;&gt;package()&lt;/code&gt; 来定义描述本地包，就跟远程包一样。&lt;/p&gt;
+
+&lt;p&gt;而生成的目录结构如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;tree&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; build/packages/f/foo/
+&lt;/span&gt;build/packages/f/foo/
+├── macosx
+│   └── x86_64
+│       └── release
+│           ├── include
+│           │   └── foo.h
+│           └── lib
+│               └── libfoo.a
+└── xmake.lua
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;我们也能够使用 &lt;code class=&quot;highlighter-rouge&quot;&gt;add_requires&lt;/code&gt;/&lt;code class=&quot;highlighter-rouge&quot;&gt;add_repositories&lt;/code&gt; 接口来无缝集成这个包。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mode.debug&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mode.release&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;add_repositories&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;local-repo build&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;bar&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;其中，&lt;code class=&quot;highlighter-rouge&quot;&gt;add_repositories&lt;/code&gt; 配置指定本地包的仓库根目录，然后就可以通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;add_requires&lt;/code&gt; 来引用这个包了。&lt;/p&gt;
+
+&lt;p&gt;另外，生成的本地包，还有一个特性，就是支持 &lt;code class=&quot;highlighter-rouge&quot;&gt;target/add_deps&lt;/code&gt;，会自动关联多个包的依赖关系，集成时候，也会自动对接所有依赖链接。&lt;/p&gt;
+
+&lt;p&gt;这里有完整的&lt;a href=&quot;https://github.com/xmake-io/xmake/blob/dev/tests/actions/package/localpkg/test.lua&quot;&gt;测试例子&lt;/a&gt;。&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&quot;/usr/bin/xcrun -sdk macosx clang++&quot; -o build/macosx/x86_64/release/bar build/.objs/bar/macosx/x86_64/release/src/main.cpp.o -arch x86_64 -mmacosx-version-min=10.15 -isysroot
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.0.sdk -stdlib=libc++
+ -L/Users/ruki/projects/personal/xmake/tests/actions/package/localpkg/bar/build/packages/f/foo/macosx/x86_64/release/lib
+ -L/Users/ruki/projects/personal/xmake/tests/actions/package/localpkg/bar/build/packages/s/sub/macosx/x86_64/release/lib
+ -L/Users/ruki/projects/personal/xmake/tests/actions/package/localpkg/bar/build/packages/a/add/macosx/x86_64/release/lib
+ -Wl,-x -lfoo -lsub -ladd -lz
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;备注：之前的老版本本地打包格式属于早期产物，还是会被保留，但是不推荐继续使用，想要继续使用，可以执行下面的命令打包：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; package -f oldpkg
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;生成远程包&quot;&gt;生成远程包&lt;/h4&gt;
+
+&lt;p&gt;除了本地包格式，&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake package&lt;/code&gt; 现在也支持生成远程包，便于用户将他们快速提交到远程仓库。&lt;/p&gt;
+
+&lt;p&gt;我们只需要在打包时候，修改包格式。&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; package -f remote
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;他也会产生 packages/f/foo/xmake.lua 文件。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_description&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;The foo package&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_license&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Apache-2.0&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;add&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;sub&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;add_urls&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;https://github.com/myrepo/foo.git&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_versions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;1.0&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;shasum256 or gitcommit&amp;gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;on_install&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{}&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;shared&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kind&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;shared&quot;&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;package.tools.xmake&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;install&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;on_test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;-- TODO check includes and interfaces&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;-- assert(package:has_cfuncs(&quot;foo&quot;, {includes = &quot;foo.h&quot;})&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;包定义配置相比本地包，多了实际的安装逻辑，以及 urls 和 versions 的设置，&lt;/p&gt;
+
+&lt;p&gt;我们也能够通过附加参数，去修改 urls，versions 等配置值，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; package -f remote --url=https://xxxx/xxx.tar.gz --shasum=xxxxx --homepage=xxxxx`
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;xmake 也会从 target 的 &lt;code class=&quot;highlighter-rouge&quot;&gt;set_license&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;set_version&lt;/code&gt; 等配置中读取相关配置信息。&lt;/p&gt;
+
+&lt;h3 id=&quot;从第三方仓库搜索包&quot;&gt;从第三方仓库搜索包&lt;/h3&gt;
+
+&lt;p&gt;xmake 内置的 xrepo 包管理器命令，之前可以支持搜索 xmake-repo 仓库中的内置包。&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xrepo&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; search zlib &quot;pcr*&quot;
+&lt;/span&gt;    zlib:
+      -&amp;gt; zlib: A Massively Spiffy Yet Delicately Unobtrusive Compression Library (in xmake-repo)
+    pcr*:
+      -&amp;gt; pcre2: A Perl Compatible Regular Expressions Library (in xmake-repo)
+      -&amp;gt; pcre: A Perl Compatible Regular Expressions Library (in xmake-repo)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;而现在，我们还可以从 vcpkg, conan, conda 以及 apt 等第三方包管理器中搜索它们的包，只需要加上对应的包命名空间就行，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xrepo&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; search vcpkg::pcre
+&lt;/span&gt;The package names:
+    vcpkg::pcre:
+      -&amp;gt; vcpkg::pcre-8.44#8: Perl Compatible Regular Expressions
+      -&amp;gt; vcpkg::pcre2-10.35#2: PCRE2 is a re-working of the original Perl Compatible Regular Expressions library
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xrepo&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; search conan::openssl
+&lt;/span&gt;The package names:
+    conan::openssl:
+      -&amp;gt; conan::openssl/1.1.1g:
+      -&amp;gt; conan::openssl/1.1.1h:
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;修改目标文件名&quot;&gt;修改目标文件名&lt;/h3&gt;
+
+&lt;p&gt;我们知道，对于目标文件名的修改，我们可以使用 &lt;code class=&quot;highlighter-rouge&quot;&gt;set_basename&lt;/code&gt; 或者使用 &lt;code class=&quot;highlighter-rouge&quot;&gt;set_filename&lt;/code&gt; 接口来配置实现，前者修改 &lt;code class=&quot;highlighter-rouge&quot;&gt;libxxx.so&lt;/code&gt; 中的 &lt;code class=&quot;highlighter-rouge&quot;&gt;xxx&lt;/code&gt; 部分名字，后者可以修改完整的文件名。&lt;/p&gt;
+
+&lt;p&gt;但是有些情况，我们仅仅想要修改：扩展名 &lt;code class=&quot;highlighter-rouge&quot;&gt;.so&lt;/code&gt;，前缀名 &lt;code class=&quot;highlighter-rouge&quot;&gt;lib&lt;/code&gt;，或者增加后缀名比如：&lt;code class=&quot;highlighter-rouge&quot;&gt;libxxx-d.so&lt;/code&gt; 就会很麻烦，要么使用 &lt;code class=&quot;highlighter-rouge&quot;&gt;set_filename&lt;/code&gt; 进行完整修改。&lt;/p&gt;
+
+&lt;p&gt;现在，我们新提供了 &lt;code class=&quot;highlighter-rouge&quot;&gt;set_prefixname&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;set_suffixname&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;set_extension&lt;/code&gt; 三个独立接口来更加灵活地配置它们。&lt;/p&gt;
+
+&lt;h4 id=&quot;设置目标文件的前置名&quot;&gt;设置目标文件的前置名&lt;/h4&gt;
+
+&lt;p&gt;例如将默认的：&lt;code class=&quot;highlighter-rouge&quot;&gt;libtest.so&lt;/code&gt; 改成 &lt;code class=&quot;highlighter-rouge&quot;&gt;test.so&lt;/code&gt;&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_prefixname&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;设置目标文件的后置名&quot;&gt;设置目标文件的后置名&lt;/h4&gt;
+
+&lt;p&gt;例如将默认的：&lt;code class=&quot;highlighter-rouge&quot;&gt;libtest.so&lt;/code&gt; 改成 &lt;code class=&quot;highlighter-rouge&quot;&gt;libtest-d.so&lt;/code&gt;&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_suffixname&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;-d&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;设置目标文件的扩展名&quot;&gt;设置目标文件的扩展名&lt;/h4&gt;
+
+&lt;p&gt;例如将默认的：&lt;code class=&quot;highlighter-rouge&quot;&gt;libtest.so&lt;/code&gt; 改成 &lt;code class=&quot;highlighter-rouge&quot;&gt;test.dll&lt;/code&gt;&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_prefixname&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_extension&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;.dll&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;默认的目标类型&quot;&gt;默认的目标类型&lt;/h3&gt;
+
+&lt;p&gt;新版本中，如果用户没有对 target 设置 &lt;code class=&quot;highlighter-rouge&quot;&gt;set_kind&lt;/code&gt; 指定目标类型，那么默认就是 binary 程序。&lt;/p&gt;
+
+&lt;p&gt;因此，我们可以实现更小的配置，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;只需两行就可以完成一些小项目的编译，甚至可以更加简短：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;files&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;新增-appletvos-编译平台&quot;&gt;新增 appletvos 编译平台&lt;/h3&gt;
+
+&lt;p&gt;我们还新增了一个 appletvos 的编译平台，用于支持 Apple 的 TVOS 系统上程序的编译，只需要：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f -p appletvos
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;导入导出编译配置&quot;&gt;导入导出编译配置&lt;/h3&gt;
+
+&lt;p&gt;我们还可以导入导出已经配置好的配置集，方便配置的快速迁移。&lt;/p&gt;
+
+&lt;h4 id=&quot;导出配置&quot;&gt;导出配置&lt;/h4&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f --export=/tmp/config.txt
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f -m debug --xxx=y --export=/tmp/config.txt
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;导入配置&quot;&gt;导入配置&lt;/h4&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f --import=/tmp/config.txt
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f -m debug --xxx=y --import=/tmp/config.txt
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;导出配置带菜单&quot;&gt;导出配置（带菜单）&lt;/h4&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f --menu --export=/tmp/config.txt
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f --menu -m debug --xxx=y --export=/tmp/config.txt
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;导入配置带菜单&quot;&gt;导入配置（带菜单）&lt;/h4&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f --menu --import=/tmp/config.txt
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f --menu -m debug --xxx=y --import=/tmp/config.txt
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;vs2022-支持&quot;&gt;vs2022 支持&lt;/h3&gt;
+
+&lt;p&gt;另外，新版本中，我们也增加了对 vs2020 预览版的支持。&lt;/p&gt;
+
+&lt;h3 id=&quot;改进-xrepo-shell-环境&quot;&gt;改进 xrepo shell 环境&lt;/h3&gt;
+
+&lt;p&gt;在上个版本，我们支持了通过在当前目录下，添加 xmake.lua 文件，来定制化一些包配置，然后进入特定的包 shell 环境。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib 1.2.11&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;python 3.x&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;luajit&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xrepo&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; env shell
+&lt;/span&gt;&amp;gt; python --version
+&amp;gt; luajit --version
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;而现在，我们还可以在 xmake.lua 配置加载对应的工具链环境，比如加载 vs 的编译环境。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;set_toolchains&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;msvc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;更新内容&quot;&gt;更新内容&lt;/h2&gt;
+
+&lt;h3 id=&quot;新特性&quot;&gt;新特性&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1421&quot;&gt;#1421&lt;/a&gt;: 针对 target 目标，增加目标文件名的前缀，后缀和扩展名设置接口。&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1422&quot;&gt;#1422&lt;/a&gt;: 支持从 vcpkg, conan 中搜索包&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1424&quot;&gt;#1424&lt;/a&gt;: 设置 binary 作为默认的 target 目标类型&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1140&quot;&gt;#1140&lt;/a&gt;: 支持安装时候，手动选择从第三包包管理器安装包&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1339&quot;&gt;#1339&lt;/a&gt;: 改进 &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake package&lt;/code&gt; 去产生新的本地包格式，无缝集成 &lt;code class=&quot;highlighter-rouge&quot;&gt;add_requires&lt;/code&gt;，并且新增生成远程包支持&lt;/li&gt;
+  &lt;li&gt;添加 &lt;code class=&quot;highlighter-rouge&quot;&gt;appletvos&lt;/code&gt; 编译平台支持, &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f -p appletvos&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1437&quot;&gt;#1437&lt;/a&gt;: 为包添加 headeronly 库类型去忽略 &lt;code class=&quot;highlighter-rouge&quot;&gt;vs_runtime&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1351&quot;&gt;#1351&lt;/a&gt;: 支持导入导出当前配置&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1454&quot;&gt;#1454&lt;/a&gt;: 支持下载安装 windows 预编译包&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;改进&quot;&gt;改进&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1425&quot;&gt;#1425&lt;/a&gt;: 改进 tools/meson 去加载 msvc 环境，并且增加一些内置配置。&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1442&quot;&gt;#1442&lt;/a&gt;: 支持从 git url 去下载包资源文件&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1389&quot;&gt;#1389&lt;/a&gt;: 支持添加工具链环境到 &lt;code class=&quot;highlighter-rouge&quot;&gt;xrepo env&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1453&quot;&gt;#1453&lt;/a&gt;: 支持 protobuf 规则导出头文件搜索目录&lt;/li&gt;
+  &lt;li&gt;新增对 vs2022 的支持&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;bugs-修复&quot;&gt;Bugs 修复&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1413&quot;&gt;#1413&lt;/a&gt;: 修复查找包过程中出现的挂起卡死问题&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1420&quot;&gt;#1420&lt;/a&gt;: 修复包检测和配置缓存&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1445&quot;&gt;#1445&lt;/a&gt;: 修复 WDK 驱动签名错误&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1465&quot;&gt;#1465&lt;/a&gt;: 修复缺失的链接目录&lt;/li&gt;
+&lt;/ul&gt;
+
+</description>
+        <pubDate>Wed, 30 Jun 2021 00:00:00 +0800</pubDate>
+        <link>https://tboox.org/cn/2021/06/30/xmake-update-v2.5.5/</link>
+        <guid isPermaLink="true">https://tboox.org/cn/2021/06/30/xmake-update-v2.5.5/</guid>
+        
+        <category>xmake</category>
+        
+        <category>lua</category>
+        
+        <category>C/C++</category>
+        
+        <category>mirror</category>
+        
+        <category>package</category>
+        
+        
+        <category>xmake</category>
+        
+      </item>
     
       <item>
         <title>xmake v2.5.4 Released, Support apt/portage package manager and improve xrepo shell</title>
@@ -3196,747 +4091,6 @@ we can compare the configuration of the previous rule, and we can intuitively fe
         <category>packages</category>
         
         <category>cross-toolchains</category>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>xmake v2.5.2 发布, 支持自动拉取交叉工具链和依赖包集成</title>
-        <description>&lt;p&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;xmake&lt;/a&gt; 是一个基于 Lua 的轻量级跨平台构建工具，使用 xmake.lua 维护项目构建，相比 makefile/CMakeLists.txt，配置语法更加简洁直观，对新手非常友好，短时间内就能快速入门，能够让用户把更多的精力集中在实际的项目开发上。&lt;/p&gt;
-
-&lt;p&gt;在 2.5.2 版本中，我们增加了一个重量级的新特性：&lt;code class=&quot;highlighter-rouge&quot;&gt;自动拉取远程交叉编译工具链&lt;/code&gt;。&lt;/p&gt;
-
-&lt;p&gt;这是用来干什么的呢，做过交叉编译以及有 C/C++ 项目移植经验的同学应该知道，折腾各种交叉编译工具链，移植编译项目是非常麻烦的一件事，需要自己下载对应工具链，并且配置工具链和编译环境很容易出错导致编译失败。&lt;/p&gt;
-
-&lt;p&gt;现在，xmake 已经可以支持自动下载项目所需的工具链，然后使用对应工具链直接编译项目，用户不需要关心如何配置工具链，任何情况下只需要执行 &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake&lt;/code&gt; 命令即可完成编译。&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/xmake/muslcc.gif&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;甚至对于 C/C++ 依赖包的集成，也可以自动切换到对应工具链编译安装集成，一切完全自动化，完全不需要用户操心。&lt;/p&gt;
-
-&lt;p&gt;除了交叉编译工具链，我们也可以自动拉取工具链，比如特定版本的 llvm，llvm-mingw, zig 等各种工具链来参与编译 C/C++/Zig 项目的编译。&lt;/p&gt;
-
-&lt;p&gt;即使是 cmake 也还不支持工具链的自动拉取，顶多只能配合 vcpkg/conan 等第三方包管理对 C/C++ 依赖包进行集成，另外，即使对于 C/C++依赖包，xmake 也有自己原生内置的包管理工具，完全无任何依赖。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;项目源码&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/about/course&quot;&gt;入门课程&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;新特性介绍&quot;&gt;新特性介绍&lt;/h2&gt;
-
-&lt;h3 id=&quot;自动拉取远程交叉编译工具链&quot;&gt;自动拉取远程交叉编译工具链&lt;/h3&gt;
-
-&lt;p&gt;从 2.5.2 版本开始，我们可以拉取指定的工具链来集成编译项目，我们也支持将依赖包切换到对应的远程工具链参与编译后集成进来。&lt;/p&gt;
-
-&lt;p&gt;相关例子代码见：&lt;a href=&quot;https://github.com/xmake-io/xmake/tree/master/tests/projects/package&quot;&gt;Toolchain/Packages Examples&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;相关的 issue &lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1217&quot;&gt;#1217&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;当前，我们已经在 &lt;a href=&quot;https://github.com/xmake-io/xmake-repo&quot;&gt;xmake-repo&lt;/a&gt; 仓库收录了以下工具链包，可以让 xmake 远程拉取集成：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;llvm&lt;/li&gt;
-  &lt;li&gt;llvm-mingw&lt;/li&gt;
-  &lt;li&gt;gnu-rm&lt;/li&gt;
-  &lt;li&gt;muslcc&lt;/li&gt;
-  &lt;li&gt;zig&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;虽然现在支持的工具链包不多，当但是整体架构已经打通，后期我们只需要收录更多的工具链进来就行，比如：gcc, tinyc, vs-buildtools 等工具链。&lt;/p&gt;
-
-&lt;p&gt;由于 xmake 的包支持语义版本，因此如果项目依赖特定版本的 gcc/clang 编译器，就不要用户去折腾安装了，xmake 会自动检测当前系统的 gcc/clang 版本是否满足需求。&lt;/p&gt;
-
-&lt;p&gt;如果版本不满足，那么 xmake 就会走远程拉取，自动帮用户安装集成特定版本的 gcc/clang，然后再去编译项目。&lt;/p&gt;
-
-&lt;h4 id=&quot;拉取指定版本的-llvm-工具链&quot;&gt;拉取指定版本的 llvm 工具链&lt;/h4&gt;
-
-&lt;p&gt;我们使用 llvm-10 中的 clang 来编译项目。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;llvm 10.x&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alias&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;llvm-10&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c)
-    set_toolchains(&quot;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;llvm&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;@&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;llvm&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;)
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;其中，&lt;code class=&quot;highlighter-rouge&quot;&gt;llvm@llvm-10&lt;/code&gt; 的前半部分为工具链名，也就是 &lt;code class=&quot;highlighter-rouge&quot;&gt;toolchain(&quot;llvm&quot;)&lt;/code&gt;，后面的名字是需要被关联工具链包名，也就是 &lt;code class=&quot;highlighter-rouge&quot;&gt;package(&quot;llvm&quot;)&lt;/code&gt;，不过如果设置了别名，那么会优先使用别名：&lt;code class=&quot;highlighter-rouge&quot;&gt;llvm-10&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;另外，我们后续还会增加 gcc 工具链包到 xmake-repo，使得用户可以自由切换 gcc-10, gcc-11 等特定版本的 gcc 编译器，而无需用户去手动安装。&lt;/p&gt;
-
-&lt;h3 id=&quot;拉取交叉编译工具链&quot;&gt;拉取交叉编译工具链&lt;/h3&gt;
-
-&lt;p&gt;我们也可以拉取指定的交叉编译工具链来编译项目。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;muslcc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c)
-    set_toolchains(&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;@&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;muslcc&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;)
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;muslcc 是 https://musl.cc 提供的一款交叉编译工具链，默认 xmake 会自动集成编译 &lt;code class=&quot;highlighter-rouge&quot;&gt;x86_64-linux-musl-&lt;/code&gt; 目标平台。&lt;/p&gt;
-
-&lt;p&gt;当然，我们也可以通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f -a arm64&lt;/code&gt; 切换到 &lt;code class=&quot;highlighter-rouge&quot;&gt;aarch64-linux-musl-&lt;/code&gt; 目标平台来进行交叉编译。&lt;/p&gt;
-
-&lt;h4 id=&quot;拉取工具链并且集成对应工具链编译的依赖包&quot;&gt;拉取工具链并且集成对应工具链编译的依赖包&lt;/h4&gt;
-
-&lt;p&gt;我们也可以使用指定的muslcc交叉编译工具链去编译和集成所有的依赖包。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;muslcc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;libogg&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;system&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;set_toolchains&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;@muslcc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;libogg&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;这个时候，工程里面配置的 zlib, libogg 等依赖包，也会切换使用 muslcc 工具链，自动下载编译然后集成进来。&lt;/p&gt;
-
-&lt;p&gt;我们也可以通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;set_plat/set_arch&lt;/code&gt; 固定平台，这样只需要一个 xmake 命令，就可以完成整个交叉编译环境的集成以及架构切换。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;muslcc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;libogg&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;system&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;set_plat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cross&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;set_arch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;arm64&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;set_toolchains&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;@muslcc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;libogg&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;完整例子见：&lt;a href=&quot;https://github.com/xmake-io/xmake/blob/master/tests/projects/package/toolchain_muslcc/xmake.lua&quot;&gt;Examples (muslcc)&lt;/a&gt;&lt;/p&gt;
-
-&lt;h4 id=&quot;拉取集成-zig-工具链&quot;&gt;拉取集成 Zig 工具链&lt;/h4&gt;
-
-&lt;p&gt;xmake 会先下载特定版本的 zig 工具链，然后使用此工具链编译 zig 项目，当然用户如果已经自行安装了 zig 工具链，xmake 也会自动检测对应版本是否满足，如果满足需求，那么会直接使用它，无需重复下载安装。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mode.debug&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mode.release&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zig 0.7.x&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.zig&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_toolchains&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;@zig&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;增加对-zig-cc-编译器支持&quot;&gt;增加对 zig cc 编译器支持&lt;/h3&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;zig cc&lt;/code&gt; 是 zig 内置的 c/c++ 编译器，可以完全独立进行 c/c++ 代码的编译和链接，完全不依赖 gcc/clang/msvc，非常给力。&lt;/p&gt;
-
-&lt;p&gt;因此，我们完全可以使用它来编译 c/c++ 项目，关键是 zig 的工具链还非常轻量，仅仅几十M 。&lt;/p&gt;
-
-&lt;p&gt;我们只需要切换到 zig 工具链即可完成编译：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f --toolchain&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;zig
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 25%]: compiling.release src/main.c
-&lt;span class=&quot;s2&quot;&gt;&quot;zig cc&quot;&lt;/span&gt; -c -arch x86_64 -fvisibility&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;hidden -O3 -DNDEBUG -o build/.objs/xmake_test/macosx/x86_64/release/src/main.c.o src/main.c
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 50%]: linking.release &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt;
-&lt;span class=&quot;s2&quot;&gt;&quot;zig c++&quot;&lt;/span&gt; -o build/macosx/x86_64/release/test build/.objs/xmake_test/macosx/x86_64/release/src/main.c.o -arch x86_64 -stdlib&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;libc++ -Wl,-x -lz
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;100%]: build ok!
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;另外，&lt;code class=&quot;highlighter-rouge&quot;&gt;zig cc&lt;/code&gt; 的另外一个强大之处在于，它还支持不同架构的交叉编译，太 happy 了。&lt;/p&gt;
-
-&lt;p&gt;通过 xmake，我们也只需再额外切换下架构到 arm64，即可实现对 arm64 的交叉编译，例如：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -a arm64 --toolchain&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;zig
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 25%]: compiling.release src/main.c
-&lt;span class=&quot;s2&quot;&gt;&quot;zig cc&quot;&lt;/span&gt; -c -target aarch64-macos-gnu -arch arm64 -fvisibility&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;hidden -O3 -DNDEBUG -o build/.objs/xmake_test/macosx/arm64/release/src/main.c.o src/main.c
-checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;flags &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;-MMD -MF&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; ... ok
-checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;flags &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;-fdiagnostics-color&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;always&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; ... ok
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 50%]: linking.release xmake_test
-&lt;span class=&quot;s2&quot;&gt;&quot;zig c++&quot;&lt;/span&gt; -o build/macosx/arm64/release/xmake_test build/.objs/xmake_test/macosx/arm64/release/src/main.c.o -target aarch64-macos-gnu -arch arm64 -stdlib&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;libc++ -Wl,-x -lz
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;100%]: build ok!
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;即使你是在在 macOS，也可以用 &lt;code class=&quot;highlighter-rouge&quot;&gt;zig cc&lt;/code&gt; 去交叉编译 windows/x64 目标程序，相当于替代了 mingw 干的事情。&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p windows -a x64 --toolchain&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;zig
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;自动导出所有-windowsdll-中的符号&quot;&gt;自动导出所有 windows/dll 中的符号&lt;/h3&gt;
-
-&lt;p&gt;cmake 中有这样一个功能：&lt;code class=&quot;highlighter-rouge&quot;&gt;WINDOWS_EXPORT_ALL_SYMBOLS&lt;/code&gt;，安装 cmake 文档中的说法：&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://cmake.org/cmake/help/latest/prop_tgt/WINDOWS_EXPORT_ALL_SYMBOLS.html&quot;&gt;https://cmake.org/cmake/help/latest/prop_tgt/WINDOWS_EXPORT_ALL_SYMBOLS.html&lt;/a&gt;&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;Enable this boolean property to automatically create a module definition (.def) file with all global symbols found
-in the input .obj files for a SHARED library (or executable with ENABLE_EXPORTS) on Windows.
-The module definition file will be passed to the linker causing all symbols to be exported from the .dll. For global data symbols,
-__declspec(dllimport) must still be used when compiling against the code in the .dll. All other function symbols will be automatically exported and imported by callers.
-This simplifies porting projects to Windows by reducing the need for explicit dllexport markup, even in C++ classes.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;大体意思就是：&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;启用此布尔属性，可以自动创建一个模块定义(.def)文件，其中包含在Windows上的共享库(或使用ENABLE_EXPORTS的可执行文件)的输入.obj文件中找到的所有全局符号。
-模块定义文件将被传递给链接器，使所有符号从.dll中导出。对于全局数据符号，当对.dll中的代码进行编译时，仍然必须使用__declspec(dllimport)。
-所有其它的函数符号将被调用者自动导出和导入。这就简化了将项目移植到 Windows 的过程，减少了对显式 dllexport 标记的需求，甚至在 C++ 类中也是如此。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;现在，xmake 中也提供了类似的特性，可以快速全量导出 windows/dll 中的符号，来简化对第三方项目移植过程中，对符号导出的处理。另外，如果项目中的符号太多，也可以用此来简化代码中的显式导出需求。&lt;/p&gt;
-
-&lt;p&gt;我们只需在对应生成的 dll 目标上，配置 &lt;code class=&quot;highlighter-rouge&quot;&gt;utils.symbols.export_all&lt;/code&gt; 规则即可。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;shared&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/foo.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;utils.symbols.export_all&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/main.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;xmake 会自动扫描所有的 obj 对象文件，然后生成 def 符号导出文件，传入 link.exe 实现快速全量导出。&lt;/p&gt;
-
-&lt;h3 id=&quot;转换-mingwdlla-到-msvclib&quot;&gt;转换 mingw/.dll.a 到 msvc/.lib&lt;/h3&gt;
-
-&lt;p&gt;这个特性也是参考自 CMAKE_GNUtoMS 功能，可以把MinGW生成的动态库（xxx.dll &amp;amp; xxx.dll.a）转换成Visual Studio可以识别的格式（xxx.dll &amp;amp; xxx.lib），从而实现混合编译。&lt;/p&gt;
-
-&lt;p&gt;这个功能对Fortran &amp;amp; C++混合项目特别有帮助，因为VS不提供fortran编译器，只能用MinGW的gfortran来编译fortran部分，然后和VS的项目链接。
-往往这样的项目同时有一些其他的库以vs格式提供，因此纯用MinGW编译也不行，只能使用cmake的这个功能来混合编译。&lt;/p&gt;
-
-&lt;p&gt;因此，xmake 也提供了一个辅助模块接口去支持它，使用方式如下：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;utils.platform.gnu2mslib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;gnu2mslib&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;xxx.lib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;xxx.dll.a&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;gnu2mslib&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;xxx.lib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;xxx.def&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;gnu2mslib&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;xxx.lib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;xxx.dll.a&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dllname&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;xxx.dll&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;arch&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;x64&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;支持从 def 生成 xxx.lib ，也支持从 xxx.dll.a 自动导出 .def ，然后再生成 xxx.lib&lt;/p&gt;
-
-&lt;p&gt;具体细节见：&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1181&quot;&gt;issue #1181&lt;/a&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;实现批处理命令来简化自定义规则&quot;&gt;实现批处理命令来简化自定义规则&lt;/h3&gt;
-
-&lt;p&gt;为了简化用户自定义 rule 的配置，xmake 新提供了 &lt;code class=&quot;highlighter-rouge&quot;&gt;on_buildcmd_file&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;on_buildcmd_files&lt;/code&gt; 等自定义脚本入口，
-我们可以通过 batchcmds 对象，构造一个批处理命令行任务，xmake 在实际执行构建的时候，一次性执行这些命令。&lt;/p&gt;
-
-&lt;p&gt;这对于 &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake project&lt;/code&gt; 此类工程生成器插件非常有用，因为生成器生成的第三方工程文件并不支持 &lt;code class=&quot;highlighter-rouge&quot;&gt;on_build_files&lt;/code&gt; 此类内置脚本的执行支持。&lt;/p&gt;
-
-&lt;p&gt;但是 &lt;code class=&quot;highlighter-rouge&quot;&gt;on_buildcmd_file&lt;/code&gt; 构造的最终结果，就是一批原始的 cmd 命令行，可以直接给其他工程文件作为 custom commands 来执行。&lt;/p&gt;
-
-&lt;p&gt;另外，相比 &lt;code class=&quot;highlighter-rouge&quot;&gt;on_build_file&lt;/code&gt;，它也简化对扩展文件的编译实现，更加的可读易配置，对用户也更加友好。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_extensions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;.xxx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;on_buildcmd_file&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;batchcmds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourcefile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;opt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;batchcmds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vrunv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;gcc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;-o&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;objectfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;-c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourcefile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;除了 &lt;code class=&quot;highlighter-rouge&quot;&gt;batchcmds:vrunv&lt;/code&gt;，我们还支持一些其他的批处理命令，例如：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;batchcmds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;hello %s&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;xmake&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;batchcmds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vrunv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;gcc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;-o&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;objectfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;-c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourcefile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;envs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LD_LIBRARY_PATH&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;/xxx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}})&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;batchcmds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mkdir&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;/xxx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;-- and cp, mv, rm, ln ..&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;batchcmds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;compile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sourcefile_cx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;objectfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;includedirs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourcefile_dir&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;languages&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sourcekind&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;cxx&quot;&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;c++11&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)}})&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;batchcmds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;link&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;objectfiles&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;targetfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;linkdirs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}})&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;同时，我们在里面也简化对依赖执行的配置，下面是一个完整例子：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;lex&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_extensions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;.l&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;.ll&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;on_buildcmd_file&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;batchcmds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourcefile_lex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;opt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;-- imports&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;lib.detect.find_tool&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;-- get lex&lt;/span&gt;
-        &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lex&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;assert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;find_tool&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;flex&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;or&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;find_tool&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;lex&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;lex not found!&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;-- get c/c++ source file for lex&lt;/span&gt;
-        &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;extension&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;extension&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sourcefile_lex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourcefile_cx&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;join&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;autogendir&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;rules&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;lex_yacc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;basename&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sourcefile_lex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;..&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;extension&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;.ll&quot;&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;.cpp&quot;&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;or&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;-- add objectfile&lt;/span&gt;
-        &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;objectfile&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;objectfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sourcefile_cx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;table.insert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;objectfiles&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;objectfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;-- add commands&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;batchcmds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show_progress&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;opt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;progress&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;${color.build.object}compiling.lex %s&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourcefile_lex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;batchcmds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mkdir&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;directory&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sourcefile_cx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;batchcmds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vrunv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;program&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;-o&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourcefile_cx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourcefile_lex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;batchcmds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;compile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sourcefile_cx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;objectfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;-- add deps&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;batchcmds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add_depfiles&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sourcefile_lex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;batchcmds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;set_depmtime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mtime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;objectfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;batchcmds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;set_depcache&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dependfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;objectfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;我们从上面的配置可以看到，整体执行命令列表非常清晰，而如果我们用 &lt;code class=&quot;highlighter-rouge&quot;&gt;on_build_file&lt;/code&gt; 来实现，可以对比下之前这个规则的配置，就能直观感受到新接口的配置方式确实简化了不少：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;lex&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-    &lt;span class=&quot;c1&quot;&gt;-- set extension&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_extensions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;.l&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;.ll&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-    &lt;span class=&quot;c1&quot;&gt;-- load lex/flex&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;before_load&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;core.project.config&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;lib.detect.find_tool&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lex&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;__lex&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;not&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lex&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;lex&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;find_tool&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;flex&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;or&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;find_tool&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;lex&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-            &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lex&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;program&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
-                &lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;__lex&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;program&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-                &lt;span class=&quot;n&quot;&gt;cprint&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;checking for Lex ... ${color.success}%s&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;program&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-            &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;
-                &lt;span class=&quot;n&quot;&gt;cprint&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;checking for Lex ... ${color.nothing}${text.nothing}&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-                &lt;span class=&quot;n&quot;&gt;raise&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;lex/flex not found!&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-            &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-    &lt;span class=&quot;c1&quot;&gt;-- build lex file&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;on_build_file&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourcefile_lex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;opt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;-- imports&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;core.base.option&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;core.theme.theme&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;core.project.config&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;core.project.depend&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;core.tool.compiler&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;private.utils.progress&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;-- get lex&lt;/span&gt;
-        &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lex&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;assert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;__lex&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;lex not found!&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;-- get extension: .l/.ll&lt;/span&gt;
-        &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;extension&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;extension&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sourcefile_lex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;-- get c/c++ source file for lex&lt;/span&gt;
-        &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourcefile_cx&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;join&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;autogendir&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;rules&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;lex_yacc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;basename&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sourcefile_lex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;..&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;extension&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;.ll&quot;&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;.cpp&quot;&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;or&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-        &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourcefile_dir&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;directory&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sourcefile_cx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;-- get object file&lt;/span&gt;
-        &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;objectfile&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;objectfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sourcefile_cx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;-- load compiler&lt;/span&gt;
-        &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;compinst&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;compiler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;extension&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;.ll&quot;&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;cxx&quot;&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;or&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;cc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;-- get compile flags&lt;/span&gt;
-        &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;compflags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;compinst&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;compflags&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourcefile&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourcefile_cx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;-- add objectfile&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;table.insert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;objectfiles&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;objectfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;-- load dependent info&lt;/span&gt;
-        &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dependfile&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dependfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;objectfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dependinfo&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;rebuild&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{}&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;or&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;depend&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dependfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;or&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{})&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;-- need build this object?&lt;/span&gt;
-        &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;depvalues&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;compinst&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;program&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;compflags&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;not&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;depend&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;is_changed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dependinfo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lastmtime&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mtime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;objectfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;values&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;depvalues&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
-            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;-- trace progress info&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;progress&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;opt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;progress&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;${color.build.object}compiling.lex %s&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourcefile_lex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;-- ensure the source file directory&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;not&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;isdir&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sourcefile_dir&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mkdir&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sourcefile_dir&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;-- compile lex&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vrunv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;-o&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourcefile_cx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourcefile_lex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;-- trace&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;verbose&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
-            &lt;span class=&quot;nb&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;compinst&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;compcmd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sourcefile_cx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;objectfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;compflags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;compflags&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}))&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;-- compile c/c++ source file for lex&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;dependinfo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;files&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{}&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;assert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;compinst&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;compile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sourcefile_cx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;objectfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dependinfo&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dependinfo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;compflags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;compflags&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}))&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;-- update files and values to the dependent file&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;dependinfo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;depvalues&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;table.insert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dependinfo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourcefile_lex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;depend&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;save&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dependinfo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dependfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;关于这个的详细说明和背景，见：&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1246&quot;&gt;issue 1246&lt;/a&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;依赖包配置改进&quot;&gt;依赖包配置改进&lt;/h3&gt;
-
-&lt;h4 id=&quot;使用-add_extsources-改进包名查找&quot;&gt;使用 add_extsources 改进包名查找&lt;/h4&gt;
-
-&lt;p&gt;关于远程依赖包定义这块，我们也新增了 &lt;code class=&quot;highlighter-rouge&quot;&gt;add_extsources&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;on_fetch&lt;/code&gt; 两个配置接口，可以更好的配置 xmake 在安装 C/C++ 包的过程中，对系统库的查找过程。&lt;/p&gt;
-
-&lt;p&gt;至于具体背景，我们可以举个例子，比如我们在 &lt;a href=&quot;https://github.com/xmake-io/xmake-repo&quot;&gt;xmake-repo&lt;/a&gt; 仓库新增了一个 &lt;code class=&quot;highlighter-rouge&quot;&gt;package(&quot;libusb&quot;)&lt;/code&gt; 的包。&lt;/p&gt;
-
-&lt;p&gt;那么用户就可以通过下面的方式，直接集成使用它：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;libusb&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;libusb&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;如果用户系统上确实没有安装 libusb，那么 xmake 会自动下载 libusb 库源码，自动编译安装集成，没啥问题。&lt;/p&gt;
-
-&lt;p&gt;但如果用户通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;apt install libusb-1.0&lt;/code&gt; 安装了 libusb 库到系统，那么按理 xmake 应该会自动优先查找用户安装到系统环境的 libusb 包，直接使用，避免额外的下载编译安装。&lt;/p&gt;
-
-&lt;p&gt;但是问题来了，xmake 内部通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;find_package(&quot;libusb&quot;)&lt;/code&gt; 并没有找打它，这是为什么呢？因为通过 apt 安装的 libusb 包名是 &lt;code class=&quot;highlighter-rouge&quot;&gt;libusb-1.0&lt;/code&gt;, 而不是 libusb。&lt;/p&gt;
-
-&lt;p&gt;我们只能通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;pkg-config --cflags libusb-1.0&lt;/code&gt; 才能找到它，但是 xmake 内部的默认 find_package 逻辑并不知道 &lt;code class=&quot;highlighter-rouge&quot;&gt;libusb-1.0&lt;/code&gt; 的存在，所以找不到。&lt;/p&gt;
-
-&lt;p&gt;因此为了更好地适配不同系统环境下，系统库的查找，我们可以通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;add_extsources(&quot;pkgconfig::libusb-1.0&quot;)&lt;/code&gt; 去让 xmake 改进查找逻辑，例如：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;libusb&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_extsources&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;pkgconfig::libusb-1.0&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;on_install&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;c1&quot;&gt;-- ...&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;另外，我们也可以通过这个方式，改进查找 homebrew/pacman 等其他包管理器安装的包，例如：&lt;code class=&quot;highlighter-rouge&quot;&gt;add_extsources(&quot;pacman::libusb-1.0&quot;)&lt;/code&gt;。&lt;/p&gt;
-
-&lt;h4 id=&quot;使用-on_fetch-完全定制系统库查找&quot;&gt;使用 on_fetch 完全定制系统库查找&lt;/h4&gt;
-
-&lt;p&gt;如果不同系统下安装的系统库，仅仅只是包名不同，那么使用 &lt;code class=&quot;highlighter-rouge&quot;&gt;add_extsources&lt;/code&gt; 改进系统库查找已经足够，简单方便。&lt;/p&gt;
-
-&lt;p&gt;但是如果有些安装到系统的包，位置更加复杂，想要找到它们，也许需要一些额外的脚本才能实现，例如：windows 下注册表的访问去查找包等等，这个时候，我们就可以通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;on_fetch&lt;/code&gt; 完全定制化查找系统库逻辑。&lt;/p&gt;
-
-&lt;p&gt;还是以 libusb 为例，我们不用 &lt;code class=&quot;highlighter-rouge&quot;&gt;add_extsources&lt;/code&gt;，可以使用下面的方式，实现相同的效果，当然，我们可以在里面做更多的事情。&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;package(&quot;libusb&quot;)
-    on_fetch(&quot;linux&quot;, function(package, opt)
-        if opt.system then
-            return find_package(&quot;pkgconfig::libusb-1.0&quot;)
-        end
-    end)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;manifest-文件支持&quot;&gt;manifest 文件支持&lt;/h3&gt;
-
-&lt;p&gt;在新版本中，我们还新增了对 windows &lt;code class=&quot;highlighter-rouge&quot;&gt;.manifest&lt;/code&gt; 文件的支持，只需要通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;add_files&lt;/code&gt; 添加进来即可。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mode.debug&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mode.release&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.manifest&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;xrepo-命令改进&quot;&gt;xrepo 命令改进&lt;/h3&gt;
-
-&lt;p&gt;关于 xrepo 命令，我们也稍微改进了下，现在可以通过下面的命令，批量卸载删除已经安装的包，支持模式匹配：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xrepo remove --all
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xrepo remove --all zlib pcr&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;包的依赖导出支持&quot;&gt;包的依赖导出支持&lt;/h3&gt;
-
-&lt;p&gt;我们也改进了 &lt;code class=&quot;highlighter-rouge&quot;&gt;add_packages&lt;/code&gt;，使其也支持 &lt;code class=&quot;highlighter-rouge&quot;&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;public&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt; 来导出包配置给父 target。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mode.debug&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mode.release&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;pcre2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;shared&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;pcre2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/test.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;demo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/main.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;  &lt;span class=&quot;c1&quot;&gt;-- 我们可以在这里使用被 test 目标导出 pcre2 库&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;至于具体导出哪些配置呢？&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;-- 默认私有，但是 links/linkdirs 还是会自动导出&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;pcre2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;c1&quot;&gt;-- 全部导出。包括 includedirs, defines&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;pcre2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h2 id=&quot;更新内容&quot;&gt;更新内容&lt;/h2&gt;
-
-&lt;h3 id=&quot;新特性&quot;&gt;新特性&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/955#issuecomment-766481512&quot;&gt;#955&lt;/a&gt;: 支持 &lt;code class=&quot;highlighter-rouge&quot;&gt;zig cc&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;zig c++&lt;/code&gt; 作为 c/c++ 编译器&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/955#issuecomment-768193083&quot;&gt;#955&lt;/a&gt;: 支持使用 zig 进行交叉编译&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1177&quot;&gt;#1177&lt;/a&gt;: 改进终端和 color codes 探测&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1216&quot;&gt;#1216&lt;/a&gt;: 传递自定义 includes 脚本给 xrepo&lt;/li&gt;
-  &lt;li&gt;添加 linuxos 内置模块获取 linux 系统信息&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1217&quot;&gt;#1217&lt;/a&gt;: 支持当编译项目时自动拉取工具链&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1123&quot;&gt;#1123&lt;/a&gt;: 添加 &lt;code class=&quot;highlighter-rouge&quot;&gt;rule(&quot;utils.symbols.export_all&quot;)&lt;/code&gt; 自动导出所有 windows/dll 中的符号&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1181&quot;&gt;#1181&lt;/a&gt;: 添加 &lt;code class=&quot;highlighter-rouge&quot;&gt;utils.platform.gnu2mslib(mslib, gnulib)&lt;/code&gt; 模块接口去转换 mingw/xxx.dll.a 到 msvc xxx.lib&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1246&quot;&gt;#1246&lt;/a&gt;: 改进规则支持新的批处理命令去简化自定义规则实现&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1239&quot;&gt;#1239&lt;/a&gt;: 添加 &lt;code class=&quot;highlighter-rouge&quot;&gt;add_extsources&lt;/code&gt; 去改进外部包的查找&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1241&quot;&gt;#1241&lt;/a&gt;: 支持为 windows 程序添加 .manifest 文件参与链接&lt;/li&gt;
-  &lt;li&gt;支持使用 &lt;code class=&quot;highlighter-rouge&quot;&gt;xrepo remove --all&lt;/code&gt; 命令去移除所有的包，并且支持模式匹配&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1254&quot;&gt;#1254&lt;/a&gt;: 支持导出包配置给父 target，实现包配置的依赖继承&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;改进&quot;&gt;改进&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1226&quot;&gt;#1226&lt;/a&gt;: 添加缺失的 Qt 头文件搜索路径&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1183&quot;&gt;#1183&lt;/a&gt;: 改进 C++ 语言标准，以便支持 Qt6&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1237&quot;&gt;#1237&lt;/a&gt;: 为 vsxmake 插件添加 qt.ui 文件&lt;/li&gt;
-  &lt;li&gt;改进 vs/vsxmake 插件去支持预编译头文件和智能提示&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1090&quot;&gt;#1090&lt;/a&gt;: 简化自定义规则&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1065&quot;&gt;#1065&lt;/a&gt;: 改进 protobuf 规则，支持 compile_commands 生成器&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1249&quot;&gt;#1249&lt;/a&gt;: 改进 vs/vsxmake 生成器去支持启动工程设置&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/605&quot;&gt;#605&lt;/a&gt;: 改进 add_deps 和 add_packages 直接的导出 links 顺序&lt;/li&gt;
-  &lt;li&gt;移除废弃的 &lt;code class=&quot;highlighter-rouge&quot;&gt;add_defines_h_if_ok&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;add_defines_h&lt;/code&gt; 接口&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;bugs-修复&quot;&gt;Bugs 修复&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1219&quot;&gt;#1219&lt;/a&gt;: 修复版本检测和更新&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1235&quot;&gt;#1235&lt;/a&gt;: 修复 includes 搜索路径中带有空格编译不过问题&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-        <pubDate>Sat, 27 Feb 2021 00:00:00 +0800</pubDate>
-        <link>https://tboox.org/cn/2021/02/27/xmake-update-v2.5.2/</link>
-        <guid isPermaLink="true">https://tboox.org/cn/2021/02/27/xmake-update-v2.5.2/</guid>
-        
-        <category>xmake</category>
-        
-        <category>lua</category>
-        
-        <category>C/C++</category>
-        
-        <category>toolchains</category>
-        
-        <category>xrepo</category>
-        
-        <category>packages</category>
-        
-        <category>cross-toolchains</category>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>A luarocks build plugin for lua module with c/c++ based on xmake</title>
-        <description>&lt;p&gt;&lt;a href=&quot;https://luarocks.org/&quot;&gt;luarocks&lt;/a&gt; is a package management tool of lua, which provides the installation and integration of various lua modules.&lt;/p&gt;
-
-&lt;p&gt;When users install lua modules, it will use the built-in build system to build lua module with c/c++ codes.&lt;/p&gt;
-
-&lt;p&gt;However, it’s build system only provides simple configuration. For complex c/c++ modules, it is a little bit powerless, and it cannot be flexibly switch the toolchain.&lt;/p&gt;
-
-&lt;p&gt;Although it also provides other back-ends (make, cmake), but make/makefile is also not flexible enough,
-and cmake requires users to install the cmake program in advance, otherwise the installation of the lua module will be interrupted.&lt;/p&gt;
-
-&lt;p&gt;Here, I have implemented a luarocks plugin &lt;a href=&quot;https://github.com/xmake-io/luarocks-build-xmake&quot;&gt;luarocks-build-xmake&lt;/a&gt; based on xmake to build lua c/c++ modules
-to achieve more flexible and convenient lua module maintenance.&lt;/p&gt;
-
-&lt;p&gt;Compared with the builtin build system of luarocks, it provides a more powerful build configuration and supports c/c++ dependency management.
-Compared with cmake, it does not require users to manually install xmake. This plugin will automatically install xmake and directly compile lua modules.
-In terms of users, no additional operations are required.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/luarocks-build-xmake&quot;&gt;luarocks-build-xmake&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;xmake&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;example1-with-xmakelua&quot;&gt;Example1 (with xmake.lua)&lt;/h3&gt;
-
-&lt;p&gt;We can build c/c++ modules if the project contain xmake.lua&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;├── src
-│   ├── test.c
-│   └── test.h
-└── xmake.lua
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;xmakelua&quot;&gt;xmake.lua&lt;/h4&gt;
-
-&lt;p&gt;We need to use &lt;code class=&quot;highlighter-rouge&quot;&gt;add_rules(&quot;luarocks.module&quot;)&lt;/code&gt; to add build rules for luarocks modules.&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mode.debug&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mode.release&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;example1.hello&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;luarocks.module&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/test.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;rockspec&quot;&gt;rockspec&lt;/h4&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;example1&quot;&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;version&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;1.0-1&quot;&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;source&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;url&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;git://github.com/xmake-io/luarocks-build-xmake&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;tag&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;example1&quot;&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;dependencies&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;s2&quot;&gt;&quot;lua &amp;gt;= 5.1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-    &lt;span class=&quot;s2&quot;&gt;&quot;luarocks-build-xmake&quot;&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;build&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;nb&quot;&gt;type&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;xmake&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;copy_directories&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;example2-without-xmakelua&quot;&gt;Example2 (without xmake.lua)&lt;/h3&gt;
-
-&lt;p&gt;We can use xmake as builtin build type to build c/c++ modules if the project does not contain xmake.lua&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;├── src
-    ├── test.c
-    └── test.h
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;rockspec-1&quot;&gt;rockspec&lt;/h4&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;example2&quot;&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;version&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;1.0-1&quot;&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;source&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;url&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;git://github.com/xmake-io/luarocks-build-xmake&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;tag&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;example2&quot;&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;dependencies&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;s2&quot;&gt;&quot;lua &amp;gt;= 5.1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-    &lt;span class=&quot;s2&quot;&gt;&quot;luarocks-build-xmake&quot;&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;build&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;nb&quot;&gt;type&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;xmake&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;modules&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;example2.hello&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;sources&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;src/test.c&quot;&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;copy_directories&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;set-special-xmake-version&quot;&gt;Set special xmake version&lt;/h3&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;dependencies&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;s2&quot;&gt;&quot;lua &amp;gt;= 5.1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-    &lt;span class=&quot;s2&quot;&gt;&quot;luarocks-build-xmake&quot;&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;build&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;nb&quot;&gt;type&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;xmake&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;variables&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;xmake&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;version&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;2.5.1&quot;&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;copy_directories&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;set-xmake-compilation-configuration&quot;&gt;Set xmake compilation configuration&lt;/h3&gt;
-
-&lt;p&gt;This plugin provides more flexible toolchain configuration, such as switching to the mingw toolchain, or switching between vs and sdk versions,
-modifying the vs runtime library, or switching to debug compilation mode, etc.&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;dependencies&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;s2&quot;&gt;&quot;lua &amp;gt;= 5.1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-    &lt;span class=&quot;s2&quot;&gt;&quot;luarocks-build-xmake&quot;&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;build&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;nb&quot;&gt;type&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;xmake&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;variables&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;xmake&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;plat&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mingw&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;arch&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;x86_64&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;mode&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;debug&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;cflags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;-DTEST1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;cc&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;gcc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;ld&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;gcc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;ldflags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;...&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;mingw&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mingw sdk path&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;vs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;2019&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;vs_runtime&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;MT&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;vs_toolset&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;vs_sdkver&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;copy_directories&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-</description>
-        <pubDate>Fri, 22 Jan 2021 00:00:00 +0800</pubDate>
-        <link>https://tboox.org/2021/01/22/luarocks-build-xmake-v1.0/</link>
-        <guid isPermaLink="true">https://tboox.org/2021/01/22/luarocks-build-xmake-v1.0/</guid>
-        
-        <category>xmake</category>
-        
-        <category>lua</category>
-        
-        <category>C/C++</category>
-        
-        <category>toolchains</category>
-        
-        <category>xrepo</category>
-        
-        <category>packages</category>
-        
-        <category>vcpkg</category>
-        
-        <category>conan</category>
-        
-        <category>Apple</category>
-        
-        <category>Silicon</category>
         
         
         <category>xmake</category>
