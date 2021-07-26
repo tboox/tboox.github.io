@@ -14,7 +14,7 @@ This is a stability fix version, which mainly fixes and improves some compatibil
 
 ## New feature introduction
 
-### Windows precompiled package compatibility fix
+### Fix windows precompiled package compatibility
 
 The previous version provided preliminary support for the installation of pre-compiled packages under Windows, but because the compatibility of the toolset version was not considered, if the user's VS version is too low, link problems will occur when the package is integrated.
 
