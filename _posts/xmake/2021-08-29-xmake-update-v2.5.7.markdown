@@ -7,7 +7,7 @@ categories: xmake
 
 [xmake](https://github.com/xmake-io/xmake) is a lightweight cross-platform build tool based on Lua. It uses xmake.lua to maintain project builds. Compared with makefile/CMakeLists.txt, the configuration syntax is more Concise and intuitive, it is very friendly to novices, and you can get started quickly in a short time, allowing users to focus more on actual project development.
 
-In this version, we have added a lot of new features. Not only did we increase the compilation support for Vala and Metal languages, we also improved the package dependency management, which can support the locking and updating of dependent packages like npm/package.lock, so The user's project will not be affected by the update and change of the upstream package warehouse.
+In this version, we have added a lot of new features. Not only did we increase the compilation support for Vala and Metal languages, we also improved the package dependency management, which can support the locking and updating of dependent packages like npm/package.lock, so The user's project will not be affected by the update and change of the upstream package repository.
 
 In addition, we also provide some more practical rules. For example, `utils.bin2c` allows users to easily and quickly embed some binary resource files into the code, and obtain relevant data in the form of header files.
 
@@ -58,7 +58,7 @@ For example, if we quote some packages, by default, if the version is not specif
 add_requires("zlib")
 ```
 
-However, if the upstream package warehouse is updated and changed, for example, zlib adds a new version 1.2.11, or the installation script is changed, the user's dependent packages will change.
+However, if the upstream package repository is updated and changed, for example, zlib adds a new version 1.2.11, or the installation script is changed, the user's dependent packages will change.
 
 This can easily lead to some projects that were originally compiled and passed, and there may be some unstable factors due to changes in dependent packages, and the compilation may fail, etc.
 
