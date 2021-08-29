@@ -157,7 +157,7 @@ end
 
 另外，我们也对 `includes("check_csnippets")` 的辅助检测接口，也做了改进来支持运行时检测。
 
-````lua
+```lua
 includes("check_csnippets.lua")
 
 target("test")
