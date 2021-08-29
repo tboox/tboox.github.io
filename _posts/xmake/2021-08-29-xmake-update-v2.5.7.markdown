@@ -156,7 +156,7 @@ end
 
 In addition, we have also improved the auxiliary detection interface of `includes("check_csnippets")` to support runtime detection.
 
-````lua
+```lua
 includes("check_csnippets.lua")
 
 target("test")
