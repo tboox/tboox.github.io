@@ -52,6 +52,7 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## Supporters
 
+|| 2021.11.15 || xmake || 朱* || 支付宝    ||  ¥50  ||
 || 2021.10.04 || xmake || S*o || 微信    ||  ¥100  ||
 || 2021.09.23 || xmake || fhhddgkhg || 支付宝   ||  ¥20  ||
 || 2021.09.06 || xmake || Stefan Boberg || 支付宝 || € 25 ||

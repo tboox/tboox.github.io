@@ -32,6 +32,7 @@ TBOOX的所有项目都是属于个人开源项目，它的发展需要您的帮
 
 <a href="https://opencollective.com/xmake#backers" target="_blank"><img src="https://opencollective.com/xmake/backers.svg?width=890"></a>
 
+|| 2021.11.15 || xmake || 朱* || 支付宝    ||  ¥50  ||
 || 2021.10.04 || xmake || S*o || 微信    ||  ¥100  ||
 || 2021.09.23 || xmake || fhhddgkhg || 支付宝   ||  ¥20  ||
 || 2021.09.06 || xmake || Stefan Boberg || 支付宝 || € 25 |
