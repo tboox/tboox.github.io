@@ -316,6 +316,16 @@ add_requires("cmake::Foo", {system = true, configs = {moduledirs = "mydir/cmake_
 
 相关 issues: [#1632](https://github.com/xmake-io/xmake/issues/1632)
 
+### xmake-idea 插件更新
+
+[xmake-idea](https://github.com/xmake-io/xmake-idea) 这个插件由于个人时间和精力的关系，一直没有花时间去维护更新，而 IDEA 插件的兼容性问题有非常多，只要一段时间不用，就无法在新的 Idea/Clion 上正常使用。
+
+最近，我花了点时间，修复了一些兼容性问题，比如 Windows 上创建工程会卡死的问题，新版本 Clion 无法安装等问题。
+
+目前，最新版本应该可以在全平台正常使用了。
+
+<img src="https://tboox.org/static/img/xmake/xmake-idea-output_panel.png" width="50%" />
+
 ## 另外一些值得提起的事情
 
 ### 年终总结

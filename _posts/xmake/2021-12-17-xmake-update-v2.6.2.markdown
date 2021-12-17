@@ -310,6 +310,16 @@ add_requires("cmake::Foo", {system = true, configs = {moduledirs = "mydir/cmake_
 
 Related issues: [#1632](https://github.com/xmake-io/xmake/issues/1632)
 
+### xmake-idea plugin update
+
+[xmake-idea](https://github.com/xmake-io/xmake-idea) Due to personal time and energy, this plug-in has not spent time to maintain and update, and IDEA plug-ins have a lot of compatibility issues , As long as it is not used for a period of time, it cannot be used normally on the new Idea/Clion.
+
+Recently, I took some time to fix some compatibility issues, such as the problem of freezing when creating a project on Windows, and problems such as the inability to install the new version of Clion.
+
+At present, the latest version should be able to be used normally on all platforms.
+
+<img src="https://tboox.org/static/img/xmake/xmake-idea-output_panel.png" width="50%" />
+
 ## Some other things worth mentioning
 
 ### Year-end summary
