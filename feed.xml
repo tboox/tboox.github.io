@@ -5,9 +5,783 @@
     <description>Focus on cross-platform development using c language</description>
     <link>https://tboox.org/</link>
     <atom:link href="https://tboox.org/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Wed, 15 Dec 2021 09:11:56 +0800</pubDate>
-    <lastBuildDate>Wed, 15 Dec 2021 09:11:56 +0800</lastBuildDate>
+    <pubDate>Fri, 17 Dec 2021 22:29:46 +0800</pubDate>
+    <lastBuildDate>Fri, 17 Dec 2021 22:29:46 +0800</lastBuildDate>
     <generator>Jekyll v3.1.0</generator>
+    
+      <item>
+        <title>Xmake v2.6.2 released, Support building Linux kernel driver module</title>
+        <description>&lt;p&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;Xmake&lt;/a&gt; is a lightweight cross-platform build utility based on Lua.&lt;/p&gt;
+
+&lt;p&gt;It is very lightweight and has no dependencies because it has a built-in Lua runtime.&lt;/p&gt;
+
+&lt;p&gt;It uses xmake.lua to maintain project builds and its configuration syntax is very simple and readable.&lt;/p&gt;
+
+&lt;p&gt;We can use it to build project directly like Make/Ninja, or generate project files like CMake/Meson, and it also has a built-in package management system to help users solve the integrated use of C/C++ dependent libraries.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Xmake = Build backend + Project Generator + Package Manager
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;Github&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://xmake.io/&quot;&gt;Document&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://tboox.org/static/img/xmake/xmake-cmake.jpeg&quot; width=&quot;30%&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;new-version-changes&quot;&gt;New version changes&lt;/h2&gt;
+
+&lt;p&gt;There are two major new features in this version:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Linux kernel driver module construction support&lt;/li&gt;
+  &lt;li&gt;Support for group building and batch running, which can be used to realize the function of &lt;code class=&quot;highlighter-rouge&quot;&gt;Run all tests&lt;/code&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;The rest are mainly scattered function improvements and bugs fixes. You can see the details of the update content at the end of the following. Some of the larger changes will be explained one by one below.&lt;/p&gt;
+
+&lt;h2 id=&quot;new-feature-introduction&quot;&gt;New feature introduction&lt;/h2&gt;
+
+&lt;h3 id=&quot;build-linux-kernel-driver-module&quot;&gt;Build Linux kernel driver module&lt;/h3&gt;
+
+&lt;p&gt;Xmake may be the first third-party build tool that provides built-in support for Linux kernel driver development.&lt;/p&gt;
+
+&lt;p&gt;Although there are also instructions on how CMake configures and builds Linux drivers on the Internet, most of them use &lt;code class=&quot;highlighter-rouge&quot;&gt;add_custom_command&lt;/code&gt; to customize various commands, and then execute &lt;code class=&quot;highlighter-rouge&quot;&gt;echo&lt;/code&gt; to splice and generate Linux Makefile files by themselves.&lt;/p&gt;
+
+&lt;p&gt;In other words, it is actually a build that relies on the Makefile of the Linux kernel source code to execute, so if you want to add some compilation configuration and macro definitions yourself, it will be very troublesome.&lt;/p&gt;
+
+&lt;p&gt;With Xmake, we can provide more flexible configurability, simpler configuration files, and features such as one-click compilation, automatic dependency pull integration, automatic download and integration of Linux kernel source code, and cross-compilation of kernel drivers.&lt;/p&gt;
+
+&lt;h4 id=&quot;hello-world&quot;&gt;Hello World&lt;/h4&gt;
+
+&lt;p&gt;We intuitively feel it through one of the simplest character drivers.&lt;/p&gt;
+
+&lt;p&gt;First, we prepare a Hello World driver code, for example:&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;linux-headers&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;driver_modules&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}})&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;hello&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;platform.linux.driver&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;linux-headers&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_license&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;GPL-2.0&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Its configuration is very simple. You only need to configure the linux-headers package that supports the module, and then apply the &lt;code class=&quot;highlighter-rouge&quot;&gt;platform.linux.driver&lt;/code&gt; build rule.&lt;/p&gt;
+
+&lt;p&gt;Then directly execute the xmake command, compile with one key, and generate the kernel driver module hello.ko.&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt;
+&lt;/span&gt;[20%]: ccache compiling.release src/add.c
+[20%]: ccache compiling.release src/hello.c
+[60%]: linking.release build/linux/x86_64/release/hello.ko
+[100%]: build ok!
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Is it simple? Maybe you would say that it is not much different from directly configuring with Makefile and then compiling with make.&lt;/p&gt;
+
+&lt;p&gt;So the point is here. Xmake will automatically pull the kernel source code for the specified version for you. Make will not, and CMake will not. Users must install them by themselves through &lt;code class=&quot;highlighter-rouge&quot;&gt;sudo apt install linux-headers-generic&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;But Xmake doesn’t need it. In the one-click compilation above, I actually omitted part of the output, which is actually the case.&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt;
+&lt;/span&gt;note: install or modify (m) these packages (pass -y to skip confirm)?
+in xmake-repo:
+  -&amp;gt; m4 1.4.19 [from:linux-headers,bison,flex,elfutils]
+  -&amp;gt; flex 2.6.4 [from:bc,linux-headers]
+  -&amp;gt; bison 3.8.2 [from:bc,linux-headers]
+  -&amp;gt; ed 1.17 [from:bc,linux-headers]
+  -&amp;gt; texinfo 6.7 [from:bc,linux-headers]
+  -&amp;gt; bc 1.07.1 [from:linux-headers]
+  -&amp;gt; pkg-config 0.29.2 [from:linux-headers]
+  -&amp;gt; openssl 1.1.1l [private, from:linux-headers]
+  -&amp;gt; elfutils 0.183 [private, from:linux-headers]
+  -&amp;gt; linux-headers 5.10.46 [driver_modules:y]
+please input: y (y/n/m)
+
+  =&amp;gt; download https://github.com/xmake-mirror/ed/archive/refs/tags/1.17.tar.gz .. ok
+  =&amp;gt; install ed 1.17 .. ok
+  =&amp;gt; download https://ftp.gnu.org/gnu/m4/m4-1.4.19.tar.xz .. ok
+  =&amp;gt; download https://ftp.gnu.org/gnu/texinfo/texinfo-6.7.tar.xz .. ok
+  =&amp;gt; download https://pkgconfig.freedesktop.org/releases/pkg-config-0.29.2.tar.gz .. ok
+  =&amp;gt; download https://github.com/openssl/openssl/archive/OpenSSL_1_1_1l.zip .. ok
+  =&amp;gt; install m4 1.4.19 .. ok
+  =&amp;gt; download https://github.com/westes/flex/releases/download/v2.6.4/flex-2.6.4.tar.gz .. ok
+  =&amp;gt; install texinfo 6.7 .. ok
+  =&amp;gt; install pkg-config 0.29.2 .. ok
+  =&amp;gt; download http://ftp.gnu.org/gnu/bison/bison-3.8.2.tar.gz .. ok
+  =&amp;gt; install flex 2.6.4 .. ok
+  =&amp;gt; download https://sourceware.org/elfutils/ftp/0.183/elfutils-0.183.tar.bz2 .. ok
+  =&amp;gt; install elfutils 0.183 .. ok
+  =&amp;gt; install bison 3.8.2 .. ok
+  =&amp;gt; download https://ftp.gnu.org/gnu/bc/bc-1.07.1.tar.gz .. ok
+  =&amp;gt; install bc 1.07.1 .. ok
+  =&amp;gt; install openssl 1.1.1l .. ok
+  =&amp;gt; download https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.10.46.tar.xz .. ok
+  =&amp;gt; install linux-headers 5.10.46 .. ok
+[16%]: ccache compiling.release src/add.c
+[16%]: ccache compiling.release src/hello.c
+[16%]: ccache compiling.release src/hello.mod.c
+[66%]: linking.release build/linux/x86_64/release/hello.ko
+[100%]: build ok!
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;When compiling for the first time, Xmake will pull all dependencies. If the user has installed them through third-party package management such as apt, Xmake will give priority to the version already installed on the system, saving the download and installation process.&lt;/p&gt;
+
+&lt;p&gt;In other words, no matter what environment you are in, users don’t need to care about how to build a kernel-driven development environment. They only need one &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake&lt;/code&gt; command to get everything done.&lt;/p&gt;
+
+&lt;p&gt;And these dependency pulls are implemented through the &lt;code class=&quot;highlighter-rouge&quot;&gt;add_requires(&quot;linux-headers&quot;, {configs = {driver_modules = true}})&lt;/code&gt; configuration package.&lt;/p&gt;
+
+&lt;p&gt;In addition, we can also see the complete build command parameters.&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -v
+&lt;/span&gt;[20%]: ccache compiling.release src/add.c
+/usr/bin/ccache /usr/bin/gcc -c -m64 -O2 -std=gnu89 -I/usr/src/linux-headers-5.11.0-41-generic/arch/x86/include -I/usr /src/linux-headers-5.11.0-41-generic/arch/x86/include/generated -I/usr/src/linux-headers-5.11.0-41-generic/include -I/usr/src/linux -headers-5.11.0-41-generic/arch/x86/include/uapi -I/usr/src/linux-headers-5.11.0-41-generic/arch/x86/include/generated/uapi -I/usr /src/linux-headers-5.11.0-41-generic/include/uapi -I/usr/src/linux-headers-5.11.0-41-generic/include/generated/uapi -D__KERNEL__ -DMODULE -DKBUILD_MODNAME=\ &quot;hello\&quot; -DCONFIG_X86_X32_ABI -isystem /usr/lib/gcc/x86_64-linux-gnu/10/include -include /usr/src/linux-headers-5.11.0-41-generic/include/linux/kconfig.h -include /usr/src/linux-headers-5.11.0-41-generic/include/linux/compiler_types.h -nostdinc -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -mno -80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -mtune=generic -mno-red-zone -mcmodel=kernel -mindirect-branch=thunk-extern -mindirect -branch-re gister -mrecord-mcount -fmacro-prefix-map=./= -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE -fcf-protection=none -falign-jumps=1 -falign-loops= 1 -fno-asynchronous-unwind-tables -fno-jump-tables -fno-delete-null-pointer-checks -fno-allow-store-data-races -fno-reorder-blocks -fno-ipa-cp-clone- fno-partial-inlining -fstack-protector-strong -fno-inline-functions-called-once -falign-functions=32 -fno-strict-overflow -fno-stack-check -fconserve-stack -DKBUILD_BASENAME=\&quot;add\ &quot;-o build/.objs/hello/linux/x86_64/release/src/add.c.o src/add.c
+[20%]: ccache compiling.release src/hello.c
+/usr/bin/ccache /usr/bin/gcc -c -m64 -O2 -std=gnu89 -I/usr/src/linux-headers-5.11.0-41-generic/arch/x86/include -I/usr /src/linux-headers-5.11.0-41-generic/arch/x86/include/generated -I/usr/src/linux-headers-5.11.0-41-generic/include -I/usr/src/linux -headers-5.11.0-41-generic/arch/x86/include/uapi -I/usr/src/linux-headers-5.11.0-41-generic/arch/x86/include/generated/uapi -I/usr /src/linux-headers-5.11.0-41-generic/include/uapi -I/usr/src/linux-headers-5.11.0-41-generic/include/generated/uapi -D__KERNEL__ -DMODULE -DKBUILD_MODNAME=\ &quot;hello\&quot; -DCONFIG_X86_X32_ABI -isystem /usr/lib/gcc/x86_64-linux-gnu/10/include -include /usr/src/linux-headers-5.11.0-41-generic/include/linux/kconfig.h -include /usr/src/linux-headers-5.11.0-41-generic/include/linux/compiler_types.h -nostdinc -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -mno -80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -mtune=generic -mno-red-zone -mcmodel=kernel -mindirect-branch=thunk-extern -mindirect -branch-re gister -mrecord-mcount -fmacro-prefix-map=./= -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE -fcf-protection=none -falign-jumps=1 -falign-loops= 1 -fno-asynchronous-unwind-tables -fno-jump-tables -fno-delete-null-pointer-checks -fno-allow-store-data-races -fno-reorder-blocks -fno-ipa-cp-clone- fno-partial-inlining -fstack-protector-strong -fno-inline-functions-called-once -falign-functions=32 -fno-strict-overflow -fno-stack-check -fconserve-stack -DKBUILD_BASENAME=\&quot;hello\ &quot;-o build/.objs/hello/linux/x86_64/release/src/hello.co src/hello.c
+[60%]: linking.release build/linux/x86_64/release/hello.ko
+/usr/bin/ld -m elf_x86_64 -r -o build/.objs/hello/linux/x86_64/release/build/linux/x86_64/release/hello.ko.o build/.objs/hello/linux/x86_64/ release/src/add.co build/.objs/hello/linux/x86_64/release/src/hello.co
+/usr/src/linux-headers-5.11.0-41-generic/scripts/mod/modpost -m -a -o build/.objs/hello/linux/x86_64/release/build/linux/x86_64/release/Module .symvers -e -N -T-
+WARNING: modpost: Symbol info of vmlinux is missing. Unresolved symbol check will be entirely skipped.
+/usr/bin/ccache /usr/bin/gcc -c -m64 -O2 -std=gnu89 -I/usr/src/linux-headers-5.11.0-41-generic/arch/x86/include -I/usr /src/linux-headers-5.11.0-41-generic/arch/x86/include/generated -I/usr/src/linux-headers-5.11.0-41-generic/include -I/usr/src/linux -headers-5.11.0-41-generic/arch/x86/include/uapi -I/usr/src/linux-headers-5.11.0-41-generic/arch/x86/include/generated/uapi -I/usr /src/linux-headers-5.11.0-41-generic/include/uapi -I/usr/src/linux-headers-5.11.0-41-generic/include/generated/uapi -D__KERNEL__ -DMODULE -DKBUILD_MODNAME=\ &quot;hello\&quot; -DCONFIG_X86_X32_ABI -isystem /usr/lib/gcc/x86_64-linux-gnu/10/include -include /usr/src/linux-headers-5.11.0-41-generic/include/linux/kconfig.h -include /usr/src/linux-headers-5.11.0-41-generic/include/linux/compiler_types.h -nostdinc -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -mno -80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -mtune=generic -mno-red-zone -mcmodel=kernel -mindirect-branch=thunk-extern -mindirect -branch-re gister -mrecord-mcount -fmacro-prefix-map=./= -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE -fcf-protection=none -falign-jumps=1 -falign-loops= 1 -fno-asynchronous-unwind-tables -fno-jump-tables -fno-delete-null-pointer-checks -fno-allow-store-data-races -fno-reorder-blocks -fno-ipa-cp-clone- fno-partial-inlining -fstack-protector-strong -fno-inline-functions-called-once -falign-functions=32 -fno-strict-overflow -fno-stack-check -fconserve-stack -o build/.objs/ hello/linux/x86_64/release/build/linux/x86_64/release/hello.ko.mod.o build/.objs/hello/linux/x86_64/release/build/linux/x86_64/release/hello.ko.mod. c
+/usr/bin/ld -m elf_x86_64 -r --build-id=sha1 -T /usr/src/linux-headers-5.11.0-41-generic/scripts/module.lds -o build/linux/x86_64/ release/hello.ko build/.objs/hello/linux/x86_64/release/build/linux/x86_64/release/hello.ko.o build/.objs/hello/linux/x86_64/release/build/linux/x86_64/ release/hello.ko.mod.o
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;use-a-specific-version-of-the-kernel-source-code&quot;&gt;Use a specific version of the kernel source code&lt;/h4&gt;
+
+&lt;p&gt;We can also specify version semantic rules and select the kernel source code we need as the build source.&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;linux-headers 5.9.x&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;driver_modules&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;cross-compilation&quot;&gt;Cross compilation&lt;/h4&gt;
+
+&lt;p&gt;We also support cross-compilation of kernel driver modules, such as using cross-compilation tool chain on Linux x86_64 to build Linux Arm/Arm64 driver modules.&lt;/p&gt;
+
+&lt;p&gt;We only need to prepare our own cross-compilation tool chain, specify its root directory through &lt;code class=&quot;highlighter-rouge&quot;&gt;--sdk=&lt;/code&gt;, then switch to the &lt;code class=&quot;highlighter-rouge&quot;&gt;-p cross&lt;/code&gt; platform configuration, and finally specify the architecture arm/arm64 to be built.&lt;/p&gt;
+
+&lt;p&gt;Similarly, we don’t need to care about how to prepare linux-headers to support cross-compilation. Xmake’s dependency package management will help you prepare everything and pull and build the kernel source code that supports the corresponding architecture.&lt;/p&gt;
+
+&lt;p&gt;The cross toolchain used here can be downloaded from here: &lt;a href=&quot;https://releases.linaro.org/components/toolchain/binaries/latest-7/aarch64-linux-gnu/&quot;&gt;Download toolchains&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;For more, cross-compilation configuration documents, see: &lt;a href=&quot;https://xmake.io/#/guide/configuration?id=common-cross-compilation-configuration&quot;&gt;Configure cross-compilation&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Note: Currently only arm/arm64 cross-compilation architecture is supported, and more platform architectures will be supported in the future.&lt;/p&gt;
+
+&lt;h5 id=&quot;build-arm-driver-module&quot;&gt;Build Arm driver module&lt;/h5&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f -p cross -a arm --sdk=/mnt/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabihf -c
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt;
+&lt;/span&gt;[20%]: ccache compiling.release src/add.c
+[20%]: ccache compiling.release src/hello.c
+[60%]: linking.release build/cross/arm/release/hello.ko
+[100%]: build ok!
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h5 id=&quot;build-arm64-driver-module&quot;&gt;Build Arm64 driver module&lt;/h5&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f -p cross -a arm64 --sdk=/mnt/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu -c
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt;
+&lt;/span&gt;[20%]: ccache compiling.release src/add.c
+[20%]: ccache compiling.release src/hello.c
+[60%]: linking.release build/cross/arm64/release/hello.ko
+[100%]: build ok!
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;group-batch-build-and-run-support&quot;&gt;Group batch build and run support&lt;/h3&gt;
+
+&lt;p&gt;In the early days, we have supported the setting of target grouping through &lt;code class=&quot;highlighter-rouge&quot;&gt;set_group&lt;/code&gt; to realize the management and display of the source file grouping of the vs/vsxmake project under VS.&lt;/p&gt;
+
+&lt;p&gt;However, this grouping is limited to this feature and is not used in other places. In the new version, we continue to improve and use the grouping feature to achieve designated construction of a batch of target programs and batch operation of a batch of target programs.&lt;/p&gt;
+
+&lt;p&gt;What is this usually useful for, for example, it can be used to provide functions such as &lt;code class=&quot;highlighter-rouge&quot;&gt;Run all tests&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;Run all benchmarks&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h4 id=&quot;compile-and-specify-a-batch-of-target-programs&quot;&gt;Compile and specify a batch of target programs&lt;/h4&gt;
+
+&lt;p&gt;We can use &lt;code class=&quot;highlighter-rouge&quot;&gt;set_group()&lt;/code&gt; to mark a given target as &lt;code class=&quot;highlighter-rouge&quot;&gt;test/benchmark/...&lt;/code&gt; and use &lt;code class=&quot;highlighter-rouge&quot;&gt;set_default(false)&lt;/code&gt; to disable to build it by default.&lt;/p&gt;
+
+&lt;p&gt;In this way, Xmake will not build them by default, but we can specify to build a batch of target programs through the &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake -g xxx&lt;/code&gt; command.&lt;/p&gt;
+
+&lt;p&gt;For example, we can use this feature to build all tests.&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_default&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_group&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_default&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_group&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -g test
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; --group=test
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;run-a-specified-batch-of-target-programs&quot;&gt;Run a specified batch of target programs&lt;/h4&gt;
+
+&lt;p&gt;We can also specify to run all test programs with the &lt;code class=&quot;highlighter-rouge&quot;&gt;test&lt;/code&gt; group by setting the group.&lt;/p&gt;
+
+&lt;p&gt;This is usually very useful. Before that, if we want to implement the &lt;code class=&quot;highlighter-rouge&quot;&gt;Run all tests&lt;/code&gt; function, we can only call &lt;code class=&quot;highlighter-rouge&quot;&gt;os.exec&lt;/code&gt; by defining a &lt;code class=&quot;highlighter-rouge&quot;&gt;task(&quot;tests&quot;)&lt;/code&gt; to execute the test targets one by one. The configuration is cumbersome. The requirements for users are relatively high.&lt;/p&gt;
+
+&lt;p&gt;And now, we only need to mark the test target programs that need to be executed as &lt;code class=&quot;highlighter-rouge&quot;&gt;set_group(&quot;test&quot;)&lt;/code&gt;, and then run them in batches.&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; run -g test
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; run --group=test
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;support-group-pattern-matching&quot;&gt;Support group pattern matching&lt;/h4&gt;
+
+&lt;p&gt;In addition, we can also support grouped pattern matching, which is very flexible:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ xmake build -g test_*
+$ xmake run -g test/foo_*
+$ xmake build -g bench*
+$ xmake run -g bench*
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;For more information: &lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1913&quot;&gt;#1913&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;improve-the-search-and-integration-of-cmake-package-sources&quot;&gt;Improve the search and integration of CMake package sources&lt;/h3&gt;
+
+&lt;p&gt;In the previous version, we provided &lt;code class=&quot;highlighter-rouge&quot;&gt;find_package(&quot;cmake::xxx&quot;)&lt;/code&gt; to find packages inside cmake, but this method is still very cumbersome for users to integrate and use.&lt;/p&gt;
+
+&lt;p&gt;Therefore, in the new version, we further improve it, through &lt;code class=&quot;highlighter-rouge&quot;&gt;add_requires&lt;/code&gt; to achieve a unified and fast cmake package integration.&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake::ZLIB&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alias&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;system&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;We specify &lt;code class=&quot;highlighter-rouge&quot;&gt;system = true&lt;/code&gt; to tell xmake to force cmake to find the package from the system. If it cannot be found, the installation logic will not be followed, because cmake does not provide the installation function of package managers such as vcpkg/conan.
+Only the package search feature is provided.&lt;/p&gt;
+
+&lt;h4 id=&quot;specify-version&quot;&gt;Specify version&lt;/h4&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake::OpenCV 4.1.1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;system&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;specified-components&quot;&gt;Specified components&lt;/h4&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake::Boost&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;system&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;components&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;regex&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;system&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}}))&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;default-switch&quot;&gt;Default switch&lt;/h4&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake::Boost&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;system&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;components&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;regex&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;system&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
+                                             &lt;span class=&quot;n&quot;&gt;presets&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Boost_USE_STATIC_LIB&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}}})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;It is equivalent to predefine some configurations in CMakeLists.txt before calling find_package internally to find the package to control the find_package search strategy and status.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;set(Boost_USE_STATIC_LIB ON) - will be used in FindBoost.cmake
+find_package(Boost REQUIRED COMPONENTS regex system)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;set-environment-variables&quot;&gt;Set environment variables&lt;/h4&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake::OpenCV&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;system&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;envs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CMAKE_PREFIX_PATH&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;xxx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}}})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;specify-custom-findfoocmake-module-script-directory&quot;&gt;Specify custom FindFoo.cmake module script directory&lt;/h4&gt;
+
+&lt;p&gt;mydir/cmake_modules/FindFoo.cmake&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake::Foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;system&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;moduledirs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mydir/cmake_modules&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Related issues: &lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1632&quot;&gt;#1632&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;xmake-idea-plugin-update&quot;&gt;xmake-idea plugin update&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake-idea&quot;&gt;xmake-idea&lt;/a&gt; Due to personal time and energy, this plug-in has not spent time to maintain and update, and IDEA plug-ins have a lot of compatibility issues , As long as it is not used for a period of time, it cannot be used normally on the new Idea/Clion.&lt;/p&gt;
+
+&lt;p&gt;Recently, I took some time to fix some compatibility issues, such as the problem of freezing when creating a project on Windows, and problems such as the inability to install the new version of Clion.&lt;/p&gt;
+
+&lt;p&gt;At present, the latest version should be able to be used normally on all platforms.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://tboox.org/static/img/xmake/xmake-idea-output_panel.png&quot; width=&quot;50%&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;some-other-things-worth-mentioning&quot;&gt;Some other things worth mentioning&lt;/h2&gt;
+
+&lt;h3 id=&quot;year-end-summary&quot;&gt;Year-end summary&lt;/h3&gt;
+
+&lt;p&gt;This is the last version I released in 2021. After a year, Xmake has gradually grown into a more powerful build tool.&lt;/p&gt;
+
+&lt;p&gt;By the end of this year, Xmake had a total of 4.2k stars, processed 1.9k issues/pr, and had more than 8k multiple commits.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://tboox.org/static/img/xmake/xmake-star-history.png&quot; width=&quot;50%&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The official package management repository &lt;a href=&quot;https://github.com/xmake-io/xmake-repo&quot;&gt;xmake-repo&lt;/a&gt; has also included nearly 500+ commonly used dependency packages.&lt;/p&gt;
+
+&lt;h3 id=&quot;thanks&quot;&gt;Thanks&lt;/h3&gt;
+
+&lt;p&gt;Thank you contributors for your contributions to the xmake-repo repository and Xmake. For the complete list of contributors, see: &lt;a href=&quot;https://github.com/xmake-io/xmake/graphs/contributors&quot;&gt;Contributors&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Thank you very much for your support for Xmake’s sponsorship, so that I can have enough motivation to maintain it. For the complete list of donations, please see: &lt;a href=&quot;https://xmake.io/#/about/sponsor&quot;&gt;Sponsors&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;changelog&quot;&gt;Changelog&lt;/h2&gt;
+
+&lt;h3 id=&quot;new-features&quot;&gt;New features&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1902&quot;&gt;#1902&lt;/a&gt;: Support to build linux kernel driver modules&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1913&quot;&gt;#1913&lt;/a&gt;: Build and run targets with given group pattern&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;change&quot;&gt;Change&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1872&quot;&gt;#1872&lt;/a&gt;: Escape characters for set_configvar&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1888&quot;&gt;#1888&lt;/a&gt;: Improve windows installer to avoid remove other files&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1895&quot;&gt;#1895&lt;/a&gt;: Improve &lt;code class=&quot;highlighter-rouge&quot;&gt;plugin.vsxmake.autoupdate&lt;/code&gt; rule&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1893&quot;&gt;#1893&lt;/a&gt;: Improve to detect icc and ifort toolchains&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/1905&quot;&gt;#1905&lt;/a&gt;: Add support of external headers without experimental for msvc&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/1904&quot;&gt;#1904&lt;/a&gt;: Improve vs201x generator&lt;/li&gt;
+  &lt;li&gt;Add &lt;code class=&quot;highlighter-rouge&quot;&gt;XMAKE_THEME&lt;/code&gt; envirnoment variable to switch theme&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1907&quot;&gt;#1907&lt;/a&gt;: Add &lt;code class=&quot;highlighter-rouge&quot;&gt;-f/--force&lt;/code&gt; to force to create project in a non-empty directory&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/1917&quot;&gt;#1917&lt;/a&gt;: Improve to find_package and configurations&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;bugs-fixed&quot;&gt;Bugs fixed&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1885&quot;&gt;#1885&lt;/a&gt;: Fix package:fetch_linkdeps&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1903&quot;&gt;#1903&lt;/a&gt;: Fix package link order&lt;/li&gt;
+&lt;/ul&gt;
+
+</description>
+        <pubDate>Fri, 17 Dec 2021 00:00:00 +0800</pubDate>
+        <link>https://tboox.org/2021/12/17/xmake-update-v2.6.2/</link>
+        <guid isPermaLink="true">https://tboox.org/2021/12/17/xmake-update-v2.6.2/</guid>
+        
+        <category>xmake</category>
+        
+        <category>lua</category>
+        
+        <category>C/C++</category>
+        
+        <category>Linux</category>
+        
+        <category>Driver</category>
+        
+        
+        <category>xmake</category>
+        
+      </item>
+    
+      <item>
+        <title>xmake v2.6.2 发布，新增 Linux 内核驱动模块构建支持</title>
+        <description>&lt;p&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;Xmake&lt;/a&gt; 是一个基于 Lua 的轻量级跨平台构建工具。&lt;/p&gt;
+
+&lt;p&gt;它非常的轻量，没有任何依赖，因为它内置了 Lua 运行时。&lt;/p&gt;
+
+&lt;p&gt;它使用 xmake.lua 维护项目构建，相比 makefile/CMakeLists.txt，配置语法更加简洁直观，对新手非常友好，短时间内就能快速入门，能够让用户把更多的精力集中在实际的项目开发上。&lt;/p&gt;
+
+&lt;p&gt;我们能够使用它像 Make/Ninja 那样可以直接编译项目，也可以像 CMake/Meson 那样生成工程文件，另外它还有内置的包管理系统来帮助用户解决 C/C++ 依赖库的集成使用问题。&lt;/p&gt;
+
+&lt;p&gt;目前，Xmake 主要用于 C/C++ 项目的构建，但是同时也支持其他 native 语言的构建，可以实现跟 C/C++ 进行混合编译，同时编译速度也是非常的快，可以跟 Ninja 持平。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Xmake = Build backend + Project Generator + Package Manager
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;项目源码&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/about/course&quot;&gt;入门课程&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://tboox.org/static/img/xmake/xmake-cmake.jpeg&quot; width=&quot;30%&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;新版本改动&quot;&gt;新版本改动&lt;/h2&gt;
+
+&lt;p&gt;这个版本主要新增两大特性：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Linux 内核驱动模块的构建支持&lt;/li&gt;
+  &lt;li&gt;分组构建和批量运行支持，可用于实现 &lt;code class=&quot;highlighter-rouge&quot;&gt;Run all tests&lt;/code&gt; 功能&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;剩下的主要是一些零散的功能改进和 Bugs 修复，可以看下文末的更新内容明细，一些比较大的改动，下面也会逐一说明。&lt;/p&gt;
+
+&lt;h2 id=&quot;新特性介绍&quot;&gt;新特性介绍&lt;/h2&gt;
+
+&lt;h3 id=&quot;构建-linux-内核驱动模块&quot;&gt;构建 Linux 内核驱动模块&lt;/h3&gt;
+
+&lt;p&gt;Xmake 也许是首个提供 Linux 内核驱动开发 内置支持的第三方构建工具了。&lt;/p&gt;
+
+&lt;p&gt;尽管网上也有介绍 CMake 如何去配置构建 linux 驱动，但是大都是通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;add_custom_command&lt;/code&gt; 方式自定义各种命令，然后执行 &lt;code class=&quot;highlighter-rouge&quot;&gt;echo&lt;/code&gt; 去自己拼接生成 Linux 的 Makefile 文件。&lt;/p&gt;
+
+&lt;p&gt;也就是说，其实还是依赖 Linux 内核源码的 Makefile 来执行的构建，因此如果想自己追加一些编译配置和宏定义都会非常麻烦。&lt;/p&gt;
+
+&lt;p&gt;而使用 Xmake，我们可以提供更加灵活的可配置性，更加简单的配置文件，以及一键编译、自动依赖拉取集成、Linux kernel 源码自动下载集成，内核驱动交叉编译等特性。&lt;/p&gt;
+
+&lt;h4 id=&quot;hello-world&quot;&gt;Hello World&lt;/h4&gt;
+
+&lt;p&gt;我们通过一个最简单的字符驱动来直观感受下。&lt;/p&gt;
+
+&lt;p&gt;首先，我们准备一个 Hello World 驱动代码，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;linux-headers&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;driver_modules&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}})&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;hello&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;platform.linux.driver&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;linux-headers&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_license&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;GPL-2.0&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;它的配置非常简单，只需要配置上支持模块的 linux-headers 包，然后应用 &lt;code class=&quot;highlighter-rouge&quot;&gt;platform.linux.driver&lt;/code&gt; 构建规则就行了。&lt;/p&gt;
+
+&lt;p&gt;然后直接执行 xmake 命令，一键编译，生成内核驱动模块 hello.ko。&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt;
+&lt;/span&gt;[ 20%]: ccache compiling.release src/add.c
+[ 20%]: ccache compiling.release src/hello.c
+[ 60%]: linking.release build/linux/x86_64/release/hello.ko
+[100%]: build ok!
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;简单么，也许你会说，这跟直接用 Makefile 配置，然后 make 编译也没啥太大区别么。&lt;/p&gt;
+
+&lt;p&gt;那么重点来了，Xmake 是会自动帮你拉取指定版本依赖内核源码，make 不会，CMake 也不会，用户必须通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;sudo apt install linux-headers-generic&lt;/code&gt; 自己安装它们。&lt;/p&gt;
+
+&lt;p&gt;但是 Xmake 不需要，上面的一键编译，我其实省略了部分输出，实际上是这样的。&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt;
+&lt;/span&gt;note: install or modify (m) these packages (pass -y to skip confirm)?
+in xmake-repo:
+  -&amp;gt; m4 1.4.19 [from:linux-headers,bison,flex,elfutils]
+  -&amp;gt; flex 2.6.4 [from:bc,linux-headers]
+  -&amp;gt; bison 3.8.2 [from:bc,linux-headers]
+  -&amp;gt; ed 1.17 [from:bc,linux-headers]
+  -&amp;gt; texinfo 6.7 [from:bc,linux-headers]
+  -&amp;gt; bc 1.07.1 [from:linux-headers]
+  -&amp;gt; pkg-config 0.29.2 [from:linux-headers]
+  -&amp;gt; openssl 1.1.1l [private, from:linux-headers]
+  -&amp;gt; elfutils 0.183 [private, from:linux-headers]
+  -&amp;gt; linux-headers 5.10.46 [driver_modules:y]
+please input: y (y/n/m)
+
+  =&amp;gt; download https://github.com/xmake-mirror/ed/archive/refs/tags/1.17.tar.gz .. ok
+  =&amp;gt; install ed 1.17 .. ok
+  =&amp;gt; download https://ftp.gnu.org/gnu/m4/m4-1.4.19.tar.xz .. ok
+  =&amp;gt; download https://ftp.gnu.org/gnu/texinfo/texinfo-6.7.tar.xz .. ok
+  =&amp;gt; download https://pkgconfig.freedesktop.org/releases/pkg-config-0.29.2.tar.gz .. ok
+  =&amp;gt; download https://github.com/openssl/openssl/archive/OpenSSL_1_1_1l.zip .. ok
+  =&amp;gt; install m4 1.4.19 .. ok
+  =&amp;gt; download https://github.com/westes/flex/releases/download/v2.6.4/flex-2.6.4.tar.gz .. ok
+  =&amp;gt; install texinfo 6.7 .. ok
+  =&amp;gt; install pkg-config 0.29.2 .. ok
+  =&amp;gt; download http://ftp.gnu.org/gnu/bison/bison-3.8.2.tar.gz .. ok
+  =&amp;gt; install flex 2.6.4 .. ok
+  =&amp;gt; download https://sourceware.org/elfutils/ftp/0.183/elfutils-0.183.tar.bz2 .. ok
+  =&amp;gt; install elfutils 0.183 .. ok
+  =&amp;gt; install bison 3.8.2 .. ok
+  =&amp;gt; download https://ftp.gnu.org/gnu/bc/bc-1.07.1.tar.gz .. ok
+  =&amp;gt; install bc 1.07.1 .. ok
+  =&amp;gt; install openssl 1.1.1l .. ok
+  =&amp;gt; download https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.10.46.tar.xz .. ok
+  =&amp;gt; install linux-headers 5.10.46 .. ok
+[ 16%]: ccache compiling.release src/add.c
+[ 16%]: ccache compiling.release src/hello.c
+[ 16%]: ccache compiling.release src/hello.mod.c
+[ 66%]: linking.release build/linux/x86_64/release/hello.ko
+[100%]: build ok!
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;首次编译，Xmake 会拉取所有依赖，如果用户自己已经通过 apt 等第三方包管理安装了它们，Xmake 也会优先用系统已经安装的版本，省去下载安装过程。&lt;/p&gt;
+
+&lt;p&gt;也就是说，不管在哪个环境，用户都不需要关心如何去搭建内核驱动开发环境，仅仅只需要一个 &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake&lt;/code&gt; 命令，就能搞定一切。&lt;/p&gt;
+
+&lt;p&gt;而这些依赖拉取，都是通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;add_requires(&quot;linux-headers&quot;, {configs = {driver_modules = true}})&lt;/code&gt; 配置包来实现的。&lt;/p&gt;
+
+&lt;p&gt;另外，我们也可以看完整构建命令参数。&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -v
+&lt;/span&gt;[ 20%]: ccache compiling.release src/add.c
+/usr/bin/ccache /usr/bin/gcc -c -m64 -O2 -std=gnu89 -I/usr/src/linux-headers-5.11.0-41-generic/arch/x86/include -I/usr/src/linux-headers-5.11.0-41-generic/arch/x86/include/generated -I/usr/src/linux-headers-5.11.0-41-generic/include -I/usr/src/linux-headers-5.11.0-41-generic/arch/x86/include/uapi -I/usr/src/linux-headers-5.11.0-41-generic/arch/x86/include/generated/uapi -I/usr/src/linux-headers-5.11.0-41-generic/include/uapi -I/usr/src/linux-headers-5.11.0-41-generic/include/generated/uapi -D__KERNEL__ -DMODULE -DKBUILD_MODNAME=\&quot;hello\&quot; -DCONFIG_X86_X32_ABI -isystem /usr/lib/gcc/x86_64-linux-gnu/10/include -include /usr/src/linux-headers-5.11.0-41-generic/include/linux/kconfig.h -include /usr/src/linux-headers-5.11.0-41-generic/include/linux/compiler_types.h -nostdinc -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -mno-80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -mtune=generic -mno-red-zone -mcmodel=kernel -mindirect-branch=thunk-extern -mindirect-branch-register -mrecord-mcount -fmacro-prefix-map=./= -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE -fcf-protection=none -falign-jumps=1 -falign-loops=1 -fno-asynchronous-unwind-tables -fno-jump-tables -fno-delete-null-pointer-checks -fno-allow-store-data-races -fno-reorder-blocks -fno-ipa-cp-clone -fno-partial-inlining -fstack-protector-strong -fno-inline-functions-called-once -falign-functions=32 -fno-strict-overflow -fno-stack-check -fconserve-stack -DKBUILD_BASENAME=\&quot;add\&quot; -o build/.objs/hello/linux/x86_64/release/src/add.c.o src/add.c
+[ 20%]: ccache compiling.release src/hello.c
+/usr/bin/ccache /usr/bin/gcc -c -m64 -O2 -std=gnu89 -I/usr/src/linux-headers-5.11.0-41-generic/arch/x86/include -I/usr/src/linux-headers-5.11.0-41-generic/arch/x86/include/generated -I/usr/src/linux-headers-5.11.0-41-generic/include -I/usr/src/linux-headers-5.11.0-41-generic/arch/x86/include/uapi -I/usr/src/linux-headers-5.11.0-41-generic/arch/x86/include/generated/uapi -I/usr/src/linux-headers-5.11.0-41-generic/include/uapi -I/usr/src/linux-headers-5.11.0-41-generic/include/generated/uapi -D__KERNEL__ -DMODULE -DKBUILD_MODNAME=\&quot;hello\&quot; -DCONFIG_X86_X32_ABI -isystem /usr/lib/gcc/x86_64-linux-gnu/10/include -include /usr/src/linux-headers-5.11.0-41-generic/include/linux/kconfig.h -include /usr/src/linux-headers-5.11.0-41-generic/include/linux/compiler_types.h -nostdinc -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -mno-80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -mtune=generic -mno-red-zone -mcmodel=kernel -mindirect-branch=thunk-extern -mindirect-branch-register -mrecord-mcount -fmacro-prefix-map=./= -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE -fcf-protection=none -falign-jumps=1 -falign-loops=1 -fno-asynchronous-unwind-tables -fno-jump-tables -fno-delete-null-pointer-checks -fno-allow-store-data-races -fno-reorder-blocks -fno-ipa-cp-clone -fno-partial-inlining -fstack-protector-strong -fno-inline-functions-called-once -falign-functions=32 -fno-strict-overflow -fno-stack-check -fconserve-stack -DKBUILD_BASENAME=\&quot;hello\&quot; -o build/.objs/hello/linux/x86_64/release/src/hello.c.o src/hello.c
+[ 60%]: linking.release build/linux/x86_64/release/hello.ko
+/usr/bin/ld -m elf_x86_64 -r -o build/.objs/hello/linux/x86_64/release/build/linux/x86_64/release/hello.ko.o build/.objs/hello/linux/x86_64/release/src/add.c.o build/.objs/hello/linux/x86_64/release/src/hello.c.o
+/usr/src/linux-headers-5.11.0-41-generic/scripts/mod/modpost -m -a -o build/.objs/hello/linux/x86_64/release/build/linux/x86_64/release/Module.symvers -e -N -T -
+WARNING: modpost: Symbol info of vmlinux is missing. Unresolved symbol check will be entirely skipped.
+/usr/bin/ccache /usr/bin/gcc -c -m64 -O2 -std=gnu89 -I/usr/src/linux-headers-5.11.0-41-generic/arch/x86/include -I/usr/src/linux-headers-5.11.0-41-generic/arch/x86/include/generated -I/usr/src/linux-headers-5.11.0-41-generic/include -I/usr/src/linux-headers-5.11.0-41-generic/arch/x86/include/uapi -I/usr/src/linux-headers-5.11.0-41-generic/arch/x86/include/generated/uapi -I/usr/src/linux-headers-5.11.0-41-generic/include/uapi -I/usr/src/linux-headers-5.11.0-41-generic/include/generated/uapi -D__KERNEL__ -DMODULE -DKBUILD_MODNAME=\&quot;hello\&quot; -DCONFIG_X86_X32_ABI -isystem /usr/lib/gcc/x86_64-linux-gnu/10/include -include /usr/src/linux-headers-5.11.0-41-generic/include/linux/kconfig.h -include /usr/src/linux-headers-5.11.0-41-generic/include/linux/compiler_types.h -nostdinc -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -mno-80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -mtune=generic -mno-red-zone -mcmodel=kernel -mindirect-branch=thunk-extern -mindirect-branch-register -mrecord-mcount -fmacro-prefix-map=./= -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE -fcf-protection=none -falign-jumps=1 -falign-loops=1 -fno-asynchronous-unwind-tables -fno-jump-tables -fno-delete-null-pointer-checks -fno-allow-store-data-races -fno-reorder-blocks -fno-ipa-cp-clone -fno-partial-inlining -fstack-protector-strong -fno-inline-functions-called-once -falign-functions=32 -fno-strict-overflow -fno-stack-check -fconserve-stack -o build/.objs/hello/linux/x86_64/release/build/linux/x86_64/release/hello.ko.mod.o build/.objs/hello/linux/x86_64/release/build/linux/x86_64/release/hello.ko.mod.c
+/usr/bin/ld -m elf_x86_64 -r --build-id=sha1 -T /usr/src/linux-headers-5.11.0-41-generic/scripts/module.lds -o build/linux/x86_64/release/hello.ko build/.objs/hello/linux/x86_64/release/build/linux/x86_64/release/hello.ko.o build/.objs/hello/linux/x86_64/release/build/linux/x86_64/release/hello.ko.mod.o
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;使用特定版本的内核源码&quot;&gt;使用特定版本的内核源码&lt;/h4&gt;
+
+&lt;p&gt;我们也可以指定版本语义规则，选取自己需要的内核源码作为构建源。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;linux-headers 5.9.x&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;driver_modules&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;交叉编译&quot;&gt;交叉编译&lt;/h4&gt;
+
+&lt;p&gt;我们也支持内核驱动模块的交叉编译，比如在 Linux x86_64 上使用交叉编译工具链来构建 Linux Arm/Arm64 的驱动模块。&lt;/p&gt;
+
+&lt;p&gt;我们只需要准备好自己的交叉编译工具链，通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;--sdk=&lt;/code&gt; 指定它的根目录，然后配置切换到 &lt;code class=&quot;highlighter-rouge&quot;&gt;-p cross&lt;/code&gt; 平台， 最后指定需要构建的架构 arm/arm64 即可。&lt;/p&gt;
+
+&lt;p&gt;同样的，我们不用关心如何准备 linux-headers 去支持交叉编译，Xmake 的依赖包管理会帮你准本好一切，拉取构建支持对应架构的内核源码。&lt;/p&gt;
+
+&lt;p&gt;这里用到的交叉工具链，可以从这里下载: &lt;a href=&quot;https://releases.linaro.org/components/toolchain/binaries/latest-7/aarch64-linux-gnu/&quot;&gt;Download toolchains&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;更多，交叉编译配置文档，见：&lt;a href=&quot;https://xmake.io/#/zh-cn/guide/configuration?id=common-cross-compilation-configuration&quot;&gt;配置交叉编译&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;注：目前仅仅支持 arm/arm64 交叉编译架构，后续会支持更多的平台架构。&lt;/p&gt;
+
+&lt;h5 id=&quot;构建-arm-驱动模块&quot;&gt;构建 Arm 驱动模块&lt;/h5&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f -p cross -a arm --sdk=/mnt/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabihf -c
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt;
+&lt;/span&gt;[ 20%]: ccache compiling.release src/add.c
+[ 20%]: ccache compiling.release src/hello.c
+[ 60%]: linking.release build/cross/arm/release/hello.ko
+[100%]: build ok!
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h5 id=&quot;构建-arm64-驱动模块&quot;&gt;构建 Arm64 驱动模块&lt;/h5&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; f -p cross -a arm64 --sdk=/mnt/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu -c
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt;
+&lt;/span&gt;[ 20%]: ccache compiling.release src/add.c
+[ 20%]: ccache compiling.release src/hello.c
+[ 60%]: linking.release build/cross/arm64/release/hello.ko
+[100%]: build ok!
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;分组批量构建和运行支持&quot;&gt;分组批量构建和运行支持&lt;/h3&gt;
+
+&lt;p&gt;早期，我们已经支持了通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;set_group&lt;/code&gt; 设置目标分组，实现 vs/vsxmake 工程在 vs 下的源文件分组管理展示。&lt;/p&gt;
+
+&lt;p&gt;但是，这个分组仅限于这个特性，没有用于其他地方，而新版本中，我们继续改进利用分组特性，实现指定构建一批目标程序，以及批量运行一批目标程序。&lt;/p&gt;
+
+&lt;p&gt;这通常有什么用呢，比如可以用来提供 &lt;code class=&quot;highlighter-rouge&quot;&gt;Run all tests&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;Run all benchmarks&lt;/code&gt; 等功能。&lt;/p&gt;
+
+&lt;h4 id=&quot;编译指定一批目标程序&quot;&gt;编译指定一批目标程序&lt;/h4&gt;
+
+&lt;p&gt;我们可以使用 &lt;code class=&quot;highlighter-rouge&quot;&gt;set_group()&lt;/code&gt; 将给定的目标标记为 &lt;code class=&quot;highlighter-rouge&quot;&gt;test/benchmark/...&lt;/code&gt; 并使用 &lt;code class=&quot;highlighter-rouge&quot;&gt;set_default(false)&lt;/code&gt; 禁用来默认构建它。&lt;/p&gt;
+
+&lt;p&gt;这样，默认情况下 Xmake 不会去构建它们，但是我们可以通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake -g xxx&lt;/code&gt; 命令就能指定构建一批目标程序了。&lt;/p&gt;
+
+&lt;p&gt;比如，我们可以使用此功能来构建所有测试。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_default&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_group&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_default&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_group&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -g test
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; --group=test
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;运行指定一批目标程序&quot;&gt;运行指定一批目标程序&lt;/h4&gt;
+
+&lt;p&gt;我们也可以通过设置分组，来指定运行所有带有 &lt;code class=&quot;highlighter-rouge&quot;&gt;test&lt;/code&gt; 分组的测试程序。&lt;/p&gt;
+
+&lt;p&gt;这通常非常有用，在此之前想要实现 &lt;code class=&quot;highlighter-rouge&quot;&gt;Run all tests&lt;/code&gt; 功能，我们只能通过定义一个 &lt;code class=&quot;highlighter-rouge&quot;&gt;task(&quot;tests&quot;)&lt;/code&gt; 在里面调用 &lt;code class=&quot;highlighter-rouge&quot;&gt;os.exec&lt;/code&gt; 去挨个执行测试目标，配置比较繁琐，对用户要求比较高。&lt;/p&gt;
+
+&lt;p&gt;而现在，我们只需要对需要执行的测试目标程序标记为 &lt;code class=&quot;highlighter-rouge&quot;&gt;set_group(&quot;test&quot;)&lt;/code&gt;，然后就可以批量运行它们了。&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; run -g test
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; run --group=test
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;支持分组模式匹配&quot;&gt;支持分组模式匹配&lt;/h4&gt;
+
+&lt;p&gt;另外，我们还可以支持分组的模式匹配，非常的灵活：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ xmake build -g test_*
+$ xmake run -g test/foo_*
+$ xmake build -g bench*
+$ xmake run -g bench*
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;更多信息见：&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1913&quot;&gt;#1913&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;改进-cmake-包源的查找和集成&quot;&gt;改进 CMake 包源的查找和集成&lt;/h3&gt;
+
+&lt;p&gt;之前的版本中，我们提供了 &lt;code class=&quot;highlighter-rouge&quot;&gt;find_package(&quot;cmake::xxx&quot;)&lt;/code&gt; 来查找 cmake 内部的包，但是这种方式对于用户集成使用还是很繁琐。&lt;/p&gt;
+
+&lt;p&gt;因此，新版本中，我们进一步改进它，通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;add_requires&lt;/code&gt; 来实现统一快速的 cmake 包集成。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake::ZLIB&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alias&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;system&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;我们指定 &lt;code class=&quot;highlighter-rouge&quot;&gt;system = true&lt;/code&gt; 告诉 xmake 强制从系统中调用 cmake 查找包，如果找不到，不再走安装逻辑，因为 cmake 没有提供类似 vcpkg/conan 等包管理器的安装功能，
+只提供了包查找特性。&lt;/p&gt;
+
+&lt;h4 id=&quot;指定版本&quot;&gt;指定版本&lt;/h4&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake::OpenCV 4.1.1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;system&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;指定组件&quot;&gt;指定组件&lt;/h4&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake::Boost&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;system&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;components&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;regex&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;system&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}})}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;预设开关&quot;&gt;预设开关&lt;/h4&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake::Boost&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;system&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;components&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;regex&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;system&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
+                                             &lt;span class=&quot;n&quot;&gt;presets&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Boost_USE_STATIC_LIB&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}}})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;相当于内部调用 find_package 查找包之前，在 CMakeLists.txt 中预定义一些配置，控制 find_package 的查找策略和状态。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;set(Boost_USE_STATIC_LIB ON) -- will be used in FindBoost.cmake
+find_package(Boost REQUIRED COMPONENTS regex system)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;设置环境变量&quot;&gt;设置环境变量&lt;/h4&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake::OpenCV&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;system&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;envs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CMAKE_PREFIX_PATH&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;xxx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}}})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;指定自定义-findfoocmake-模块脚本目录&quot;&gt;指定自定义 FindFoo.cmake 模块脚本目录&lt;/h4&gt;
+
+&lt;p&gt;mydir/cmake_modules/FindFoo.cmake&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake::Foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;system&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;moduledirs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mydir/cmake_modules&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;相关 issues: &lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1632&quot;&gt;#1632&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;xmake-idea-插件更新&quot;&gt;xmake-idea 插件更新&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake-idea&quot;&gt;xmake-idea&lt;/a&gt; 这个插件由于个人时间和精力的关系，一直没有花时间去维护更新，而 IDEA 插件的兼容性问题有非常多，只要一段时间不用，就无法在新的 Idea/Clion 上正常使用。&lt;/p&gt;
+
+&lt;p&gt;最近，我花了点时间，修复了一些兼容性问题，比如 Windows 上创建工程会卡死的问题，新版本 Clion 无法安装等问题。&lt;/p&gt;
+
+&lt;p&gt;目前，最新版本应该可以在全平台正常使用了。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://tboox.org/static/img/xmake/xmake-idea-output_panel.png&quot; width=&quot;50%&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;另外一些值得提起的事情&quot;&gt;另外一些值得提起的事情&lt;/h2&gt;
+
+&lt;h3 id=&quot;年终总结&quot;&gt;年终总结&lt;/h3&gt;
+
+&lt;p&gt;这是 2021 年我发布的最后一个版本，这一年下来，经历了很多，Xmake 也在逐渐成长为一个更加强大的构建工具。&lt;/p&gt;
+
+&lt;p&gt;到今年年底，Xmake 总共收获了 4.2k stars，处理了 1.9k 的 issues/pr，超过 8k 多次 commits。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://tboox.org/static/img/xmake/xmake-star-history.png&quot; width=&quot;50%&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;而官方的包管理仓库 &lt;a href=&quot;https://github.com/xmake-io/xmake-repo&quot;&gt;xmake-repo&lt;/a&gt; 也已经收录了近 500+ 的常用依赖包。&lt;/p&gt;
+
+&lt;h3 id=&quot;感谢&quot;&gt;感谢&lt;/h3&gt;
+
+&lt;p&gt;感谢各位贡献者对 xmake-repo 仓库 和 Xmake 的贡献，完整贡献者列表见：&lt;a href=&quot;https://github.com/xmake-io/xmake/graphs/contributors&quot;&gt;Contributors&lt;/a&gt;。&lt;/p&gt;
+
+&lt;p&gt;也非常感谢大家对 Xmake 的赞助的支持，使得我能够有足够的动力去持续维护，完整捐助列表见：&lt;a href=&quot;https://xmake.io/#/zh-cn/about/sponsor&quot;&gt;Sponsors&lt;/a&gt;。&lt;/p&gt;
+
+&lt;h2 id=&quot;更新内容&quot;&gt;更新内容&lt;/h2&gt;
+
+&lt;h3 id=&quot;新特性&quot;&gt;新特性&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1902&quot;&gt;#1902&lt;/a&gt;: 支持构建 linux 内核驱动模块&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1913&quot;&gt;#1913&lt;/a&gt;: 通过 group 模式匹配，指定构建和运行一批目标程序&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;改进&quot;&gt;改进&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1872&quot;&gt;#1872&lt;/a&gt;: 支持转义 set_configvar 中字符串值&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1888&quot;&gt;#1888&lt;/a&gt;: 改进 windows 安装器，避免错误删除其他安装目录下的文件&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1895&quot;&gt;#1895&lt;/a&gt;: 改进 &lt;code class=&quot;highlighter-rouge&quot;&gt;plugin.vsxmake.autoupdate&lt;/code&gt; 规则&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1893&quot;&gt;#1893&lt;/a&gt;: 改进探测 icc 和 ifort 工具链&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/1905&quot;&gt;#1905&lt;/a&gt;: 改进 msvc 对 external 头文件搜索探测支持&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/1904&quot;&gt;#1904&lt;/a&gt;: 改进 vs201x 工程生成器&lt;/li&gt;
+  &lt;li&gt;添加 &lt;code class=&quot;highlighter-rouge&quot;&gt;XMAKE_THEME&lt;/code&gt; 环境变量去切换主题配置&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1907&quot;&gt;#1907&lt;/a&gt;: 添加 &lt;code class=&quot;highlighter-rouge&quot;&gt;-f/--force&lt;/code&gt; 参数使得 &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake create&lt;/code&gt; 可以在费控目录被强制创建&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/1917&quot;&gt;#1917&lt;/a&gt;: 改进 find_package 和配置&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;bugs-修复&quot;&gt;Bugs 修复&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1885&quot;&gt;#1885&lt;/a&gt;: 修复 package:fetch_linkdeps 链接顺序问题&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1903&quot;&gt;#1903&lt;/a&gt;: 修复包链接顺序&lt;/li&gt;
+&lt;/ul&gt;
+
+</description>
+        <pubDate>Fri, 17 Dec 2021 00:00:00 +0800</pubDate>
+        <link>https://tboox.org/cn/2021/12/17/xmake-update-v2.6.2/</link>
+        <guid isPermaLink="true">https://tboox.org/cn/2021/12/17/xmake-update-v2.6.2/</guid>
+        
+        <category>xmake</category>
+        
+        <category>lua</category>
+        
+        <category>C/C++</category>
+        
+        <category>Linux</category>
+        
+        <category>Driver</category>
+        
+        
+        <category>xmake</category>
+        
+      </item>
     
       <item>
         <title>xmake v2.6.1 released, Switch to Lua5.4 runtime, Support Rust and C++ mixed compilation</title>
@@ -4116,345 +4890,6 @@ int main(int argc, char** argv)
         <category>package</category>
         
         <category>vala</category>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>xmake v2.5.6 released, Improve compatibility of pre-compiled binary package</title>
-        <description>&lt;p&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;xmake&lt;/a&gt; is a lightweight cross-platform build tool based on Lua. It uses xmake.lua to maintain project builds. Compared with makefile/CMakeLists.txt, the configuration syntax is more Concise and intuitive, it is very friendly to novices, and you can get started quickly in a short time, allowing users to focus more on actual project development.&lt;/p&gt;
-
-&lt;p&gt;This is a stability fix version, which mainly fixes and improves some compatibility issues related to pre-compiled binary packages. In addition, some useful interfaces have been added to set the default compilation platform, architecture and mode, as well as the allowed compilation platform, architecture list, and so on.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;Github&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://xmake.io/&quot;&gt;Document&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;new-feature-introduction&quot;&gt;New feature introduction&lt;/h2&gt;
-
-&lt;h3 id=&quot;fix-windows-precompiled-package-compatibility&quot;&gt;Fix windows precompiled package compatibility&lt;/h3&gt;
-
-&lt;p&gt;The previous version provided preliminary support for the installation of pre-compiled packages under Windows, but because the compatibility of the toolset version was not considered, if the user’s VS version is too low, link problems will occur when the package is integrated.&lt;/p&gt;
-
-&lt;p&gt;According to the official description of ms, the binary library of msvc is backward compatible with the version of toolset. &lt;a href=&quot;https://docs.microsoft.com/en-us/cpp/ porting/binary-compat-2015-2017?view=msvc-160&quot;&gt;https://docs.microsoft.com/en-us/cpp/porting/binary-compat-2015-2017?view=msvc-160&lt;/a&gt;&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;You can mix binaries built by different versions of the v140, v141, and v142 toolsets. However, you must link by using a toolset at least as recent as the most recent binary in your app. Here’s an example: you can link an app compiled using any 2017 toolset (v141, versions 15.0 through 15.9) to a static library compiled using, say, Visual Studio 2019 version 16.2 (v142), if they’re linked using a version 16.2 or later toolset. You can link a version 16.2 library to a version 16.4 app as long as you use a 16.4 or later toolset.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;In other words, the cloud uses the library compiled by v141, and the user’s msvc toolset can be compatible and supported as long as it is &amp;gt;=141.&lt;/p&gt;
-
-&lt;p&gt;Therefore, we have improved the pre-compilation logic of the cloud, and pre-compiled the two toolsets of vs2015/14.16 and vs2019/14.29 respectively, and then xmake will select the best compatible version library to download and integrate according to the user’s msvc version of toolset.&lt;/p&gt;
-
-&lt;h3 id=&quot;set_defaultplat&quot;&gt;set_defaultplat&lt;/h3&gt;
-
-&lt;h4 id=&quot;set-the-default-compilation-platform&quot;&gt;Set the default compilation platform&lt;/h4&gt;
-
-&lt;p&gt;Only supported by v2.5.6 and above, it is used to set the default compilation platform of the project. If it is not set, the default platform follows the current system platform, which is os.host().&lt;/p&gt;
-
-&lt;p&gt;For example, the default compilation platform on macOS is macosx, if the current project is an ios project, you can set the default compilation platform to iphoneos.&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;set_defaultplat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;iphoneos&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;It is equivalent to &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f -p iphoneos&lt;/code&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;set_defaultarch&quot;&gt;set_defaultarch&lt;/h3&gt;
-
-&lt;h4 id=&quot;set-the-default-compilation-architecture&quot;&gt;Set the default compilation architecture&lt;/h4&gt;
-
-&lt;p&gt;Only supported by v2.5.6 and above, it is used to set the default compilation architecture of the project. If it is not set, the default platform follows the current system architecture, which is os.arch().&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;set_defaultplat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;iphoneos&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;set_defaultarch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;arm64&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;It is equivalent to &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f -p iphoneos -a arm64&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;We can also set the default architecture under multiple platforms.&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;set_defaultarch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;iphoneos|arm64&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;windows|x64&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;The arm64 architecture is compiled by default on iphoneos, and the x64 architecture is compiled by default on windows.&lt;/p&gt;
-
-&lt;h3 id=&quot;set_defaultmode&quot;&gt;set_defaultmode&lt;/h3&gt;
-
-&lt;h4 id=&quot;set-the-default-compilation-mode&quot;&gt;Set the default compilation mode&lt;/h4&gt;
-
-&lt;p&gt;Only supported by v2.5.6 and above, it is used to set the default compilation mode of the project. If it is not set, the default is to compile in release mode.&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;set_defaultmode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;releasedbg&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;It is equivalent to &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f -m releasedbg&lt;/code&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;set_allowedplats&quot;&gt;set_allowedplats&lt;/h3&gt;
-
-&lt;h4 id=&quot;set-the-list-of-platforms-allowed-to-compile&quot;&gt;Set the list of platforms allowed to compile&lt;/h4&gt;
-
-&lt;p&gt;It is only supported by v2.5.6 and above. It is used to set the list of compilation platforms supported by the project. If the user specifies other platforms, an error will be prompted. This is usually used to restrict the user from specifying the wrong invalid platform.&lt;/p&gt;
-
-&lt;p&gt;If it is not set, then there are no platform restrictions.&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;set_allowedplats&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;windows&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mingw&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;Set the current project to only support windows and mingw platforms.&lt;/p&gt;
-
-&lt;h3 id=&quot;set_allowedarchs&quot;&gt;set_allowedarchs&lt;/h3&gt;
-
-&lt;h4 id=&quot;set-the-platform-architecture-that-allows-compilation&quot;&gt;Set the platform architecture that allows compilation&lt;/h4&gt;
-
-&lt;p&gt;Only supported by v2.5.6 and above. It is used to set the list of compiled architectures supported by the project. If the user specifies other architectures, an error will be prompted. This is usually used to restrict users from specifying incorrect invalid architectures.&lt;/p&gt;
-
-&lt;p&gt;If it is not set, then there are no architectural restrictions.&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;set_allowedarchs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;x64&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;x86&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;The current project only supports x64/x86 platforms.&lt;/p&gt;
-
-&lt;p&gt;We can also specify the list of architectures allowed under multiple platforms at the same time.&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;set_allowedarchs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;windows|x64&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;iphoneos|arm64&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;Set the current project to only support x64 architecture on windows, and only support arm64 architecture on iphoneos.&lt;/p&gt;
-
-&lt;h3 id=&quot;set_allowedmodes&quot;&gt;set_allowedmodes&lt;/h3&gt;
-
-&lt;h4 id=&quot;set-the-list-of-allowed-compilation-modes&quot;&gt;Set the list of allowed compilation modes&lt;/h4&gt;
-
-&lt;p&gt;It is only supported by v2.5.6 and above. It is used to set the list of compilation modes supported by the project. If the user specifies other modes, an error will be prompted. This is usually used to restrict the user from specifying incorrect invalid modes.&lt;/p&gt;
-
-&lt;p&gt;If it is not set, then there is no mode restriction.&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;set_allowedmodes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;release&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;releasedbg&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;Set the current project to only support the two compilation modes release/releasedbg.&lt;/p&gt;
-
-&lt;h2 id=&quot;changelog&quot;&gt;Changelog&lt;/h2&gt;
-
-&lt;h3 id=&quot;new-features&quot;&gt;New features&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1483&quot;&gt;#1483&lt;/a&gt;: Add &lt;code class=&quot;highlighter-rouge&quot;&gt;os.joinenvs()&lt;/code&gt; and improve package tools envirnoments&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1523&quot;&gt;#1523&lt;/a&gt;: Add &lt;code class=&quot;highlighter-rouge&quot;&gt;set_allowedmodes&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;set_allowedplats&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;set_allowedarchs&lt;/code&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1523&quot;&gt;#1523&lt;/a&gt;: Add &lt;code class=&quot;highlighter-rouge&quot;&gt;set_defaultmode&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;set_defaultplat&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;set_defaultarch&lt;/code&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;change&quot;&gt;Change&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Improve vs/vsxmake project generator to support vs2022&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1513&quot;&gt;#1513&lt;/a&gt;: Improve precompiled binary package compatibility on windows/msvc&lt;/li&gt;
-  &lt;li&gt;Improve to find vcpkg root directory on windows&lt;/li&gt;
-  &lt;li&gt;Improve to support Qt6&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;bugs-fixed&quot;&gt;Bugs fixed&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake-repo/pull/489&quot;&gt;#489&lt;/a&gt;: Fix run os.execv with too long envirnoment value on windows&lt;/li&gt;
-&lt;/ul&gt;
-
-</description>
-        <pubDate>Mon, 26 Jul 2021 00:00:00 +0800</pubDate>
-        <link>https://tboox.org/2021/07/26/xmake-update-v2.5.6/</link>
-        <guid isPermaLink="true">https://tboox.org/2021/07/26/xmake-update-v2.5.6/</guid>
-        
-        <category>xmake</category>
-        
-        <category>lua</category>
-        
-        <category>C/C++</category>
-        
-        <category>mirror</category>
-        
-        <category>package</category>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>xmake v2.5.6 发布，改进预编译二进制镜像包兼容性</title>
-        <description>&lt;p&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;xmake&lt;/a&gt; 是一个基于 Lua 的轻量级跨平台构建工具，使用 xmake.lua 维护项目构建，相比 makefile/CMakeLists.txt，配置语法更加简洁直观，对新手非常友好，短时间内就能快速入门，能够让用户把更多的精力集中在实际的项目开发上。&lt;/p&gt;
-
-&lt;p&gt;这是一个稳定性修复版本，主要修复和改进了一些跟预编译二进制包相关的兼容性问题。另外新增了一些实用的接口来设置默认的编译平台、架构和模式，以及允许的编译平台、架构列表等等。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;项目源码&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/about/course&quot;&gt;入门课程&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;新特性介绍&quot;&gt;新特性介绍&lt;/h2&gt;
-
-&lt;h3 id=&quot;windows-预编译包的兼容性修复&quot;&gt;windows 预编译包的兼容性修复&lt;/h3&gt;
-
-&lt;p&gt;上个版本对 Windows 下的 预编译包安装做了初步的支持，但是由于没有考虑 toolset 版本的兼容性问题，因此如果用户的 vs 版本过低，就会在集成包时候出现链接问题。&lt;/p&gt;
-
-&lt;p&gt;根据 ms 的官方描述，其实 msvc 的二进制库对于 toolset 的版本是向下兼容的。&lt;a href=&quot;https://docs.microsoft.com/en-us/cpp/porting/binary-compat-2015-2017?view=msvc-160&quot;&gt;https://docs.microsoft.com/en-us/cpp/porting/binary-compat-2015-2017?view=msvc-160&lt;/a&gt;&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;You can mix binaries built by different versions of the v140, v141, and v142 toolsets. However, you must link by using a toolset at least as recent as the most recent binary in your app. Here’s an example: you can link an app compiled using any 2017 toolset (v141, versions 15.0 through 15.9) to a static library compiled using, say, Visual Studio 2019 version 16.2 (v142), if they’re linked using a version 16.2 or later toolset. You can link a version 16.2 library to a version 16.4 app as long as you use a 16.4 or later toolset.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;也就是说，云端采用 v141 编译的库，用户的 msvc toolset 只要是 &amp;gt;=141 就可以兼容支持。&lt;/p&gt;
-
-&lt;p&gt;因此，我们改进了云端的预编译逻辑，针对 vs2015/14.16 和 vs2019/14.29 两个工具集分别进行预编译，然后 xmake 会根据用户 msvc 的 toolset 版本，优先选取最优的兼容版本库下载集成。&lt;/p&gt;
-
-&lt;h3 id=&quot;set_defaultplat&quot;&gt;set_defaultplat&lt;/h3&gt;
-
-&lt;h4 id=&quot;设置默认的编译平台&quot;&gt;设置默认的编译平台&lt;/h4&gt;
-
-&lt;p&gt;v2.5.6 以上版本才支持，用于设置工程默认的编译平台，如果没有设置，默认平台跟随当前系统平台，也就是 os.host()。&lt;/p&gt;
-
-&lt;p&gt;比如，在 macOS 上默认编译平台是 macosx，如果当前项目是 ios 项目，那么可以设置默认编译平台为 iphoneos。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;set_defaultplat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;iphoneos&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;它等价于，&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f -p iphoneos&lt;/code&gt;。&lt;/p&gt;
-
-&lt;h3 id=&quot;set_defaultarch&quot;&gt;set_defaultarch&lt;/h3&gt;
-
-&lt;h4 id=&quot;设置默认的编译架构&quot;&gt;设置默认的编译架构&lt;/h4&gt;
-
-&lt;p&gt;v2.5.6 以上版本才支持，用于设置工程默认的编译架构，如果没有设置，默认平台跟随当前系统架构，也就是 os.arch()。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;set_defaultplat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;iphoneos&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;set_defaultarch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;arm64&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;它等价于，&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f -p iphoneos -a arm64&lt;/code&gt;。&lt;/p&gt;
-
-&lt;p&gt;我们也可以设置多个平台下的默认架构。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;set_defaultarch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;iphoneos|arm64&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;windows|x64&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;在 iphoneos 上默认编译 arm64 架构，在 windows 上默认编译 x64 架构。&lt;/p&gt;
-
-&lt;h3 id=&quot;set_defaultmode&quot;&gt;set_defaultmode&lt;/h3&gt;
-
-&lt;h4 id=&quot;设置默认的编译模式&quot;&gt;设置默认的编译模式&lt;/h4&gt;
-
-&lt;p&gt;v2.5.6 以上版本才支持，用于设置工程默认的编译模式，如果没有设置，默认是 release 模式编译。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;set_defaultmode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;releasedbg&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;它等价于，&lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f -m releasedbg&lt;/code&gt;。&lt;/p&gt;
-
-&lt;h3 id=&quot;set_allowedplats&quot;&gt;set_allowedplats&lt;/h3&gt;
-
-&lt;h4 id=&quot;设置允许编译的平台列表&quot;&gt;设置允许编译的平台列表&lt;/h4&gt;
-
-&lt;p&gt;v2.5.6 以上版本才支持，用于设置工程支持的编译平台列表，如果用户指定了其他平台，会提示错误，这通常用于限制用户指定错误的无效平台。&lt;/p&gt;
-
-&lt;p&gt;如果没有设置，那么没有任何平台限制。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;set_allowedplats&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;windows&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mingw&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;设置当前项目仅仅支持 windows 和 mingw 平台。&lt;/p&gt;
-
-&lt;h3 id=&quot;set_allowedarchs&quot;&gt;set_allowedarchs&lt;/h3&gt;
-
-&lt;h4 id=&quot;设置允许编译的平台架构&quot;&gt;设置允许编译的平台架构&lt;/h4&gt;
-
-&lt;p&gt;v2.5.6 以上版本才支持，用于设置工程支持的编译架构列表，如果用户指定了其他架构，会提示错误，这通常用于限制用户指定错误的无效架构。&lt;/p&gt;
-
-&lt;p&gt;如果没有设置，那么没有任何架构限制。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;set_allowedarchs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;x64&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;x86&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;当前项目，仅仅支持 x64/x86 平台。&lt;/p&gt;
-
-&lt;p&gt;我们也可以同时指定多个平台下允许的架构列表。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;set_allowedarchs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;windows|x64&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;iphoneos|arm64&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;设置当前项目在 windows 上仅仅支持 x64 架构，并且在 iphoneos 上仅仅支持 arm64 架构。&lt;/p&gt;
-
-&lt;h3 id=&quot;set_allowedmodes&quot;&gt;set_allowedmodes&lt;/h3&gt;
-
-&lt;h4 id=&quot;设置允许的编译模式列表&quot;&gt;设置允许的编译模式列表&lt;/h4&gt;
-
-&lt;p&gt;v2.5.6 以上版本才支持，用于设置工程支持的编译模式列表，如果用户指定了其他模式，会提示错误，这通常用于限制用户指定错误的无效模式。&lt;/p&gt;
-
-&lt;p&gt;如果没有设置，那么没有任何模式限制。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;set_allowedmodes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;release&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;releasedbg&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;设置当前项目仅仅支持 release/releasedbg 两个编译模式。&lt;/p&gt;
-
-&lt;h2 id=&quot;更新内容&quot;&gt;更新内容&lt;/h2&gt;
-
-&lt;h3 id=&quot;新特性&quot;&gt;新特性&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1483&quot;&gt;#1483&lt;/a&gt;: 添加 &lt;code class=&quot;highlighter-rouge&quot;&gt;os.joinenvs()&lt;/code&gt; 和改进包工具环境&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1523&quot;&gt;#1523&lt;/a&gt;: 添加 &lt;code class=&quot;highlighter-rouge&quot;&gt;set_allowedmodes&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;set_allowedplats&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;set_allowedarchs&lt;/code&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1523&quot;&gt;#1523&lt;/a&gt;: 添加 &lt;code class=&quot;highlighter-rouge&quot;&gt;set_defaultmode&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;set_defaultplat&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;set_defaultarch&lt;/code&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;改进&quot;&gt;改进&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;改进 vs/vsxmake 工程插件支持 vs2022&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1513&quot;&gt;#1513&lt;/a&gt;: 改进 windows 预编译包的兼容性问题&lt;/li&gt;
-  &lt;li&gt;改进 vcpkg 包在 windows 上的查找&lt;/li&gt;
-  &lt;li&gt;改进对 Qt6 的支持&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;bugs-修复&quot;&gt;Bugs 修复&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake-repo/pull/489&quot;&gt;#489&lt;/a&gt;: 修复 run os.execv 带有过长环境变量值出现的一些问题&lt;/li&gt;
-&lt;/ul&gt;
-
-</description>
-        <pubDate>Mon, 26 Jul 2021 00:00:00 +0800</pubDate>
-        <link>https://tboox.org/cn/2021/07/26/xmake-update-v2.5.6/</link>
-        <guid isPermaLink="true">https://tboox.org/cn/2021/07/26/xmake-update-v2.5.6/</guid>
-        
-        <category>xmake</category>
-        
-        <category>lua</category>
-        
-        <category>C/C++</category>
-        
-        <category>precompiled</category>
-        
-        <category>package</category>
         
         
         <category>xmake</category>
