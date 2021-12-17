@@ -368,3 +368,4 @@ add_requires("cmake::Foo", {system = true, configs = {moduledirs = "mydir/cmake_
 * [#1885](https://github.com/xmake-io/xmake/issues/1885): 修复 package:fetch_linkdeps 链接顺序问题
 * [#1903](https://github.com/xmake-io/xmake/issues/1903): 修复包链接顺序
 
+

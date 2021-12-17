@@ -362,3 +362,4 @@ Thank you very much for your support for Xmake's sponsorship, so that I can have
 * [#1885](https://github.com/xmake-io/xmake/issues/1885): Fix package:fetch_linkdeps
 * [#1903](https://github.com/xmake-io/xmake/issues/1903): Fix package link order
 
+
