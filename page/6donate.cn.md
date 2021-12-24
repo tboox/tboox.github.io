@@ -32,6 +32,7 @@ TBOOX的所有项目都是属于个人开源项目，它的发展需要您的帮
 
 <a href="https://opencollective.com/xmake#backers" target="_blank"><img src="https://opencollective.com/xmake/backers.svg?width=890"></a>
 
+|| 2021.12.24 || xmake || xiaohui || 微信    ||  ¥50  ||
 || 2021.12.14 || xmake || SirLynix || Github    ||  $10  ||
 || 2021.12.14 || xmake || sytru || 支付宝    ||  ¥50  ||
 || 2021.12.14 || xmake || 翅膀 || 微信    ||  ¥100  ||

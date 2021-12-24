@@ -52,6 +52,7 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## Supporters
 
+|| 2021.12.24 || xmake || xiaohui || 微信    ||  ¥50  ||
 || 2021.12.14 || xmake || SirLynix || Github    ||  $10  ||
 || 2021.12.14 || xmake || sytru || 支付宝    ||  ¥50  ||
 || 2021.12.14 || xmake || 翅膀 || 微信    ||  ¥100  ||
