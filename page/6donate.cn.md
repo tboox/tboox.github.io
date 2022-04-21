@@ -32,6 +32,14 @@ TBOOX的所有项目都是属于个人开源项目，它的发展需要您的帮
 
 <a href="https://opencollective.com/xmake#backers" target="_blank"><img src="https://opencollective.com/xmake/backers.svg?width=890"></a>
 
+|| 2022.04.21 || xmake || 寻找地平线                            || 微信           || ¥128   ||
+|| 2022.04.09 || xmake || 子慧                                  || 支付宝         || ¥50    ||
+|| 2022.04.07 || xmake || *                                     || 微信           || ¥100   ||
+|| 2022.04.05 || xmake || *                                     || 微信           || ¥5     ||
+|| 2022.03.30 || xmake || *                                     || 微信           || ¥5     ||
+|| 2022.03.05 || xmake || *                                     || 微信           || ¥15    ||
+|| 2022.02.04 || xmake || *雯                                   || 支付宝         || ¥10    ||
+|| 2022.01.25 || xmake || 龙伟                                  || 支付宝         || ¥10    ||
 || 2021.12.24 || xmake || xiaohui || 微信    ||  ¥50  ||
 || 2021.12.14 || xmake || SirLynix || Github    ||  $10  ||
 || 2021.12.14 || xmake || sytru || 支付宝    ||  ¥50  ||
