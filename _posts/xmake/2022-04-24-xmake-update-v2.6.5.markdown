@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Xmake v2.6.4 released, Support remote compilation"
+title: "Xmake v2.6.5 released, Support remote compilation"
 tags: xmake lua C/C++ cargo rust remote-compilation
 categories: xmake
 ---
