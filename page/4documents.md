@@ -10,20 +10,15 @@ icon: book
 
 ## Project Documents
 
-#### xmake
+#### Xmake
 
-- [Online Documents](http://xmake.io/)
+- [Online Documents](https://xmake.io/)
 - [Online Articles](/category/#xmake)
-- Mirror Documents 
-  - [Quickstart](/docs/xmake/quickstart)
-  - [Plugin Development](/docs/xmake/plugins)
-  - [Api Manual](/docs/xmake/manual)
 
-#### tbox
+#### TBOX
 
 - [Online Documents](https://tboox.io/)
 - [Online Articles](/category/#tbox)
-- [Wiki Documents](https://github.com/tboox/tbox/wiki)
 
 ## Comments
 

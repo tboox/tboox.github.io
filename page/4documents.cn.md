@@ -10,20 +10,15 @@ icon: book
 
 ## 项目文档
 
-#### xmake
+#### Xmake
 
-- [在线文档](http://xmake.io/#/zh-cn/)
+- [在线文档](https://xmake.io/#/zh-cn/)
 - [在线文章](/cn/category/#xmake)
-- 镜像文档
-  - [快速开始](/cn/docs/xmake/quickstart)
-  - [插件入门](/cn/docs/xmake/plugins)
-  - [接口手册](/cn/docs/xmake/manual)
 
-#### tbox
+#### TBOX
 
-- [在线文档](https://tboox.io/#/zh-cn/)
+- [在线文档](https://docs.tboox.org/#/zh-cn/)
 - [在线文章](/cn/category/#tbox)
-- [Wiki文档](https://github.com/tboox/tbox/wiki)
 
 ## 评论
 
