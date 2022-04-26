@@ -36,14 +36,14 @@ We can even seamlessly implement remote compilation in editors and IDEs such as 
 
 ```console
 $ xmake service
-<remote_build_server>: listening 0.0.0.0:90091 ...
+<remote_build_server>: listening 0.0.0.0:9096 ...
 ```
 
 We can also turn on the service while displaying back detailed log messages.
 
 ```console
 $ xmake service -vD
-<remote_build_server>: listening 0.0.0.0:90091 ...
+<remote_build_server>: listening 0.0.0.0:9096 ...
 ```
 
 #### Start the service in Daemon mode
@@ -65,7 +65,7 @@ Then, we edit it to fix the server's listening port (optional).
     logfile = "/Users/ruki/.xmake/service/logs.txt",
     remote_build = {
         server = {
-            listen = "0.0.0.0:90091"
+            listen = "0.0.0.0:9096"
         }
     }
 }
@@ -80,7 +80,7 @@ We still edit this file `~/.xmake/service.conf` to configure the address of the 
     logfile = "/Users/ruki/.xmake/service/logs.txt",
     remote_build = {
         client = {
-            connect = "192.168.56.101:90091",
+            connect = "192.168.56.101:9096",
         }
     }
 }
@@ -102,9 +102,9 @@ Next, we just need to go into the root directory of the project we need to compi
 $ xmake create test
 $ cd test
 $ xmake service --connect 
-<remote_build_client>: connect 192.168.56.110:90091 ...
+<remote_build_client>: connect 192.168.56.110:9096 ...
 <remote_build_client>: connected!
-<remote_build_client>: sync files in 192.168.56.110:90091 ...
+<remote_build_client>: sync files in 192.168.56.110:9096 ...
 Scanning files ...
 Comparing 3 files ...
     [+]: src/main.cpp
@@ -122,7 +122,7 @@ Once the connection is successful, we can build remotely as if we were building 
 
 ```console
 $ xmake
-<remote_build_client>: run xmake in 192.168.56.110:90091 ...
+<remote_build_client>: run xmake in 192.168.56.110:9096 ...
 checking for platform ... macosx
 checking for architecture ... ... x86_64
 ... checking for Xcode directory ... /Applications/Xcode.app
@@ -148,7 +148,7 @@ We can also run a debug-compiled target program remotely, just as we can run a d
 
 ```console
 $ xmake run
-<remote_build_client>: run xmake run in 192.168.56.110:90091 ...
+<remote_build_client>: run xmake run in 192.168.56.110:9096 ...
 hello world!
 <remote_build_client>: run command ok!
 ````
@@ -157,7 +157,7 @@ hello world!
 
 ```console
 $ xmake -rv
-<remote_build_client>: run xmake -rv in 192.168.56.110:90091 ...
+<remote_build_client>: run xmake -rv in 192.168.56.110:9096 ...
 [ 25% ]: ccache compiling.release src/main.cpp
 /usr/local/bin/ccache /usr/bin/xcrun -sdk macosx clang -c -Qunused-arguments -arch x86_64 -mmacosx-version-min=11.4 -isysroot /Applications/ Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.3.sdk -fvisibility=hidden -fvisibility-inlines-hidden -O3 -DNDEBUG -o build/.objs/test/macosx/x86_64/release/src/main.cpp.o src/main.cpp
 [ 50%]: linking.release test
@@ -178,7 +178,7 @@ When you connect, the code is automatically synchronised once, and you can execu
 
 ```console
 $ xmake service --sync
-<remote_build_client>: sync files in 192.168.56.110:90091 ...
+<remote_build_client>: sync files in 192.168.56.110:9096 ...
 Scanning files ...
 Comparing 3 files ...
     [+]: src/main.cpp
@@ -196,7 +196,7 @@ This only affects the current project, other projects can still connect and buil
 
 ```console
 $ xmake service --disconnect
-<remote_build_client>: disconnect 192.168.56.110:90091 ...
+<remote_build_client>: disconnect 192.168.56.110:9096 ...
 <remote_build_client>: disconnected!
 ```
 
