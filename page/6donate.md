@@ -42,114 +42,15 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 <a href="https://opencollective.com/xmake/sponsor/8/website" target="_blank"><img src="https://opencollective.com/xmake/sponsor/8/avatar.svg"></a>
 <a href="https://opencollective.com/xmake/sponsor/9/website" target="_blank"><img src="https://opencollective.com/xmake/sponsor/9/avatar.svg"></a>
 
-## Alipay 
+## Alipay
 
 <img src="/static/img/alipay.png" alt="alipay" width="256" height="256">
 
-## Weixin 
+## Weixin
 
 <img src="/static/img/weixin.png" alt="weixin" width="256" height="256">
 
-## Supporters
+## Sponsors
 
-|| 2022.04.21 || xmake || 寻找地平线                            || 微信           || ¥128   ||
-|| 2022.04.09 || xmake || 子慧                                  || 支付宝         || ¥50    ||
-|| 2022.04.07 || xmake || *                                     || 微信           || ¥100   ||
-|| 2022.04.05 || xmake || *                                     || 微信           || ¥5     ||
-|| 2022.03.30 || xmake || *                                     || 微信           || ¥5     ||
-|| 2022.03.05 || xmake || *                                     || 微信           || ¥15    ||
-|| 2022.02.04 || xmake || *雯                                   || 支付宝         || ¥10    ||
-|| 2022.01.25 || xmake || 龙伟                                  || 支付宝         || ¥10    ||
-|| 2021.12.24 || xmake || xiaohui || 微信    ||  ¥50  ||
-|| 2021.12.14 || xmake || SirLynix || Github    ||  $10  ||
-|| 2021.12.14 || xmake || sytru || 支付宝    ||  ¥50  ||
-|| 2021.12.14 || xmake || 翅膀 || 微信    ||  ¥100  ||
-|| 2021.11.15 || xmake || 朱* || 支付宝    ||  ¥50  ||
-|| 2021.10.04 || xmake || S*o || 微信    ||  ¥100  ||
-|| 2021.09.23 || xmake || fhhddgkhg || 支付宝   ||  ¥20  ||
-|| 2021.09.06 || xmake || Stefan Boberg || 支付宝 || € 25 ||
-|| 2021.09.01 || xmake || 姚冬 || 微信 || ¥1024 ||
-|| 2021.08.22 || xmake || Alvin-co || 微信 || ¥100 ||
-|| 2021.08.17 || xmake || 九州 || alipay || ¥100 ||
-|| 2021.07.29 || xmake || chaney || alipay || ¥1000 ||
-|| 2021.06.30 || xmake || *剑 || wechat || ¥100 ||
-|| 2021.06.08 || xmake || Daniel Roussel || Paypal || 5 EUR ||
-|| 2021.05.31 || xmake || 国栋 || alipay || ¥100 ||
-|| 2021.05.26 || xmake || jerry || alipay || ¥100 ||
-|| 2021.05.02 || xmake || 乐 || alipay || ¥20 ||
-|| 2021.04.26 || xmake || 灿辉 || alipay || ¥20 ||
-|| 2021.04.04 || xmake || *烨 || wechat || ¥50  ||
-|| 2021.03.31 || xmake || *晨 || wechat || ¥10  ||
-|| 2021.03.18 || xmake || *博 || wechat || ¥50  ||
-|| 2021.03.17 || xmake || *博 || wechat || ¥100  ||
-|| 2021.03.14 || xmake || Gavin Ray || OpenCollective || $10 ||
-|| 2021.02.07 || xmake || 抚* || wechat || ¥66 || xmake牛批！||
-|| 2021.02.05 || xmake || *_ || alipay || ¥5 ||
-|| 2020.12.05 || 知而无知 || wechat || ¥50 ||
-|| 2020.12.05 || fghuh || alipay || ¥10 ||
-|| 2020.12.05 || @ || wechat || ¥5 ||
-|| 2020.11.27 || 少东 || alipay || ¥2.33 ||
-|| 2020.11.25 || xmake || 小弧光 || wechat  || ¥10 ||
-|| 2020.11.20 || xmake || Cartesian Technology || Paypal  || $25 CAD  ||
-|| 2020.11.11 || xmake || Cartesian Technology || Paypal  || $50 CAD  ||
-|| 2020.10.23 || xmake || Cartesian Technology || Paypal  || 5 EUR  ||
-|| 2020.10.19 || xmake || Cartesian Technology || Paypal  || 5 EUR  ||
-|| 2020.10.05 || tbox || l*r || wechat || ¥200 || 愿成为国产平台标准库 ||
-|| 2020.09.22 || xmake || Russell Haley || paypal || $25CAD || ||
-|| 2020.09.13 || xmake || Cartesian Technology || Paypal  || 5 EUR  ||
-|| 2020.09.11 || xmake || Cartesian Technology || Paypal  || 5 EUR  ||
-|| 2020.09.11 || xmake || 复刻回忆 || alipay  || ¥25    || 加油！||
-|| 2020.09.05 || xmake || M*x || wechat || ¥100 || ||
-|| 2020.07.21 || xmake || 简单 || wechat || ¥100 || ||
-|| 2020.06.24 || xmake || *三 || wechat || ¥10 || xmake很好用 ||
-|| 2020.06.13 || xmake || Ronald || alipay || ¥10 || 方便，专业，谢谢 ||
-|| 2020.06.11 || xmake || c*o || wechat || ¥100 || ||
-|| 2020.06.09 || xmake || w*; || wechat || ¥50 || 我用过的最舒心的工具 ||
-|| 2020.06.09 || tboox || 凌风 || alipay || ¥0.01 || ||
-|| 2020.05.25 || xmake || 魔之左手 || wechat || ¥100 || ||
-|| 2020.05.20 || xmake || Russell Haley || paypal || $10CAD || ||
-|| 2020.05.15 || xmake || Russell Haley || paypal || $10CAD || ||
-|| 2020.04.10 || xmake || C*g || wechat || ¥20 || 拒绝白嫖，支持一下 ||
-|| 2020.04.08 || xmake || *埃 || wechat || ¥20 || ||
-|| 2020.04.07 || xmake || *子 || wechat || ¥10 || 感谢你创造了xmake ||
-|| 2020.04.05 || tboox || 海* || alipay || ¥25 || ||
-|| 2020.02.19 || xmake || *鹏 || wechat || ¥10 || ||
-|| 2020.02.08 || tboox || *烨 || alipay || ¥30 || ||
-|| 2019.10.31 || xmake || 刘* || alipay || ¥100 || xmake非常好用，期待持续更新，加油! ||
-|| 2019.10.07 || xmake || 1m188 || alipay || ¥50 || 相比cmake写起来要简单清晰一些 ||
-|| 2019.09.15 || xmake || ryan || wechat || ¥100 ||  ||
-|| 2019.08.31 || tboox || anonymous || wechat || ¥30 || 加油 ||
-|| 2019.06.17 || xmake || anonymous || wechat || ¥10 || 比cmake好用 ||
-|| 2019.03.12 || tbox || 翅膀 || wechat || ¥50 || ||
-|| 2019.01.31 || tbox || 翅膀 || wechat || ¥100 || ||
-|| 2019.01.10 || tbox || 翅膀 || wechat || ¥50 || ||
-|| 2018.11.30 || tboox || 刘* || alipay || ¥60 || tbox和xmake非常优秀，加油~||
-|| 2018.11.16 || xmake || 孙果 || wechat || ¥10 || xmake很好用，加油！||
-|| 2018.10.20 || tboox || anonymous || wechat || ¥100 || ||
-|| 2018.10.17 || xmake || 红红 || wechat || ¥100 || ||
-|| 2018.10.15 || xmake || xtvjxk || alipay || ¥10 || 希望越来越好用 ||
-|| 2018.08.07 || xmake || fasiondog || gitee || ¥50 || 感谢您的开源项目! ||
-|| 2018.06.27 || xmake || Kellygod || alipay || ¥30 || 拥抱xmake ||
-|| 2018.05.17 || xmake || anonymous || wechat || ¥10 || 加油xmake ||
-|| 2018.04.29 || xmake || 清春 || alipay || ¥180 || ||
-|| 2018.04.25 || tbox || wape.yang || wechat || ¥10 || 支持tbox越做越好 ||
-|| 2018.04.09 || tboox || anonymous || wechat || ¥5 || 支持国人，赞 ||
-|| 2018.04.01 || tboox || doke || alipay || ¥5 || ||
-|| 2018.02.18 || xmake || 氧烷 || alipay || ¥16.66 || xmake，赞👍 ||
-|| 2018.02.14 || tboox || 维恩 || wechat || ¥66.6 || tboox项目加油 ||
-|| 2017.11.19 || xmake || sytru || alipay || ¥10 || 感谢作者，让写c/c++有了写脚本的感觉。非常愉悦的使用体验，希望不要消失。||
-|| 2017.11.16 || xmake || 琪峻 || alipay || ¥15 || 感谢好用的xmake ||
-|| 2017.10.26 || xmake || Welthy || alipay || ¥5 || xmake很好用啊 ||
-|| 2017.08.03 || tbox || 开枝 || alipay || ¥20 || ||
-|| 2017.05.23 || tboox || anonymous || wechat || ¥10 || ||
-|| 2017.01.14 || tboox || anonymous || wechat || ¥66 || ||
-|| 2016.12.13 || tboox || anonymous || wechat || ¥5 || ||
-|| 2016.11.10 || xmake || [lc-soft](https://github.com/lc-soft) || oschina || ¥10 || ||
-|| 2016.08.05 || tbox || [蔡克伦](https://github.com/caikelun) || wechat || ¥1 || ||
-|| 2016.07.31 || vm86 || 清风闻仙醉 || alipay || ¥8.88 || ||
-|| 2016.01.29 || tbox || Evgeny Kulikov || paypal || $2 || ||
-|| 2016.01.29 || tbox || 建忠 || alipay || ¥20.16 || ||
-
-## Comments
-
-{% include comments.html %}
+- [TBOX Sponsors](https://docs.tboox.org/#/about/sponsor)
+- [Xmake Sponsors](https://xmake.io/#/about/sponsor)
