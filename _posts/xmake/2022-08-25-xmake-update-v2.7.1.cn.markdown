@@ -35,6 +35,13 @@ Xmake ~= Make/Ninja + CMake/Meson + Vcpkg/Conan + distcc + ccache/sccache
 
 另外，我们新增了一个 `xmake watch` 插件，可以实时监控当前工程文件更新，自动触发增量构建，或者运行一些自定义的命令。
 
+<img src="/static/img/xmake/xmake-watch.gif" width="60%" />
+
+
+
+
+
+
 ### C++ Modules 改进
 
 ### 工程文件监视和自动构建

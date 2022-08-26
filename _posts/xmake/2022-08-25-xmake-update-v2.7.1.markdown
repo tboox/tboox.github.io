@@ -32,6 +32,13 @@ In this release, we have refactored and improved the C++20 Modules implementatio
 
 In addition, we've added an `xmake watch` plugin that can monitor current project file updates in real time, automatically trigger incremental builds, or run some custom commands.
 
+<img src="/static/img/xmake/xmake-watch.gif" width="60%" />
+
+
+
+
+
+
 ### C++ Modules improvements
 
 ### Project file monitoring and automatic build
