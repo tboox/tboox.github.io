@@ -128,7 +128,7 @@ $ xmake watch -d src
 $ xmake watch -d "src;tests/*"
 ```
 
-The above command will recursively watch all subdirectories. If you want to watch the files in the current directory without recursive monitoring, you can use the following command.
+The above command will recursively watch all subdirectories. If you want to only watch the files in the current directory without recursive monitoring, you can use the following command.
 
 ```bash
 $ xmake watch -p src
