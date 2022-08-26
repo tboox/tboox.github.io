@@ -86,7 +86,7 @@ Any subsequent recompilation will directly reuse them for compilation accelerati
 Note: Usually we need to add at least one `.mpp` file to enable C++20 modules compilation, if there is only a cpp file, module compilation will not be enabled by default.
 
 However, if we just want to use the module's Headerunits feature in the cpp file, for example, by introducing some STL Headerunits in the cpp, then we can also set the `.mpp` to `.mpp`.
-then we can also force C++ Modules compilation by setting ``set_policy("build.c++.modules", true)`, e.g.
+then we can also force C++ Modules compilation by setting `set_policy("build.c++.modules", true)`, e.g.
 
 ```lua
 add_rules("mode.debug", "mode.release")
@@ -185,7 +185,7 @@ MAc Catalyst is Apple's new solution for bringing iPad apps to the Mac. Mac apps
 
 With this new version, we've added support for building Mac Catalyst targets, and on macOS platforms, we just need to add the `-appledev=catalyst` configuration option to support compiling existing iOS code and getting it up and running on macOS without making any changes.
 
-``bash
+```bash
 $ xmake f --appledev=catalyst
 $ xmake
 ```
