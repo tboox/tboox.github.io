@@ -5,9 +5,715 @@
     <description>Focus on cross-platform development using c language</description>
     <link>https://tboox.org/</link>
     <atom:link href="https://tboox.org/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Wed, 25 May 2022 19:55:46 +0800</pubDate>
-    <lastBuildDate>Wed, 25 May 2022 19:55:46 +0800</lastBuildDate>
+    <pubDate>Fri, 26 Aug 2022 17:49:00 +0800</pubDate>
+    <lastBuildDate>Fri, 26 Aug 2022 17:49:00 +0800</lastBuildDate>
     <generator>Jekyll v3.1.0</generator>
+    
+      <item>
+        <title>Xmake v2.7.1 Released, Better C++ Modules Support</title>
+        <description>&lt;p&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;Xmake&lt;/a&gt; is a lightweight cross-platform build utility based on Lua.&lt;/p&gt;
+
+&lt;p&gt;It is very lightweight and has no dependencies because it has a built-in Lua runtime.&lt;/p&gt;
+
+&lt;p&gt;It uses xmake.lua to maintain project builds and its configuration syntax is very simple and readable.&lt;/p&gt;
+
+&lt;p&gt;We can use it to build project directly like Make/Ninja, or generate project files like CMake/Meson, and it also has a built-in package management system to help users solve the integrated use of C/C++ dependent libraries.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Xmake = Build backend + Project Generator + Package Manager + [Remote|Distributed] Build + Cache
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Although not very precise, we can still understand Xmake in the following way:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Xmake ~= Make/Ninja + CMake/Meson + Vcpkg/Conan + distcc + ccache/sccache
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;Github&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://xmake.io/&quot;&gt;Document&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;introduction-of-new-features&quot;&gt;Introduction of new features&lt;/h2&gt;
+
+&lt;p&gt;In this release, we have refactored and improved the C++20 Modules implementation, improved the dependency graph parsing of module files, added support for STL and User HeaderUnits, and made the CMakelists/compile_commands generator support C++ Modules.&lt;/p&gt;
+
+&lt;p&gt;In addition, we’ve added an &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake watch&lt;/code&gt; plugin that can monitor current project file updates in real time, automatically trigger incremental builds, or run some custom commands.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/static/img/xmake/xmake-watch.gif&quot; width=&quot;60%&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;c-modules-improvements&quot;&gt;C++ Modules Improvements&lt;/h3&gt;
+
+&lt;p&gt;Xmake has long supported C++ Modules build support, and can automatically analyze dependencies between modules to maximize parallel compilation.
+In addition, Xmake uses &lt;code class=&quot;highlighter-rouge&quot;&gt;.mpp&lt;/code&gt; as the default module extension, but also supports &lt;code class=&quot;highlighter-rouge&quot;&gt;.ixxx&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;.cppm&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;.mxx&lt;/code&gt; and so on.&lt;/p&gt;
+
+&lt;p&gt;For example&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;set_languages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;c++20&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;class&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;src/*.mpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;For more examples see: &lt;a href=&quot;https://github.com/xmake-io/xmake/tree/master/tests/projects/c%2B%2B/modules&quot;&gt;C++ Modules&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;However, the previous implementation has many shortcomings.&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;no support for HeaderUnits, so you can’t use modules like stl&lt;/li&gt;
+  &lt;li&gt;the module dependency graph parsing is done by scanning the source code itself, and does not support the dependency scanning provided by the compiler, so it is not fully reliable&lt;/li&gt;
+  &lt;li&gt;do not support CMakelists generation&lt;/li&gt;
+  &lt;li&gt;compile_commands.json generation is not supported&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;In the new version, we have refactored and upgraded the implementation of C++20 module, and we support all the points mentioned above, and added support for Headerunits, so we can introduce STL and user header modules in the module.&lt;/p&gt;
+
+&lt;p&gt;Also, since higher versions of msvc and gcc have built-in scan analysis of module dependency graphs, Xmake prioritizes module dependency graph analysis with the compiler, and if the compiler does not support it (clang), then Xmake will degrade to its own source code scan implementation.&lt;/p&gt;
+
+&lt;p&gt;A related patch is available at &lt;a href=&quot;https://github.com/xmake-io/xmake/pull/2641&quot;&gt;#2641&lt;/a&gt;, with many thanks to &lt;a href=&quot;https://github.com/Arthapz&quot;&gt;@Arthapz&lt;/a&gt; for their contribution.&lt;/p&gt;
+
+&lt;p&gt;Here is an example of a module that uses STL HeaderUnits, e.g.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;stl_headerunit$ &lt;/span&gt;xmake
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 0%]: generating.cxx.module.deps src/main.cpp
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 0%]: generating.cxx.module.deps src/hello.mpp
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 20%]: generating.cxx.headerunit.bmi iostream
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 60%]: generating.cxx.module.bmi hello
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 70%]: cache compiling.release src/main.cpp
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 80%]: linking.release stl_headerunit
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;100%]: build ok!
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;For the first compilation, we scan the module code for dependencies and then precompile stl libraries like iostream as headerunit.&lt;/p&gt;
+
+&lt;p&gt;Any subsequent recompilation will directly reuse them for compilation acceleration.&lt;/p&gt;
+
+&lt;p&gt;Note: Usually we need to add at least one &lt;code class=&quot;highlighter-rouge&quot;&gt;.mpp&lt;/code&gt; file to enable C++20 modules compilation, if there is only a cpp file, module compilation will not be enabled by default.&lt;/p&gt;
+
+&lt;p&gt;However, if we just want to use the module’s Headerunits feature in the cpp file, for example, by introducing some STL Headerunits in the cpp, then we can also set the &lt;code class=&quot;highlighter-rouge&quot;&gt;.mpp&lt;/code&gt; to &lt;code class=&quot;highlighter-rouge&quot;&gt;.mpp&lt;/code&gt;.
+then we can also force C++ Modules compilation by setting &lt;code class=&quot;highlighter-rouge&quot;&gt;set_policy(&quot;build.c++.modules&quot;, true)&lt;/code&gt;, e.g.&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mode.debug&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mode.release&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_languages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;c++20&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_policy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;build.c++.modules&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;project-file-monitoring-and-auto-build&quot;&gt;Project file monitoring and auto-build&lt;/h3&gt;
+
+&lt;p&gt;In this release, we have added the &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake watch&lt;/code&gt; plugin command to automatically monitor project files for updates and then trigger automatic builds or run some custom commands.&lt;/p&gt;
+
+&lt;p&gt;This is often used for personal development to enable fast real-time incremental builds without the need to manually execute the build command each time, improving development efficiency.&lt;/p&gt;
+
+&lt;h4 id=&quot;auto-build-after-project-update&quot;&gt;Auto-build after project update&lt;/h4&gt;
+
+&lt;p&gt;The default behavior is to monitor the entire project root, and any file changes will trigger an incremental build of the project.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch
+watching /private/tmp/test/src/&lt;span class=&quot;k&quot;&gt;**&lt;/span&gt; .
+watching /private/tmp/test/&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; ...
+/private/tmp/test/src/main.cpp modified
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 25%]: ccache compiling.release src/main.cpp
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 50%]: linking.release &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 100%]: build ok!
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;monitoring-a-specific-directory&quot;&gt;Monitoring a specific directory&lt;/h4&gt;
+
+&lt;p&gt;We can also monitor specific code directories to narrow down the scope of monitoring and improve performance.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -d src
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -d &lt;span class=&quot;s2&quot;&gt;&quot;src;tests/*&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;The above command will recursively watch all subdirectories. If you want to only watch the files in the current directory without recursive monitoring, you can use the following command.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -p src
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -p &lt;span class=&quot;s2&quot;&gt;&quot;src;tests/*&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;watch-and-run-the-specified-command&quot;&gt;Watch and run the specified command&lt;/h4&gt;
+
+&lt;p&gt;If you want to run the build automatically even after the automatic build, we can use a custom command set.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -c &lt;span class=&quot;s2&quot;&gt;&quot;xmake; xmake run&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;The above command list is passed as a string, which is not flexible enough for complex command arguments that require escaping to be more cumbersome, so we can use the following for arbitrary commands.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -- &lt;span class=&quot;nb&quot;&gt;echo &lt;/span&gt;hello xmake!
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -- xmake run --help
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;watching-and-running-the-target-program&quot;&gt;Watching and running the target program&lt;/h4&gt;
+
+&lt;p&gt;Although we can automate the running of the target program with custom commands, we also provide more convenient arguments to achieve this behavior.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -r
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch --run
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;100%]: build ok!
+hello world!
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;&lt;img src=&quot;/static/img/xmake/xmake-watch.gif&quot; width=&quot;60%&quot; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;watching-and-running-lua-scripts&quot;&gt;Watching and running lua scripts&lt;/h4&gt;
+
+&lt;p&gt;We can also watch for file updates and run the specified lua script for more flexible and complex command customization.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -s /tmp/test.lua
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;We can also get a list of all updated file paths and events in the script again.&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;events&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;-- TODO handle events&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;mac-catalyst-support&quot;&gt;Mac Catalyst Support&lt;/h3&gt;
+
+&lt;p&gt;MAc Catalyst is Apple’s new solution for bringing iPad apps to the Mac. Mac apps built with Mac Catalyst share code with your iPad apps, and you can add more features to your Mac separately.&lt;/p&gt;
+
+&lt;p&gt;With this new version, we’ve added support for building Mac Catalyst targets, and on macOS platforms, we just need to add the &lt;code class=&quot;highlighter-rouge&quot;&gt;-appledev=catalyst&lt;/code&gt; configuration option to support compiling existing iOS code and getting it up and running on macOS without making any changes.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f --appledev&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;catalyst
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;We can experience the Mac in the test project &lt;a href=&quot;https://github.com/xmake-io/xmake/tree/master/tests/projects/objc/iosapp_with_framework&quot;&gt;iosapp_with_framework&lt;/a&gt; Catalyst program compile and run.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 36%]: processing.xcode.release src/framework/Info.plist
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 40%]: cache compiling.release src/framework/test.m
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 44%]: linking.release &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 48%]: generating.xcode.release test.framework
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 56%]: compiling.xcode.release src/app/Assets.xcassets
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 56%]: processing.xcode.release src/app/Info.plist
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 60%]: cache compiling.release src/app/ViewController.m
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 60%]: cache compiling.release src/app/SceneDelegate.m
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 60%]: cache compiling.release src/app/main.m
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 60%]: cache compiling.release src/app/AppDelegate.m
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 60%]: compiling.xcode.release src/app/Base.lproj/LaunchScreen.storyboard
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 60%]: compiling.xcode.release src/app/Base.lproj/Main.storyboard
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 88%]: linking.release demo
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 92%]: generating.xcode.release demo.app
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;100%]: build ok!
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake run
+2022-08-26 15:11:03.581 demo[86248:9087199] add&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;1, 2&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;: 3
+2022-08-26 15:11:03.581 demo[86248:9087199] hello xmake!
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;&lt;img src=&quot;/static/img/xmake/mac-catalyst.png&quot; width=&quot;60%&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;improving-remote-builds&quot;&gt;Improving remote builds&lt;/h3&gt;
+
+&lt;h4 id=&quot;pulling-remote-build-files&quot;&gt;Pulling remote build files&lt;/h4&gt;
+
+&lt;p&gt;For remote builds, we have added a new pull remote file command, which can usually be used to download remote target build files, library files locally after the remote build is complete.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake service --pull &lt;span class=&quot;s1&quot;&gt;&#39;build/**&#39;&lt;/span&gt; outputdir
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;We can match the files to be downloaded with the &lt;code class=&quot;highlighter-rouge&quot;&gt;-pull &#39;build/**&#39;&lt;/code&gt; pattern, either build files or other files.&lt;/p&gt;
+
+&lt;p&gt;Note: Files are segregated by project, only files under the current project can be specified for download, and will not let users download files from other directories on the server to avoid some security risks.&lt;/p&gt;
+
+&lt;h4 id=&quot;real-time-echo-output&quot;&gt;Real-time echo output&lt;/h4&gt;
+
+&lt;p&gt;In the previous version, when using remote compilation, the client could not output the compilation information of the server in real time, because the cache existed, the compilation progress information seen locally was refreshed piece by piece, which was not a good experience.&lt;/p&gt;
+
+&lt;p&gt;Therefore, we added line buffer refresh support to improve the real-time output display and make the user experience closer to the local compilation when compiling remotely.&lt;/p&gt;
+
+&lt;h3 id=&quot;improve-distributed-compile-scheduling-algorithm&quot;&gt;Improve distributed compile scheduling algorithm&lt;/h3&gt;
+
+&lt;p&gt;We have also further improved the server node scheduling for xmake’s distributed compilation by adding weight to cpu load and memory resources, rather than just assigning tasks by the number of cpu cores.&lt;/p&gt;
+
+&lt;p&gt;Thus, if some nodes are overloaded, we will prioritize the compilation tasks to the nodes that are quite free and take advantage of all compilation resources.&lt;/p&gt;
+
+&lt;h3 id=&quot;more-flexible-cmake-package-lookup&quot;&gt;More flexible cmake package lookup&lt;/h3&gt;
+
+&lt;h4 id=&quot;specify-links&quot;&gt;Specify links&lt;/h4&gt;
+
+&lt;p&gt;For cmake packages, we have added the &lt;code class=&quot;highlighter-rouge&quot;&gt;link_libraries&lt;/code&gt; configuration option to allow users to customize the configuration of package dependencies and even support for target links when searching for packages to use with cmake.&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake::xxx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;link_libraries&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;abc::lib1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;abc::lib2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}}})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;xmake automatically appends the following configuration when looking for cmake packages, improving the extraction of links libraries.&lt;/p&gt;
+
+&lt;div class=&quot;language-cmake highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;target_link_libraries&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;test PRIVATE ABC::lib1 ABC::lib2&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;specify-the-search-mode&quot;&gt;Specify the search mode&lt;/h4&gt;
+
+&lt;p&gt;In addition, we add the following search mode configuration.&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake::xxx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;search_mode&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;config&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}})&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake::xxx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;search_mode&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;module&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}})&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake::xxx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;-- both&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Specify config search mode, for example, to tell cmake to look for packages from &lt;code class=&quot;highlighter-rouge&quot;&gt;XXXConfig.cmake&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;xmake will automatically append the following configuration internally when it looks for cmake packages.&lt;/p&gt;
+
+&lt;div class=&quot;language-cmake highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;find_package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;ABC CONFIG REQUIRED&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;armccarmclangrc-incremental-compilation-support&quot;&gt;armcc/armclang/rc incremental compilation support&lt;/h3&gt;
+
+&lt;p&gt;In the new version, we also perform header dependency analysis for keil’s armcc/armclang compiler to support incremental compilation.&lt;/p&gt;
+
+&lt;p&gt;In addition, msvc’s rc.exe resource compiler itself cannot provide header dependency analysis, but cl.exe’s preprocessor can handle resource files.
+Therefore, we can use &lt;code class=&quot;highlighter-rouge&quot;&gt;cl.exe /E test.rc&lt;/code&gt; to preprocess resource files and extract dependency information from them to achieve incremental compilation support for resource files.&lt;/p&gt;
+
+&lt;p&gt;So far, it works pretty well, and we also have support for internal ICON/BITMAP resource reference dependencies.&lt;/p&gt;
+
+&lt;h3 id=&quot;other-issue-fixes&quot;&gt;Other issue fixes&lt;/h3&gt;
+
+&lt;p&gt;We’ve also made a number of fixes to the build cache, which will be more stable than the previous version. We have also streamlined the generation of CMakelists.&lt;/p&gt;
+
+&lt;p&gt;More detailed improvements can be found in the following changelog.&lt;/p&gt;
+
+&lt;h2 id=&quot;changelog&quot;&gt;Changelog&lt;/h2&gt;
+
+&lt;h3 id=&quot;new-features&quot;&gt;New features&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2555&quot;&gt;#2555&lt;/a&gt;: Add fwatcher module and &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake watch&lt;/code&gt; plugin command&lt;/li&gt;
+  &lt;li&gt;Add &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake service --pull &#39;build/**&#39; outputdir&lt;/code&gt; to pull the given files in remote server&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/2641&quot;&gt;#2641&lt;/a&gt;: Improve C++20 modules, support headerunits and project generators&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2679&quot;&gt;#2679&lt;/a&gt;: Support Mac Catalyst&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;changes&quot;&gt;Changes&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2576&quot;&gt;#2576&lt;/a&gt;: More flexible package fetching from cmake&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2577&quot;&gt;#2577&lt;/a&gt;: Improve add_headerfiles(), add &lt;code class=&quot;highlighter-rouge&quot;&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;install&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt; support&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2603&quot;&gt;#2603&lt;/a&gt;: Disable &lt;code class=&quot;highlighter-rouge&quot;&gt;-fdirectives-only&lt;/code&gt; for ccache by default&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2580&quot;&gt;#2580&lt;/a&gt;: Set stdout to line buffering&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2571&quot;&gt;#2571&lt;/a&gt;: Improve task scheduling for parallel and distributed compilation based on memory/cpu usage&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2410&quot;&gt;#2410&lt;/a&gt;: Improve cmakelists generator&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2690&quot;&gt;#2690&lt;/a&gt;: Improve to pass toolchains to packages&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2686&quot;&gt;#2686&lt;/a&gt;: Support for incremental compilation and parse header file deps for keil/armcc/armclang&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2562&quot;&gt;#2562&lt;/a&gt;: Improve include deps for rc.exe&lt;/li&gt;
+  &lt;li&gt;Improve the default parallel building jobs number&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;bugs-fixed&quot;&gt;Bugs fixed&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2614&quot;&gt;#2614&lt;/a&gt;: Fix building submodules2 tests for msvc&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2620&quot;&gt;#2620&lt;/a&gt;: Fix build cache for incremental compilation&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2177&quot;&gt;#2177&lt;/a&gt;: Fix python.library segmentation fault for macosx&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2708&quot;&gt;#2708&lt;/a&gt;: Fix link error for mode.coverage rule&lt;/li&gt;
+  &lt;li&gt;Fix rpath for macos/iphoneos frameworks and application&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+        <pubDate>Thu, 25 Aug 2022 00:00:00 +0800</pubDate>
+        <link>https://tboox.org/2022/08/25/xmake-update-v2.7.1/</link>
+        <guid isPermaLink="true">https://tboox.org/2022/08/25/xmake-update-v2.7.1/</guid>
+        
+        <category>xmake</category>
+        
+        <category>lua</category>
+        
+        <category>C/C++</category>
+        
+        <category>remote</category>
+        
+        <category>ccache</category>
+        
+        <category>C++20</category>
+        
+        <category>Modules</category>
+        
+        <category>headerunits</category>
+        
+        <category>fs-watcher</category>
+        
+        
+        <category>xmake</category>
+        
+      </item>
+    
+      <item>
+        <title>Xmake v2.7.1 发布，更好的 C++ Modules 支持</title>
+        <description>&lt;p&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;Xmake&lt;/a&gt; 是一个基于 Lua 的轻量级跨平台构建工具。&lt;/p&gt;
+
+&lt;p&gt;它非常的轻量，没有任何依赖，因为它内置了 Lua 运行时。&lt;/p&gt;
+
+&lt;p&gt;它使用 xmake.lua 维护项目构建，相比 makefile/CMakeLists.txt，配置语法更加简洁直观，对新手非常友好，短时间内就能快速入门，能够让用户把更多的精力集中在实际的项目开发上。&lt;/p&gt;
+
+&lt;p&gt;我们能够使用它像 Make/Ninja 那样可以直接编译项目，也可以像 CMake/Meson 那样生成工程文件，另外它还有内置的包管理系统来帮助用户解决 C/C++ 依赖库的集成使用问题。&lt;/p&gt;
+
+&lt;p&gt;目前，Xmake 主要用于 C/C++ 项目的构建，但是同时也支持其他 native 语言的构建，可以实现跟 C/C++ 进行混合编译，同时编译速度也是非常的快，可以跟 Ninja 持平。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Xmake = Build backend + Project Generator + Package Manager + [Remote|Distributed] Build + Cache
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;尽管不是很准确，但我们还是可以把 Xmake 按下面的方式来理解：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Xmake ~= Make/Ninja + CMake/Meson + Vcpkg/Conan + distcc + ccache/sccache
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;项目源码&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/about/course&quot;&gt;入门课程&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;新特性介绍&quot;&gt;新特性介绍&lt;/h2&gt;
+
+&lt;p&gt;这个版本我们对 C++20 Modules 的实现进行了重构和改进，改进了模块文件的依赖图解析，新增了对 STL 和 User HeaderUnits 的支持，同时让 CMakelists/compile_commands 生成器也支持了 C++ Modules。&lt;/p&gt;
+
+&lt;p&gt;另外，我们新增了一个 &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake watch&lt;/code&gt; 插件，可以实时监控当前工程文件更新，自动触发增量构建，或者运行一些自定义的命令。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/static/img/xmake/xmake-watch.gif&quot; width=&quot;60%&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;c-modules-改进&quot;&gt;C++ Modules 改进&lt;/h3&gt;
+
+&lt;p&gt;Xmake 很早就已经支持 C++ Modules 的构建支持，并且能够自动分析模块间的依赖关系，实现最大化的并行编译。
+另外，Xmake 采用 &lt;code class=&quot;highlighter-rouge&quot;&gt;.mpp&lt;/code&gt; 作为默认的模块扩展名，但是也同时支持 &lt;code class=&quot;highlighter-rouge&quot;&gt;.ixx&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;.cppm&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;.mxx&lt;/code&gt; 等扩展名。&lt;/p&gt;
+
+&lt;p&gt;例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;set_languages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;c++20&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;class&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;src/*.mpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;更多例子见：&lt;a href=&quot;https://github.com/xmake-io/xmake/tree/master/tests/projects/c%2B%2B/modules&quot;&gt;C++ Modules&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;但是之前的实现还存在很多不足之处：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;不支持 HeaderUnits，因此也无法使用 stl 等模块&lt;/li&gt;
+  &lt;li&gt;自己扫描源码实现模块依赖图解析，不支持编译器提供的依赖扫描，因此不完全可靠&lt;/li&gt;
+  &lt;li&gt;不支持 CMakelists 生成&lt;/li&gt;
+  &lt;li&gt;不支持 compile_commands.json 生成&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;而在新版中，我们对 C++20 模块的实现进行了重构和升级，上面提到的几点，我们都做了支持，新增了对 Headerunits 的支持，因此我们可以在模块中引入 STL 和 用户头文件模块。&lt;/p&gt;
+
+&lt;p&gt;同时，由于 msvc 和 gcc 高版本 都已经内置对模块依赖图的扫描分析，Xmake 会优先借助编译器实现模块依赖图分析，如果编译器不支持（clang），那么 Xmake 也会退化到自己的源码扫描实现上去。&lt;/p&gt;
+
+&lt;p&gt;相关的补丁见：&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/2641&quot;&gt;#2641&lt;/a&gt;，非常感谢 &lt;a href=&quot;https://github.com/Arthapz&quot;&gt;@Arthapz&lt;/a&gt; 的贡献。&lt;/p&gt;
+
+&lt;p&gt;下面是一个使用了 STL HeaderUnits 的模块例子，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;stl_headerunit$ &lt;/span&gt;xmake
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;  0%]: generating.cxx.module.deps src/main.cpp
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;  0%]: generating.cxx.module.deps src/hello.mpp
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 20%]: generating.cxx.headerunit.bmi iostream
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 60%]: generating.cxx.module.bmi hello
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 70%]: cache compiling.release src/main.cpp
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 80%]: linking.release stl_headerunit
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;100%]: build ok!
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;对于首次编译，我们会扫描模块代码之间的依赖关系，然后预编译 iostream 等 stl 库作为 headerunit。&lt;/p&gt;
+
+&lt;p&gt;之后的重新编译，都会直接复用它们，实现编译加速。&lt;/p&gt;
+
+&lt;p&gt;注：通常我们至少需要添加一个 &lt;code class=&quot;highlighter-rouge&quot;&gt;.mpp&lt;/code&gt; 文件，才能开启 C++20 modules 编译，如果只有 cpp 文件，默认是不会开启模块编译的。&lt;/p&gt;
+
+&lt;p&gt;但是，如果我们仅仅只是想在 cpp 文件中使用模块的 Headerunits 特性，比如引入一些 STL Headerunits 在 cpp 中使用，
+那么我们也可以通过设置 &lt;code class=&quot;highlighter-rouge&quot;&gt;set_policy(&quot;build.c++.modules&quot;, true)&lt;/code&gt; 来强行开启 C++ Modules 编译，例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mode.debug&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mode.release&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_languages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;c++20&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_policy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;build.c++.modules&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;工程文件监视和自动构建&quot;&gt;工程文件监视和自动构建&lt;/h3&gt;
+
+&lt;p&gt;这个版本中，我们新增了 &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake watch&lt;/code&gt; 插件命令，可以自动监视项目文件更新，然后触发自动构建，或者运行一些自定义命令。&lt;/p&gt;
+
+&lt;p&gt;这通常用于个人开发时候，实现快速的实时增量编译，而不需要每次手动执行编译命令，提高开发效率。&lt;/p&gt;
+
+&lt;h4 id=&quot;项目更新后自动构建&quot;&gt;项目更新后自动构建&lt;/h4&gt;
+
+&lt;p&gt;默认行为就是监视整个项目根目录，任何文件改动都会触发项目的增量编译。&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch
+watching /private/tmp/test/src/&lt;span class=&quot;k&quot;&gt;**&lt;/span&gt; ..
+watching /private/tmp/test/&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; ..
+/private/tmp/test/src/main.cpp modified
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 25%]: ccache compiling.release src/main.cpp
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 50%]: linking.release &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;100%]: build ok!
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;监视指定目录&quot;&gt;监视指定目录&lt;/h4&gt;
+
+&lt;p&gt;我们也可以监视指定的代码目录，缩小监视范围，提升监视性能。&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -d src
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -d &lt;span class=&quot;s2&quot;&gt;&quot;src;tests/*&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;上面的命令，会去递归监视所有子目录，如果想要仅仅监视当前目录下的文件，不进行递归监视，可以使用下面的命令。&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -p src
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -p &lt;span class=&quot;s2&quot;&gt;&quot;src;tests/*&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;监视并运行指定命令&quot;&gt;监视并运行指定命令&lt;/h4&gt;
+
+&lt;p&gt;如果想在自动构建后，还想自动运行构建的程序，我们可以使用自定义的命令集。&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -c &lt;span class=&quot;s2&quot;&gt;&quot;xmake; xmake run&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;上面的命令列表是作为字符串传递，这对于复杂命令参数，需要转义比较繁琐不够灵活，那么我们可以使用下面的方式进行任意命令的设置。&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -- &lt;span class=&quot;nb&quot;&gt;echo &lt;/span&gt;hello xmake!
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -- xmake run --help
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;监视并运行目标程序&quot;&gt;监视并运行目标程序&lt;/h4&gt;
+
+&lt;p&gt;尽管我们可以通过自定义命令来实现目标程序的自动运行，但是我们也提供了更加方便的参数来实现这个行为。&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -r
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch --run
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;100%]: build ok!
+hello world!
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;&lt;img src=&quot;/static/img/xmake/xmake-watch.gif&quot; width=&quot;60%&quot; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;监视并运行-lua-脚本&quot;&gt;监视并运行 lua 脚本&lt;/h4&gt;
+
+&lt;p&gt;我们还可以监视文件更新后，运行指定的 lua 脚本，实现更加灵活复杂的命令定制。&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -s /tmp/test.lua
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;我们还可以再脚本中获取所有更新的文件路径列表和事件。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;events&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;-- TODO handle events&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;mac-catalyst-支持&quot;&gt;Mac Catalyst 支持&lt;/h3&gt;
+
+&lt;p&gt;MAc Catalyst 是苹果后来新推的一项让 iPad App 带入 Mac 的方案，通过 Mac Catalyst 构建的 Mac App 与您的 iPad App 共享代码，而且您可以单独为 Mac 添加更多功能。&lt;/p&gt;
+
+&lt;p&gt;新版本中，我们新增了 Mac Catalyst 目标的构建支持，在 macOS 平台上，我们只需要添加 &lt;code class=&quot;highlighter-rouge&quot;&gt;--appledev=catalyst&lt;/code&gt; 配置选项，就可以支持编译现有的 iOS 代码，并让它在 macOS 上运行起来，而无需做任何改动。&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f --appledev&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;catalyst
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;我们可以在 &lt;a href=&quot;https://github.com/xmake-io/xmake/tree/master/tests/projects/objc/iosapp_with_framework&quot;&gt;iosapp_with_framework&lt;/a&gt; 这个测试项目中体验 Mac Catalyst 程序的编译运行。&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 36%]: processing.xcode.release src/framework/Info.plist
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 40%]: cache compiling.release src/framework/test.m
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 44%]: linking.release &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 48%]: generating.xcode.release test.framework
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 56%]: compiling.xcode.release src/app/Assets.xcassets
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 56%]: processing.xcode.release src/app/Info.plist
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 60%]: cache compiling.release src/app/ViewController.m
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 60%]: cache compiling.release src/app/SceneDelegate.m
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 60%]: cache compiling.release src/app/main.m
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 60%]: cache compiling.release src/app/AppDelegate.m
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 60%]: compiling.xcode.release src/app/Base.lproj/LaunchScreen.storyboard
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 60%]: compiling.xcode.release src/app/Base.lproj/Main.storyboard
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 88%]: linking.release demo
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 92%]: generating.xcode.release demo.app
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;100%]: build ok!
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake run
+2022-08-26 15:11:03.581 demo[86248:9087199] add&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;1, 2&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;: 3
+2022-08-26 15:11:03.581 demo[86248:9087199] hello xmake!
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;&lt;img src=&quot;/static/img/xmake/mac-catalyst.png&quot; width=&quot;60%&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;改进远程编译&quot;&gt;改进远程编译&lt;/h3&gt;
+
+&lt;h4 id=&quot;拉取远程构建文件&quot;&gt;拉取远程构建文件&lt;/h4&gt;
+
+&lt;p&gt;对于远程编译，我们新增加了一个拉取远程文件的命令，通常可用于远程编译完成后，下载远程的目标生成文件，库文件到本地。&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake service --pull &lt;span class=&quot;s1&quot;&gt;&#39;build/**&#39;&lt;/span&gt; outputdir
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;我们可以通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;--pull &#39;build/**&#39;&lt;/code&gt; 模式匹配需要下载的文件，可以是构建文件，也可以是其他文件。&lt;/p&gt;
+
+&lt;p&gt;注：文件是按项目隔离的，只能指定下载当前项目下的文件，并不会让用户下载服务器上其他目录下的文件，避免一些安全隐患。&lt;/p&gt;
+
+&lt;h4 id=&quot;实时回显输出&quot;&gt;实时回显输出&lt;/h4&gt;
+
+&lt;p&gt;先前的版本在使用远程编译的时候，客户端是无法实时输出服务端的编译信息的，由于缓存的存在，本地看到的编译进度信息都是一块一块刷新出来，体验不是很好。&lt;/p&gt;
+
+&lt;p&gt;因此我们加上了行缓冲刷新支持，提高了输出回显的实时性，使得用户在远程编译时，更接近本地编译的体验。&lt;/p&gt;
+
+&lt;h3 id=&quot;改进分布式编译调度算法&quot;&gt;改进分布式编译调度算法&lt;/h3&gt;
+
+&lt;p&gt;我们对 xmake 的分布式编译的服务器节点调度也做了进一步改进，加上了 cpu 负载和内存资源的权重，而不仅仅通过 cpu core 数量来分配任务。&lt;/p&gt;
+
+&lt;p&gt;因此，如果某些节点负载过高，我们会优先将编译任务调度到相当比较空闲的节点上去，充分利用所有编译资源。&lt;/p&gt;
+
+&lt;h3 id=&quot;更灵活的-cmake-包查找&quot;&gt;更灵活的 cmake 包查找&lt;/h3&gt;
+
+&lt;h4 id=&quot;指定链接&quot;&gt;指定链接&lt;/h4&gt;
+
+&lt;p&gt;对于 cmake 包，我们新增了 &lt;code class=&quot;highlighter-rouge&quot;&gt;link_libraries&lt;/code&gt; 配置选项，让用户在查找使用 cmake 包的时候，可以自定义配置包依赖的链接库，甚至对 target 链接的支持。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake::xxx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;link_libraries&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;abc::lib1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;abc::lib2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}}})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;xmake 在查找 cmake 包的时候，会自动追加下面的配置，改进对 links 库的提取。&lt;/p&gt;
+
+&lt;div class=&quot;language-cmake highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;target_link_libraries&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;test PRIVATE ABC::lib1 ABC::lib2&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;指定搜索模式&quot;&gt;指定搜索模式&lt;/h4&gt;
+
+&lt;p&gt;另外，我们增加的搜索模式配置：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake::xxx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;search_mode&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;config&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}})&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake::xxx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;search_mode&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;module&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}})&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake::xxx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;-- both&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;比如指定 config 搜索模式，告诉 cmake 从 &lt;code class=&quot;highlighter-rouge&quot;&gt;XXXConfig.cmake&lt;/code&gt; 中查找包。&lt;/p&gt;
+
+&lt;p&gt;xmake 在查找 cmake 包的时候，内部会自动追加下面的配置。&lt;/p&gt;
+
+&lt;div class=&quot;language-cmake highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;find_package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;ABC CONFIG REQUIRED&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;armccarmclangrc-增量编译支持&quot;&gt;armcc/armclang/rc 增量编译支持&lt;/h3&gt;
+
+&lt;p&gt;在新版本中，我们对 keil 的 armcc/armclang 编译器也进行头文件依赖分析，来支持增量编译。&lt;/p&gt;
+
+&lt;p&gt;另外，msvc 的 rc.exe 资源编译器本身是无法提供头文件依赖分析的，但是 cl.exe 的预处理器却是可以处理资源文件的。
+因此我们可以通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;cl.exe /E test.rc&lt;/code&gt; 去预处理资源文件，从中提取依赖信息，来实现资源文件的增量编译支持。&lt;/p&gt;
+
+&lt;p&gt;目前测试下来，效果还不错，同时我们也对内部 ICON/BITMAP 的资源引用依赖也做了支持。&lt;/p&gt;
+
+&lt;h3 id=&quot;其他问题修复&quot;&gt;其他问题修复&lt;/h3&gt;
+
+&lt;p&gt;我们对构建缓存也做了很多修复，它将比之前的版本更加的稳定。另外我们也精简了 CMakelists 的生成。&lt;/p&gt;
+
+&lt;p&gt;更多细节改进见下面的更新日志：&lt;/p&gt;
+
+&lt;h2 id=&quot;更新内容&quot;&gt;更新内容&lt;/h2&gt;
+
+&lt;h3 id=&quot;新特性&quot;&gt;新特性&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2555&quot;&gt;#2555&lt;/a&gt;: 添加 fwatcher 模块和 &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake watch&lt;/code&gt; 插件命令&lt;/li&gt;
+  &lt;li&gt;添加 &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake service --pull &#39;build/**&#39; outputdir&lt;/code&gt; 命令去拉取远程构建服务器上的文件&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/2641&quot;&gt;#2641&lt;/a&gt;: 改进 C++20 模块, 支持 headerunits 和 project 生成&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2679&quot;&gt;#2679&lt;/a&gt;: 支持 Mac Catalyst 构建&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;改进&quot;&gt;改进&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2576&quot;&gt;#2576&lt;/a&gt;: 改进从 cmake 中查找包，提供更过灵活的可选配置&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2577&quot;&gt;#2577&lt;/a&gt;: 改进 add_headerfiles()，增加 &lt;code class=&quot;highlighter-rouge&quot;&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;install&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt; 支持&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2603&quot;&gt;#2603&lt;/a&gt;: 为 ccache 默认禁用 &lt;code class=&quot;highlighter-rouge&quot;&gt;-fdirectives-only&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2580&quot;&gt;#2580&lt;/a&gt;: 设置 stdout 到 line 缓冲输出&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2571&quot;&gt;#2571&lt;/a&gt;: 改进分布式编译的调度算法，增加 cpu/memory 状态权重&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2410&quot;&gt;#2410&lt;/a&gt;: 改进 cmakelists 生成&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2690&quot;&gt;#2690&lt;/a&gt;: 改机传递 toolchains 到包&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2686&quot;&gt;#2686&lt;/a&gt;: 改进 armcc/armclang 支持增量编译&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2562&quot;&gt;#2562&lt;/a&gt;: 改进 rc.exe 对引用文件依赖的解析和增量编译支持&lt;/li&gt;
+  &lt;li&gt;改进默认的并行构建任务数&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;bugs-修复&quot;&gt;Bugs 修复&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2614&quot;&gt;#2614&lt;/a&gt;: 为 msvc 修复构建 submodules2 测试工程&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2620&quot;&gt;#2620&lt;/a&gt;: 修复构建缓存导致的增量编译问题&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2177&quot;&gt;#2177&lt;/a&gt;: 修复 python.library 在 macOS 上段错误崩溃&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2708&quot;&gt;#2708&lt;/a&gt;: 修复 mode.coverage 规则的链接错误&lt;/li&gt;
+  &lt;li&gt;修复 ios/macOS framework 和 application 的 rpath 加载路径&lt;/li&gt;
+&lt;/ul&gt;
+
+</description>
+        <pubDate>Thu, 25 Aug 2022 00:00:00 +0800</pubDate>
+        <link>https://tboox.org/cn/2022/08/25/xmake-update-v2.7.1/</link>
+        <guid isPermaLink="true">https://tboox.org/cn/2022/08/25/xmake-update-v2.7.1/</guid>
+        
+        <category>xmake</category>
+        
+        <category>lua</category>
+        
+        <category>C/C++</category>
+        
+        <category>remote</category>
+        
+        <category>ccache</category>
+        
+        <category>C++20</category>
+        
+        <category>Modules</category>
+        
+        <category>headerunits</category>
+        
+        <category>fs-watcher</category>
+        
+        
+        <category>xmake</category>
+        
+      </item>
     
       <item>
         <title>Xmake v2.6.6 Released, Support Distributed Compilation and Build Cache</title>
@@ -4111,577 +4817,6 @@ cmake version 3.19.3
         <pubDate>Mon, 07 Mar 2022 00:00:00 +0800</pubDate>
         <link>https://tboox.org/2022/03/07/xmake-update-v2.6.4/</link>
         <guid isPermaLink="true">https://tboox.org/2022/03/07/xmake-update-v2.6.4/</guid>
-        
-        <category>xmake</category>
-        
-        <category>lua</category>
-        
-        <category>C/C++</category>
-        
-        <category>Vcpkg</category>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>xmake v2.6.4 发布，大量包管理特性改进</title>
-        <description>&lt;p&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;Xmake&lt;/a&gt; 是一个基于 Lua 的轻量级跨平台构建工具。&lt;/p&gt;
-
-&lt;p&gt;它非常的轻量，没有任何依赖，因为它内置了 Lua 运行时。&lt;/p&gt;
-
-&lt;p&gt;它使用 xmake.lua 维护项目构建，相比 makefile/CMakeLists.txt，配置语法更加简洁直观，对新手非常友好，短时间内就能快速入门，能够让用户把更多的精力集中在实际的项目开发上。&lt;/p&gt;
-
-&lt;p&gt;我们能够使用它像 Make/Ninja 那样可以直接编译项目，也可以像 CMake/Meson 那样生成工程文件，另外它还有内置的包管理系统来帮助用户解决 C/C++ 依赖库的集成使用问题。&lt;/p&gt;
-
-&lt;p&gt;目前，Xmake 主要用于 C/C++ 项目的构建，但是同时也支持其他 native 语言的构建，可以实现跟 C/C++ 进行混合编译，同时编译速度也是非常的快，可以跟 Ninja 持平。&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Xmake = Build backend + Project Generator + Package Manager
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;项目源码&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/about/course&quot;&gt;入门课程&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;新特性介绍&quot;&gt;新特性介绍&lt;/h2&gt;
-
-&lt;h3 id=&quot;更灵活的包扩展&quot;&gt;更灵活的包扩展&lt;/h3&gt;
-
-&lt;p&gt;现在，我们可以通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;set_base&lt;/code&gt; 接口去继承一个已有的包的全部配置，然后在此基础上重写部分配置。&lt;/p&gt;
-
-&lt;p&gt;这通常在用户自己的项目中，修改 &lt;a href=&quot;https://github.com/xmake-io/xmake-repo&quot;&gt;xmake-repo&lt;/a&gt; 官方仓库的内置包比较有用，比如：修复改 urls，修改版本列表，安装逻辑等等。&lt;/p&gt;
-
-&lt;p&gt;例如，修改内置 zlib 包的 url，切到自己的 zlib 源码地址。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;myzlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_base&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_urls&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;https://github.com/madler/zlib.git&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;package_end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;myzlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;system&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alias&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;我们也可以用来单纯添加一个别名包。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;onetbb&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_base&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;tbb&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;我们可以通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;add_requires(&quot;onetbb&quot;)&lt;/code&gt; 集成安装 tbb 包，只是包名不同而已。&lt;/p&gt;
-
-&lt;h3 id=&quot;包管理支持工具链切换&quot;&gt;包管理支持工具链切换&lt;/h3&gt;
-
-&lt;p&gt;之前，我们限制了只能在 cross 平台下切换包安装的工具链，新版本中，我们可以支持更多平台下，对工具链的切换。&lt;/p&gt;
-
-&lt;p&gt;例如：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xrepo install --toolchains&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;clang zlib
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;我们可以在 linux 等平台上，快速切换到 clang 工具链编译安装 zlib 库。&lt;/p&gt;
-
-&lt;p&gt;我们也可以在 xmake.lua 的配置文件中去切换他们。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toolchains&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;gcc-11&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}})&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;不同的工具链安装的 zlib 包，会被分别存储在不同目录，互不干扰，不会存在编译器差异导致的链接兼容问题。&lt;/p&gt;
-
-&lt;h3 id=&quot;内置的包虚拟环境&quot;&gt;内置的包虚拟环境&lt;/h3&gt;
-
-&lt;p&gt;Xrepo 命令之前已经很好的支持了包虚拟环境管理，&lt;code class=&quot;highlighter-rouge&quot;&gt;xrepo env shell&lt;/code&gt;，但是对于复杂的包环境，还是需要用户自己配置一个 xmake.lua 文件，用于管理自己的包环境。&lt;/p&gt;
-
-&lt;p&gt;例如，我们需要一个常用的开发环境 shell，默认带有 cmake, python 和 vs/autoconf 等常用的开发工具链，我们需要自己起一个配置文件 devel.lua。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;python&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;is_host&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;linux&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;bsd&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;macosx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;pkg-config&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;autoconf&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;automake&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;libtool&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;elseif&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;is_host&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;windows&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_toolchains&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;msvc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;然后，执行下面的命令去导入到全局配置。&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xrepo env --add devel.lua
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;这样，我们可以通过下面的命令，去加载 shell 绑定这个环境：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xrepo env -b devel shell
-&lt;span class=&quot;gp&quot;&gt;&amp;gt; &lt;/span&gt;cmake --version
-cmake version 3.19.3
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;而在新版本中，我们内置了一些常用的环境，可以通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;xrepo env -l&lt;/code&gt; 查看：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xrepo env -l
-  - msvc
-  - llvm-mingw
-  - llvm
-  - mingw-w64
-  - devel
-  - python3
-  - depot_tools
-  - python2
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;其中 devel 也在里面，所以，我们只需要执行 &lt;code class=&quot;highlighter-rouge&quot;&gt;xrepo env -b devel shell&lt;/code&gt; 就可以带起一个 devel 开发环境，而不需要自己配置它们。&lt;/p&gt;
-
-&lt;p&gt;像 python, msvc 等也都是一些比较常用的环境，都可以直接使用。&lt;/p&gt;
-
-&lt;p&gt;当然，我们也支持临时在本地创建一个 xmake.lua 来配置加载包环境，而不放置到全局配置中去。&lt;/p&gt;
-
-&lt;h3 id=&quot;自定义安装包下载&quot;&gt;自定义安装包下载&lt;/h3&gt;
-
-&lt;p&gt;我们可以通过新增的 &lt;code class=&quot;highlighter-rouge&quot;&gt;on_download&lt;/code&gt; 接口，自定义包的下载逻辑，通常用不到，使用 Xmake 的内置下载就足够了。&lt;/p&gt;
-
-&lt;p&gt;如果用户自建私有仓库，对包的下载有更复杂的鉴权机制，特殊处理逻辑，那么可以重写内部的下载逻辑来实现。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;on_download&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;opt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;-- download packages:urls() to opt.sourcedir&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;opt 参数里面，可以获取到下载包的目的源码目录 &lt;code class=&quot;highlighter-rouge&quot;&gt;opt.sourcedir&lt;/code&gt;，我们只需要从 &lt;code class=&quot;highlighter-rouge&quot;&gt;package:urls()&lt;/code&gt; 获取到包地址，下载下来就可以了。&lt;/p&gt;
-
-&lt;p&gt;然后，根据需要，添加一些自定义的处理逻辑。另外，自己可以添加下载缓存处理等等。&lt;/p&gt;
-
-&lt;h3 id=&quot;asn1-程序构建支持&quot;&gt;ASN.1 程序构建支持&lt;/h3&gt;
-
-&lt;p&gt;ASN.1 程序，需要借助 &lt;a href=&quot;https://github.com/vlm/asn1c&quot;&gt;ASN.1 Compiler&lt;/a&gt; 去生成相关的 .c 文件参与项目编译。&lt;/p&gt;
-
-&lt;p&gt;而 Xmake 内置提供了 &lt;code class=&quot;highlighter-rouge&quot;&gt;add_rules(&quot;asn1c&quot;)&lt;/code&gt; 规则去处理 &lt;code class=&quot;highlighter-rouge&quot;&gt;.c&lt;/code&gt; 文件生成，&lt;code class=&quot;highlighter-rouge&quot;&gt;add_requires(&quot;asn1c&quot;)&lt;/code&gt; 自动拉取集成 ASN.1 编译器工具。&lt;/p&gt;
-
-&lt;p&gt;下面是一个基础的配置例子：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mode.debug&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mode.release&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;asn1c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.asn1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;asn1c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;asn1c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;具体见 &lt;a href=&quot;https://github.com/xmake-io/xmake/tree/master/tests/projects/c/asn1c&quot;&gt;完整例子工程&lt;/a&gt;。&lt;/p&gt;
-
-&lt;h3 id=&quot;支持全平台构建-swift-程序&quot;&gt;支持全平台构建 Swift 程序&lt;/h3&gt;
-
-&lt;p&gt;之前，Xmake 仅支持 macOS 下借助 Xcode 工具链实现对 Swift 程序的构建，新版本中，我们也进行了改进，可以独立使用 swift 工具链，支持在 linux/windows 上构架 swift 程序，用法跟之前相同。&lt;/p&gt;
-
-&lt;h3 id=&quot;支持指定符号列表导出&quot;&gt;支持指定符号列表导出&lt;/h3&gt;
-
-&lt;p&gt;在之前的版本中，我们提供了 &lt;code class=&quot;highlighter-rouge&quot;&gt;utils.symbols.export_all&lt;/code&gt; 对 windows 的 dll 库实现自动的完整符号导出。&lt;/p&gt;
-
-&lt;p&gt;这尽管很方便，但只能支持 windows 程序，并且全量导出对生成的 dll 大小不好控制，有可能会存在不少根本不需要的内部符号被导出。&lt;/p&gt;
-
-&lt;p&gt;而，我们新版本提供的 &lt;code class=&quot;highlighter-rouge&quot;&gt;utils.symbols.export_list&lt;/code&gt; 规则，可以在 xmake.lua 里面直接定义导出的符号列表，例如：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;shared&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/foo.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;utils.symbols.export_list&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;symbols&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;s2&quot;&gt;&quot;add&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-        &lt;span class=&quot;s2&quot;&gt;&quot;sub&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}})&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;或者，在 &lt;code class=&quot;highlighter-rouge&quot;&gt;*.export.txt&lt;/code&gt; 文件中添加导出的符号列表。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;shared&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/foo.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/foo.export.txt&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;utils.symbols.export_list&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;完整的工程例子见：&lt;a href=&quot;https://github.com/xmake-io/xmake/tree/dev/tests/projects/c/shared_library_export_list&quot;&gt;导出符号例子&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;通过指定符号导出，我们可以使得生成的动态库尽可能的小，无关的内部符号完全不去导出它们，另外这个规则支持 linux, macOS 和 windows，更加的通用。&lt;/p&gt;
-
-&lt;p&gt;它内部会自动使用 .def, version scripts 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;--exported_symbols_list&lt;/code&gt; 去处理符号导出。&lt;/p&gt;
-
-&lt;h3 id=&quot;内置支持-linker-scripts&quot;&gt;内置支持 linker scripts&lt;/h3&gt;
-
-&lt;p&gt;新版中，我们也内置了 对 linker scripts 和 version scripts 文件的支持，我们可以使用 &lt;code class=&quot;highlighter-rouge&quot;&gt;add_files&lt;/code&gt; 直接添加它们，而不需要配置 &lt;code class=&quot;highlighter-rouge&quot;&gt;add_ldflags(&quot;-Txxx.lds&quot;)&lt;/code&gt;。&lt;/p&gt;
-
-&lt;p&gt;当前支持 &lt;code class=&quot;highlighter-rouge&quot;&gt;.ld&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;.lds&lt;/code&gt; 作为 linker scripts 配置文件来添加：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mode.debug&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mode.release&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/main.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/main.lds&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;我们也支持 &lt;code class=&quot;highlighter-rouge&quot;&gt;.ver&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;.map&lt;/code&gt; 后缀文件作为 version script 来添加。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;shared&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/foo.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/foo.map&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;foo.map 文件内容如下：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-    &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;global:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-        &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;foo;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-
-    &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;local:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-        &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;*;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h2 id=&quot;更新内容&quot;&gt;更新内容&lt;/h2&gt;
-
-&lt;h3 id=&quot;新特性&quot;&gt;新特性&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2011&quot;&gt;#2011&lt;/a&gt;: 支持继承和局部修改官方包，例如对现有的包更换 urls 和 versions&lt;/li&gt;
-  &lt;li&gt;支持在 sparc, alpha, powerpc, s390x 和 sh4 上编译运行 xmake&lt;/li&gt;
-  &lt;li&gt;为 package() 添加 on_download 自定义下载&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2021&quot;&gt;#2021&lt;/a&gt;: 支持 Linux/Windows 下构建 Swift 程序&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2024&quot;&gt;#2024&lt;/a&gt;: 添加 asn1c 支持&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2031&quot;&gt;#2031&lt;/a&gt;: 为 add_files 增加 linker scripts 和 version scripts 支持&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2033&quot;&gt;#2033&lt;/a&gt;: 捕获 ctrl-c 去打印当前运行栈，用于调试分析卡死问题&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/2059&quot;&gt;#2059&lt;/a&gt;: 添加 &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake update --integrate&lt;/code&gt; 命令去整合 shell&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2070&quot;&gt;#2070&lt;/a&gt;: 添加一些内置的 xrepo env 环境配置&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/2117&quot;&gt;#2117&lt;/a&gt;: 支持为任意平台传递工具链到包&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2121&quot;&gt;#2121&lt;/a&gt;: 支持导出指定的符号列表，可用于减少动态库的大小&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;改进&quot;&gt;改进&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2036&quot;&gt;#2036&lt;/a&gt;: 改进 xrepo 支持从配置文件批量安装包，例如：&lt;code class=&quot;highlighter-rouge&quot;&gt;xrepo install xxx.lua&lt;/code&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2039&quot;&gt;#2039&lt;/a&gt;: 改进 vs generator 的 filter 目录展示&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2025&quot;&gt;#2025&lt;/a&gt;: 支持为 phony 和 headeronly 目标生成 vs 工程&lt;/li&gt;
-  &lt;li&gt;优化 vs 和 codesign 的探测速度&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2077&quot;&gt;#2077&lt;/a&gt;: 改进 vs 工程生成器去支持 cuda&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;bugs-修复&quot;&gt;Bugs 修复&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2005&quot;&gt;#2005&lt;/a&gt;: 修复 path.extension&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2008&quot;&gt;#2008&lt;/a&gt;: 修复 windows manifest 文件编译&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2016&quot;&gt;#2016&lt;/a&gt;: 修复 vs project generator 里，对象文件名冲突导致的编译失败&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-        <pubDate>Mon, 07 Mar 2022 00:00:00 +0800</pubDate>
-        <link>https://tboox.org/cn/2022/03/07/xmake-update-v2.6.4/</link>
-        <guid isPermaLink="true">https://tboox.org/cn/2022/03/07/xmake-update-v2.6.4/</guid>
-        
-        <category>xmake</category>
-        
-        <category>lua</category>
-        
-        <category>C/C++</category>
-        
-        <category>Package</category>
-        
-        <category>Manager</category>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>Xmake v2.6.3 released, Support Vcpkg manifest mode</title>
-        <description>&lt;p&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;Xmake&lt;/a&gt; is a lightweight cross-platform build utility based on Lua.&lt;/p&gt;
-
-&lt;p&gt;It is very lightweight and has no dependencies because it has a built-in Lua runtime.&lt;/p&gt;
-
-&lt;p&gt;It uses xmake.lua to maintain project builds and its configuration syntax is very simple and readable.&lt;/p&gt;
-
-&lt;p&gt;We can use it to build project directly like Make/Ninja, or generate project files like CMake/Meson, and it also has a built-in package management system to help users solve the integrated use of C/C++ dependent libraries.&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Xmake = Build backend + Project Generator + Package Manager
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;Github&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://xmake.io/&quot;&gt;Document&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;new-version-changes&quot;&gt;New version changes&lt;/h2&gt;
-
-&lt;p&gt;This version mainly adds the following features:&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;Implement version selection of vcpkg package through vcpkg’s manifest mode&lt;/li&gt;
-  &lt;li&gt;Python module build support&lt;/li&gt;
-  &lt;li&gt;Support integration of Xrepo/Xmake package management in CMakeLists.txt&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;The rest are mainly some scattered functional improvements and Bugs fixes. You can see the details of the update at the end of the following. Some major changes will be explained one by one below.&lt;/p&gt;
-
-&lt;h2 id=&quot;introduction-of-new-features&quot;&gt;Introduction of new features&lt;/h2&gt;
-
-&lt;h3 id=&quot;support-vcpkg-manifest-mode&quot;&gt;Support Vcpkg manifest mode&lt;/h3&gt;
-
-&lt;p&gt;In the new version, Xmake adds vcpkg manifest mode support, through which we can support the version selection of vcpkg package, for example:&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;vcpkg::zlib 1.2.11+10&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;vcpkg::fmt &amp;gt;=8.0.1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;baseline&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;50fd3d9957195575849a49fa591e645f1d8e7156&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}})&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;vcpkg::libpng&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;features&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;apng&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}}})&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;vcpkg::zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;vcpkg::fmt&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;vcpkg::libpng&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;However, the version selection of vcpkg is still quite limited. It must be hard-coded to specify the baseline, and version semantic selection such as &lt;code class=&quot;highlighter-rouge&quot;&gt;&amp;lt;=1.0&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;1.x&lt;/code&gt; is not supported, but it is better than the previous version that cannot be selected.&lt;/p&gt;
-
-&lt;h3 id=&quot;using-xrepos-package-management-in-cmake&quot;&gt;Using Xrepo’s package management in CMake&lt;/h3&gt;
-
-&lt;p&gt;CMake wrapper for &lt;a href=&quot;https://xrepo.xmake.io/&quot;&gt;Xrepo&lt;/a&gt; C and C++ package manager.&lt;/p&gt;
-
-&lt;p&gt;This allows using CMake to build your project, while using Xrepo to manage
-dependent packages. This project is partially inspired by
-&lt;a href=&quot;https://github.com/conan-io/cmake-conan&quot;&gt;cmake-conan&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;Example use cases for this project:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Existing CMake projects which want to use Xrepo to manage packages.&lt;/li&gt;
-  &lt;li&gt;New projects which have to use CMake, but want to use Xrepo to manage
-packages.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h4 id=&quot;use-package-from-official-repository&quot;&gt;Use package from official repository&lt;/h4&gt;
-
-&lt;p&gt;Xrepo official repository: &lt;a href=&quot;https://github.com/xmake-io/xmake-repo&quot;&gt;xmake-repo&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://github.com/xmake-io/xrepo-cmake/blob/main/xrepo.cmake&quot;&gt;xrepo.cmake&lt;/a&gt; provides &lt;code class=&quot;highlighter-rouge&quot;&gt;xrepo_package&lt;/code&gt; function to manage packages.&lt;/p&gt;
-
-&lt;div class=&quot;language-cmake highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nf&quot;&gt;xrepo_package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
-    &lt;span class=&quot;s2&quot;&gt;&quot;foo 1.2.3&quot;&lt;/span&gt;
-    [CONFIGS feature1=true,feature2=false]
-    [MODE debug|release]
-    [OUTPUT verbose|diagnosis|quiet]
-    [DIRECTORY_SCOPE]
-&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;Some of the function arguments correspond directly to Xrepo command options.&lt;/p&gt;
-
-&lt;p&gt;After calling &lt;code class=&quot;highlighter-rouge&quot;&gt;xrepo_package(foo)&lt;/code&gt;, there are two ways to use &lt;code class=&quot;highlighter-rouge&quot;&gt;foo&lt;/code&gt; package:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Call &lt;code class=&quot;highlighter-rouge&quot;&gt;find_package(foo)&lt;/code&gt; if package provides cmake modules to find it
-    &lt;ul&gt;
-      &lt;li&gt;Refer to CMake &lt;a href=&quot;https://cmake.org/cmake/help/latest/command/find_package.html&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;find_package&lt;/code&gt;&lt;/a&gt; documentation for more details&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;If the package does not provide cmake modules, &lt;code class=&quot;highlighter-rouge&quot;&gt;foo_INCLUDE_DIR&lt;/code&gt; and
-&lt;code class=&quot;highlighter-rouge&quot;&gt;foo_LINK_DIR&lt;/code&gt; variables will be set to the package include and library paths.
-Use these variables to setup include and library paths in your CMake code.
-    &lt;ul&gt;
-      &lt;li&gt;If &lt;code class=&quot;highlighter-rouge&quot;&gt;DIRECTORY_SCOPE&lt;/code&gt; is specified, &lt;code class=&quot;highlighter-rouge&quot;&gt;xrepo_package&lt;/code&gt; will run following code
-(so that user only need to specify lib name in &lt;code class=&quot;highlighter-rouge&quot;&gt;target_link_libraries&lt;/code&gt;)
-        &lt;div class=&quot;language-cmake highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;include_directories&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;foo_INCLUDE_DIR&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;nb&quot;&gt;link_directories&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;foo_LINK_DIR&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-        &lt;/div&gt;
-      &lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Here’s an example &lt;code class=&quot;highlighter-rouge&quot;&gt;CMakeLists.txt&lt;/code&gt; that uses &lt;code class=&quot;highlighter-rouge&quot;&gt;gflags&lt;/code&gt; package version 2.2.2
-managed by Xrepo.&lt;/p&gt;
-
-&lt;div class=&quot;language-cmake highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;cmake_minimum_required&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;VERSION 3.13.0&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;nb&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;foo&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;c1&quot;&gt;# Download xrepo.cmake if not exists in build directory.&lt;/span&gt;
-&lt;span class=&quot;nb&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;NOT EXISTS &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;CMAKE_BINARY_DIR&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;/xrepo.cmake&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;nb&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;STATUS &lt;span class=&quot;s2&quot;&gt;&quot;Downloading xrepo.cmake from https://github.com/xmake-io/xrepo-cmake/&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;# mirror https://cdn.jsdelivr.net/gh/xmake-io/xrepo-cmake@main/xrepo.cmake&lt;/span&gt;
-    &lt;span class=&quot;nb&quot;&gt;file&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;DOWNLOAD &lt;span class=&quot;s2&quot;&gt;&quot;https://raw.githubusercontent.com/xmake-io/xrepo-cmake/main/xrepo.cmake&quot;&lt;/span&gt;
-                  &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;CMAKE_BINARY_DIR&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;/xrepo.cmake&quot;&lt;/span&gt;
-                  TLS_VERIFY ON&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;nb&quot;&gt;endif&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-
-&lt;span class=&quot;c1&quot;&gt;# Include xrepo.cmake so we can use xrepo_package function.&lt;/span&gt;
-&lt;span class=&quot;nb&quot;&gt;include&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;CMAKE_BINARY_DIR&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;/xrepo.cmake&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;c1&quot;&gt;# Call `xrepo_package` function to use gflags 2.2.2 with specific configs.&lt;/span&gt;
-&lt;span class=&quot;nf&quot;&gt;xrepo_package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;gflags 2.2.2&quot;&lt;/span&gt; CONFIGS &lt;span class=&quot;s2&quot;&gt;&quot;shared=true,mt=true&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;c1&quot;&gt;# `xrepo_package` sets `gflags_DIR` variable in parent scope because gflags&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;# provides cmake modules. So we can now call `find_package` to find gflags&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;# package.&lt;/span&gt;
-&lt;span class=&quot;nb&quot;&gt;find_package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;gflags CONFIG COMPONENTS shared&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;use-package-from-3rd-repository&quot;&gt;Use package from 3rd repository&lt;/h4&gt;
-
-&lt;p&gt;In addition to installing packages from officially maintained repository,
-Xrepo can also install packages from third-party package managers such as vcpkg/conan/conda/pacman/homebrew/apt/dub/cargo.&lt;/p&gt;
-
-&lt;p&gt;For the use of the command line, we can refer to the documentation: &lt;a href=&quot;https://xrepo.xmake.io/#/getting_started?id=install-packages-from-third-party-package-manager&quot;&gt;Xrepo command usage&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;We can also use it directly in cmake to install packages from third-party repositories, just add the repository name as a namespace. e.g. &lt;code class=&quot;highlighter-rouge&quot;&gt;vcpkg::zlib&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;conan::pcre2&lt;/code&gt;&lt;/p&gt;
-
-&lt;h5 id=&quot;conan&quot;&gt;Conan&lt;/h5&gt;
-
-&lt;div class=&quot;language-cmake highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nf&quot;&gt;xrepo_package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;conan::gflags/2.2.2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h5 id=&quot;conda&quot;&gt;Conda&lt;/h5&gt;
-
-&lt;div class=&quot;language-cmake highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nf&quot;&gt;xrepo_package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;conda::gflags 2.2.2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h5 id=&quot;vcpkg&quot;&gt;Vcpkg&lt;/h5&gt;
-
-&lt;div class=&quot;language-cmake highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nf&quot;&gt;xrepo_package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;vcpkg::gflags&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h5 id=&quot;homebrew&quot;&gt;Homebrew&lt;/h5&gt;
-
-&lt;div class=&quot;language-cmake highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nf&quot;&gt;xrepo_package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;brew::gflags&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;python-module-building-support&quot;&gt;Python module building support&lt;/h3&gt;
-
-&lt;p&gt;We can use this rule to generate python library modules with pybind11, which will adjust the module name of the python library.&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mode.release&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mode.debug&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;pybind11&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;example&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;python.library&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;pybind11&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_languages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;c++11&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;with soabi:&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mode.release&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mode.debug&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;pybind11&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;example&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;python.library&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;soabi&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;pybind11&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_languages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;c++11&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;added-delete-header-file-list-interface&quot;&gt;Added delete header file list interface&lt;/h3&gt;
-
-&lt;p&gt;Through this interface, the specified file can be removed from the list of header files added by the &lt;code class=&quot;highlighter-rouge&quot;&gt;add_headerfiles&lt;/code&gt; interface, for example:&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_headerfiles&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;remove_headerfiles&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/test.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;In the above example, all header files except &lt;code class=&quot;highlighter-rouge&quot;&gt;test.h&lt;/code&gt; can be added from the &lt;code class=&quot;highlighter-rouge&quot;&gt;src&lt;/code&gt; directory, of course, this can also be achieved by &lt;code class=&quot;highlighter-rouge&quot;&gt;add_headerfiles(&quot;src/*.h|test.h&quot;)&lt;/code&gt; to achieve the same purpose , but this way is more flexible.&lt;/p&gt;
-
-&lt;h3 id=&quot;added-on_config-configuration-script&quot;&gt;Added on_config configuration script&lt;/h3&gt;
-
-&lt;p&gt;After &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake config&lt;/code&gt; is executed, this script is executed before Build, which is usually used for configuration work before compilation. It differs from on_load in that on_load is executed as soon as the target is loaded, and the execution timing is earlier.&lt;/p&gt;
-
-&lt;p&gt;If some configuration cannot be configured prematurely in on_load, it can be configured in on_config.&lt;/p&gt;
-
-&lt;p&gt;In addition, its execution time is earlier than before_build, and the approximate execution flow is as follows:&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;on_load -&amp;gt; after_load -&amp;gt; on_config -&amp;gt; before_build -&amp;gt; on_build -&amp;gt; after_build
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;built-in-github-proxy-mirror-configuration&quot;&gt;Built-in Github proxy mirror configuration&lt;/h3&gt;
-
-&lt;p&gt;Xmake provides some built-in mirror configurations that can be used directly, such as github’s mirror acceleration:&lt;/p&gt;
-
-&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; g --proxy_pac=github_mirror.lua
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;We don’t have to write pac.lua ourselves, we can use it directly to speed up the download of github sources.&lt;/p&gt;
-
-&lt;h2 id=&quot;changelog&quot;&gt;Changelog&lt;/h2&gt;
-
-&lt;h3 id=&quot;new-features&quot;&gt;New features&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1928&quot;&gt;#1298&lt;/a&gt;: Support vcpkg manifest mode and select version for package/install&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1896&quot;&gt;#1896&lt;/a&gt;: Add &lt;code class=&quot;highlighter-rouge&quot;&gt;python.library&lt;/code&gt; rule to build pybind modules&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1939&quot;&gt;#1939&lt;/a&gt;: Add &lt;code class=&quot;highlighter-rouge&quot;&gt;remove_files&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;remove_headerfiles&lt;/code&gt; and mark &lt;code class=&quot;highlighter-rouge&quot;&gt;del_files&lt;/code&gt; as deprecated&lt;/li&gt;
-  &lt;li&gt;Made on_config as the official api for rule/target&lt;/li&gt;
-  &lt;li&gt;Add riscv32/64 support&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1970&quot;&gt;#1970&lt;/a&gt;: Add CMake wrapper for Xrepo C and C++ package manager.&lt;/li&gt;
-  &lt;li&gt;Add builtin github mirror pac files, &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake g --proxy_pac=github_mirror.lua&lt;/code&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;changes&quot;&gt;Changes&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1923&quot;&gt;#1923&lt;/a&gt;: Improve to build linux driver, support set custom linux-headers path&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1962&quot;&gt;#1962&lt;/a&gt;: Improve armclang toolchain to support to build asm&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/1959&quot;&gt;#1959&lt;/a&gt;: Improve vstudio project generator&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1969&quot;&gt;#1969&lt;/a&gt;: Add default option description&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;bugs-fixed&quot;&gt;Bugs fixed&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1875&quot;&gt;#1875&lt;/a&gt;: Fix deploy android qt apk issue&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/1973&quot;&gt;#1973&lt;/a&gt;: Fix merge static archive&lt;/li&gt;
-&lt;/ul&gt;
-
-</description>
-        <pubDate>Sat, 22 Jan 2022 00:00:00 +0800</pubDate>
-        <link>https://tboox.org/2022/01/22/xmake-update-v2.6.3/</link>
-        <guid isPermaLink="true">https://tboox.org/2022/01/22/xmake-update-v2.6.3/</guid>
         
         <category>xmake</category>
         
