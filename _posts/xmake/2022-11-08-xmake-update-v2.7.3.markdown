@@ -397,7 +397,7 @@ add_cxxflags("clang::-stdlib=libc++")
 add_cxxflags("gcc::-stdlib=libc++")
 ```
 
-Or.
+Or
 
 ```lua
 add_cxxflags("-stdlib=libc++", {tools = "clang"})
