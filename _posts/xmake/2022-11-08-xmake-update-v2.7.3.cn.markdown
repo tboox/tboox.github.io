@@ -435,15 +435,15 @@ Xmake 新增了一个 `set_exceptions` 抽象化配置接口，我们可以通�
 例如：
 
 ```lua
-    on_config(function (target)
-        if (target:has_tool("cxx", "cl")) then
-            target:add("cxflags", "/EHsc", {force = true})
-            target:add("defines", "_HAS_EXCEPTIONS=1", {force = true})
-        elseif(target:has_tool("cxx", "clang") or target:has_tool("cxx", "clang-cl")) then
-            target:add("cxflags", "-fexceptions", {force = true})
-            target:add("cxflags", "-fcxx-exceptions", {force = true})
-        end
-    end)
+on_config(function (target)
+    if (target:has_tool("cxx", "cl")) then
+        target:add("cxflags", "/EHsc", {force = true})
+        target:add("defines", "_HAS_EXCEPTIONS=1", {force = true})
+    elseif(target:has_tool("cxx", "clang") or target:has_tool("cxx", "clang-cl")) then
+        target:add("cxflags", "-fexceptions", {force = true})
+        target:add("cxflags", "-fcxx-exceptions", {force = true})
+    end
+end)
 ```
 
 而通过这个接口，我们就可以抽象化成编译器无关的方式去配置它们。

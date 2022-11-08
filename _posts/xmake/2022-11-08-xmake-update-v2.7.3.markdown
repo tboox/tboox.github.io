@@ -432,15 +432,15 @@ Normally, if we configure them via the add_cxxflags interface, it would be cumbe
 For example
 
 ```lua
-    on_config(function (target)
-        if (target:has_tool("cxx", "cl")) then
-            target:add("cxflags", "/EHsc", {force = true})
-            target:add("defines", "_HAS_EXCEPTIONS=1", {force = true})
-        elseif(target:has_tool("cxx", "clang") or target:has_tool("cxx", "clang-cl")) then
-            target:add("cxflags", "-fexceptions", {force = true})
-            target:add("cxflags", "-fcxx-exceptions", {force = true})
-        end
-    end)
+on_config(function (target)
+    if (target:has_tool("cxx", "cl")) then
+        target:add("cxflags", "/EHsc", {force = true})
+        target:add("defines", "_HAS_EXCEPTIONS=1", {force = true})
+    elseif(target:has_tool("cxx", "clang") or target:has_tool("cxx", "clang-cl")) then
+        target:add("cxflags", "-fexceptions", {force = true})
+        target:add("cxflags", "-fcxx-exceptions", {force = true})
+    end
+end)
 ```
 
 And with this interface, we can abstract to configure them in a compiler-independent way.
