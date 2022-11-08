@@ -183,13 +183,13 @@ package("sfml")
 因此，在用户端，我们对 graphics 的组件使用，可以从
 
 ```lua
-    add_packages("sfml", {components = {"graphics", "window", "system"})
+add_packages("sfml", {components = {"graphics", "window", "system"})
 ```
 
 简化为：
 
 ```lua
-    add_packages("sfml", {components = "graphics")
+add_packages("sfml", {components = "graphics")
 ```
 
 因为，只要我们开启了 graphics 组件，它也会自动启用依赖的 window 和 system 组件，并且自动保证链接顺序正确。
@@ -217,14 +217,14 @@ $ ls -l /usr/local/opt/sfml/lib/pkgconfig
 我们只需要，对每个组件配置它的 extsources：
 
 ```lua
-    if is_plat("macosx") then
-        add_extsources("brew::sfml/sfml-all")
-    end
+if is_plat("macosx") then
+    add_extsources("brew::sfml/sfml-all")
+end
 
-    on_component("graphics", function (package, component)
-        -- ...
-        component:add("extsources", "brew::sfml/sfml-graphics")
-    end)
+on_component("graphics", function (package, component)
+    -- ...
+    component:add("extsources", "brew::sfml/sfml-graphics")
+end)
 ```
 
 ##### 默认的全局组件配置

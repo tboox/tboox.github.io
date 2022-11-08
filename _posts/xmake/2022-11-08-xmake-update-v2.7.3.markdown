@@ -180,13 +180,13 @@ The above configuration tells the package that our graphics component will have 
 So, on the user side, our use of the graphics component can be done from the
 
 ```lua
-    add_packages("sfml", {components = {"graphics", "window", "system"})
+add_packages("sfml", {components = {"graphics", "window", "system"})
 ```
 
 Simplified to.
 
 ```lua
-    add_packages("sfml", {components = "graphics")
+add_packages("sfml", {components = "graphics")
 ```
 
 Because, as soon as we turn on the graphics component, it will also automatically enable the dependent window and system components and automatically ensure that the links are in the right order.
@@ -214,14 +214,14 @@ $ ls -l /usr/local/opt/sfml/lib/pkgconfig
 We just need, for each component, to configure its extsources: the
 
 ```lua
-    if is_plat("macosx") then
-        add_extsources("brew::sfml/sfml-all")
-    end
+if is_plat("macosx") then
+    add_extsources("brew::sfml/sfml-all")
+end
 
-    on_component("graphics", function (package, component)
-        -- ...
-        component:add("extsources", "brew::sfml/sfml-graphics")
-    end)
+on_component("graphics", function (package, component)
+    -- ...
+    component:add("extsources", "brew::sfml/sfml-graphics")
+end)
 ```
 
 ##### Default Global Component Configuration
