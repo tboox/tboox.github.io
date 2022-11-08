@@ -29,6 +29,8 @@ Xmake ~= Make/Ninja + CMake/Meson + Vcpkg/Conan + distcc + ccache/sccache
 * [官方文档](https://xmake.io/#/zh-cn/)
 * [入门课程](https://xmake.io/#/zh-cn/about/course)
 
+<img src="https://xmake.io/assets/img/index/package.gif" width="650px" />
+
 ## 新特性介绍
 
 ### 包组件支持
