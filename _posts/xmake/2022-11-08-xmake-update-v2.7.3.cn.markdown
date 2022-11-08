@@ -407,7 +407,7 @@ add_cxxflags("-stdlib=libc++", {tools = "clang"})
 add_cxxflags("-stdlib=libc++", {tools = "gcc"})
 ```
 
-!> 不仅仅是编译flags，对 add_ldflags 等链接 flags，也是同样生效的。
+注：不仅仅是编译flags，对 add_ldflags 等链接 flags，也是同样生效的。
 
 ### renderdoc 调试器支持
 

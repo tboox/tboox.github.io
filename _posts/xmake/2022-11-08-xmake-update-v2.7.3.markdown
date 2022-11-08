@@ -404,7 +404,7 @@ add_cxxflags("-stdlib=libc++", {tools = "clang"})
 add_cxxflags("-stdlib=libc++", {tools = "gcc"})
 ```
 
-! > Not just compile flags, but also for link flags such as add_ldflags, which also work.
+Note: Not just compile flags, but also for link flags such as add_ldflags, which also work.
 
 ### renderdoc debugger support
 
