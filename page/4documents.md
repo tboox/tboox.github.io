@@ -17,7 +17,7 @@ icon: book
 
 #### TBOX
 
-- [Online Documents](https://tboox.io/)
+- [Online Documents](https://docs.tboox.org)
 - [Online Articles](/category/#tbox)
 
 ## Comments
