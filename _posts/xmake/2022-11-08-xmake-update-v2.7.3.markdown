@@ -26,7 +26,7 @@ Xmake ~= Make/Ninja + CMake/Meson + Vcpkg/Conan + distcc + ccache/sccache
 * [Github](https://github.com/xmake-io/xmake)
 * [Document](https://xmake.io/)
 
-<img src="https://xmake.io/assets/img/index/package.gif" width="650px" />
+<img src="https://github.com/xmake-io/xmake-docs/raw/master/assets/img/index/package.gif" width="650px" />
 
 ## Introduction of new features
 
