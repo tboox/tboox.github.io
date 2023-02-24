@@ -103,6 +103,12 @@ src/main.v:6: $finish called at 0 (1s)
 
 More complete examples: [iVerilog Examples](https://github.com/xmake-io/xmake/tree/master/tests/projects/embed/iverilog)
 
+
+
+
+
+
+
 #### Verilator Simulator
 
 Through `add_requires("verilator")` configuration, we can automatically pull the verilator toolchain package, and then use `set_toolchains("@verilator")` to automatically bind to the toolchain to compile the project.

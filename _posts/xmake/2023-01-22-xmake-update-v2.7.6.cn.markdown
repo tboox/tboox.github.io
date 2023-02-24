@@ -106,6 +106,12 @@ src/main.v:6: $finish called at 0 (1s)
 
 更多完整例子：[iVerilog Examples](https://github.com/xmake-io/xmake/tree/master/tests/projects/embed/iverilog)
 
+
+
+
+
+
+
 #### Verilator 仿真器
 
 通过 `add_requires("verilator")` 配置，我们能够自动拉取 verilator 工具链包，然后使用 `set_toolchains("@verilator")` 自动绑定到工具链来编译工程。
