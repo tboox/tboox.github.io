@@ -5,9 +5,797 @@
     <description>Focus on cross-platform development using c language</description>
     <link>https://tboox.org/</link>
     <atom:link href="https://tboox.org/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Fri, 24 Feb 2023 09:30:20 +0800</pubDate>
-    <lastBuildDate>Fri, 24 Feb 2023 09:30:20 +0800</lastBuildDate>
+    <pubDate>Wed, 05 Apr 2023 22:55:28 +0800</pubDate>
+    <lastBuildDate>Wed, 05 Apr 2023 22:55:28 +0800</lastBuildDate>
     <generator>Jekyll v3.1.0</generator>
+    
+      <item>
+        <title>Xmake v2.7.8 released, Improve package virtual environment and build speed</title>
+        <description>&lt;p&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;Xmake&lt;/a&gt; is a lightweight cross-platform build utility based on Lua.&lt;/p&gt;
+
+&lt;p&gt;It is very lightweight and has no dependencies because it has a built-in Lua runtime.&lt;/p&gt;
+
+&lt;p&gt;It uses xmake.lua to maintain project builds and its configuration syntax is very simple and readable.&lt;/p&gt;
+
+&lt;p&gt;We can use it to build project directly like Make/Ninja, or generate project files like CMake/Meson, and it also has a built-in package management system to help users solve the integrated use of C/C++ dependent libraries.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Xmake = Build backend + Project Generator + Package Manager + [Remote|Distributed] Build + Cache
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Although not very precise, we can still understand Xmake in the following way:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Xmake ≈ Make/Ninja + CMake/Meson + Vcpkg/Conan + distcc + ccache/sccache
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;Github&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://xmake.io/&quot;&gt;Document&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://github.com/xmake-io/xmake-docs/raw/master/assets/img/index/package.gif&quot; width=&quot;650px&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;introduction-of-new-features&quot;&gt;Introduction of new features&lt;/h2&gt;
+
+&lt;h3 id=&quot;quickly-switch-temporary-virtual-environments&quot;&gt;Quickly switch temporary virtual environments&lt;/h3&gt;
+
+&lt;p&gt;Xmake has long supported the virtual environment management of packages, and can switch between different package environments through configuration files.&lt;/p&gt;
+
+&lt;p&gt;We can customize some package configurations by adding the xmake.lua file in the current directory, and then enter a specific package virtual environment.&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib 1.2.11&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;python 3.x&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;luajit&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xrepo&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; env shell
+&lt;/span&gt;&amp;gt; python --version
+&amp;gt; luajit --version
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;You can also switch environments by importing custom environment configuration files:&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xrepo&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; env --add /tmp/base.lua
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xrepo&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; env -b base shell
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;In the new version, we have made further improvements, allowing Xrepo to temporarily specify the list of environment packages that need to be bound directly on the command line to achieve fast switching without any configuration.&lt;/p&gt;
+
+&lt;p&gt;And it supports specifying multiple package environments at the same time.&lt;/p&gt;
+
+&lt;p&gt;For example, we want to enter an environment with python 3.0, luajit and cmake, just execute:&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xrepo&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; env -b &quot;python 3.x,luajit,cmake&quot; shell
+&lt;/span&gt;[python, luajit, cmake] $ python --version
+Python 3.10.6
+[python, luajit, cmake] $ cmake --version
+cmake version 3.25.3
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Xmake will automatically install the relevant dependencies, and then open a new shell environment. There is also a prompt prompt on the left side of the terminal in the new environment.&lt;/p&gt;
+
+&lt;p&gt;If we want to exit the current environment, we only need to execute&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[python, luajit, cmake] $ xrepo env quit
+$
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;improve-code-feature-detection&quot;&gt;Improve code feature detection&lt;/h3&gt;
+
+&lt;p&gt;A series of detection interfaces such as has_cfuncs/check_cxxsnippets have been provided in option, and there are corresponding auxiliary APIs to help detection.&lt;/p&gt;
+
+&lt;p&gt;For related documents, please refer to: &lt;a href=&quot;https://xmake.io/#/zh-cn/manual/helper_interfaces&quot;&gt;helper detection interface&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;However, the current detection interface provided by option is only for the global platform tool chain, and it is impossible to perform targeted detection according to each specific target configuration.&lt;/p&gt;
+
+&lt;p&gt;Because the target itself may also have dependent packages, different tool chains, compilation macros and other differences, the detection results will also have some differences.&lt;/p&gt;
+
+&lt;p&gt;Therefore, if users want more flexible and fine-grained detection of the compilation characteristics of each target target, they can use the target target instance interface provided by the new version.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;target: has_cfuncs&lt;/li&gt;
+  &lt;li&gt;target: has_cxxfuncs&lt;/li&gt;
+  &lt;li&gt;target:has_ctypes&lt;/li&gt;
+  &lt;li&gt;target:has_cxxtypes&lt;/li&gt;
+  &lt;li&gt;target: has_cincludes&lt;/li&gt;
+  &lt;li&gt;target:has_cxxincludes&lt;/li&gt;
+  &lt;li&gt;target:has_cflags&lt;/li&gt;
+  &lt;li&gt;target:has_cxxflags&lt;/li&gt;
+  &lt;li&gt;target:has_features&lt;/li&gt;
+  &lt;li&gt;target: check_csnippets&lt;/li&gt;
+  &lt;li&gt;target: check_cxxsnippets&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Here, only for some of the more commonly used interfaces, a little introduction to the usage.&lt;/p&gt;
+
+&lt;h4 id=&quot;targethas_cfuncs&quot;&gt;target:has_cfuncs&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Check whether the target compilation configuration can obtain the given C function&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This should be used in &lt;code class=&quot;highlighter-rouge&quot;&gt;on_config&lt;/code&gt;, for example, it can be used to determine whether the current target can obtain some function interfaces of the zlib dependent package, and then automatically define &lt;code class=&quot;highlighter-rouge&quot;&gt;HAVE_INFLATE&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;on_config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+         &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;has_cfuncs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;inflate&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;includes&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;zlib.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+             &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;defines&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;HAVE_INFLATE&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+         &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+     &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Although option also provides similar detection functions, the detection of option uses the global platform tool chain, which cannot be accompanied by some compilation configurations related to target.
+It is also impossible to set different compilation toolchains according to the target to adapt the detection, and it is impossible to detect some interfaces in the package.&lt;/p&gt;
+
+&lt;p&gt;If we only want a coarse-grained detection function interface, and the target does not additionally set different tool chains, then the detection function provided by option is sufficient.&lt;/p&gt;
+
+&lt;p&gt;If you want more fine-grained control over detection, you can use the detection features provided by the target instance interface.&lt;/p&gt;
+
+&lt;h4 id=&quot;targethas_cxxfuncs&quot;&gt;target:has_cxxfuncs&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Check whether the target compilation configuration can obtain the given C++ function&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The usage is similar to &lt;a href=&quot;#targethas_cfuncs&quot;&gt;target:has_cfuncs&lt;/a&gt;, except that it is mainly used to detect C++ functions.&lt;/p&gt;
+
+&lt;p&gt;However, while detecting functions, we can also additionally configure std languages to assist detection.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;target:has_cxxfuncs(&quot;foo&quot;, {includes = &quot;foo.h&quot;, configs = {languages = &quot;cxx17&quot;}})
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;targethas_ctypes&quot;&gt;target:has_ctypes&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Check whether the target compilation configuration can obtain the given C type&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This should be used in &lt;code class=&quot;highlighter-rouge&quot;&gt;on_config&lt;/code&gt; like this:&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;on_config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+         &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;has_ctypes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;z_stream&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;includes&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;zlib.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+             &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;defines&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;HAVE_ZSTEAM_T&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+         &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+     &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;targethas_cflags&quot;&gt;target:has_cflags&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Check whether the target compilation configuration can obtain the given C compilation flags&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;on_config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+         &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;has_cxxflags&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;-fPIC&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+             &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;defines&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;HAS_PIC&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+         &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+     &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;targethas_cincludes&quot;&gt;target:has_cincludes&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Check whether the target compilation configuration can obtain the given C header file&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This should be used in &lt;code class=&quot;highlighter-rouge&quot;&gt;on_config&lt;/code&gt;, for example, it can be used to determine whether the current target can obtain the zlib.h header file of the zlib dependency package, and then automatically define &lt;code class=&quot;highlighter-rouge&quot;&gt;HAVE_INFLATE&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;on_config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+         &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;has_cincludes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+             &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;defines&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;HAVE_ZLIB_H&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+         &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+     &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;targetcheck_cxxsnippets&quot;&gt;target:check_cxxsnippets&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Detect if a given piece of C++ code can be compiled and linked&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This should be used in &lt;code class=&quot;highlighter-rouge&quot;&gt;on_config&lt;/code&gt; like this:&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;libtins&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;libtins&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;on_config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+         &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;has_snippet&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;check_cxxsnippets&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;test&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;[[
+             #include &amp;lt;string&amp;gt;
+             using namespace Tins;
+             void test() {
+                 std::string name = NetworkInterface::default_interface().name();
+                 printf(&quot;%s\n&quot;, name.c_str());
+             }
+         ]]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;languages&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;c++11&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;includes&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;tins/tins.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}}))&lt;/span&gt;
+         &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;has_snippet&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+             &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;defines&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;HAS_XXX&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+         &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+     &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;By default, it only checks whether the compilation link is passed. If you want to try the runtime check, you can set &lt;code class=&quot;highlighter-rouge&quot;&gt;tryrun = true&lt;/code&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;on_config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+         &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;has_int_4&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;check_cxxsnippets&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;test&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;[[
+             return (sizeof(int) == 4)? 0 : -1;
+         ]]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;languages&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;c++11&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tryrun&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}))&lt;/span&gt;
+         &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;has_int_4&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+             &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;defines&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;HAS_INT4&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+         &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+     &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;We can also continue to capture the running output of the detection by setting &lt;code class=&quot;highlighter-rouge&quot;&gt;output = true&lt;/code&gt;, and add a custom &lt;code class=&quot;highlighter-rouge&quot;&gt;main&lt;/code&gt; entry to achieve a complete test code, not just a code snippet.&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;on_config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+         &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int_size&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;check_cxxsnippets&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;test&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;[[
+             #include &amp;lt;stdio.h&amp;gt;
+             int main(int argc, char** argv) {
+                 printf(&quot;%d&quot;, sizeof(int)); return 0;
+                 return 0;
+             }
+         ]]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;languages&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;c++11&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tryrun&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;output&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}))&lt;/span&gt;
+     &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;targethas_features&quot;&gt;target:has_features&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Detect if specified C/C++ compilation feature&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;It is faster than using &lt;code class=&quot;highlighter-rouge&quot;&gt;check_cxxsnippets&lt;/code&gt;, because it only performs preprocessing once to check all compiler features, instead of calling the compiler every time to try to compile.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;target(&quot;test&quot;)
+     set_kind(&quot;binary&quot;)
+     add_files(&quot;src/*.cpp&quot;)
+     on_config(function(target)
+         if target:has_features(&quot;c_static_assert&quot;) then
+             target:add(&quot;defines&quot;, &quot;HAS_STATIC_ASSERT&quot;)
+         end
+         if target:has_features(&quot;cxx_constexpr&quot;) then
+             target:add(&quot;defines&quot;, &quot;HAS_CXX_CONSTEXPR&quot;)
+         end
+     end)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;optimize-compilation-performance&quot;&gt;Optimize compilation performance&lt;/h3&gt;
+
+&lt;p&gt;The build cache acceleration of Xmake is similar to ccache, which uses the preprocessor to calculate the hash and cache the compiled object files to achieve acceleration. It has a very obvious speed-up effect on linux/mac.&lt;/p&gt;
+
+&lt;p&gt;And because the preprocessor of msvc is very slow, it may also be that the starting process is heavier than that under linux/mac. After the build cache is enabled, the overall compilation efficiency of using msvc on windows is much slower.&lt;/p&gt;
+
+&lt;p&gt;Trying to use a third-party ccache to test and compare, the same problem, so I temporarily disabled the build cache for msvc by default, so that the overall build speed returned to normal levels.&lt;/p&gt;
+
+&lt;h3 id=&quot;clang-tidy-autofix&quot;&gt;clang-tidy autofix&lt;/h3&gt;
+
+&lt;p&gt;In the last version, we added support for clang-tidy, and you can check the code through &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake check clang.tidy&lt;/code&gt;.
+In this version, we continue to improve it and add the &lt;code class=&quot;highlighter-rouge&quot;&gt;--fix&lt;/code&gt; parameter, which allows clang-tidy to automatically fix the detected problem code.&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; check clang.tidy --fix
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; check clang.tidy --fix_errors
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; check clang.tidy --fix_notes
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;swigjava-module-build-support&quot;&gt;Swig/Java module build support&lt;/h3&gt;
+
+&lt;p&gt;Additionally, other users have helped contribute build support for Swig/Java modules.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;add_rules(&quot;mode. release&quot;, &quot;mode. debug&quot;)
+
+target(&quot;example&quot;)
+     set_kind(&#39;shared&#39;)
+     --set moduletype to java
+     add_rules(&quot;swig.c&quot;, {moduletype = &quot;java&quot;})
+     -- use swigflags to provider package name and output path of java files
+     add_files(&quot;src/example.i&quot;, {swigflags = {
+         &quot;-package&quot;,
+         &quot;com. example&quot;,
+         &quot;-outdir&quot;,
+         &quot;build/java/com/example/&quot;
+     }})
+     add_files(&quot;src/example.c&quot;)
+     before_build(function()
+         -- ensure output path exists before running swig
+         os.mkdir(&quot;build/java/com/example/&quot;)
+     end)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;For a complete example, see: &lt;a href=&quot;https://github.com/xmake-io/xmake/tree/master/tests/projects/swig/java_c&quot;&gt;Swig/Java Example&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;changelog&quot;&gt;Changelog&lt;/h2&gt;
+
+&lt;h3 id=&quot;new-features&quot;&gt;New features&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3518&quot;&gt;#3518&lt;/a&gt;: Profile compile and link performance&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3522&quot;&gt;#3522&lt;/a&gt;: Add has_cflags, has_xxx for target&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3537&quot;&gt;#3537&lt;/a&gt;: Add –fix for clang.tidy checker&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;changes&quot;&gt;Changes&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3433&quot;&gt;#3433&lt;/a&gt;: Improve to build Qt project on msys2/mingw64 and wasm&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3419&quot;&gt;#3419&lt;/a&gt;: Support fish shell envirnoment&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3455&quot;&gt;#3455&lt;/a&gt;: Dlang incremental build support&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3498&quot;&gt;#3498&lt;/a&gt;: Improve to bind package virtual envirnoments&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/3504&quot;&gt;#3504&lt;/a&gt;: Add swig java support&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3508&quot;&gt;#3508&lt;/a&gt;: Improve trybuild/cmake to support for switching toolchain&lt;/li&gt;
+  &lt;li&gt;disable build cache for msvc, because msvc’s preprocessor is too slow.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;bugs-fixed&quot;&gt;Bugs fixed&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3436&quot;&gt;#3436&lt;/a&gt;: Fix complete and menuconf&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3463&quot;&gt;#3463&lt;/a&gt;: Fix c++modules cache issue&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3545&quot;&gt;#3545&lt;/a&gt;: Fix parsedeps for armcc&lt;/li&gt;
+&lt;/ul&gt;
+
+</description>
+        <pubDate>Tue, 04 Apr 2023 00:00:00 +0800</pubDate>
+        <link>https://tboox.org/2023/04/04/xmake-update-v2.7.8/</link>
+        <guid isPermaLink="true">https://tboox.org/2023/04/04/xmake-update-v2.7.8/</guid>
+        
+        <category>xmake</category>
+        
+        <category>lua</category>
+        
+        <category>C/C++</category>
+        
+        <category>package</category>
+        
+        <category>performance</category>
+        
+        <category>mingw64</category>
+        
+        <category>wasm</category>
+        
+        
+        <category>xmake</category>
+        
+      </item>
+    
+      <item>
+        <title>Xmake v2.7.8 发布，改进包虚拟环境和构建速度</title>
+        <description>&lt;p&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;Xmake&lt;/a&gt; 是一个基于 Lua 的轻量级跨平台构建工具。&lt;/p&gt;
+
+&lt;p&gt;它非常的轻量，没有任何依赖，因为它内置了 Lua 运行时。&lt;/p&gt;
+
+&lt;p&gt;它使用 xmake.lua 维护项目构建，相比 makefile/CMakeLists.txt，配置语法更加简洁直观，对新手非常友好，短时间内就能快速入门，能够让用户把更多的精力集中在实际的项目开发上。&lt;/p&gt;
+
+&lt;p&gt;我们能够使用它像 Make/Ninja 那样可以直接编译项目，也可以像 CMake/Meson 那样生成工程文件，另外它还有内置的包管理系统来帮助用户解决 C/C++ 依赖库的集成使用问题。&lt;/p&gt;
+
+&lt;p&gt;目前，Xmake 主要用于 C/C++ 项目的构建，但是同时也支持其他 native 语言的构建，可以实现跟 C/C++ 进行混合编译，同时编译速度也是非常的快，可以跟 Ninja 持平。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Xmake = Build backend + Project Generator + Package Manager + [Remote|Distributed] Build + Cache
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;尽管不是很准确，但我们还是可以把 Xmake 按下面的方式来理解：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Xmake ≈ Make/Ninja + CMake/Meson + Vcpkg/Conan + distcc + ccache/sccache
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;项目源码&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/about/course&quot;&gt;入门课程&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://github.com/xmake-io/xmake-docs/raw/master/assets/img/index/package.gif&quot; width=&quot;650px&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;新特性介绍&quot;&gt;新特性介绍&lt;/h2&gt;
+
+&lt;h3 id=&quot;快速切换临时虚拟环境&quot;&gt;快速切换临时虚拟环境&lt;/h3&gt;
+
+&lt;p&gt;Xmake 很早就支持了包的虚拟环境管理，可以通过配置文件的方式，实现不同包环境之间的切换。&lt;/p&gt;
+
+&lt;p&gt;我们可以通过在当前目录下，添加 xmake.lua 文件，定制化一些包配置，然后进入特定的包虚拟环境。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib 1.2.11&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;python 3.x&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;luajit&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xrepo&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; env shell
+&lt;/span&gt;&amp;gt; python --version
+&amp;gt; luajit --version
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;也可以通过导入自定义环境配置文件，来切换环境：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xrepo&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; env --add /tmp/base.lua
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xrepo&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; env -b base shell
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;而在新版本中，我们进一步做了改进，让 Xrepo 能够直接在命令行临时指定需要绑定的环境包列表，实现快速切换，无需任何配置。&lt;/p&gt;
+
+&lt;p&gt;并且支持同时指定多个包环境。&lt;/p&gt;
+
+&lt;p&gt;例如，我们想进入一个带有 python 3.0, luajit 和 cmake 的环境，只需要执行：&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xrepo&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; env -b &quot;python 3.x,luajit,cmake&quot; shell
+&lt;/span&gt;[python,luajit,cmake] $ python --version
+Python 3.10.6
+[python,luajit,cmake] $ cmake --version
+cmake version 3.25.3
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Xmake 会自动安装相关依赖，然后开启一个新的 shell 环境，新环境终端左边也有 prompt 提示。&lt;/p&gt;
+
+&lt;p&gt;如果我们想退出当前环境，仅仅需要执行&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[python,luajit,cmake] $ xrepo env quit
+$
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;改进代码特性检测&quot;&gt;改进代码特性检测&lt;/h3&gt;
+
+&lt;p&gt;has_cfuncs/check_cxxsnippets 等系列检测接口，在 option 中已经有提供，并且有对应的辅助 API 来帮助检测。&lt;/p&gt;
+
+&lt;p&gt;相关文档可以参考：&lt;a href=&quot;https://xmake.io/#/zh-cn/manual/helper_interfaces&quot;&gt;辅助检测接口&lt;/a&gt;。&lt;/p&gt;
+
+&lt;p&gt;但是目前 option 提供的检测接口仅仅针对全局平台工具链，无法根据每个特定的 target 配置在针对性做一些检测。&lt;/p&gt;
+
+&lt;p&gt;因为 target 本身可能还会附带依赖包，不同的工具链，编译宏等差异性，检测结果也会有一些差异。&lt;/p&gt;
+
+&lt;p&gt;因此，如果用户想要更加灵活细粒度的检测每个 target 目标的编译特性，可以通过新版本提供的 target 目标实例接口。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;target:has_cfuncs&lt;/li&gt;
+  &lt;li&gt;target:has_cxxfuncs&lt;/li&gt;
+  &lt;li&gt;target:has_ctypes&lt;/li&gt;
+  &lt;li&gt;target:has_cxxtypes&lt;/li&gt;
+  &lt;li&gt;target:has_cincludes&lt;/li&gt;
+  &lt;li&gt;target:has_cxxincludes&lt;/li&gt;
+  &lt;li&gt;target:has_cflags&lt;/li&gt;
+  &lt;li&gt;target:has_cxxflags&lt;/li&gt;
+  &lt;li&gt;target:has_features&lt;/li&gt;
+  &lt;li&gt;target:check_csnippets&lt;/li&gt;
+  &lt;li&gt;target:check_cxxsnippets&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;这里，仅仅针对其中一些比较常用的接口，稍微展开介绍下使用方式。&lt;/p&gt;
+
+&lt;h4 id=&quot;targethas_cfuncs&quot;&gt;target:has_cfuncs&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;检测目标编译配置能否获取给定的 C 函数&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;这应该在 &lt;code class=&quot;highlighter-rouge&quot;&gt;on_config&lt;/code&gt; 中使用，比如可以用它来判断当前目标能否获取到 zlib 依赖包的一些函数接口，然后自动定义 &lt;code class=&quot;highlighter-rouge&quot;&gt;HAVE_INFLATE&lt;/code&gt;：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;on_config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;has_cfuncs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;inflate&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;includes&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;zlib.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;defines&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;HAVE_INFLATE&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;尽管 option 也提供了类似的检测功能，但 option 的检测使用的是全局的平台工具链，它无法附带上 target 相关的一些编译配置，
+也无法根据 target 设置不同编译工具链来适配检测，并且无法检测包里面的一些接口。&lt;/p&gt;
+
+&lt;p&gt;如果我们仅仅是想粗粒度的检测函数接口，并且 target 没有额外设置不同的工具链，那么 option 提供的检测功能已经足够使用了。&lt;/p&gt;
+
+&lt;p&gt;如果想要更细粒度控制检测，可以使用 target 实例接口提供的检测特性。&lt;/p&gt;
+
+&lt;h4 id=&quot;targethas_cxxfuncs&quot;&gt;target:has_cxxfuncs&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;检测目标编译配置能否获取给定的 C++ 函数&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;用法跟 &lt;a href=&quot;#targethas_cfuncs&quot;&gt;target:has_cfuncs&lt;/a&gt; 类似，只是这里主要用于检测 C++ 的函数。&lt;/p&gt;
+
+&lt;p&gt;不过，在检测函数的同时，我们还可以额外配置 std languages，来辅助检测。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;target:has_cxxfuncs(&quot;foo&quot;, {includes = &quot;foo.h&quot;, configs = {languages = &quot;cxx17&quot;}})
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;targethas_ctypes&quot;&gt;target:has_ctypes&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;检测目标编译配置能否获取给定的 C 类型&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;这应该在 &lt;code class=&quot;highlighter-rouge&quot;&gt;on_config&lt;/code&gt; 中使用，如下所示：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;on_config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;has_ctypes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;z_stream&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;includes&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;zlib.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;defines&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;HAVE_ZSTEAM_T&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;targethas_cflags&quot;&gt;target:has_cflags&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;检测目标编译配置能否获取给定的 C 编译 flags&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;on_config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;has_cxxflags&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;-fPIC&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;defines&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;HAS_PIC&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;targethas_cincludes&quot;&gt;target:has_cincludes&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;检测目标编译配置能否获取给定的 C 头文件&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;这应该在 &lt;code class=&quot;highlighter-rouge&quot;&gt;on_config&lt;/code&gt; 中使用，比如可以用它来判断当前目标能否获取到 zlib 依赖包的 zlib.h 头文件，然后自动定义 &lt;code class=&quot;highlighter-rouge&quot;&gt;HAVE_INFLATE&lt;/code&gt;：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;on_config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;has_cincludes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;defines&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;HAVE_ZLIB_H&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;targetcheck_cxxsnippets&quot;&gt;target:check_cxxsnippets&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;检测是否可以编译和链接给定的 C++ 代码片段&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;这应该在 &lt;code class=&quot;highlighter-rouge&quot;&gt;on_config&lt;/code&gt; 中使用，如下所示：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;libtins&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;libtins&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;on_config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;has_snippet&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;check_cxxsnippets&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;test&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;[[
+            #include &amp;lt;string&amp;gt;
+            using namespace Tins;
+            void test() {
+                std::string name = NetworkInterface::default_interface().name();
+                printf(&quot;%s\n&quot;, name.c_str());
+            }
+        ]]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;languages&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;c++11&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;includes&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;tins/tins.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}}))&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;has_snippet&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;defines&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;HAS_XXX&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;默认仅仅检测编译链接是否通过，如果想要尝试运行时检测，可以再设置 &lt;code class=&quot;highlighter-rouge&quot;&gt;tryrun = true&lt;/code&gt;。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;on_config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;has_int_4&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;check_cxxsnippets&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;test&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;[[
+            return (sizeof(int) == 4)? 0 : -1;
+        ]]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;languages&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;c++11&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tryrun&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}))&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;has_int_4&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;defines&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;HAS_INT4&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;我们也可以继续通过设置 &lt;code class=&quot;highlighter-rouge&quot;&gt;output = true&lt;/code&gt; 来捕获检测的运行输出，并且加上自定义的 &lt;code class=&quot;highlighter-rouge&quot;&gt;main&lt;/code&gt; 入口，实现完整的测试代码，而不仅仅是代码片段。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;on_config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int_size&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;check_cxxsnippets&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;test&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;[[
+            #include &amp;lt;stdio.h&amp;gt;
+            int main(int argc, char** argv) {
+                printf(&quot;%d&quot;, sizeof(int)); return 0;
+                return 0;
+            }
+        ]]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;languages&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;c++11&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tryrun&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;output&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}))&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;targethas_features&quot;&gt;target:has_features&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;检测是否指定的 C/C++ 编译特性&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;它相比使用 &lt;code class=&quot;highlighter-rouge&quot;&gt;check_cxxsnippets&lt;/code&gt; 来检测，会更加快一些，因为它仅仅执行一次预处理就能检测所有的编译器特性，而不是每次都去调用编译器尝试编译。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;target(&quot;test&quot;)
+    set_kind(&quot;binary&quot;)
+    add_files(&quot;src/*.cpp&quot;)
+    on_config(function (target)
+        if target:has_features(&quot;c_static_assert&quot;) then
+            target:add(&quot;defines&quot;, &quot;HAS_STATIC_ASSERT&quot;)
+        end
+        if target:has_features(&quot;cxx_constexpr&quot;) then
+            target:add(&quot;defines&quot;, &quot;HAS_CXX_CONSTEXPR&quot;)
+        end
+    end)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;优化编译性能&quot;&gt;优化编译性能&lt;/h3&gt;
+
+&lt;p&gt;Xmake 的 build cache 加速类似 ccache，采用预处理器计算 hash 后缓存编译对象文件来实现加速，它在 linux/mac 上提速效果非常明显。&lt;/p&gt;
+
+&lt;p&gt;而由于 msvc 的预处理器很慢，也可能是起进程相比 linux/mac 下更重，导致开启 build cache 后，windows 上使用 msvc 的整体编译效率反而慢了非常多。&lt;/p&gt;
+
+&lt;p&gt;尝试使用第三方的 ccache 来测试对比，也是一样的问题，因此我暂时针对 msvc 默认禁用了 build cache，使得整体构建速度恢复到正常水平。&lt;/p&gt;
+
+&lt;h3 id=&quot;clang-tidy-自动修复&quot;&gt;clang-tidy 自动修复&lt;/h3&gt;
+
+&lt;p&gt;上个版本，我们新增了对 clang-tidy 支持，可以通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake check clang.tidy&lt;/code&gt; 来检测代码。
+而在这个版本中，我们继续对它做了改进，新增了 &lt;code class=&quot;highlighter-rouge&quot;&gt;--fix&lt;/code&gt; 参数，可以让 clang-tidy 去自动修复检测出来的问题代码。&lt;/p&gt;
+
+&lt;div class=&quot;language-console highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; check clang.tidy --fix
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; check clang.tidy --fix_errors
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;xmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; check clang.tidy --fix_notes
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;swigjava-模块构建支持&quot;&gt;Swig/Java 模块构建支持&lt;/h3&gt;
+
+&lt;p&gt;另外，其他用户也帮忙贡献了 Swig/Java 模块的构建支持。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;add_rules(&quot;mode.release&quot;, &quot;mode.debug&quot;)
+
+target(&quot;example&quot;)
+    set_kind(&#39;shared&#39;)
+    -- set moduletype to java
+    add_rules(&quot;swig.c&quot;, {moduletype = &quot;java&quot;})
+    -- use swigflags to provider package name and output path of java files
+    add_files(&quot;src/example.i&quot;, {swigflags = {
+        &quot;-package&quot;,
+        &quot;com.example&quot;,
+        &quot;-outdir&quot;,
+        &quot;build/java/com/example/&quot;
+    }})
+    add_files(&quot;src/example.c&quot;)
+    before_build(function()
+        -- ensure output path exists before running swig
+        os.mkdir(&quot;build/java/com/example/&quot;)
+    end)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;完整例子见：&lt;a href=&quot;https://github.com/xmake-io/xmake/tree/master/tests/projects/swig/java_c&quot;&gt;Swig/Java Example&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;开源之夏-2023&quot;&gt;开源之夏 2023&lt;/h3&gt;
+
+&lt;p&gt;今年 Xmake 社区继续参加了开源之夏 2023 活动，它是由中科院软件所“开源软件供应链点亮计划”发起并长期支持的一项暑期开源活动
+旨在鼓励在校学生积极参与开源软件的开发维护。&lt;/p&gt;
+
+&lt;p&gt;如果有感兴趣的同学，欢迎报名参与 Xmake 社区发布的项目开发（具体项目待定中），相关详情进展，请关注：&lt;a href=&quot;https://summer-ospp.ac.cn/org/orgdetail/090748c6-6504-4d2d-9a11-f9f3e1876f7b&quot;&gt;Xmake 开源之夏&lt;/a&gt;。&lt;/p&gt;
+
+&lt;h2 id=&quot;更新内容&quot;&gt;更新内容&lt;/h2&gt;
+
+&lt;h3 id=&quot;新特性&quot;&gt;新特性&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3518&quot;&gt;#3518&lt;/a&gt;: 分析编译和链接性能&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3522&quot;&gt;#3522&lt;/a&gt;: 为 target 添加 has_cflags, has_xxx 等辅助接口&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3537&quot;&gt;#3537&lt;/a&gt;: 为 clang.tidy 检测器添加 &lt;code class=&quot;highlighter-rouge&quot;&gt;--fix&lt;/code&gt; 自动修复&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;改进&quot;&gt;改进&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3433&quot;&gt;#3433&lt;/a&gt;: 改进 QT 在 msys2/mingw64 和 wasm 上的构建支持&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3419&quot;&gt;#3419&lt;/a&gt;: 支持 fish shell 环境&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3455&quot;&gt;#3455&lt;/a&gt;: Dlang 增量编译支持&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3498&quot;&gt;#3498&lt;/a&gt;: 改进绑定包虚拟环境&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/3504&quot;&gt;#3504&lt;/a&gt;: 添加 swig java 支持&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3508&quot;&gt;#3508&lt;/a&gt;: 改进 trybuild/cmake 去支持工具链切换&lt;/li&gt;
+  &lt;li&gt;为 msvc 禁用 build cache 加速，因为 msvc 的预处理器太慢，反而极大影响构建性能。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;bugs-修复&quot;&gt;Bugs 修复&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3436&quot;&gt;#3436&lt;/a&gt;: 修复自动补全和 menuconf&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3463&quot;&gt;#3463&lt;/a&gt;: 修复 c++modules 缓存问题&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3545&quot;&gt;#3545&lt;/a&gt;: 修复 armcc 的头文件依赖解析
+败&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+        <pubDate>Tue, 04 Apr 2023 00:00:00 +0800</pubDate>
+        <link>https://tboox.org/cn/2023/04/04/xmake-update-v2.7.8/</link>
+        <guid isPermaLink="true">https://tboox.org/cn/2023/04/04/xmake-update-v2.7.8/</guid>
+        
+        <category>xmake</category>
+        
+        <category>lua</category>
+        
+        <category>C/C++</category>
+        
+        <category>package</category>
+        
+        <category>performance</category>
+        
+        <category>mingw64</category>
+        
+        <category>wasm</category>
+        
+        
+        <category>xmake</category>
+        
+      </item>
     
       <item>
         <title>Xmake v2.7.7 released, Support Haiku, Improve API check and C++ Modules</title>
@@ -496,7 +1284,7 @@ The information of target&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;tbox&lt;s
 
 &lt;p&gt;效果如下:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/static/img/xmake/haiku.jpeg&quot; width=&quot;650px&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;https://tboox.org/static/img/xmake/haiku.jpeg&quot; width=&quot;650px&quot; /&gt;&lt;/p&gt;
 
 &lt;h3 id=&quot;改进-c20-modules-支持&quot;&gt;改进 C++20 Modules 支持&lt;/h3&gt;
 
@@ -3860,712 +4648,6 @@ please input: y &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;y/n&lt;span class=
         <category>cmake</category>
         
         <category>autoconf</category>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>Xmake v2.7.1 Released, Better C++ Modules Support</title>
-        <description>&lt;p&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;Xmake&lt;/a&gt; is a lightweight cross-platform build utility based on Lua.&lt;/p&gt;
-
-&lt;p&gt;It is very lightweight and has no dependencies because it has a built-in Lua runtime.&lt;/p&gt;
-
-&lt;p&gt;It uses xmake.lua to maintain project builds and its configuration syntax is very simple and readable.&lt;/p&gt;
-
-&lt;p&gt;We can use it to build project directly like Make/Ninja, or generate project files like CMake/Meson, and it also has a built-in package management system to help users solve the integrated use of C/C++ dependent libraries.&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Xmake = Build backend + Project Generator + Package Manager + [Remote|Distributed] Build + Cache
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;Although not very precise, we can still understand Xmake in the following way:&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Xmake ~= Make/Ninja + CMake/Meson + Vcpkg/Conan + distcc + ccache/sccache
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;Github&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://xmake.io/&quot;&gt;Document&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;introduction-of-new-features&quot;&gt;Introduction of new features&lt;/h2&gt;
-
-&lt;p&gt;In this release, we have refactored and improved the C++20 Modules implementation, improved the dependency graph parsing of module files, added support for STL and User HeaderUnits, and made the CMakelists/compile_commands generator support C++ Modules.&lt;/p&gt;
-
-&lt;p&gt;In addition, we’ve added an &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake watch&lt;/code&gt; plugin that can monitor current project file updates in real time, automatically trigger incremental builds, or run some custom commands.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/xmake/xmake-watch.gif&quot; width=&quot;60%&quot; /&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;c-modules-improvements&quot;&gt;C++ Modules Improvements&lt;/h3&gt;
-
-&lt;p&gt;Xmake has long supported C++ Modules build support, and can automatically analyze dependencies between modules to maximize parallel compilation.
-In addition, Xmake uses &lt;code class=&quot;highlighter-rouge&quot;&gt;.mpp&lt;/code&gt; as the default module extension, but also supports &lt;code class=&quot;highlighter-rouge&quot;&gt;.ixxx&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;.cppm&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;.mxx&lt;/code&gt; and so on.&lt;/p&gt;
-
-&lt;p&gt;For example&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;set_languages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;c++20&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;class&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;src/*.mpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;For more examples see: &lt;a href=&quot;https://github.com/xmake-io/xmake/tree/master/tests/projects/c%2B%2B/modules&quot;&gt;C++ Modules&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;However, the previous implementation has many shortcomings.&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;no support for HeaderUnits, so you can’t use modules like stl&lt;/li&gt;
-  &lt;li&gt;the module dependency graph parsing is done by scanning the source code itself, and does not support the dependency scanning provided by the compiler, so it is not fully reliable&lt;/li&gt;
-  &lt;li&gt;do not support CMakelists generation&lt;/li&gt;
-  &lt;li&gt;compile_commands.json generation is not supported&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;In the new version, we have refactored and upgraded the implementation of C++20 module, and we support all the points mentioned above, and added support for Headerunits, so we can introduce STL and user header modules in the module.&lt;/p&gt;
-
-&lt;p&gt;Also, since higher versions of msvc and gcc have built-in scan analysis of module dependency graphs, Xmake prioritizes module dependency graph analysis with the compiler, and if the compiler does not support it (clang), then Xmake will degrade to its own source code scan implementation.&lt;/p&gt;
-
-&lt;p&gt;A related patch is available at &lt;a href=&quot;https://github.com/xmake-io/xmake/pull/2641&quot;&gt;#2641&lt;/a&gt;, with many thanks to &lt;a href=&quot;https://github.com/Arthapz&quot;&gt;@Arthapz&lt;/a&gt; for their contribution.&lt;/p&gt;
-
-&lt;p&gt;Here is an example of a module that uses STL HeaderUnits, e.g.&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;stl_headerunit$ &lt;/span&gt;xmake
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 0%]: generating.cxx.module.deps src/main.cpp
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 0%]: generating.cxx.module.deps src/hello.mpp
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 20%]: generating.cxx.headerunit.bmi iostream
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 60%]: generating.cxx.module.bmi hello
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 70%]: cache compiling.release src/main.cpp
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 80%]: linking.release stl_headerunit
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;100%]: build ok!
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;For the first compilation, we scan the module code for dependencies and then precompile stl libraries like iostream as headerunit.&lt;/p&gt;
-
-&lt;p&gt;Any subsequent recompilation will directly reuse them for compilation acceleration.&lt;/p&gt;
-
-&lt;p&gt;Note: Usually we need to add at least one &lt;code class=&quot;highlighter-rouge&quot;&gt;.mpp&lt;/code&gt; file to enable C++20 modules compilation, if there is only a cpp file, module compilation will not be enabled by default.&lt;/p&gt;
-
-&lt;p&gt;However, if we just want to use the module’s Headerunits feature in the cpp file, for example, by introducing some STL Headerunits in the cpp, then we can also set the &lt;code class=&quot;highlighter-rouge&quot;&gt;.mpp&lt;/code&gt; to &lt;code class=&quot;highlighter-rouge&quot;&gt;.mpp&lt;/code&gt;.
-then we can also force C++ Modules compilation by setting &lt;code class=&quot;highlighter-rouge&quot;&gt;set_policy(&quot;build.c++.modules&quot;, true)&lt;/code&gt;, e.g.&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mode.debug&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mode.release&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_languages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;c++20&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_policy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;build.c++.modules&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;project-file-monitoring-and-auto-build&quot;&gt;Project file monitoring and auto-build&lt;/h3&gt;
-
-&lt;p&gt;In this release, we have added the &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake watch&lt;/code&gt; plugin command to automatically monitor project files for updates and then trigger automatic builds or run some custom commands.&lt;/p&gt;
-
-&lt;p&gt;This is often used for personal development to enable fast real-time incremental builds without the need to manually execute the build command each time, improving development efficiency.&lt;/p&gt;
-
-&lt;h4 id=&quot;auto-build-after-project-update&quot;&gt;Auto-build after project update&lt;/h4&gt;
-
-&lt;p&gt;The default behavior is to monitor the entire project root, and any file changes will trigger an incremental build of the project.&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch
-watching /private/tmp/test/src/&lt;span class=&quot;k&quot;&gt;**&lt;/span&gt; .
-watching /private/tmp/test/&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; ...
-/private/tmp/test/src/main.cpp modified
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 25%]: ccache compiling.release src/main.cpp
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 50%]: linking.release &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 100%]: build ok!
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;monitoring-a-specific-directory&quot;&gt;Monitoring a specific directory&lt;/h4&gt;
-
-&lt;p&gt;We can also monitor specific code directories to narrow down the scope of monitoring and improve performance.&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -d src
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -d &lt;span class=&quot;s2&quot;&gt;&quot;src;tests/*&quot;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;The above command will recursively watch all subdirectories. If you want to only watch the files in the current directory without recursive monitoring, you can use the following command.&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -p src
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -p &lt;span class=&quot;s2&quot;&gt;&quot;src;tests/*&quot;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;watch-and-run-the-specified-command&quot;&gt;Watch and run the specified command&lt;/h4&gt;
-
-&lt;p&gt;If you want to run the build automatically even after the automatic build, we can use a custom command set.&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -c &lt;span class=&quot;s2&quot;&gt;&quot;xmake; xmake run&quot;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;The above command list is passed as a string, which is not flexible enough for complex command arguments that require escaping to be more cumbersome, so we can use the following for arbitrary commands.&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -- &lt;span class=&quot;nb&quot;&gt;echo &lt;/span&gt;hello xmake!
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -- xmake run --help
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;watching-and-running-the-target-program&quot;&gt;Watching and running the target program&lt;/h4&gt;
-
-&lt;p&gt;Although we can automate the running of the target program with custom commands, we also provide more convenient arguments to achieve this behavior.&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -r
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch --run
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;100%]: build ok!
-hello world!
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/xmake/xmake-watch.gif&quot; width=&quot;60%&quot; /&gt;&lt;/p&gt;
-
-&lt;h4 id=&quot;watching-and-running-lua-scripts&quot;&gt;Watching and running lua scripts&lt;/h4&gt;
-
-&lt;p&gt;We can also watch for file updates and run the specified lua script for more flexible and complex command customization.&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -s /tmp/test.lua
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;We can also get a list of all updated file paths and events in the script again.&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;events&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;-- TODO handle events&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;mac-catalyst-support&quot;&gt;Mac Catalyst Support&lt;/h3&gt;
-
-&lt;p&gt;MAc Catalyst is Apple’s new solution for bringing iPad apps to the Mac. Mac apps built with Mac Catalyst share code with your iPad apps, and you can add more features to your Mac separately.&lt;/p&gt;
-
-&lt;p&gt;With this new version, we’ve added support for building Mac Catalyst targets, and on macOS platforms, we just need to add the &lt;code class=&quot;highlighter-rouge&quot;&gt;-appledev=catalyst&lt;/code&gt; configuration option to support compiling existing iOS code and getting it up and running on macOS without making any changes.&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f --appledev&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;catalyst
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;We can experience the Mac in the test project &lt;a href=&quot;https://github.com/xmake-io/xmake/tree/master/tests/projects/objc/iosapp_with_framework&quot;&gt;iosapp_with_framework&lt;/a&gt; Catalyst program compile and run.&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 36%]: processing.xcode.release src/framework/Info.plist
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 40%]: cache compiling.release src/framework/test.m
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 44%]: linking.release &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 48%]: generating.xcode.release test.framework
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 56%]: compiling.xcode.release src/app/Assets.xcassets
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 56%]: processing.xcode.release src/app/Info.plist
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 60%]: cache compiling.release src/app/ViewController.m
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 60%]: cache compiling.release src/app/SceneDelegate.m
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 60%]: cache compiling.release src/app/main.m
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 60%]: cache compiling.release src/app/AppDelegate.m
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 60%]: compiling.xcode.release src/app/Base.lproj/LaunchScreen.storyboard
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 60%]: compiling.xcode.release src/app/Base.lproj/Main.storyboard
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 88%]: linking.release demo
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 92%]: generating.xcode.release demo.app
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;100%]: build ok!
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake run
-2022-08-26 15:11:03.581 demo[86248:9087199] add&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;1, 2&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;: 3
-2022-08-26 15:11:03.581 demo[86248:9087199] hello xmake!
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/xmake/mac-catalyst.png&quot; width=&quot;60%&quot; /&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;improving-remote-builds&quot;&gt;Improving remote builds&lt;/h3&gt;
-
-&lt;h4 id=&quot;pulling-remote-build-files&quot;&gt;Pulling remote build files&lt;/h4&gt;
-
-&lt;p&gt;For remote builds, we have added a new pull remote file command, which can usually be used to download remote target build files, library files locally after the remote build is complete.&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake service --pull &lt;span class=&quot;s1&quot;&gt;&#39;build/**&#39;&lt;/span&gt; outputdir
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;We can match the files to be downloaded with the &lt;code class=&quot;highlighter-rouge&quot;&gt;-pull &#39;build/**&#39;&lt;/code&gt; pattern, either build files or other files.&lt;/p&gt;
-
-&lt;p&gt;Note: Files are segregated by project, only files under the current project can be specified for download, and will not let users download files from other directories on the server to avoid some security risks.&lt;/p&gt;
-
-&lt;h4 id=&quot;real-time-echo-output&quot;&gt;Real-time echo output&lt;/h4&gt;
-
-&lt;p&gt;In the previous version, when using remote compilation, the client could not output the compilation information of the server in real time, because the cache existed, the compilation progress information seen locally was refreshed piece by piece, which was not a good experience.&lt;/p&gt;
-
-&lt;p&gt;Therefore, we added line buffer refresh support to improve the real-time output display and make the user experience closer to the local compilation when compiling remotely.&lt;/p&gt;
-
-&lt;h3 id=&quot;improve-distributed-compile-scheduling-algorithm&quot;&gt;Improve distributed compile scheduling algorithm&lt;/h3&gt;
-
-&lt;p&gt;We have also further improved the server node scheduling for xmake’s distributed compilation by adding weight to cpu load and memory resources, rather than just assigning tasks by the number of cpu cores.&lt;/p&gt;
-
-&lt;p&gt;Thus, if some nodes are overloaded, we will prioritize the compilation tasks to the nodes that are quite free and take advantage of all compilation resources.&lt;/p&gt;
-
-&lt;h3 id=&quot;more-flexible-cmake-package-lookup&quot;&gt;More flexible cmake package lookup&lt;/h3&gt;
-
-&lt;h4 id=&quot;specify-links&quot;&gt;Specify links&lt;/h4&gt;
-
-&lt;p&gt;For cmake packages, we have added the &lt;code class=&quot;highlighter-rouge&quot;&gt;link_libraries&lt;/code&gt; configuration option to allow users to customize the configuration of package dependencies and even support for target links when searching for packages to use with cmake.&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake::xxx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;link_libraries&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;abc::lib1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;abc::lib2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}}})&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;xmake automatically appends the following configuration when looking for cmake packages, improving the extraction of links libraries.&lt;/p&gt;
-
-&lt;div class=&quot;language-cmake highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;target_link_libraries&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;test PRIVATE ABC::lib1 ABC::lib2&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;specify-the-search-mode&quot;&gt;Specify the search mode&lt;/h4&gt;
-
-&lt;p&gt;In addition, we add the following search mode configuration.&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake::xxx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;search_mode&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;config&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}})&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake::xxx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;search_mode&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;module&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}})&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake::xxx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;-- both&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;Specify config search mode, for example, to tell cmake to look for packages from &lt;code class=&quot;highlighter-rouge&quot;&gt;XXXConfig.cmake&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;xmake will automatically append the following configuration internally when it looks for cmake packages.&lt;/p&gt;
-
-&lt;div class=&quot;language-cmake highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;find_package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;ABC CONFIG REQUIRED&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;armccarmclangrc-incremental-compilation-support&quot;&gt;armcc/armclang/rc incremental compilation support&lt;/h3&gt;
-
-&lt;p&gt;In the new version, we also perform header dependency analysis for keil’s armcc/armclang compiler to support incremental compilation.&lt;/p&gt;
-
-&lt;p&gt;In addition, msvc’s rc.exe resource compiler itself cannot provide header dependency analysis, but cl.exe’s preprocessor can handle resource files.
-Therefore, we can use &lt;code class=&quot;highlighter-rouge&quot;&gt;cl.exe /E test.rc&lt;/code&gt; to preprocess resource files and extract dependency information from them to achieve incremental compilation support for resource files.&lt;/p&gt;
-
-&lt;p&gt;So far, it works pretty well, and we also have support for internal ICON/BITMAP resource reference dependencies.&lt;/p&gt;
-
-&lt;h3 id=&quot;other-issue-fixes&quot;&gt;Other issue fixes&lt;/h3&gt;
-
-&lt;p&gt;We’ve also made a number of fixes to the build cache, which will be more stable than the previous version. We have also streamlined the generation of CMakelists.&lt;/p&gt;
-
-&lt;p&gt;More detailed improvements can be found in the following changelog.&lt;/p&gt;
-
-&lt;h2 id=&quot;changelog&quot;&gt;Changelog&lt;/h2&gt;
-
-&lt;h3 id=&quot;new-features&quot;&gt;New features&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2555&quot;&gt;#2555&lt;/a&gt;: Add fwatcher module and &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake watch&lt;/code&gt; plugin command&lt;/li&gt;
-  &lt;li&gt;Add &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake service --pull &#39;build/**&#39; outputdir&lt;/code&gt; to pull the given files in remote server&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/2641&quot;&gt;#2641&lt;/a&gt;: Improve C++20 modules, support headerunits and project generators&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2679&quot;&gt;#2679&lt;/a&gt;: Support Mac Catalyst&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;changes&quot;&gt;Changes&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2576&quot;&gt;#2576&lt;/a&gt;: More flexible package fetching from cmake&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2577&quot;&gt;#2577&lt;/a&gt;: Improve add_headerfiles(), add &lt;code class=&quot;highlighter-rouge&quot;&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;install&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt; support&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2603&quot;&gt;#2603&lt;/a&gt;: Disable &lt;code class=&quot;highlighter-rouge&quot;&gt;-fdirectives-only&lt;/code&gt; for ccache by default&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2580&quot;&gt;#2580&lt;/a&gt;: Set stdout to line buffering&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2571&quot;&gt;#2571&lt;/a&gt;: Improve task scheduling for parallel and distributed compilation based on memory/cpu usage&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2410&quot;&gt;#2410&lt;/a&gt;: Improve cmakelists generator&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2690&quot;&gt;#2690&lt;/a&gt;: Improve to pass toolchains to packages&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2686&quot;&gt;#2686&lt;/a&gt;: Support for incremental compilation and parse header file deps for keil/armcc/armclang&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2562&quot;&gt;#2562&lt;/a&gt;: Improve include deps for rc.exe&lt;/li&gt;
-  &lt;li&gt;Improve the default parallel building jobs number&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;bugs-fixed&quot;&gt;Bugs fixed&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2614&quot;&gt;#2614&lt;/a&gt;: Fix building submodules2 tests for msvc&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2620&quot;&gt;#2620&lt;/a&gt;: Fix build cache for incremental compilation&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2177&quot;&gt;#2177&lt;/a&gt;: Fix python.library segmentation fault for macosx&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2708&quot;&gt;#2708&lt;/a&gt;: Fix link error for mode.coverage rule&lt;/li&gt;
-  &lt;li&gt;Fix rpath for macos/iphoneos frameworks and application&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-        <pubDate>Thu, 25 Aug 2022 00:00:00 +0800</pubDate>
-        <link>https://tboox.org/2022/08/25/xmake-update-v2.7.1/</link>
-        <guid isPermaLink="true">https://tboox.org/2022/08/25/xmake-update-v2.7.1/</guid>
-        
-        <category>xmake</category>
-        
-        <category>lua</category>
-        
-        <category>C/C++</category>
-        
-        <category>remote</category>
-        
-        <category>ccache</category>
-        
-        <category>C++20</category>
-        
-        <category>Modules</category>
-        
-        <category>headerunits</category>
-        
-        <category>fs-watcher</category>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>Xmake v2.7.1 发布，更好的 C++ Modules 支持</title>
-        <description>&lt;p&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;Xmake&lt;/a&gt; 是一个基于 Lua 的轻量级跨平台构建工具。&lt;/p&gt;
-
-&lt;p&gt;它非常的轻量，没有任何依赖，因为它内置了 Lua 运行时。&lt;/p&gt;
-
-&lt;p&gt;它使用 xmake.lua 维护项目构建，相比 makefile/CMakeLists.txt，配置语法更加简洁直观，对新手非常友好，短时间内就能快速入门，能够让用户把更多的精力集中在实际的项目开发上。&lt;/p&gt;
-
-&lt;p&gt;我们能够使用它像 Make/Ninja 那样可以直接编译项目，也可以像 CMake/Meson 那样生成工程文件，另外它还有内置的包管理系统来帮助用户解决 C/C++ 依赖库的集成使用问题。&lt;/p&gt;
-
-&lt;p&gt;目前，Xmake 主要用于 C/C++ 项目的构建，但是同时也支持其他 native 语言的构建，可以实现跟 C/C++ 进行混合编译，同时编译速度也是非常的快，可以跟 Ninja 持平。&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Xmake = Build backend + Project Generator + Package Manager + [Remote|Distributed] Build + Cache
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;尽管不是很准确，但我们还是可以把 Xmake 按下面的方式来理解：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Xmake ~= Make/Ninja + CMake/Meson + Vcpkg/Conan + distcc + ccache/sccache
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;项目源码&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/about/course&quot;&gt;入门课程&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;新特性介绍&quot;&gt;新特性介绍&lt;/h2&gt;
-
-&lt;p&gt;这个版本我们对 C++20 Modules 的实现进行了重构和改进，改进了模块文件的依赖图解析，新增了对 STL 和 User HeaderUnits 的支持，同时让 CMakelists/compile_commands 生成器也支持了 C++ Modules。&lt;/p&gt;
-
-&lt;p&gt;另外，我们新增了一个 &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake watch&lt;/code&gt; 插件，可以实时监控当前工程文件更新，自动触发增量构建，或者运行一些自定义的命令。&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/xmake/xmake-watch.gif&quot; width=&quot;60%&quot; /&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;c-modules-改进&quot;&gt;C++ Modules 改进&lt;/h3&gt;
-
-&lt;p&gt;Xmake 很早就已经支持 C++ Modules 的构建支持，并且能够自动分析模块间的依赖关系，实现最大化的并行编译。
-另外，Xmake 采用 &lt;code class=&quot;highlighter-rouge&quot;&gt;.mpp&lt;/code&gt; 作为默认的模块扩展名，但是也同时支持 &lt;code class=&quot;highlighter-rouge&quot;&gt;.ixx&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;.cppm&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;.mxx&lt;/code&gt; 等扩展名。&lt;/p&gt;
-
-&lt;p&gt;例如：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;set_languages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;c++20&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;class&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;src/*.mpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;更多例子见：&lt;a href=&quot;https://github.com/xmake-io/xmake/tree/master/tests/projects/c%2B%2B/modules&quot;&gt;C++ Modules&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;但是之前的实现还存在很多不足之处：&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;不支持 HeaderUnits，因此也无法使用 stl 等模块&lt;/li&gt;
-  &lt;li&gt;自己扫描源码实现模块依赖图解析，不支持编译器提供的依赖扫描，因此不完全可靠&lt;/li&gt;
-  &lt;li&gt;不支持 CMakelists 生成&lt;/li&gt;
-  &lt;li&gt;不支持 compile_commands.json 生成&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;而在新版中，我们对 C++20 模块的实现进行了重构和升级，上面提到的几点，我们都做了支持，新增了对 Headerunits 的支持，因此我们可以在模块中引入 STL 和 用户头文件模块。&lt;/p&gt;
-
-&lt;p&gt;同时，由于 msvc 和 gcc 高版本 都已经内置对模块依赖图的扫描分析，Xmake 会优先借助编译器实现模块依赖图分析，如果编译器不支持（clang），那么 Xmake 也会退化到自己的源码扫描实现上去。&lt;/p&gt;
-
-&lt;p&gt;相关的补丁见：&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/2641&quot;&gt;#2641&lt;/a&gt;，非常感谢 &lt;a href=&quot;https://github.com/Arthapz&quot;&gt;@Arthapz&lt;/a&gt; 的贡献。&lt;/p&gt;
-
-&lt;p&gt;下面是一个使用了 STL HeaderUnits 的模块例子，例如：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;stl_headerunit$ &lt;/span&gt;xmake
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;  0%]: generating.cxx.module.deps src/main.cpp
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;  0%]: generating.cxx.module.deps src/hello.mpp
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 20%]: generating.cxx.headerunit.bmi iostream
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 60%]: generating.cxx.module.bmi hello
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 70%]: cache compiling.release src/main.cpp
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 80%]: linking.release stl_headerunit
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;100%]: build ok!
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;对于首次编译，我们会扫描模块代码之间的依赖关系，然后预编译 iostream 等 stl 库作为 headerunit。&lt;/p&gt;
-
-&lt;p&gt;之后的重新编译，都会直接复用它们，实现编译加速。&lt;/p&gt;
-
-&lt;p&gt;注：通常我们至少需要添加一个 &lt;code class=&quot;highlighter-rouge&quot;&gt;.mpp&lt;/code&gt; 文件，才能开启 C++20 modules 编译，如果只有 cpp 文件，默认是不会开启模块编译的。&lt;/p&gt;
-
-&lt;p&gt;但是，如果我们仅仅只是想在 cpp 文件中使用模块的 Headerunits 特性，比如引入一些 STL Headerunits 在 cpp 中使用，
-那么我们也可以通过设置 &lt;code class=&quot;highlighter-rouge&quot;&gt;set_policy(&quot;build.c++.modules&quot;, true)&lt;/code&gt; 来强行开启 C++ Modules 编译，例如：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mode.debug&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mode.release&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_languages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;c++20&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_policy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;build.c++.modules&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;工程文件监视和自动构建&quot;&gt;工程文件监视和自动构建&lt;/h3&gt;
-
-&lt;p&gt;这个版本中，我们新增了 &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake watch&lt;/code&gt; 插件命令，可以自动监视项目文件更新，然后触发自动构建，或者运行一些自定义命令。&lt;/p&gt;
-
-&lt;p&gt;这通常用于个人开发时候，实现快速的实时增量编译，而不需要每次手动执行编译命令，提高开发效率。&lt;/p&gt;
-
-&lt;h4 id=&quot;项目更新后自动构建&quot;&gt;项目更新后自动构建&lt;/h4&gt;
-
-&lt;p&gt;默认行为就是监视整个项目根目录，任何文件改动都会触发项目的增量编译。&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch
-watching /private/tmp/test/src/&lt;span class=&quot;k&quot;&gt;**&lt;/span&gt; ..
-watching /private/tmp/test/&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; ..
-/private/tmp/test/src/main.cpp modified
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 25%]: ccache compiling.release src/main.cpp
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 50%]: linking.release &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;100%]: build ok!
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;监视指定目录&quot;&gt;监视指定目录&lt;/h4&gt;
-
-&lt;p&gt;我们也可以监视指定的代码目录，缩小监视范围，提升监视性能。&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -d src
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -d &lt;span class=&quot;s2&quot;&gt;&quot;src;tests/*&quot;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;上面的命令，会去递归监视所有子目录，如果想要仅仅监视当前目录下的文件，不进行递归监视，可以使用下面的命令。&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -p src
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -p &lt;span class=&quot;s2&quot;&gt;&quot;src;tests/*&quot;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;监视并运行指定命令&quot;&gt;监视并运行指定命令&lt;/h4&gt;
-
-&lt;p&gt;如果想在自动构建后，还想自动运行构建的程序，我们可以使用自定义的命令集。&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -c &lt;span class=&quot;s2&quot;&gt;&quot;xmake; xmake run&quot;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;上面的命令列表是作为字符串传递，这对于复杂命令参数，需要转义比较繁琐不够灵活，那么我们可以使用下面的方式进行任意命令的设置。&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -- &lt;span class=&quot;nb&quot;&gt;echo &lt;/span&gt;hello xmake!
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -- xmake run --help
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;监视并运行目标程序&quot;&gt;监视并运行目标程序&lt;/h4&gt;
-
-&lt;p&gt;尽管我们可以通过自定义命令来实现目标程序的自动运行，但是我们也提供了更加方便的参数来实现这个行为。&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -r
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch --run
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;100%]: build ok!
-hello world!
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/xmake/xmake-watch.gif&quot; width=&quot;60%&quot; /&gt;&lt;/p&gt;
-
-&lt;h4 id=&quot;监视并运行-lua-脚本&quot;&gt;监视并运行 lua 脚本&lt;/h4&gt;
-
-&lt;p&gt;我们还可以监视文件更新后，运行指定的 lua 脚本，实现更加灵活复杂的命令定制。&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake watch -s /tmp/test.lua
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;我们还可以再脚本中获取所有更新的文件路径列表和事件。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;events&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;-- TODO handle events&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;mac-catalyst-支持&quot;&gt;Mac Catalyst 支持&lt;/h3&gt;
-
-&lt;p&gt;MAc Catalyst 是苹果后来新推的一项让 iPad App 带入 Mac 的方案，通过 Mac Catalyst 构建的 Mac App 与您的 iPad App 共享代码，而且您可以单独为 Mac 添加更多功能。&lt;/p&gt;
-
-&lt;p&gt;新版本中，我们新增了 Mac Catalyst 目标的构建支持，在 macOS 平台上，我们只需要添加 &lt;code class=&quot;highlighter-rouge&quot;&gt;--appledev=catalyst&lt;/code&gt; 配置选项，就可以支持编译现有的 iOS 代码，并让它在 macOS 上运行起来，而无需做任何改动。&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f --appledev&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;catalyst
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;我们可以在 &lt;a href=&quot;https://github.com/xmake-io/xmake/tree/master/tests/projects/objc/iosapp_with_framework&quot;&gt;iosapp_with_framework&lt;/a&gt; 这个测试项目中体验 Mac Catalyst 程序的编译运行。&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 36%]: processing.xcode.release src/framework/Info.plist
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 40%]: cache compiling.release src/framework/test.m
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 44%]: linking.release &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 48%]: generating.xcode.release test.framework
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 56%]: compiling.xcode.release src/app/Assets.xcassets
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 56%]: processing.xcode.release src/app/Info.plist
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 60%]: cache compiling.release src/app/ViewController.m
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 60%]: cache compiling.release src/app/SceneDelegate.m
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 60%]: cache compiling.release src/app/main.m
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 60%]: cache compiling.release src/app/AppDelegate.m
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 60%]: compiling.xcode.release src/app/Base.lproj/LaunchScreen.storyboard
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 60%]: compiling.xcode.release src/app/Base.lproj/Main.storyboard
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 88%]: linking.release demo
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 92%]: generating.xcode.release demo.app
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;100%]: build ok!
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake run
-2022-08-26 15:11:03.581 demo[86248:9087199] add&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;1, 2&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;: 3
-2022-08-26 15:11:03.581 demo[86248:9087199] hello xmake!
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;&lt;img src=&quot;/static/img/xmake/mac-catalyst.png&quot; width=&quot;60%&quot; /&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;改进远程编译&quot;&gt;改进远程编译&lt;/h3&gt;
-
-&lt;h4 id=&quot;拉取远程构建文件&quot;&gt;拉取远程构建文件&lt;/h4&gt;
-
-&lt;p&gt;对于远程编译，我们新增加了一个拉取远程文件的命令，通常可用于远程编译完成后，下载远程的目标生成文件，库文件到本地。&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake service --pull &lt;span class=&quot;s1&quot;&gt;&#39;build/**&#39;&lt;/span&gt; outputdir
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;我们可以通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;--pull &#39;build/**&#39;&lt;/code&gt; 模式匹配需要下载的文件，可以是构建文件，也可以是其他文件。&lt;/p&gt;
-
-&lt;p&gt;注：文件是按项目隔离的，只能指定下载当前项目下的文件，并不会让用户下载服务器上其他目录下的文件，避免一些安全隐患。&lt;/p&gt;
-
-&lt;h4 id=&quot;实时回显输出&quot;&gt;实时回显输出&lt;/h4&gt;
-
-&lt;p&gt;先前的版本在使用远程编译的时候，客户端是无法实时输出服务端的编译信息的，由于缓存的存在，本地看到的编译进度信息都是一块一块刷新出来，体验不是很好。&lt;/p&gt;
-
-&lt;p&gt;因此我们加上了行缓冲刷新支持，提高了输出回显的实时性，使得用户在远程编译时，更接近本地编译的体验。&lt;/p&gt;
-
-&lt;h3 id=&quot;改进分布式编译调度算法&quot;&gt;改进分布式编译调度算法&lt;/h3&gt;
-
-&lt;p&gt;我们对 xmake 的分布式编译的服务器节点调度也做了进一步改进，加上了 cpu 负载和内存资源的权重，而不仅仅通过 cpu core 数量来分配任务。&lt;/p&gt;
-
-&lt;p&gt;因此，如果某些节点负载过高，我们会优先将编译任务调度到相当比较空闲的节点上去，充分利用所有编译资源。&lt;/p&gt;
-
-&lt;h3 id=&quot;更灵活的-cmake-包查找&quot;&gt;更灵活的 cmake 包查找&lt;/h3&gt;
-
-&lt;h4 id=&quot;指定链接&quot;&gt;指定链接&lt;/h4&gt;
-
-&lt;p&gt;对于 cmake 包，我们新增了 &lt;code class=&quot;highlighter-rouge&quot;&gt;link_libraries&lt;/code&gt; 配置选项，让用户在查找使用 cmake 包的时候，可以自定义配置包依赖的链接库，甚至对 target 链接的支持。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake::xxx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;link_libraries&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;abc::lib1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;abc::lib2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}}})&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;xmake 在查找 cmake 包的时候，会自动追加下面的配置，改进对 links 库的提取。&lt;/p&gt;
-
-&lt;div class=&quot;language-cmake highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;target_link_libraries&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;test PRIVATE ABC::lib1 ABC::lib2&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;指定搜索模式&quot;&gt;指定搜索模式&lt;/h4&gt;
-
-&lt;p&gt;另外，我们增加的搜索模式配置：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake::xxx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;search_mode&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;config&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}})&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake::xxx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;search_mode&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;module&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}})&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake::xxx&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;-- both&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;比如指定 config 搜索模式，告诉 cmake 从 &lt;code class=&quot;highlighter-rouge&quot;&gt;XXXConfig.cmake&lt;/code&gt; 中查找包。&lt;/p&gt;
-
-&lt;p&gt;xmake 在查找 cmake 包的时候，内部会自动追加下面的配置。&lt;/p&gt;
-
-&lt;div class=&quot;language-cmake highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;find_package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;ABC CONFIG REQUIRED&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;armccarmclangrc-增量编译支持&quot;&gt;armcc/armclang/rc 增量编译支持&lt;/h3&gt;
-
-&lt;p&gt;在新版本中，我们对 keil 的 armcc/armclang 编译器也进行头文件依赖分析，来支持增量编译。&lt;/p&gt;
-
-&lt;p&gt;另外，msvc 的 rc.exe 资源编译器本身是无法提供头文件依赖分析的，但是 cl.exe 的预处理器却是可以处理资源文件的。
-因此我们可以通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;cl.exe /E test.rc&lt;/code&gt; 去预处理资源文件，从中提取依赖信息，来实现资源文件的增量编译支持。&lt;/p&gt;
-
-&lt;p&gt;目前测试下来，效果还不错，同时我们也对内部 ICON/BITMAP 的资源引用依赖也做了支持。&lt;/p&gt;
-
-&lt;h3 id=&quot;其他问题修复&quot;&gt;其他问题修复&lt;/h3&gt;
-
-&lt;p&gt;我们对构建缓存也做了很多修复，它将比之前的版本更加的稳定。另外我们也精简了 CMakelists 的生成。&lt;/p&gt;
-
-&lt;p&gt;更多细节改进见下面的更新日志：&lt;/p&gt;
-
-&lt;h2 id=&quot;更新内容&quot;&gt;更新内容&lt;/h2&gt;
-
-&lt;h3 id=&quot;新特性&quot;&gt;新特性&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2555&quot;&gt;#2555&lt;/a&gt;: 添加 fwatcher 模块和 &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake watch&lt;/code&gt; 插件命令&lt;/li&gt;
-  &lt;li&gt;添加 &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake service --pull &#39;build/**&#39; outputdir&lt;/code&gt; 命令去拉取远程构建服务器上的文件&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/2641&quot;&gt;#2641&lt;/a&gt;: 改进 C++20 模块, 支持 headerunits 和 project 生成&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2679&quot;&gt;#2679&lt;/a&gt;: 支持 Mac Catalyst 构建&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;改进&quot;&gt;改进&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2576&quot;&gt;#2576&lt;/a&gt;: 改进从 cmake 中查找包，提供更过灵活的可选配置&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2577&quot;&gt;#2577&lt;/a&gt;: 改进 add_headerfiles()，增加 &lt;code class=&quot;highlighter-rouge&quot;&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;install&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt; 支持&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2603&quot;&gt;#2603&lt;/a&gt;: 为 ccache 默认禁用 &lt;code class=&quot;highlighter-rouge&quot;&gt;-fdirectives-only&lt;/code&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2580&quot;&gt;#2580&lt;/a&gt;: 设置 stdout 到 line 缓冲输出&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2571&quot;&gt;#2571&lt;/a&gt;: 改进分布式编译的调度算法，增加 cpu/memory 状态权重&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2410&quot;&gt;#2410&lt;/a&gt;: 改进 cmakelists 生成&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2690&quot;&gt;#2690&lt;/a&gt;: 改机传递 toolchains 到包&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2686&quot;&gt;#2686&lt;/a&gt;: 改进 armcc/armclang 支持增量编译&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2562&quot;&gt;#2562&lt;/a&gt;: 改进 rc.exe 对引用文件依赖的解析和增量编译支持&lt;/li&gt;
-  &lt;li&gt;改进默认的并行构建任务数&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;bugs-修复&quot;&gt;Bugs 修复&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2614&quot;&gt;#2614&lt;/a&gt;: 为 msvc 修复构建 submodules2 测试工程&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2620&quot;&gt;#2620&lt;/a&gt;: 修复构建缓存导致的增量编译问题&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2177&quot;&gt;#2177&lt;/a&gt;: 修复 python.library 在 macOS 上段错误崩溃&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2708&quot;&gt;#2708&lt;/a&gt;: 修复 mode.coverage 规则的链接错误&lt;/li&gt;
-  &lt;li&gt;修复 ios/macOS framework 和 application 的 rpath 加载路径&lt;/li&gt;
-&lt;/ul&gt;
-
-</description>
-        <pubDate>Thu, 25 Aug 2022 00:00:00 +0800</pubDate>
-        <link>https://tboox.org/cn/2022/08/25/xmake-update-v2.7.1/</link>
-        <guid isPermaLink="true">https://tboox.org/cn/2022/08/25/xmake-update-v2.7.1/</guid>
-        
-        <category>xmake</category>
-        
-        <category>lua</category>
-        
-        <category>C/C++</category>
-        
-        <category>remote</category>
-        
-        <category>ccache</category>
-        
-        <category>C++20</category>
-        
-        <category>Modules</category>
-        
-        <category>headerunits</category>
-        
-        <category>fs-watcher</category>
         
         
         <category>xmake</category>
