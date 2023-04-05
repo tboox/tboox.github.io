@@ -39,7 +39,7 @@ Xmake 现在已经完全可以在 [Haiku 系统](https://www.haiku-os.org/) 上�
 
 效果如下:
 
-<img src="/static/img/xmake/haiku.jpeg" width="650px" />
+<img src="https://tboox.org/static/img/xmake/haiku.jpeg" width="650px" />
 
 
 
