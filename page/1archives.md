@@ -82,7 +82,6 @@ icon: archive
             </div>
 
             <!-- wwads -->
-            <br>
             {% if site.wwads_id %}
             <div class="side">
             <div class="wwads-cn wwads-vertical" data-id="{{site.wwads_id}}" style="max-width:200px"></div>
