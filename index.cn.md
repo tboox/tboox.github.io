@@ -38,7 +38,7 @@ layout: default.cn
                     {{post.excerpt}}
                 </div>
                 <div class="read-all">
- 
+
                     {% assign hasEnglish = '' %}
                     {% for post2 in site.posts %}
                         {% unless post2.url contains '/cn/' %}
@@ -99,12 +99,12 @@ layout: default.cn
     <div class="right">
         <div class="wrap">
 
-            <!-- codefund ads -->
-            {% if site.codefundads_id %}
+            <!-- wwads -->
+            {% if site.wwads_id %}
             <div class="side">
-            <div id="codefund"></div>
-            <script src="https://codefund.io/properties/{{site.codefundads_id}}/funder.js" async="async"></script>
-            </div> 
+            <div class="wwads-cn wwads-vertical" data-id="{{site.wwads_id}}" style="max-width:200px"></div>
+            <script type="text/javascript" charset="UTF-8" src="https://cdn.wwads.cn/js/makemoney.js" async></script>
+            </div>
             {% endif %}
 
             <div class="side">
@@ -151,7 +151,7 @@ layout: default.cn
                 <a href="https://xmake.io/#/zh-cn/about/course" target="_blank">
                 <img src="/static/img/xmake-course.png" alt="course" width="256" height="193">
                 </a>
-            </div> 
+            </div>
 
             <!-- wechat public -->
             <br>
@@ -161,7 +161,7 @@ layout: default.cn
                     微信公众号
                 </div>
                 <img src="/static/img/weixin_public.jpg" alt="wechat" width="256" height="284">
-            </div> 
+            </div>
 
             <!-- 其他div框放到这里 -->
             <br>
@@ -184,7 +184,7 @@ layout: default.cn
 
                     {% if max == min %}
                         {% assign diff = 1 %}
-                    {% else %}    
+                    {% else %}
                         {% assign diff = max | minus: min %}
                     {% endif %}
 
@@ -224,7 +224,7 @@ layout: default.cn
                 <script>
                 (adsbygoogle = window.adsbygoogle || []).push({});
                 </script>
-            </div> 
+            </div>
             {% endif %}
 
             <!-- baidu ads -->
