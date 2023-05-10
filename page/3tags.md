@@ -81,8 +81,7 @@ icon: tags
             <!-- wwads -->
             {% if site.wwads_id %}
             <div class="side">
-            <div class="wwads-cn wwads-vertical" data-id="{{site.wwads_id}}" style="max-width:255px"></div>
-            <script type="text/javascript" charset="UTF-8" src="https://cdn.wwads.cn/js/makemoney.js" async></script>
+            <div class="wwads-cn wwads-vertical" data-id="{{site.wwads_id}}" style="max-width:255px;height:250px"></div>
             </div>
             {% endif %}
 
