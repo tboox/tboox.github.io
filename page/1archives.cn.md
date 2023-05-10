@@ -107,8 +107,8 @@ icon: archive
                 }
             </script>
             {% endif %}
-            
-            
+
+
             <!-- qqgroup -->
             <br>
             <div class="side">
@@ -117,7 +117,7 @@ icon: archive
                     技术交流群（QQ）
                 </div>
                 <img src="/static/img/qqgroup.png" alt="qqgroup" width="256" height="284">
-            </div> 
+            </div>
 
             <!-- google ads -->
             {% if site.adsbygoogle_client %}
@@ -131,7 +131,7 @@ icon: archive
                 <script>
                 (adsbygoogle = window.adsbygoogle || []).push({});
                 </script>
-            </div> 
+            </div>
             {% endif %}
 
             <!-- baidu ads -->
