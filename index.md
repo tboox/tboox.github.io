@@ -79,14 +79,6 @@ if (getqval("lang") !== "0") {
             {% endfor %}
         </ul>
 
-        <!-- wwads -->
-        {% if site.wwads_id %}
-        <div class="side">
-        <div class="wwads-cn wwads-vertical" data-id="{{site.wwads_id}}" style="max-width:200px"></div>
-        <script type="text/javascript" charset="UTF-8" src="https://cdn.wwads.cn/js/makemoney.js" async></script>
-        </div>
-        {% endif %}
-
         <!-- baidu ads -->
         {% if site.baiduads_id1 %}
         <script type="text/javascript">
@@ -127,14 +119,6 @@ if (getqval("lang") !== "0") {
     <div class="right">
         <div class="wrap">
 
-            <!-- codefund ads -->
-            {% if site.codefundads_id %}
-            <div class="side">
-            <div id="codefund"></div>
-            <script src="https://codefund.io/properties/{{site.codefundads_id}}/funder.js" async="async"></script>
-            </div>
-            {% endif %}
-
             <div class="side">
                 <div>
                     <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
@@ -152,6 +136,14 @@ if (getqval("lang") !== "0") {
                     {% endfor %}
                 </ul>
             </div>
+
+            <!-- wwads -->
+            {% if site.wwads_id %}
+            <div class="side">
+            <div class="wwads-cn wwads-vertical" data-id="{{site.wwads_id}}" style="max-width:200px"></div>
+            <script type="text/javascript" charset="UTF-8" src="https://cdn.wwads.cn/js/makemoney.js" async></script>
+            </div>
+            {% endif %}
 
             <!-- baidu ads -->
             {% if site.baiduads_id4 %}

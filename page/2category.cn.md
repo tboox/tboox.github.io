@@ -37,15 +37,6 @@ icon: th-list
     <div class="right">
         <div class="wrap">
 
-            <!-- codefund ads -->
-            {% if site.codefundads_id %}
-            <div class="side">
-            <div id="codefund"></div>
-            <script src="https://codefund.io/properties/{{site.codefundads_id}}/funder.js" async="async"></script>
-            </div> 
-            <br>
-            {% endif %}
-
             <!-- Content -->
             <div class="side content">
                 <div>
@@ -61,6 +52,15 @@ icon: th-list
                     {% endfor %}
                 </ul>
             </div>
+
+            <!-- wwads -->
+            <br>
+            {% if site.wwads_id %}
+            <div class="side">
+            <div class="wwads-cn wwads-vertical" data-id="{{site.wwads_id}}" style="max-width:200px"></div>
+            <script type="text/javascript" charset="UTF-8" src="https://cdn.wwads.cn/js/makemoney.js" async></script>
+            </div>
+            {% endif %}
 
             <!-- baidu ads -->
             {% if site.baiduads_id4 %}
@@ -78,8 +78,8 @@ icon: th-list
                 }
             </script>
             {% endif %}
-            
-            
+
+
             <!-- qqgroup -->
             <br>
             <div class="side">
@@ -88,7 +88,7 @@ icon: th-list
                     技术交流群（QQ）
                 </div>
                 <img src="/static/img/qqgroup.png" alt="qqgroup" width="256" height="284">
-            </div> 
+            </div>
 
             <!-- google ads -->
             {% if site.adsbygoogle_client %}
@@ -102,7 +102,7 @@ icon: th-list
                 <script>
                 (adsbygoogle = window.adsbygoogle || []).push({});
                 </script>
-            </div> 
+            </div>
             {% endif %}
 
 
