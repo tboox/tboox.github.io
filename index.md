@@ -2,7 +2,7 @@
 layout: default
 ---
 
-<script> 
+<script>
 <!--
 function getqval(qvar) {
     var query = window.location.search.substring(1);
@@ -57,7 +57,7 @@ if (getqval("lang") !== "0") {
                     {{post.excerpt}}
                 </div>
                 <div class="read-all">
-                    
+
                     {% assign hasChinese = '' %}
                     {% for post2 in site.posts %}
                         {% if post2.url contains '/cn/' %}
@@ -78,6 +78,14 @@ if (getqval("lang") !== "0") {
               </li>
             {% endfor %}
         </ul>
+
+        <!-- wwads -->
+        {% if site.wwads_id %}
+        <div class="side">
+        <div class="wwads-cn wwads-vertical" data-id="{{site.wwads_id}}" style="max-width:200px"></div>
+        <script type="text/javascript" charset="UTF-8" src="https://cdn.wwads.cn/js/makemoney.js" async></script>
+        </div>
+        {% endif %}
 
         <!-- baidu ads -->
         {% if site.baiduads_id1 %}
@@ -124,7 +132,7 @@ if (getqval("lang") !== "0") {
             <div class="side">
             <div id="codefund"></div>
             <script src="https://codefund.io/properties/{{site.codefundads_id}}/funder.js" async="async"></script>
-            </div> 
+            </div>
             {% endif %}
 
             <div class="side">
@@ -182,7 +190,7 @@ if (getqval("lang") !== "0") {
 
                     {% if max == min %}
                         {% assign diff = 1 %}
-                    {% else %}    
+                    {% else %}
                         {% assign diff = max | minus: min %}
                     {% endif %}
 
@@ -222,7 +230,7 @@ if (getqval("lang") !== "0") {
                   <li><a href="http://xmake.io">xmake</a></li>
                   <li><a href="https://github.com/tboox">github</a></li>
                 </ul>
-            </div> 
+            </div>
 
             {% if site.adsbygoogle_client %}
             <div class="side">
@@ -234,7 +242,7 @@ if (getqval("lang") !== "0") {
                 <script>
                 (adsbygoogle = window.adsbygoogle || []).push({});
                 </script>
-            </div> 
+            </div>
             {% endif %}
 
             <!-- baidu ads -->

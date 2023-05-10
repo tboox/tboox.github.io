@@ -99,14 +99,6 @@ layout: default.cn
     <div class="right">
         <div class="wrap">
 
-            <!-- wwads -->
-            {% if site.wwads_id %}
-            <div class="side">
-            <div class="wwads-cn wwads-vertical" data-id="{{site.wwads_id}}" style="max-width:200px"></div>
-            <script type="text/javascript" charset="UTF-8" src="https://cdn.wwads.cn/js/makemoney.js" async></script>
-            </div>
-            {% endif %}
-
             <div class="side">
                 <div>
                     <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
@@ -124,6 +116,14 @@ layout: default.cn
                     {% endfor %}
                 </ul>
             </div>
+
+            <!-- wwads -->
+            {% if site.wwads_id %}
+            <div class="side">
+            <div class="wwads-cn wwads-vertical" data-id="{{site.wwads_id}}" style="max-width:200px"></div>
+            <script type="text/javascript" charset="UTF-8" src="https://cdn.wwads.cn/js/makemoney.js" async></script>
+            </div>
+            {% endif %}
 
             <!-- baidu ads -->
             {% if site.baiduads_id4 %}
