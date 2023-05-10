@@ -107,7 +107,7 @@ layout: default.cn
                 <ul class="content-ul" recent>
                     {% assign count = 0 %}
                     {% for post in site.posts offset: 0 %}
-                    {% if count < 8 %}
+                    {% if count < 5 %}
                         {% if post.url contains '/cn/' %}
                             <li><a href="{{ post.url }}">{{ post.title }}</a></li>
                             {% assign count = count | plus: 1 %}
