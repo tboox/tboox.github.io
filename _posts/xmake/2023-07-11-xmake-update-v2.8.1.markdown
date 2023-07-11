@@ -38,7 +38,7 @@ Although xmake has provided various measures to avoid this problem, it still suf
 
 This requires administrator privileges, as it requires a registry write.
 
-``
+```
 WriteRegDWORD ${HKLM} "SYSTEM\CurrentControlSet\Control\FileSystem" "LongPathsEnabled" 1
 ```
 
