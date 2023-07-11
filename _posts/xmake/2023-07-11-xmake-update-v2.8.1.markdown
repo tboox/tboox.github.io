@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Xmake v2.7.8 released, Improve package virtual environment and build speed"
+title: "Xmake v2.8.1 Released, Lots of Detailed Feature Improvements"
 tags: xmake lua C/C++ package performance mingw64 wasm
 categories: xmake
 ---
