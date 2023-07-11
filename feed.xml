@@ -5,9 +5,414 @@
     <description>Focus on cross-platform development using c language</description>
     <link>https://tboox.org/</link>
     <atom:link href="https://tboox.org/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Wed, 10 May 2023 12:34:43 +0800</pubDate>
-    <lastBuildDate>Wed, 10 May 2023 12:34:43 +0800</lastBuildDate>
+    <pubDate>Tue, 11 Jul 2023 12:22:05 +0800</pubDate>
+    <lastBuildDate>Tue, 11 Jul 2023 12:22:05 +0800</lastBuildDate>
     <generator>Jekyll v3.1.0</generator>
+    
+      <item>
+        <title>Xmake v2.7.8 released, Improve package virtual environment and build speed</title>
+        <description>&lt;p&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;Xmake&lt;/a&gt; is a lightweight cross-platform build utility based on Lua.&lt;/p&gt;
+
+&lt;p&gt;It is very lightweight and has no dependencies because it has a built-in Lua runtime.&lt;/p&gt;
+
+&lt;p&gt;It uses xmake.lua to maintain project builds and its configuration syntax is very simple and readable.&lt;/p&gt;
+
+&lt;p&gt;We can use it to build project directly like Make/Ninja, or generate project files like CMake/Meson, and it also has a built-in package management system to help users solve the integrated use of C/C++ dependent libraries.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Xmake = Build backend + Project Generator + Package Manager + [Remote|Distributed] Build + Cache
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Although not very precise, we can still understand Xmake in the following way:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Xmake ≈ Make/Ninja + CMake/Meson + Vcpkg/Conan + distcc + ccache/sccache
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;Github&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://xmake.io/&quot;&gt;Document&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://github.com/xmake-io/xmake-docs/raw/master/assets/img/index/package.gif&quot; width=&quot;650px&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;introduction-of-new-features&quot;&gt;Introduction of new features&lt;/h2&gt;
+
+&lt;h3 id=&quot;windows-long-path-problem-improvement&quot;&gt;Windows long path problem improvement&lt;/h3&gt;
+
+&lt;p&gt;Windows’ long path limitation has always been a big problem. Projects that are nested too deeply may fail when reading or writing files, which affects xmake’s usability and experience.&lt;/p&gt;
+
+&lt;p&gt;Although xmake has provided various measures to avoid this problem, it still suffers from some limitations occasionally. In this release, we have improved the installer by providing an installation option that lets you selectively enable long path support.&lt;/p&gt;
+
+&lt;p&gt;This requires administrator privileges, as it requires a registry write.&lt;/p&gt;
+
+&lt;p&gt;``
+WriteRegDWORD ${HKLM} “SYSTEM\CurrentControlSet\Control\FileSystem” “LongPathsEnabled” 1&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+Users can decide for themselves, whether they need to turn it on or not.
+
+Thanks to @A2va for the contribution.
+
+### zypper package manager support
+
+Added support for OpenSUSE&#39;s zypper package manager, which can be automatically downloaded and installed directly from zypper, and integrates with the packages it provides.
+
+Thanks to @iphelf for his contribution.
+
+```lua
+add_requires(&quot;zypper::libsfml2 2.5&quot;)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;improve-msbuild-package-installation&quot;&gt;Improve msbuild package installation&lt;/h3&gt;
+
+&lt;p&gt;Some third-party packages, which are not maintained by cmake, just provide the vcproj project file, and if we make it into a package, we need to use the &lt;code class=&quot;highlighter-rouge&quot;&gt;tools.msbuild&lt;/code&gt; module to compile and install it.&lt;/p&gt;
+
+&lt;p&gt;But if the vs version of vcproj is very old, we need to upgrade it, otherwise the compilation will fail.&lt;/p&gt;
+
+&lt;p&gt;So we have improved the tools.msbuild module to provide automatic vcproj upgrades by specifying the vcproj/sln files that need to be upgraded.&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;on_install&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;package.tools.msbuild&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;upgrade&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wolfssl64.sln&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;wolfssl.vcxproj&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}}))&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;improved-protobuf-support-for-grpc&quot;&gt;Improved protobuf support for grpc&lt;/h3&gt;
+
+&lt;p&gt;We have improved protobuf support to also support the grpc_cpp_plugin.&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mode.debug&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mode.release&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;protobuf-cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;grpc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;system&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_languages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;c++17&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;protobuf-cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;grpc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;protobuf.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/test.proto&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;proto_rootdir&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;src&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;proto_grpc_cpp_plugin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/subdir/test2.proto&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;proto_rootdir&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;src&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;For a full example see: &lt;a href=&quot;https://github.com/xmake-io/xmake/blob/dev/tests/projects/c%2B%2B/protobuf_grpc_cpp_plugin/xmake. lua&quot;&gt;protobuf_grpc_cpp_plugin&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;add_links-support-for-library-paths&quot;&gt;add_links support for library paths&lt;/h3&gt;
+
+&lt;p&gt;Normally add_links needs to be used in conjunction with add_linkdirs in order for the linker to find library files in the specified directory.&lt;/p&gt;
+
+&lt;p&gt;However, sometimes it is easy to find the wrong library if it is not configured correctly, or if libraries are renamed in different paths. Now add_links can be used to set the path of library files directly to avoid implicit search.&lt;/p&gt;
+
+&lt;p&gt;It can also be used to explicitly link so/a libraries.&lt;/p&gt;
+
+&lt;p&gt;The following writeups are supported:&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_links&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_links&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;libfoo.a&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_links&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;libfoo.so&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_links&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;/tmp/libfoo.a&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_links&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;/tmp/libfoo.so&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_links&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo.lib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;``&lt;/span&gt;
+
+&lt;span class=&quot;o&quot;&gt;###&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Objc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Objc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;header&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pre&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;compilation&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;support&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;In&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;previous&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;versions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;we&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;used&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;set_pcxxheader&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;`&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;to&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;set&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;header&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;precompilation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;it&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;would&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;also&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;affect&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;objc&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;code&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;So&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;the&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;C&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ObjC&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;code&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;is&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;compiled&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mixed&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;with&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pre&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;compiled&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;headers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;you&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;will&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;encounter&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;compilation&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;problems&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;
+
+&lt;span class=&quot;err&quot;&gt;```&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bash&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;Objective&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;C&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;was&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;disabled&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;PCH&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;file&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;but&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;is&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;currently&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;enabled&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;``&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;This&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;is&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;because&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;the&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;compilation&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;of&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;the&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;precompiled&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;header&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;also&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;requires&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;the&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;language&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;header&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;objective&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;header&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;which&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cannot&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;be&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mixed&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;the&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;PCH&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;file&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;Therefore&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;we&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;added&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;set_pmheader&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;`&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;set_pmxxheader&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;`&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;interfaces&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;to&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;set&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;objc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;objc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;precompiled&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;headers&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;separately&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;which&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;not&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;conflict&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;with&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;C&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;C&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;precompiled&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;headers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;But&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;the&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;usage&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;is&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;exactly&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;the&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;same&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;
+
+&lt;span class=&quot;err&quot;&gt;```&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lua&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_pmxxheader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;header.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;For a full example see: &lt;a href=&quot;https://github.com/xmake-io/xmake/tree/master/tests/projects/objc%2B%2B/precompiled_header&quot;&gt;Objc Precompiled Header Example&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;improved-conan-20-support&quot;&gt;Improved Conan 2.0 support&lt;/h3&gt;
+
+&lt;p&gt;In the last release, we initially supported Conan 2.0, but we encountered a number of detailed problems. In this release, we have continued to make improvements, such as improving the vs_runtime setting.&lt;/p&gt;
+
+&lt;h3 id=&quot;updating-the-lua-runtime&quot;&gt;Updating the lua runtime&lt;/h3&gt;
+
+&lt;p&gt;Lua has recently released version 5.4.6, and we’ve updated the Lua runtime built into xmake to keep up with the upstream.&lt;/p&gt;
+
+&lt;h2 id=&quot;changelog&quot;&gt;Changelog&lt;/h2&gt;
+
+&lt;h3 id=&quot;new-features&quot;&gt;New features&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/3821&quot;&gt;#3821&lt;/a&gt;: Add longpath option for windows installer&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/3828&quot;&gt;#3828&lt;/a&gt;: Add support for zypper package manager&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3871&quot;&gt;#3871&lt;/a&gt;: Improve tools.msbuild to support for upgrading vsproj&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3148&quot;&gt;#3148&lt;/a&gt;: Support grpc for protobuf&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3889&quot;&gt;#3889&lt;/a&gt;: Support to add library path for add_links&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/orgs/xmake-io/issues/3912&quot;&gt;#3912&lt;/a&gt;: Add set_pmxxheader to support objc precompiled header&lt;/li&gt;
+  &lt;li&gt;add_links support library file path&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;changes&quot;&gt;Changes&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3752&quot;&gt;#3752&lt;/a&gt;: Improve os.getenvs for windows&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3371&quot;&gt;#3371&lt;/a&gt;: Improve tools.cmake to support ninja generator for wasm&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3777&quot;&gt;#3777&lt;/a&gt;: Improve to find package from pkg-config&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/3815&quot;&gt;#3815&lt;/a&gt;: Improve tools.xmake to pass toolchains for windows&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3857&quot;&gt;#3857&lt;/a&gt;: Improve to generate compile_commands.json&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3892&quot;&gt;#3892&lt;/a&gt;: Improve to search packages from description&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3916&quot;&gt;#3916&lt;/a&gt;: Improve to build swift program, support for multiple modules&lt;/li&gt;
+  &lt;li&gt;Update lua runtime to 5.4.6&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;bugs-fixed&quot;&gt;Bugs fixed&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/3755&quot;&gt;#3755&lt;/a&gt;: Fix find_tool from xmake/packages&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3787&quot;&gt;#3787&lt;/a&gt;: Fix packages from conan 2.x&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/orgs/xmake-io/discussions/3839&quot;&gt;#3839&lt;/a&gt;: Fix vs_runtime for conan 2.x&lt;/li&gt;
+&lt;/ul&gt;
+
+</description>
+        <pubDate>Tue, 11 Jul 2023 00:00:00 +0800</pubDate>
+        <link>https://tboox.org/2023/07/11/xmake-update-v2.8.1/</link>
+        <guid isPermaLink="true">https://tboox.org/2023/07/11/xmake-update-v2.8.1/</guid>
+        
+        <category>xmake</category>
+        
+        <category>lua</category>
+        
+        <category>C/C++</category>
+        
+        <category>package</category>
+        
+        <category>performance</category>
+        
+        <category>mingw64</category>
+        
+        <category>wasm</category>
+        
+        
+        <category>xmake</category>
+        
+      </item>
+    
+      <item>
+        <title>Xmake v2.8.1 发布，大量细节特性改进</title>
+        <description>&lt;p&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;Xmake&lt;/a&gt; 是一个基于 Lua 的轻量级跨平台构建工具。&lt;/p&gt;
+
+&lt;p&gt;它非常的轻量，没有任何依赖，因为它内置了 Lua 运行时。&lt;/p&gt;
+
+&lt;p&gt;它使用 xmake.lua 维护项目构建，相比 makefile/CMakeLists.txt，配置语法更加简洁直观，对新手非常友好，短时间内就能快速入门，能够让用户把更多的精力集中在实际的项目开发上。&lt;/p&gt;
+
+&lt;p&gt;我们能够使用它像 Make/Ninja 那样可以直接编译项目，也可以像 CMake/Meson 那样生成工程文件，另外它还有内置的包管理系统来帮助用户解决 C/C++ 依赖库的集成使用问题。&lt;/p&gt;
+
+&lt;p&gt;目前，Xmake 主要用于 C/C++ 项目的构建，但是同时也支持其他 native 语言的构建，可以实现跟 C/C++ 进行混合编译，同时编译速度也是非常的快，可以跟 Ninja 持平。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Xmake = Build backend + Project Generator + Package Manager + [Remote|Distributed] Build + Cache
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;尽管不是很准确，但我们还是可以把 Xmake 按下面的方式来理解：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Xmake ≈ Make/Ninja + CMake/Meson + Vcpkg/Conan + distcc + ccache/sccache
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;项目源码&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/about/course&quot;&gt;入门课程&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://github.com/xmake-io/xmake-docs/raw/master/assets/img/index/package.gif&quot; width=&quot;650px&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;新特性介绍&quot;&gt;新特性介绍&lt;/h2&gt;
+
+&lt;h3 id=&quot;windows-长路径问题改进&quot;&gt;Windows 长路径问题改进&lt;/h3&gt;
+
+&lt;p&gt;windows 的长路径限制一直是一个大问题，嵌套层级太深的工程，在读写文件的时候，都有可能失败，这会影响 xmake 的可用性和体验。&lt;/p&gt;
+
+&lt;p&gt;尽管，xmake 已经提供各种措施也避免这个问题，但是偶尔还是会受到一些限制。而在这个版本中，我们改进了安装器，提供一个安装选项，让用户选择性开启长路径支持。&lt;/p&gt;
+
+&lt;p&gt;这需要管理员权限，因为它需要写注册表。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;WriteRegDWORD ${HKLM} &quot;SYSTEM\CurrentControlSet\Control\FileSystem&quot; &quot;LongPathsEnabled&quot; 1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;用户可以自己决定，是否需要开启它。&lt;/p&gt;
+
+&lt;p&gt;感谢 @A2va 的贡献。&lt;/p&gt;
+
+&lt;h3 id=&quot;zypper-包管理器支持&quot;&gt;zypper 包管理器支持&lt;/h3&gt;
+
+&lt;p&gt;新增 OpenSUSE 的 zypper 包管理器支持，可以直接通过 zypper 自动下载安装，并集成它提供的包。&lt;/p&gt;
+
+&lt;p&gt;感谢 @iphelf 的贡献。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zypper::libsfml2 2.5&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;改进-msbuild-包安装&quot;&gt;改进 msbuild 包安装&lt;/h3&gt;
+
+&lt;p&gt;一些第三方包，没有使用 cmake 维护，仅仅提供了 vcproj 的工程文件，如果我们把它做成包，需要使用 &lt;code class=&quot;highlighter-rouge&quot;&gt;tools.msbuild&lt;/code&gt; 模块去编译安装它。&lt;/p&gt;
+
+&lt;p&gt;但是 vcproj 的 vs 版本如果很老，就需要升级它，否则编译会失败。&lt;/p&gt;
+
+&lt;p&gt;因此我们改进了 tools.msbuild 模块，提供自动升级 vcproj 的功能，只需要指定下需要升级的 vcproj/sln 文件即可。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;on_install&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;package.tools.msbuild&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;upgrade&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;wolfssl64.sln&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;wolfssl.vcxproj&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}})&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;改进-protobuf-支持-grpc&quot;&gt;改进 protobuf 支持 grpc&lt;/h3&gt;
+
+&lt;p&gt;我们改进了对 protobuf 的支持，可以同时支持上 grpc_cpp_plugin。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mode.debug&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mode.release&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;protobuf-cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;grpc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;system&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_languages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;c++17&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;protobuf-cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;grpc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;protobuf.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/test.proto&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;proto_rootdir&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;src&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;proto_grpc_cpp_plugin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/subdir/test2.proto&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;proto_rootdir&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;src&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;完整例子见：&lt;a href=&quot;https://github.com/xmake-io/xmake/blob/dev/tests/projects/c%2B%2B/protobuf_grpc_cpp_plugin/xmake.lua&quot;&gt;protobuf_grpc_cpp_plugin&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;add_links-支持库路径&quot;&gt;add_links 支持库路径&lt;/h3&gt;
+
+&lt;p&gt;通常 add_links 需要配合 add_linkdirs 使用，才能让链接器找到指定目录下的库文件。&lt;/p&gt;
+
+&lt;p&gt;但是有时候配置不对，或者不同路径下库重名，就容易找错库文件。而现在 add_links 可以支持直接设置库文件路径，避免隐式搜索。&lt;/p&gt;
+
+&lt;p&gt;也可以用于显式指定链接 so/a 库。&lt;/p&gt;
+
+&lt;p&gt;下面的几种写法都是支持的：&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_links&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_links&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;libfoo.a&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_links&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;libfoo.so&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_links&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;/tmp/libfoo.a&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_links&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;/tmp/libfoo.so&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add_links&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo.lib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;objcobjc-头文件预编译支持&quot;&gt;Objc/Objc++ 头文件预编译支持&lt;/h3&gt;
+
+&lt;p&gt;之前的版本，我们如果使用 &lt;code class=&quot;highlighter-rouge&quot;&gt;set_pcxxheader&lt;/code&gt; 设置 c++ 头文件预编译，会同时影响 objc 代码。&lt;/p&gt;
+
+&lt;p&gt;因此如果 C++/ObjC++ 代码混合编译，用了预编译头，就会遇到编译问题。&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Objective-C was disabled &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;PCH file but is currently enabled
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这是因为，预编译头的编译，也是需要指定语言的 &lt;code class=&quot;highlighter-rouge&quot;&gt;-x c++-header&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;-x objective-c++-header&lt;/code&gt;，pch 文件不能混用。&lt;/p&gt;
+
+&lt;p&gt;因此，我们新增了 &lt;code class=&quot;highlighter-rouge&quot;&gt;set_pmheader&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;set_pmxxheader&lt;/code&gt; 接口，单独设置 objc/objc++ 的预编译头文件，跟 C/C++ 预编译头互不冲突。&lt;/p&gt;
+
+&lt;p&gt;但用法完全一样。&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;set_pmxxheader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;header.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;完整例子见：&lt;a href=&quot;https://github.com/xmake-io/xmake/tree/master/tests/projects/objc%2B%2B/precompiled_header&quot;&gt;Objc Precompiled Header Example&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;改进-conan-20-支持&quot;&gt;改进 Conan 2.0 支持&lt;/h3&gt;
+
+&lt;p&gt;上个版本，我们初步支持了 Conan 2.0，但是还遇到了一些细节问题，这个版本我们持续做了改进，比如改进对 vs_runtime 设置问题。&lt;/p&gt;
+
+&lt;h3 id=&quot;更新-lua-运行时&quot;&gt;更新 lua 运行时&lt;/h3&gt;
+
+&lt;p&gt;最近 Lua 已经发布了 5.4.6 版本，我们对 xmake 中内置的 Lua 运行时也做了升级，跟上游保持同步。&lt;/p&gt;
+
+&lt;h2 id=&quot;更新日志&quot;&gt;更新日志&lt;/h2&gt;
+
+&lt;h3 id=&quot;新特性&quot;&gt;新特性&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/3821&quot;&gt;#3821&lt;/a&gt;: windows 安装器添加长路径支持选项&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/3828&quot;&gt;#3828&lt;/a&gt;: 添加 zypper 包管理器支持&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3871&quot;&gt;#3871&lt;/a&gt;: 改进 tools.msbuild 支持对 vsproj 进行自动升级&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3148&quot;&gt;#3148&lt;/a&gt;: 改进 protobuf 支持 grpc&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3889&quot;&gt;#3889&lt;/a&gt;: add_links 支持库路径添加&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3912&quot;&gt;#3912&lt;/a&gt;: 添加 set_pmxxheader 去支持 objc 预编译头&lt;/li&gt;
+  &lt;li&gt;add_links 支持库文件路径&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;改进&quot;&gt;改进&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3752&quot;&gt;#3752&lt;/a&gt;: 改进 windows 上 os.getenvs 的获取&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3371&quot;&gt;#3371&lt;/a&gt;: 改进 tools.cmake 支持使用 ninja 去构建 wasm 包&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3777&quot;&gt;#3777&lt;/a&gt;: 改进从 pkg-config 中查找包&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/3815&quot;&gt;#3815&lt;/a&gt;: 改进 tools.xmake 支持为 windows 平台传递工具链&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3857&quot;&gt;#3857&lt;/a&gt;: 改进生成 compile_commands.json&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3892&quot;&gt;#3892&lt;/a&gt;: 改进包搜索，支持从描述中找包&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3916&quot;&gt;#3916&lt;/a&gt;: 改进构建 swift 程序，支持模块间符号调用&lt;/li&gt;
+  &lt;li&gt;更新 lua 运行时到 5.4.6&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;bugs-修复&quot;&gt;Bugs 修复&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/3755&quot;&gt;#3755&lt;/a&gt;: 修复 find_tool 从 xmake/packages 中查找程序&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/3787&quot;&gt;#3787&lt;/a&gt;: 修复从 conan 2.x 中使用包&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/orgs/xmake-io/discussions/3839&quot;&gt;#3839&lt;/a&gt;: 修复 conan 2.x 包的 vs_runtime 设置&lt;/li&gt;
+&lt;/ul&gt;
+
+</description>
+        <pubDate>Tue, 11 Jul 2023 00:00:00 +0800</pubDate>
+        <link>https://tboox.org/cn/2023/07/11/xmake-update-v2.8.1/</link>
+        <guid isPermaLink="true">https://tboox.org/cn/2023/07/11/xmake-update-v2.8.1/</guid>
+        
+        <category>xmake</category>
+        
+        <category>lua</category>
+        
+        <category>C/C++</category>
+        
+        <category>package</category>
+        
+        <category>performance</category>
+        
+        <category>mingw64</category>
+        
+        <category>wasm</category>
+        
+        
+        <category>xmake</category>
+        
+      </item>
     
       <item>
         <title>Xmake v2.7.8 released, Improve package virtual environment and build speed</title>
@@ -3649,1005 +4054,6 @@ error: circular modules dependency&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
         <category>package</category>
         
         <category>components</category>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>Xmake v2.7.2 released, build third-party libraries more intelligently</title>
-        <description>&lt;p&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;Xmake&lt;/a&gt; is a lightweight cross-platform build utility based on Lua.&lt;/p&gt;
-
-&lt;p&gt;It is very lightweight and has no dependencies because it has a built-in Lua runtime.&lt;/p&gt;
-
-&lt;p&gt;It uses xmake.lua to maintain project builds and its configuration syntax is very simple and readable.&lt;/p&gt;
-
-&lt;p&gt;We can use it to build project directly like Make/Ninja, or generate project files like CMake/Meson, and it also has a built-in package management system to help users solve the integrated use of C/C++ dependent libraries.&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Xmake = Build backend + Project Generator + Package Manager + [Remote|Distributed] Build + Cache
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;Although not very precise, we can still understand Xmake in the following way:&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Xmake ~= Make/Ninja + CMake/Meson + Vcpkg/Conan + distcc + ccache/sccache
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;Github&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://xmake.io/&quot;&gt;Document&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;introduction-of-new-features&quot;&gt;Introduction of new features&lt;/h2&gt;
-
-&lt;h3 id=&quot;building-third-party-libraries-more-intelligently&quot;&gt;Building third party libraries more intelligently&lt;/h3&gt;
-
-&lt;p&gt;In previous versions, Xmake provided a TryBuild mode that allowed you to use Xmake to try to build third-party projects maintained by autoconf/cmake/meson etc. directly without xmake.lua.&lt;/p&gt;
-
-&lt;p&gt;In effect, this means that Xmake detects the corresponding build system and invokes commands such as cmake to do so, but it will help the user to simplify the configuration operation, plus it will interface with xmake’s cross-compilation toolchain configuration.&lt;/p&gt;
-
-&lt;p&gt;However, this mode has a certain failure rate, which can lead to build failure if, for example&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;the project code itself is flawed, resulting in a compilation error&lt;/li&gt;
-  &lt;li&gt;the project code does not support the current platform&lt;/li&gt;
-  &lt;li&gt;the build script is flawed&lt;/li&gt;
-  &lt;li&gt;specific configuration parameters are missing&lt;/li&gt;
-  &lt;li&gt;a missing dependency library that needs to be installed by the user&lt;/li&gt;
-  &lt;li&gt;the compiler version is too low and does not support some of the code&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;The TryBuild mode usually handles these cases, but in this new version we have introduced a new mechanism to the TryBuild mode to improve the build logic by reusing build scripts from the &lt;a href=&quot;https://github.com/xmake-io/xmake-repo&quot;&gt;xmake-repo&lt;/a&gt; repository.&lt;/p&gt;
-
-&lt;p&gt;It roughly handles the process in the following way.&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;execute the xmake command in the third-party source repository directory&lt;/li&gt;
-  &lt;li&gt;xmake gets the directory name and tries to resolve the project name and version&lt;/li&gt;
-  &lt;li&gt;try to match an existing package from the xmake-repo repository&lt;/li&gt;
-  &lt;li&gt;If the match is successful, build directly using the build logic in the package&lt;/li&gt;
-  &lt;li&gt;if no match is made, fall back to the original TryBuild logic&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;What is the benefit of this, if the match is successful, we can solve all the problems mentioned above.&lt;/p&gt;
-
-&lt;p&gt;Even if the current project source code does not support a given platform, or if the source code and build script are flawed in some way, Xmake will automatically patch in a specific patch to fix it and bring in the required dependencies to ensure that it will definitely compile in one click.&lt;/p&gt;
-
-&lt;p&gt;Let’s take a look at the libjpeg library as an example.&lt;/p&gt;
-
-&lt;h4 id=&quot;the-first-step-is-to-download-the-corresponding-source-code-package&quot;&gt;The first step is to download the corresponding source code package&lt;/h4&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;wget https://jaist.dl.sourceforge.net/project/libjpeg-turbo/2.1.4/libjpeg-turbo-2.1.4.tar.gz
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;tar -xvf libjpeg-turbo-2.1.4.tar.gz
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;libjpeg-turbo-2.1.4
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;enter-the-directory-and-execute-the-xmake-command&quot;&gt;Enter the directory and execute the Xmake command&lt;/h4&gt;
-
-&lt;p&gt;Xmake will prompt the user if it detects that it is the libjpeg library, and whether to build it as libjpeg 2.1.4.&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;ruki-2:libjpeg-turbo-2.1.4 ruki&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;xmake
-note: libjpeg-turbo 2.1.4 &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;xmake-repo found, try building it or you can run &lt;span class=&quot;sb&quot;&gt;``&lt;/span&gt;xmake f --trybuild&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt; to &lt;span class=&quot;nb&quot;&gt;set &lt;/span&gt;buildsystem &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;pass -y or --confirm&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;y/n/d to skip confirm&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;?
-please input: y &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;y/n&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;We hit enter to confirm to continue the build.&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;cmake ... /usr/local/bin/cmake
-/usr/local/bin/cmake -DCMAKE_BUILD_TYPE&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;Release -DENABLE_SHARED&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;OFF -DENABLE_STATIC&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;ON -DCMAKE_POSITION_INDEPENDENT_CODE&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;ON -DCMAKE_ INSTALL_LIBDIR:PATH&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;lib -DCMAKE_INSTALL_PREFIX&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/Users/ruki/.xmake/packages/l/libjpeg-turbo/2.1.4/646b795702e34be89c5745333d052aa2 -G &lt;span class=&quot;s2&quot;&gt;&quot;Unix Makefiles&quot;&lt;/span&gt; -DCMAKE_POSITION_INDEPENDENT_CODE&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;ON /Users/ruki/Downloads/libjpeg-turbo-2.1.4
--- CMAKE_BUILD_TYPE &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; Release
--- VERSION &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 2.1.4, BUILD &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 20220923
--- 64-bit build &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;x86_64&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- CMAKE_INSTALL_PREFIX &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; /Users/ruki/.xmake/packages/l/libjpeg-turbo/2.1.4/646b795702e34be89c5745333d052aa2
--- CMAKE_INSTALL_BINDIR &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; bin &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;/Users/ruki/.xmake/packages/l/libjpeg-turbo/2.1.4/646b795702e34be89c5745333d052aa2/bin&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- CMAKE_INSTALL_DATAROOTDIR &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; share &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;/Users/ruki/.xmake/packages/l/libjpeg-turbo/2.1.4/646b795702e34be89c5745333d052aa2/share&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- CMAKE_INSTALL_DOCDIR &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; share/doc/libjpeg-turbo &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;/Users/ruki/.xmake/packages/l/libjpeg-turbo/2.1.4/646b795702e34be89c5745333d052aa2/ share/doc/libjpeg-turbo&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- CMAKE_INSTALL_INCLUDEDIR &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; include &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;/Users/ruki/.xmake/packages/l/libjpeg-turbo/2.1.4/646b795702e34be89c5745333d052aa2/include&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- CMAKE_INSTALL_LIBDIR &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; lib &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;/Users/ruki/.xmake/packages/l/libjpeg-turbo/2.1.4/646b795702e34be89c5745333d052aa2/lib&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- CMAKE_INSTALL_MANDIR &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; share/man &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;/Users/ruki/.xmake/packages/l/libjpeg-turbo/2.1.4/646b795702e34be89c5745333d052aa2/share/man&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- Shared libraries disabled &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;ENABLE_SHARED &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 0&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- Static libraries enabled &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;ENABLE_STATIC &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 1&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- 12-bit JPEG support disabled &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;WITH_12BIT &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 0&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- Arithmetic decoding support enabled &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;WITH_ARITH_DEC &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 1&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- Arithmetic encoding support enabled &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;WITH_ARITH_ENC &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 1&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- TurboJPEG API library enabled &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;WITH_TURBOJPEG &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 1&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- TurboJPEG Java wrapper disabled &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;WITH_JAVA &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 0&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- In-memory &lt;span class=&quot;nb&quot;&gt;source&lt;/span&gt;/destination managers enabled &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;WITH_MEM_SRCDST &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 1&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- Emulating libjpeg API/ABI v6.2 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;WITH_JPEG7 &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 0, WITH_JPEG8 &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 0&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- libjpeg API shared library version &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 62.3.0
--- Compiler flags &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; -O3 -DNDEBUG
--- Linker flags &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
--- INLINE &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; __inline__ __attribute__&lt;span class=&quot;o&quot;&gt;((&lt;/span&gt;always_inline&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;FORCE_INLINE &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 1&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- THREAD_LOCAL &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; __thread
--- CMAKE_EXECUTABLE_SUFFIX &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
--- CMAKE_ASM_NASM_COMPILER &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; /usr/local/bin/nasm
--- CMAKE_ASM_NASM_OBJECT_FORMAT &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; macho64
--- CMAKE_ASM_NASM_FLAGS &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; -DMACHO -D__x86_64__ -DPIC
--- SIMD extensions: x86_64 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;WITH_SIMD &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 1&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- FLOATTEST &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; sse
--- Configuring &lt;span class=&quot;k&quot;&gt;done&lt;/span&gt;
--- Generating &lt;span class=&quot;k&quot;&gt;done&lt;/span&gt;
--- Build files have been written to: /Users/ruki/Downloads/libjpeg-turbo-2.1.4/build_646b7957
-make -j10
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 2%] Built target md5cmp
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 19%] Built target wrjpgcom
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 20%] Built target simd
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 21%] Built target strtest
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 22%] Built target rdjpgcom
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 80%] Built target jpeg-static
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 84%] Built target turbojpeg-static
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 90%] Built target tjbench-static
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 90%] Built target tjunittest-static
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 91%] Built target jpegtran-static
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 98%] Built target djpeg-static
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 100%] Built target cjpeg-static
-make install
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 1%] Built target strtest
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 3%] Built target wrjpgcom
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 19%] Built target simd
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 52%] Built target turbojpeg-static
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 53%] Built target rdjpgcom
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 82%] Built target jpeg-static
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 85%] Built target jpegtran-static
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 90%] Built target djpeg-static
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 93%] Built target tjunittest-static
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 97%] Built target cjpeg-static
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 98%] Built target tjbench-static
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;100%] Built target md5cmp
-Install the project...
-exporting libjpeg-turbo-2.1.4
-  -&amp;gt; /Users/ruki/Downloads/libjpeg-turbo-2.1.4/build/artifacts/l/libjpeg-turbo/2.1.4/646b795702e34be89c5745333d052aa2
-output to /Users/ruki/Downloads/libjpeg-turbo-2.1.4/build/artifacts
-build ok!
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;As long as the match is detected, the build will usually complete with a near 100% success rate, and Xmake will output the build product to the current directory under &lt;code class=&quot;highlighter-rouge&quot;&gt;build/artifacts&lt;/code&gt;.&lt;/p&gt;
-
-&lt;h4 id=&quot;interfacing-with-cross-compilation-toolchains&quot;&gt;Interfacing with cross-compilation toolchains&lt;/h4&gt;
-
-&lt;p&gt;This smart build mode allows us to not only build native applications, but also to interface with the cross-compilation toolchain to support ios/android and any cross-compilation platform.&lt;/p&gt;
-
-&lt;p&gt;For example, to build on Android, we simply pass the &lt;code class=&quot;highlighter-rouge&quot;&gt;--trybuild=xrepo&lt;/code&gt; argument and switch to Android, and Xmake will pass all the ndk toolchain information.&lt;/p&gt;
-
-&lt;p&gt;``bash
-$ xmake f -p android –trybuild=xrepo –ndk=~/files/android-ndk-r20b -c
-$ xmake
-xmake f -c –require=n -v -p android -a armeabi-v7a -m release -k static –ndk=/Users/ruki/files/android-ndk-r20b
-checking for Android SDK directory … ~/Library/Android/sdk
-checking for Build Tools Version of Android SDK … 33.0.0
-checking for NDK directory … /Users/ruki/files/android-ndk-r20b
-checking for SDK version of NDK … … 21
-checking for clang++ … /Users/ruki/files/android-ndk-r20b/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++
-checking for the shared library linker (sh) … clang++
-checking for clang++ … /Users/ruki/files/android-ndk-r20b/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++
-checking for the linker (ld) … clang++
-…
-exporting libjpeg-turbo-2.1.4
-  -&amp;gt; /Users/ruki/Downloads/libjpeg-turbo-2.1.4/build/artifacts/l/libjpeg-turbo/2.1.4/79c2e21f436b4ab08a3c23a6cbae8c0e
-output to /Users/ruki/Downloads/libjpeg-turbo-2.1.4/build/artifacts
-build ok!&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
-#### fallback to direct compilation
-
-If we don&#39;t want to use the xmake-repo build scripts, we can fall back to cmake/autoconf and try to build them directly.
-
-However, this may have a certain failure rate and may compile additional binary targets that are not needed. The build script in xmake-repo is optimised to streamline a lot of unnecessary build parameters, such as disabling the tests/examples build.
-
-We just need to hit n to cancel the smart build mode based on package scripts, and Xmake will give a new prompt to let the user choose whether to continue with the cmake/autoconf build attempt.
-
-```bash
-$ xmake
-note: libjpeg-turbo 2.1.4 in xmake-repo found, try building it or you can run ``xmake f --trybuild=` to set buildsystem (pass -y or --confirm=y/n/d to skip confirm)?
-please input: y (y/n)
-n
-note: CMakeLists.txt found, try building it or you can run `xmake f --trybuild=` to set buildsystem (pass -y or --confirm=y/n/d to skip confirm)?
-please input: y (y/n)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;support-for-windows-arm64&quot;&gt;Support for Windows Arm64&lt;/h3&gt;
-
-&lt;p&gt;We have also improved our Windows build support with the addition of Windows Arm64 platform support, simply by switching to the arm64 architecture.&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -a arm64
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;improved-rule-support-for-sequential-execution-of-dependencies&quot;&gt;Improved rule support for sequential execution of dependencies&lt;/h3&gt;
-
-&lt;p&gt;Associated dependencies can be bound to a batch of rules, i.e. instead of having to add rules to target one by one using &lt;code class=&quot;highlighter-rouge&quot;&gt;add_rules()&lt;/code&gt;, just apply a rule that will take effect for it and all its dependencies.&lt;/p&gt;
-
-&lt;p&gt;For example&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;bar&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;bar&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-   &lt;span class=&quot;o&quot;&gt;...&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;We only need &lt;code class=&quot;highlighter-rouge&quot;&gt;add_rules(&quot;foo&quot;)&lt;/code&gt; to apply both foo and bar rules.&lt;/p&gt;
-
-&lt;p&gt;However, by default there is no order of execution between dependencies, and scripts such as &lt;code class=&quot;highlighter-rouge&quot;&gt;on_build_file&lt;/code&gt; for foo and bar are executed in parallel, in an undefined order.&lt;/p&gt;
-
-&lt;p&gt;To tightly control the order of execution, in newer versions we can configure &lt;code class=&quot;highlighter-rouge&quot;&gt;add_deps(&quot;bar&quot;, {order = true})&lt;/code&gt; to tell xmake that we need to execute scripts at the same level according to the order of dependencies.&lt;/p&gt;
-
-&lt;p&gt;Example.&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;bar&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;order&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;on_build_file&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourcefile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;bar&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;on_build_file&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourcefile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;bar’s &lt;code class=&quot;highlighter-rouge&quot;&gt;on_build_file&lt;/code&gt; will be executed first.&lt;/p&gt;
-
-&lt;h3 id=&quot;better-dynamic-configuration-of-targets-and-rules&quot;&gt;Better dynamic configuration of targets and rules&lt;/h3&gt;
-
-&lt;p&gt;The above way of controlling rule dependencies only works if both foo and bar rules are custom rules, which doesn’t work if you want to insert your own rules to be executed before xmake’s built-in rules.&lt;/p&gt;
-
-&lt;p&gt;In this case, we need to use a more flexible dynamic rule creation and injection approach to modify the built-in rules.&lt;/p&gt;
-
-&lt;p&gt;For example, if we want to execute the &lt;code class=&quot;highlighter-rouge&quot;&gt;on_build_file&lt;/code&gt; script for a custom cppfront rule before the built-in &lt;code class=&quot;highlighter-rouge&quot;&gt;c++.build&lt;/code&gt; rule, we can do this in the following way.&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cppfront&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_extensions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;.cpp2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;on_load&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;c++.build&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;clone&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;deps&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;cppfront&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;order&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rule_add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;on_build_file&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourcefile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;opt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;build cppfront file&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cppfront&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;support-for-introducing-custom-rules-from-packages&quot;&gt;Support for introducing custom rules from packages&lt;/h3&gt;
-
-&lt;p&gt;Now, we can also add custom build rule scripts to the package management repository to enable dynamic distribution and installation following the package.&lt;/p&gt;
-
-&lt;p&gt;We need to put the custom rules into the &lt;code class=&quot;highlighter-rouge&quot;&gt;packages/x/xxx/rules&lt;/code&gt; directory of the repository and it will follow the package as it is installed.&lt;/p&gt;
-
-&lt;p&gt;It does, of course, have some limitations.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;In package rules, we cannot add &lt;code class=&quot;highlighter-rouge&quot;&gt;on_load&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;after_load&lt;/code&gt; scripts, but we can usually use &lt;code class=&quot;highlighter-rouge&quot;&gt;on_config&lt;/code&gt; instead.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h4 id=&quot;adding-package-rules&quot;&gt;Adding package rules&lt;/h4&gt;
-
-&lt;p&gt;We need to add the rules script to the rules fixed directory, for example: packages/z/zlib/rules/foo.lua&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;on_config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo: on_config %s&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;applying-package-rules&quot;&gt;Applying package rules&lt;/h4&gt;
-
-&lt;p&gt;The rules are used in a similar way as before, the only difference being that we need to specify which package’s rules to access by prefixing them with &lt;code class=&quot;highlighter-rouge&quot;&gt;@packagename/&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;The exact format: &lt;code class=&quot;highlighter-rouge&quot;&gt;add_rules(&quot;@packagename/rulename&quot;)`, for example:&lt;/code&gt;add_rules(“@zlib/foo”)`.&lt;/p&gt;
-
-&lt;p&gt;``lua
-add_requires(“zlib”, {system = false})
-target(“test”)
-    set_kind(“binary”)
-    add_files(“src/*.cpp”)
-    add_packages(“zlib”)
-    add_rules(“@zlib/foo”)&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
-#### Referencing rules by package alias
-
-If a package alias exists, xmake will give preference to the package alias to get the rules.
-
-``` lua
-add_requires(&quot;zlib&quot;, {alias = &quot;zlib2&quot;, system = false})
-target(&quot;test&quot;)
-    set_kind(&quot;binary&quot;)
-    add_files(&quot;src/*.cpp&quot;)
-    add_packages(&quot;zlib2&quot;)
-    add_rules(&quot;@zlib2/foo&quot;)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;adding-package-rule-dependencies&quot;&gt;Adding package rule dependencies&lt;/h4&gt;
-
-&lt;p&gt;We can use &lt;code class=&quot;highlighter-rouge&quot;&gt;add_deps(&quot;@bar&quot;)&lt;/code&gt; to add additional rules relative to the current package directory.&lt;/p&gt;
-
-&lt;p&gt;However, we cannot add rule dependencies from other packages, they are completely isolated and we can only refer to rules from other packages imported by &lt;code class=&quot;highlighter-rouge&quot;&gt;add_requires&lt;/code&gt; in the user project.&lt;/p&gt;
-
-&lt;p&gt;packages/z/zlib/rules/foo.lua&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;@bar&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;on_config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo: on_config %s&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;packages/z/zlib/rules/bar.lua&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;bar&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;on_config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;bar: on_config %s&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;stricter-package-dependency-compatibility-support&quot;&gt;Stricter package dependency compatibility support&lt;/h3&gt;
-
-&lt;p&gt;Two new package related policies have been added to enable stricter package dependency compatibility control.&lt;/p&gt;
-
-&lt;p&gt;This is to address the fact that some packages may have abi incompatibilities or break other packages that depend on them every time they are updated, and by default Xmake will not recompile and install them unless their versions and configurations are also updated.&lt;/p&gt;
-
-&lt;p&gt;There is a chance that the compilation compatibility will be broken and the link will fail.&lt;/p&gt;
-
-&lt;h4 id=&quot;packagelibrarydepsstrict_compatibility&quot;&gt;package.librarydeps.strict_compatibility&lt;/h4&gt;
-
-&lt;p&gt;is disabled by default, if enabled then strict compatibility is maintained between the current package and all its library dependencies, and any version update of a dependent package will force a recompile install of the current package.&lt;/p&gt;
-
-&lt;p&gt;This ensures that all packages are binary compatible and that no linking and runtime errors occur when linking with other installed packages due to changes to the interface of a dependent package.&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;bar&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;zoo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_policy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;package.librarydeps.strict_compatibility&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;For example, if there is an updated version of bar or zoo, then foo will also be recompiled and installed.&lt;/p&gt;
-
-&lt;h4 id=&quot;packagestrict_compatibility&quot;&gt;package.strict_compatibility&lt;/h4&gt;
-
-&lt;p&gt;is disabled by default, if it is enabled then strict compatibility is maintained between the current package and all other packages that depend on it, and any version update of this package will force a recompile and install of the other parent packages.&lt;/p&gt;
-
-&lt;p&gt;This ensures that all packages are binary compatible and that no linking and runtime errors occur when linking with other installed packages due to changes in the interface of a dependent package.&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_policy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;package.strict_compatibility&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;bar&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zoo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;For example, if there is an updated version of foo, then both bar and zoo will be forced to recompile and install.&lt;/p&gt;
-
-&lt;h4 id=&quot;packageinstall_always&quot;&gt;package.install_always&lt;/h4&gt;
-
-&lt;p&gt;This is useful for local integration of third-party source packages,
-as the package will always be reinstalled each time &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f -c&lt;/code&gt; is run to reconfigure it.&lt;/p&gt;
-
-&lt;p&gt;As the user may at any time need to modify the third party source code and recompile it for integration.&lt;/p&gt;
-
-&lt;p&gt;Previously it was only possible to trigger a recompile by changing the package version number each time,
-but with this strategy it is possible to trigger a recompile each time.&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mode.debug&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mode.release&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_sourcedir&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;join&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;scriptdir&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_policy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;package.install_always&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;on_install&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{}&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;table.insert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;-DCMAKE_BUILD_TYPE=&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;debug&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;Debug&quot;&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;or&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;Release&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;table.insert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;-DBUILD_SHARED_LIBS=&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;...&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;shared&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;ON&quot;&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;or&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;OFF&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;package.tools.cmake&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;install&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;on_test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;assert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;has_cfuncs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;add&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;includes&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;foo.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}))&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;package_end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;demo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/main.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;adding-the-clang-cl-toolchain&quot;&gt;Adding the clang-cl toolchain&lt;/h3&gt;
-
-&lt;p&gt;Although we did support switching to the clang-cl compiler in previous versions, the switch was cumbersome and had to be set up one by one.&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f --cxx&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;clang-cl --cc&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;clang-cl -c
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;And you have to add the directory where clang-cl.exe is located to %PATH% to make it work.&lt;/p&gt;
-
-&lt;p&gt;Now that vs comes with the clang-cl toolchain, Xmake is fully capable of detecting it and using it automatically.&lt;/p&gt;
-
-&lt;p&gt;So, in this new version, we have added the clang-cl toolchain, and all it takes is &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f --toolchain=clang-cl&lt;/code&gt; to quickly switch to the clang-cl toolchain without any PATH settings.&lt;/p&gt;
-
-&lt;h2 id=&quot;changelog&quot;&gt;Changelog&lt;/h2&gt;
-
-&lt;h3 id=&quot;new-features&quot;&gt;New features&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2140&quot;&gt;#2140&lt;/a&gt;: Support Windows Arm64&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2719&quot;&gt;#2719&lt;/a&gt;: Add &lt;code class=&quot;highlighter-rouge&quot;&gt;package.librarydeps.strict_compatibility&lt;/code&gt; to strict compatibility for package linkdeps&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/2810&quot;&gt;#2810&lt;/a&gt;: Support os.execv to run shell script file&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/2817&quot;&gt;#2817&lt;/a&gt;: Improve rule to support dependence order&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/2824&quot;&gt;#2824&lt;/a&gt;: Pass cross-file to meson.install and trybuild&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/2856&quot;&gt;#2856&lt;/a&gt;: Improve to debug package using the debug source directory&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2859&quot;&gt;#2859&lt;/a&gt;: Improve trybuild to build 3rd source library using xmake-repo scripts&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2879&quot;&gt;#2879&lt;/a&gt;: Support for dynamic creation and injection of rules and targets in script scope&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2374&quot;&gt;#2374&lt;/a&gt;: Allow xmake package to embed rules and scripts&lt;/li&gt;
-  &lt;li&gt;Add clang-cl toolchain&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;changes&quot;&gt;Changes&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/2745&quot;&gt;#2745&lt;/a&gt;: Improve os.cp to support symlink&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/2773&quot;&gt;#2773&lt;/a&gt;: Improve vcpkg packages to support freebsd&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/2778&quot;&gt;#2778&lt;/a&gt;: Improve Improve xrepo.env for target&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2783&quot;&gt;#2783&lt;/a&gt;: Add digest algorithm option for wdk signtool&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/2787&quot;&gt;#2787&lt;/a&gt;: Improve json to support empty array&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/2782&quot;&gt;#2782&lt;/a&gt;: Improve to find matlab and runtime&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2793&quot;&gt;#2793&lt;/a&gt;: Improve mconfdialog&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2804&quot;&gt;#2804&lt;/a&gt;: Support macOS arm64/x86_64 cross-compilation for installing packages&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2809&quot;&gt;#2809&lt;/a&gt;: Improve cl optimization option&lt;/li&gt;
-  &lt;li&gt;Improve trybuild for meson/cmake/autoconf&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/discussions/2846&quot;&gt;#2846&lt;/a&gt;: Improve to generate config files&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2866&quot;&gt;#2866&lt;/a&gt;: Better control over the order of execution of rules&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;bugs-fixed&quot;&gt;Bugs fixed&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2740&quot;&gt;#2740&lt;/a&gt;: Fix build c++ modules stuck and slower for msvc&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2875&quot;&gt;#2875&lt;/a&gt;: Fix build linux driver error&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2885&quot;&gt;#2885&lt;/a&gt;: Fix pch not found with msvc/ccache&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-        <pubDate>Sun, 09 Oct 2022 00:00:00 +0800</pubDate>
-        <link>https://tboox.org/2022/10/09/xmake-update-v2.7.2/</link>
-        <guid isPermaLink="true">https://tboox.org/2022/10/09/xmake-update-v2.7.2/</guid>
-        
-        <category>xmake</category>
-        
-        <category>lua</category>
-        
-        <category>C/C++</category>
-        
-        <category>trybuild</category>
-        
-        <category>rule</category>
-        
-        <category>cmake</category>
-        
-        <category>autoconf</category>
-        
-        
-        <category>xmake</category>
-        
-      </item>
-    
-      <item>
-        <title>Xmake v2.7.2 发布，更加智能化构建第三方库</title>
-        <description>&lt;p&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;Xmake&lt;/a&gt; 是一个基于 Lua 的轻量级跨平台构建工具。&lt;/p&gt;
-
-&lt;p&gt;它非常的轻量，没有任何依赖，因为它内置了 Lua 运行时。&lt;/p&gt;
-
-&lt;p&gt;它使用 xmake.lua 维护项目构建，相比 makefile/CMakeLists.txt，配置语法更加简洁直观，对新手非常友好，短时间内就能快速入门，能够让用户把更多的精力集中在实际的项目开发上。&lt;/p&gt;
-
-&lt;p&gt;我们能够使用它像 Make/Ninja 那样可以直接编译项目，也可以像 CMake/Meson 那样生成工程文件，另外它还有内置的包管理系统来帮助用户解决 C/C++ 依赖库的集成使用问题。&lt;/p&gt;
-
-&lt;p&gt;目前，Xmake 主要用于 C/C++ 项目的构建，但是同时也支持其他 native 语言的构建，可以实现跟 C/C++ 进行混合编译，同时编译速度也是非常的快，可以跟 Ninja 持平。&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Xmake = Build backend + Project Generator + Package Manager + [Remote|Distributed] Build + Cache
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;尽管不是很准确，但我们还是可以把 Xmake 按下面的方式来理解：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Xmake ~= Make/Ninja + CMake/Meson + Vcpkg/Conan + distcc + ccache/sccache
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake&quot;&gt;项目源码&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/&quot;&gt;官方文档&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://xmake.io/#/zh-cn/about/course&quot;&gt;入门课程&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;新特性介绍&quot;&gt;新特性介绍&lt;/h2&gt;
-
-&lt;h3 id=&quot;更加智能化构建第三方库&quot;&gt;更加智能化构建第三方库&lt;/h3&gt;
-
-&lt;p&gt;在先前的版本中，Xmake 提供了一种 TryBuild 模式，可以在没有 xmake.lua 的情况下，使用 Xmake 尝试对 autoconf/cmake/meson 等维护的第三方项目进行直接构建。&lt;/p&gt;
-
-&lt;p&gt;其实，也就是让 Xmake 检测到对应的构建系统后，调用 cmake 等命令来实现，但是会帮助用户简化配置操作，另外还能对接 xmake 的交叉编译工具链配置。&lt;/p&gt;
-
-&lt;p&gt;但是，这种模式有一定的失败率，比如以下一些情况，都会可能导致构建失败：&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;项目代码自身存在缺陷，导致编译错误&lt;/li&gt;
-  &lt;li&gt;项目代码不支持当前平台&lt;/li&gt;
-  &lt;li&gt;构建脚本存在缺陷&lt;/li&gt;
-  &lt;li&gt;缺少特定的配置参数&lt;/li&gt;
-  &lt;li&gt;缺少依赖库，需要用户手动安装&lt;/li&gt;
-  &lt;li&gt;编译器版本太低，不支持部分代码&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;而 TryBuild 模式通常处理这些情况，但是在新版本中，我们对 TryBuild 模式引入了一种新的机制，通过复用 &lt;a href=&quot;https://github.com/xmake-io/xmake-repo&quot;&gt;xmake-repo&lt;/a&gt; 仓库中的构建脚本，来改进构建逻辑。&lt;/p&gt;
-
-&lt;p&gt;它大概得处理流程是这样子的：&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;在第三方源码库目录执行 xmake 命令&lt;/li&gt;
-  &lt;li&gt;Xmake 获取目录名，尝试解析项目名和版本&lt;/li&gt;
-  &lt;li&gt;尝试从 xmake-repo 仓库匹配现有的包&lt;/li&gt;
-  &lt;li&gt;如果匹配成功，直接采用包中构建逻辑来构建&lt;/li&gt;
-  &lt;li&gt;如果没匹配成功，回退到原来的 TryBuild 逻辑&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;这能带来什么好处呢，如果匹配成功，我们能够解决上面提到的各种问题。&lt;/p&gt;
-
-&lt;p&gt;即使当前项目源码不支持指定平台，或者源码和构建脚本存在一定的缺陷，Xmake 也能自动打入特定 patch 去修复它，并引入需要的依赖包，确保它肯定能够一键编译通过。&lt;/p&gt;
-
-&lt;p&gt;我们使用 libjpeg 库为例，来直观的感受下。&lt;/p&gt;
-
-&lt;h4 id=&quot;首先是下载对应源码包&quot;&gt;首先是下载对应源码包&lt;/h4&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;wget https://jaist.dl.sourceforge.net/project/libjpeg-turbo/2.1.4/libjpeg-turbo-2.1.4.tar.gz
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;tar -xvf libjpeg-turbo-2.1.4.tar.gz
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;libjpeg-turbo-2.1.4
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;然后进入目录执行-xmake-命令&quot;&gt;然后进入目录执行 Xmake 命令&lt;/h4&gt;
-
-&lt;p&gt;Xmake 如果检测到是 libjpeg 库，就会提示用户，是否作为 libjpeg 2.1.4 来构建。&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;ruki-2:libjpeg-turbo-2.1.4 ruki&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;xmake
-note: libjpeg-turbo 2.1.4 &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;xmake-repo found, try building it or you can run &lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;xmake f --trybuild&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt; to &lt;span class=&quot;nb&quot;&gt;set &lt;/span&gt;buildsystem &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;pass -y or --confirm&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;y/n/d to skip confirm&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;?
-please input: y &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;y/n&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;我们按下回车键确认继续构建。&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;cmake ... /usr/local/bin/cmake
-/usr/local/bin/cmake -DCMAKE_BUILD_TYPE&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;Release -DENABLE_SHARED&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;OFF -DENABLE_STATIC&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;ON -DCMAKE_POSITION_INDEPENDENT_CODE&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;ON -DCMAKE_INSTALL_LIBDIR:PATH&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;lib -DCMAKE_INSTALL_PREFIX&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/Users/ruki/.xmake/packages/l/libjpeg-turbo/2.1.4/646b795702e34be89c5745333d052aa2 -G &lt;span class=&quot;s2&quot;&gt;&quot;Unix Makefiles&quot;&lt;/span&gt; -DCMAKE_POSITION_INDEPENDENT_CODE&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;ON /Users/ruki/Downloads/libjpeg-turbo-2.1.4
--- CMAKE_BUILD_TYPE &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; Release
--- VERSION &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 2.1.4, BUILD &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 20220923
--- 64-bit build &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;x86_64&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- CMAKE_INSTALL_PREFIX &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; /Users/ruki/.xmake/packages/l/libjpeg-turbo/2.1.4/646b795702e34be89c5745333d052aa2
--- CMAKE_INSTALL_BINDIR &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; bin &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;/Users/ruki/.xmake/packages/l/libjpeg-turbo/2.1.4/646b795702e34be89c5745333d052aa2/bin&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- CMAKE_INSTALL_DATAROOTDIR &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; share &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;/Users/ruki/.xmake/packages/l/libjpeg-turbo/2.1.4/646b795702e34be89c5745333d052aa2/share&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- CMAKE_INSTALL_DOCDIR &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; share/doc/libjpeg-turbo &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;/Users/ruki/.xmake/packages/l/libjpeg-turbo/2.1.4/646b795702e34be89c5745333d052aa2/share/doc/libjpeg-turbo&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- CMAKE_INSTALL_INCLUDEDIR &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; include &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;/Users/ruki/.xmake/packages/l/libjpeg-turbo/2.1.4/646b795702e34be89c5745333d052aa2/include&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- CMAKE_INSTALL_LIBDIR &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; lib &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;/Users/ruki/.xmake/packages/l/libjpeg-turbo/2.1.4/646b795702e34be89c5745333d052aa2/lib&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- CMAKE_INSTALL_MANDIR &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; share/man &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;/Users/ruki/.xmake/packages/l/libjpeg-turbo/2.1.4/646b795702e34be89c5745333d052aa2/share/man&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- Shared libraries disabled &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;ENABLE_SHARED &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 0&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- Static libraries enabled &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;ENABLE_STATIC &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 1&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- 12-bit JPEG support disabled &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;WITH_12BIT &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 0&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- Arithmetic decoding support enabled &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;WITH_ARITH_DEC &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 1&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- Arithmetic encoding support enabled &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;WITH_ARITH_ENC &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 1&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- TurboJPEG API library enabled &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;WITH_TURBOJPEG &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 1&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- TurboJPEG Java wrapper disabled &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;WITH_JAVA &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 0&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- In-memory &lt;span class=&quot;nb&quot;&gt;source&lt;/span&gt;/destination managers enabled &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;WITH_MEM_SRCDST &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 1&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- Emulating libjpeg API/ABI v6.2 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;WITH_JPEG7 &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 0, WITH_JPEG8 &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 0&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- libjpeg API shared library version &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 62.3.0
--- Compiler flags &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;  -O3 -DNDEBUG
--- Linker flags &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
--- INLINE &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; __inline__ __attribute__&lt;span class=&quot;o&quot;&gt;((&lt;/span&gt;always_inline&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;FORCE_INLINE &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 1&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- THREAD_LOCAL &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; __thread
--- CMAKE_EXECUTABLE_SUFFIX &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
--- CMAKE_ASM_NASM_COMPILER &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; /usr/local/bin/nasm
--- CMAKE_ASM_NASM_OBJECT_FORMAT &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; macho64
--- CMAKE_ASM_NASM_FLAGS &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;  -DMACHO -D__x86_64__ -DPIC
--- SIMD extensions: x86_64 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;WITH_SIMD &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 1&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
--- FLOATTEST &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; sse
--- Configuring &lt;span class=&quot;k&quot;&gt;done&lt;/span&gt;
--- Generating &lt;span class=&quot;k&quot;&gt;done&lt;/span&gt;
--- Build files have been written to: /Users/ruki/Downloads/libjpeg-turbo-2.1.4/build_646b7957
-make -j10
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;  2%] Built target md5cmp
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 19%] Built target wrjpgcom
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 20%] Built target simd
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 21%] Built target strtest
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 22%] Built target rdjpgcom
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 80%] Built target jpeg-static
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 84%] Built target turbojpeg-static
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 90%] Built target tjbench-static
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 90%] Built target tjunittest-static
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 91%] Built target jpegtran-static
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 98%] Built target djpeg-static
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;100%] Built target cjpeg-static
-make install
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;  1%] Built target strtest
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;  3%] Built target wrjpgcom
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 19%] Built target simd
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 52%] Built target turbojpeg-static
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 53%] Built target rdjpgcom
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 82%] Built target jpeg-static
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 85%] Built target jpegtran-static
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 90%] Built target djpeg-static
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 93%] Built target tjunittest-static
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 97%] Built target cjpeg-static
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; 98%] Built target tjbench-static
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;100%] Built target md5cmp
-Install the project...
-exporting libjpeg-turbo-2.1.4
-  -&amp;gt; /Users/ruki/Downloads/libjpeg-turbo-2.1.4/build/artifacts/l/libjpeg-turbo/2.1.4/646b795702e34be89c5745333d052aa2
-output to /Users/ruki/Downloads/libjpeg-turbo-2.1.4/build/artifacts
-build ok!
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;只要检测匹配成功，通常肯定能够完成编译，成功率接近 100%，最后 Xmake 会将编译产物输出到当前目录的 &lt;code class=&quot;highlighter-rouge&quot;&gt;build/artifacts&lt;/code&gt; 下面。&lt;/p&gt;
-
-&lt;h4 id=&quot;对接交叉编译工具链&quot;&gt;对接交叉编译工具链&lt;/h4&gt;
-
-&lt;p&gt;这种智能构建模式，我们不仅能够编译本机程序，还可以对接交叉编译工具链，实现对 ios/android 以及任意交叉编译平台的支持。&lt;/p&gt;
-
-&lt;p&gt;例如，编译 Android 平台，我们只需要传递 &lt;code class=&quot;highlighter-rouge&quot;&gt;--trybuild=xrepo&lt;/code&gt; 参数，然后切换到 android 平台即可，Xmake 会透传所有 ndk 工具链信息。&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -p android --trybuild&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;xrepo --ndk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;~/files/android-ndk-r20b -c
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
-xmake f -c --require&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;n -v -p android -a armeabi-v7a -m release -k static --ndk&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/Users/ruki/files/android-ndk-r20b
-checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;Android SDK directory ... ~/Library/Android/sdk
-checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;Build Tools Version of Android SDK ... 33.0.0
-checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;NDK directory ... /Users/ruki/files/android-ndk-r20b
-checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;SDK version of NDK ... 21
-checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;clang++ ... /Users/ruki/files/android-ndk-r20b/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++
-checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the shared library linker &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;sh&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; ... clang++
-checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;clang++ ... /Users/ruki/files/android-ndk-r20b/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++
-checking &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the linker &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;ld&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; ... clang++
-...
-exporting libjpeg-turbo-2.1.4
-  -&amp;gt; /Users/ruki/Downloads/libjpeg-turbo-2.1.4/build/artifacts/l/libjpeg-turbo/2.1.4/79c2e21f436b4ab08a3c23a6cbae8c0e
-output to /Users/ruki/Downloads/libjpeg-turbo-2.1.4/build/artifacts
-build ok!
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;回退到直接编译&quot;&gt;回退到直接编译&lt;/h4&gt;
-
-&lt;p&gt;如果我们不想使用 xmake-repo 的构建脚本，我们也能回退到 cmake/autoconf 直接去尝试构建它们。&lt;/p&gt;
-
-&lt;p&gt;但是这样可能会存在一定的失败率，并且有可能会额外编译一些不需要的二进制目标。而 xmake-repo 里面的构建脚本是最优化的，精简了很多没必要的构建参数，比如禁用 tests/examples 构建等等。&lt;/p&gt;
-
-&lt;p&gt;我们只需要先敲 n 取消基于包脚本的智能构建模式，Xmake 会有新的提示，让用户选择是否继续采用 cmake/autoconf 来尝试构建。&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
-note: libjpeg-turbo 2.1.4 &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;xmake-repo found, try building it or you can run &lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;xmake f --trybuild&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt; to &lt;span class=&quot;nb&quot;&gt;set &lt;/span&gt;buildsystem &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;pass -y or --confirm&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;y/n/d to skip confirm&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;?
-please input: y &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;y/n&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-n
-note: CMakeLists.txt found, try building it or you can run &lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;xmake f --trybuild&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt; to &lt;span class=&quot;nb&quot;&gt;set &lt;/span&gt;buildsystem &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;pass -y or --confirm&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;y/n/d to skip confirm&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;?
-please input: y &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;y/n&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;支持-windows-arm64&quot;&gt;支持 Windows Arm64&lt;/h3&gt;
-
-&lt;p&gt;新版本我们还对 Windows 的构建支持做了改进，新增了 Windows Arm64 平台支持，只需要切换到 arm64 架构即可。&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f -a arm64
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;改进规则支持依赖顺序执行&quot;&gt;改进规则支持依赖顺序执行&lt;/h3&gt;
-
-&lt;p&gt;关联依赖可以绑定一批规则，也就是不必对 target 挨个去使用 &lt;code class=&quot;highlighter-rouge&quot;&gt;add_rules()&lt;/code&gt; 添加规则，只需要应用一个规则，就能生效它和它的所有依赖规则。&lt;/p&gt;
-
-&lt;p&gt;例如：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;bar&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;bar&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-   &lt;span class=&quot;o&quot;&gt;...&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;我们只需要 &lt;code class=&quot;highlighter-rouge&quot;&gt;add_rules(&quot;foo&quot;)&lt;/code&gt;，就能同时应用 foo 和 bar 两个规则。&lt;/p&gt;
-
-&lt;p&gt;但是，默认情况下，依赖之间是不存在执行的先后顺序的，foo 和 bar 的 &lt;code class=&quot;highlighter-rouge&quot;&gt;on_build_file&lt;/code&gt; 等脚本是并行执行的，顺序未定义。&lt;/p&gt;
-
-&lt;p&gt;如果要严格控制执行顺序，在新版本中，我们可以配置 &lt;code class=&quot;highlighter-rouge&quot;&gt;add_deps(&quot;bar&quot;, {order = true})&lt;/code&gt;，告诉 xmake，我们需要根据依赖顺序来执行同级别的脚本。&lt;/p&gt;
-
-&lt;p&gt;例如：&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;bar&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;order&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;on_build_file&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourcefile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;bar&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;on_build_file&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourcefile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;bar 的 &lt;code class=&quot;highlighter-rouge&quot;&gt;on_build_file&lt;/code&gt; 将会被先执行。&lt;/p&gt;
-
-&lt;h3 id=&quot;更好的动态配置目标和规则&quot;&gt;更好的动态配置目标和规则&lt;/h3&gt;
-
-&lt;p&gt;上面这种控制规则依赖的方式，只适合 foo 和 bar 两个规则都是自定义规则，如果想要将自己的规则插入到 xmake 的内置规则之前执行，这就不适用了。&lt;/p&gt;
-
-&lt;p&gt;这个时候，我们需要使用更加灵活的动态规则创建和注入的方式，去修改内置规则。&lt;/p&gt;
-
-&lt;p&gt;例如，我们想在内置的 &lt;code class=&quot;highlighter-rouge&quot;&gt;c++.build&lt;/code&gt; 规则之前，执行自定义 cppfront 规则的 &lt;code class=&quot;highlighter-rouge&quot;&gt;on_build_file&lt;/code&gt; 脚本，我们可以通过下面的方式来实现。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cppfront&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_extensions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;.cpp2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;on_load&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;c++.build&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;clone&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;deps&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;cppfront&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;order&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rule_add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;on_build_file&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourcefile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;opt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;build cppfront file&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cppfront&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;支持从包中引入自定义规则&quot;&gt;支持从包中引入自定义规则&lt;/h3&gt;
-
-&lt;p&gt;现在，我们还可以在包管理仓库中，添加自定义构架规则脚本，实现跟随包进行动态下发和安装。&lt;/p&gt;
-
-&lt;p&gt;我们需要将自定义规则放到仓库的 &lt;code class=&quot;highlighter-rouge&quot;&gt;packages/x/xxx/rules&lt;/code&gt; 目录中，它会跟随包一起被安装。&lt;/p&gt;
-
-&lt;p&gt;当然，它也存在一些限制：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;在包中规则，我们不能添加 &lt;code class=&quot;highlighter-rouge&quot;&gt;on_load&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;after_load&lt;/code&gt; 脚本，但是通常我们可以使用 &lt;code class=&quot;highlighter-rouge&quot;&gt;on_config&lt;/code&gt; 来代替。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h4 id=&quot;添加包规则&quot;&gt;添加包规则&lt;/h4&gt;
-
-&lt;p&gt;我们需要将规则脚本添加到 rules 固定目录下，例如：packages/z/zlib/rules/foo.lua&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;on_config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo: on_config %s&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;应用包规则&quot;&gt;应用包规则&lt;/h4&gt;
-
-&lt;p&gt;使用规则的方式跟之前类似，唯一的区别就是，我们需要通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;@packagename/&lt;/code&gt; 前缀去指定访问哪个包里面的规则。&lt;/p&gt;
-
-&lt;p&gt;具体格式：&lt;code class=&quot;highlighter-rouge&quot;&gt;add_rules(&quot;@packagename/rulename&quot;)&lt;/code&gt;，例如：&lt;code class=&quot;highlighter-rouge&quot;&gt;add_rules(&quot;@zlib/foo&quot;)&lt;/code&gt;。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;system&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;@zlib/foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;通过包别名引用规则&quot;&gt;通过包别名引用规则&lt;/h4&gt;
-
-&lt;p&gt;如果存在一个包的别名，xmake 将优先考虑包的别名来获得规则。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alias&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;zlib2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;system&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/*.cpp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zlib2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;@zlib2/foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;添加包规则依赖&quot;&gt;添加包规则依赖&lt;/h4&gt;
-
-&lt;p&gt;我们可以使用&lt;code class=&quot;highlighter-rouge&quot;&gt;add_deps(&quot;@bar&quot;)&lt;/code&gt;来添加相对于当前包目录的其他规则。&lt;/p&gt;
-
-&lt;p&gt;然而，我们不能添加来自其他包的规则依赖，它们是完全隔离的，我们只能参考用户项目中由&lt;code class=&quot;highlighter-rouge&quot;&gt;add_requires&lt;/code&gt;导入的其他包的规则。&lt;/p&gt;
-
-&lt;p&gt;packages/z/zlib/rules/foo.lua&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;@bar&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;on_config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo: on_config %s&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;packages/z/zlib/rules/bar.lua&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;bar&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;on_config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;bar: on_config %s&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;更加严格的包依赖兼容性支持&quot;&gt;更加严格的包依赖兼容性支持&lt;/h3&gt;
-
-&lt;p&gt;我们新增了两个包相关的策略，用于开启更加严格的包依赖兼容性控制。&lt;/p&gt;
-
-&lt;p&gt;这主要用于解决一些包每次版本更新，可能都会存在一些 abi 不兼容，或者破坏其他依赖它的包，而默认 Xmake 是不会去重新编译安装它们的，除非它们的版本和配置也被更新了。&lt;/p&gt;
-
-&lt;p&gt;这就可能存在一定概率编译兼容性被破坏，导致最终链接失败。&lt;/p&gt;
-
-&lt;h4 id=&quot;packagelibrarydepsstrict_compatibility&quot;&gt;package.librarydeps.strict_compatibility&lt;/h4&gt;
-
-&lt;p&gt;默认禁用，如果启用它，那么当前包和它的所有库依赖包之间会保持严格的兼容性，任何依赖包的版本更新，都会强制触发当前包的重新编译安装。&lt;/p&gt;
-
-&lt;p&gt;以确保所有的包都是二进制兼容的，不会因为某个依赖包接口改动，导致和其他已被安装的其他包一起链接时候，发生链接和运行错误。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;bar&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;zoo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_policy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;package.librarydeps.strict_compatibility&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;例如，如果 bar 或者 zoo 的版本有更新，那么 foo 也会重新编译安装。&lt;/p&gt;
-
-&lt;h4 id=&quot;packagestrict_compatibility&quot;&gt;package.strict_compatibility&lt;/h4&gt;
-
-&lt;p&gt;默认禁用，如果启用它，那么当前包和其他所有依赖它的包之间会保持严格的兼容性，这个包的版本更新，都会强制触发其他父包的重新编译安装。&lt;/p&gt;
-
-&lt;p&gt;以确保所有的包都是二进制兼容的，不会因为某个依赖包接口改动，导致和其他已被安装的其他包一起链接时候，发生链接和运行错误。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_policy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;package.strict_compatibility&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;bar&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;zoo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;例如，如果 foo 的版本有更新，那么 bar 和 zoo 都会被强制重新编译安装。&lt;/p&gt;
-
-&lt;h4 id=&quot;packageinstall_always&quot;&gt;package.install_always&lt;/h4&gt;
-
-&lt;p&gt;每次运行 &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f -c&lt;/code&gt; 重新配置的时候，总是会重新安装包，这对于本地第三方源码包集成时候比较有用。&lt;/p&gt;
-
-&lt;p&gt;因为，用户可能随时需要修改第三方源码，然后重新编译集成它们。&lt;/p&gt;
-
-&lt;p&gt;之前只能通过每次修改包版本号，来触发重新编译，但是有了这个策略，就能每次都会触发重编。&lt;/p&gt;
-
-&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;add_rules&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mode.debug&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;mode.release&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_deps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cmake&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_sourcedir&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;join&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;scriptdir&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_policy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;package.install_always&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;on_install&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{}&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;table.insert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;-DCMAKE_BUILD_TYPE=&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;..&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;debug&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;Debug&quot;&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;or&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;Release&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;table.insert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;-DBUILD_SHARED_LIBS=&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;..&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;shared&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;ON&quot;&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;or&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;OFF&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;import&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;package.tools.cmake&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;install&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;configs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;on_test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;assert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;has_cfuncs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;add&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;includes&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;foo.h&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}))&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;package_end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;add_requires&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;demo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;set_kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;binary&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;src/main.c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add_packages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;新增-clang-cl-工具链&quot;&gt;新增 clang-cl 工具链&lt;/h3&gt;
-
-&lt;p&gt;尽管之前的版本，我们也支持切换到 clang-cl 编译器，但是切换比较繁琐，得挨个设置。&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake f --cxx&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;clang-cl --cc&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;clang-cl -c
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;xmake
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;而且还得将 clang-cl.exe 所在目录加入 %PATH% 才行。&lt;/p&gt;
-
-&lt;p&gt;既然现在 vs 都自带了 clang-cl 工具链，那么 Xmake 完全可以自动检测到并使用它。&lt;/p&gt;
-
-&lt;p&gt;因此，在新版本中，我们新增了 clang-cl 工具链，仅仅只需要 &lt;code class=&quot;highlighter-rouge&quot;&gt;xmake f --toolchain=clang-cl&lt;/code&gt; 就可以快速切换到 clang-cl 工具链，而无需任何 PATH 设置。&lt;/p&gt;
-
-&lt;h2 id=&quot;更新内容&quot;&gt;更新内容&lt;/h2&gt;
-
-&lt;h3 id=&quot;新特性&quot;&gt;新特性&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2140&quot;&gt;#2140&lt;/a&gt;: 支持 Windows Arm64&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2719&quot;&gt;#2719&lt;/a&gt;: 添加 &lt;code class=&quot;highlighter-rouge&quot;&gt;package.librarydeps.strict_compatibility&lt;/code&gt; 策略严格限制包依赖兼容性&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/2810&quot;&gt;#2810&lt;/a&gt;: 支持 os.execv 去执行 shell 脚本文件&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/2817&quot;&gt;#2817&lt;/a&gt;: 改进规则支持依赖顺序执行&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/2824&quot;&gt;#2824&lt;/a&gt;: 传递 cross-file 交叉编译环境给 meson.install 和 trybuild&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/2856&quot;&gt;#2856&lt;/a&gt;: xrepo 支持从当前指定源码目录调试程序&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2859&quot;&gt;#2859&lt;/a&gt;: 改进对三方库的 trybuild 构建，利用 xmake-repo 仓库脚本更加智能化地构建三方库&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2879&quot;&gt;#2879&lt;/a&gt;: 更好的动态创建和配置 target 和 rule&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2374&quot;&gt;#2374&lt;/a&gt;: 允许 xmake 包中引入自定义规则&lt;/li&gt;
-  &lt;li&gt;添加 clang-cl 工具链&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;改进&quot;&gt;改进&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/2745&quot;&gt;#2745&lt;/a&gt;: 改进 os.cp 支持符号链接复制&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/2773&quot;&gt;#2773&lt;/a&gt;: 改进 vcpkg 包安装，支持 freebsd 平台&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/2778&quot;&gt;#2778&lt;/a&gt;: 改进 xrepo.env 支持 target 的运行环境加载&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2783&quot;&gt;#2783&lt;/a&gt;: 添加摘要算法选项到 WDK 的 signtool 签名工具&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/2787&quot;&gt;#2787&lt;/a&gt;: 改进 json 支持空数组&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/pull/2782&quot;&gt;#2782&lt;/a&gt;: 改进查找 matlib sdk 和运行时&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2793&quot;&gt;#2793&lt;/a&gt;: 改进 mconfdialog 配置操作体验&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2804&quot;&gt;#2804&lt;/a&gt;: 安装依赖包支持 macOS arm64/x86_64 交叉编译&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2809&quot;&gt;#2809&lt;/a&gt;: 改进 msvc 的编译优化选项&lt;/li&gt;
-  &lt;li&gt;改进 trybuild 模式，为 meson/autoconf/cmake 提供更好的交叉编译支持&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/discussions/2846&quot;&gt;#2846&lt;/a&gt;: 改进对 configfiles 的生成&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2866&quot;&gt;#2866&lt;/a&gt;: 更好地控制 rule 规则执行顺序&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;bugs-修复&quot;&gt;Bugs 修复&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2740&quot;&gt;#2740&lt;/a&gt;: 修复 msvc 构建 C++ modules 卡死问题&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2875&quot;&gt;#2875&lt;/a&gt;: 修复构建 linux 驱动错误&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xmake-io/xmake/issues/2885&quot;&gt;#2885&lt;/a&gt;: 修复 ccache 下，msvc 编译 pch 失败问题&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-        <pubDate>Sun, 09 Oct 2022 00:00:00 +0800</pubDate>
-        <link>https://tboox.org/cn/2022/10/09/xmake-update-v2.7.2/</link>
-        <guid isPermaLink="true">https://tboox.org/cn/2022/10/09/xmake-update-v2.7.2/</guid>
-        
-        <category>xmake</category>
-        
-        <category>lua</category>
-        
-        <category>C/C++</category>
-        
-        <category>trybuild</category>
-        
-        <category>rule</category>
-        
-        <category>cmake</category>
-        
-        <category>autoconf</category>
         
         
         <category>xmake</category>
