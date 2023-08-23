@@ -89,11 +89,11 @@ add_vectorexts("mmx")
 add_vectorexts("neon")
 add_vectorexts("avx", "avx2", "avx512")
 add_vectorexts("sse", "sse2", "sse3", "sse3", "sse4.2")
-``
+```
 
 Where `avx512`, `sse4.2` are new directive configurations added to our new version, and we have also added a new `all` configuration item that can be used to turn on all extended directive optimisations as much as possible.
 
-``lua
+```lua
 add_vectorexts("all")
 ```
 
