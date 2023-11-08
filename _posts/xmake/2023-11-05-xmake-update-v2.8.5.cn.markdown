@@ -276,11 +276,11 @@ running tests ...
 80% tests passed, 7 tests failed out of 36, spent 0.242s
 ```
 
-![](/assets/img/manual/xmake-test1.png)
+![](https://xmake.io/assets/img/manual/xmake-test1.png)
 
 我们也可以执行 `xmake test -vD` 查看详细的测试失败的错误信息：
 
-![](/assets/img/manual/xmake-test2.png)
+![](https://xmake.io/assets/img/manual/xmake-test2.png)
 
 #### 运行指定测试目标
 
