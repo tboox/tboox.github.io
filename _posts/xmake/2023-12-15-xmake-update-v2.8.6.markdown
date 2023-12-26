@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Xmake v2.8.5 released, New Packaging Plugin: XPack"
+title: "Xmake v2.8.6 released, New Packaging Plugin: XPack"
 tags: xmake lua C/C++ package performance API rust
 categories: xmake
 ---
