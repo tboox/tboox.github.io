@@ -103,7 +103,7 @@ add_files("src/**.cpp|test.cpp|arm/*.cpp")
 
 上述描述，在递归添加源文件的同时，排除掉了test.cpp以及arm目录下的源文件。
 
-更多`add_files`用法，请参考文档:[add_files接口使用文档](http://xmake.io/#/zh/manual?id=targetadd_files) 
+更多`add_files`用法，请参考文档:[add_files接口使用文档](https://xmake.io/zh/api/description/project-target.html#targetadd_files) 
 
 ## 使用演示
 
@@ -191,7 +191,7 @@ $ xmake f --menu
 
 就可以显示菜单配置界面进行编译配置，配置完即可根据当前配置进行编译，效果如下:
 
-<img src="http://xmake.io/assets/img/index/menuconf.gif" width="60%" />
+<img src="https://xmake.io/assets/img/index/menuconf.gif" width="60%" />
 
 
 ## 定制化编译
@@ -367,7 +367,7 @@ task("hello")
 
 上述代码就是一个最为简单的`hello xmake!`插件，运行`$xmake hello`就可看到执行输出，`set_menu`用于配置插件命令行选项，这个不设置就是内部task，无法在命令行下调用。
 
-更加详细的插件说明以及内置插件列表可参考文档：[插件手册](http://xmake.io/#/zh/plugins)
+更加详细的插件说明以及内置插件列表可参考文档：[插件手册](https://xmake.io/zh/guide/extensions/builtin-plugins.html)
 
 ## 查找依赖包
 
@@ -492,10 +492,10 @@ bash <(curl -fsSL https://raw.githubusercontent.com/tboox/xmake/master/scripts/g
 
 对于windows用户，提供了安装包来快速安装，可到[Github Releases](https://github.com/xmake-io/xmake/releases)上下载对应版本。
 
-更加详细的安装过程，见相关文档: [安装说明](http://xmake.io/#/zh/?id=安装)
+更加详细的安装过程，见相关文档: [安装说明](https://xmake.io/zh/guide/basic-commands/install-and-uninstall.html)
 
 ## 结语
 
-xmake还有很多非常有用的特性，例如：编译器特性检测、丰富的模块库、依赖包管理、自定义选项等等，一篇文章讲不完这么多，大家有兴趣的话，可以去[官方文档](http://xmake.io/#/zh/)里面看看，还有很多隐藏特性等着你哦。
+xmake还有很多非常有用的特性，例如：编译器特性检测、丰富的模块库、依赖包管理、自定义选项等等，一篇文章讲不完这么多，大家有兴趣的话，可以去[官方文档](https://xmake.io/zh/)里面看看，还有很多隐藏特性等着你哦。
 
 

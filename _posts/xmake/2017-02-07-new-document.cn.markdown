@@ -13,5 +13,5 @@ categories: xmake
 
 文档地址：
 
-* [xmake中文文档](http://xmake.io/#/zh/)   
-* [xmake英文文档](http://xmake.io/#/home)  
+* [xmake中文文档](https://xmake.io/zh/)
+* [xmake英文文档](https://xmake.io/)  

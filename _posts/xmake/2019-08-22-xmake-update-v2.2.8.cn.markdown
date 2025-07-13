@@ -11,10 +11,10 @@ categories: xmake
 
 最后新版本开始尝试直接安装lua bitcode脚本，来减少安装包的大小（控制在2.4M以内），提高xmake启动加载的效率。
 
-不过，需要注意的事，此版本的源码结构改成了git submodule来维护，所以老版本的`xmake update`无法完整支持对新版本的更新，请参考[安装文档](https://xmake.io/#/zh-cn/guide/installation)进行完整安装。
+不过，需要注意的事，此版本的源码结构改成了git submodule来维护，所以老版本的`xmake update`无法完整支持对新版本的更新，请参考[安装文档](https://xmake.io/zh/guide/installation)进行完整安装。
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh-cn/)
+* [官方文档](https://xmake.io/zh/)
 
 ## 新特性介绍
 

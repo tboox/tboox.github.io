@@ -11,7 +11,7 @@ xmake是一个基于Lua的轻量级现代化c/c++的项目构建工具，主要�
 对于大部分小项目，这些配置已经完全足够使用，本系列后期进阶教程中，我会深入详细讲解如果使用一些高级特性来更加灵活定制化地配置项目。
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh-cn/)
+* [官方文档](https://xmake.io/zh/)
 
 ### 先来一段最简短的
 
@@ -234,7 +234,7 @@ set_optimize("fastest")
 
 如果用户通过flags来设置，还需额外考虑不同编译器的不同编译选项，xmake对其进行了内部映射处理，极大程度方便用户提供跨平台性。
 
-如果想查看详细的映射规则，可以到xmake的官方文档进行查看：[编译优化设置](https://xmake.io/#/zh-cn/manual/project_target?id=targetset_optimize)
+如果想查看详细的映射规则，可以到xmake的官方文档进行查看：[编译优化设置](https://xmake.io/zh/manual/project_target?id=targetset_optimize)
 
 ### 调试和发布模式
 

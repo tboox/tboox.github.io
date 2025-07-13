@@ -10,7 +10,7 @@ xmake是一个基于Lua的轻量级现代化c/c++的项目构建工具，主要�
 本文主要详细讲解下，如果在一个项目中维护和生成多个目标文件的生成，以及它们之间的依赖关系设置。
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh-cn/)
+* [官方文档](https://xmake.io/zh/)
 
 ### target到底是什么？
 

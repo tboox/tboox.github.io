@@ -12,13 +12,13 @@ categories: xmake
 另外，我们还将 luajit 升级到最新的 v2.1 版本，在跨平台方面，xmake 也做了很大的完善，增加了 mips64 架构的运行支持。
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh-cn/)
-* [入门课程](https://xmake.io/#/zh-cn/about/course)
+* [官方文档](https://xmake.io/zh/)
+* [入门课程](https://xmake.io/zh/about/course.html)
 
 
 ## 入门课程
 
-近期，我们也上线了官方的 xmake 入门课程，[Xmake 带你轻松构建 C/C++ 项目](https://xmake.io/#/zh-cn/about/course) 以边学边做实验的方式快速学习 xmake 的使用。
+近期，我们也上线了官方的 xmake 入门课程，[Xmake 带你轻松构建 C/C++ 项目](https://xmake.io/zh/about/course.html) 以边学边做实验的方式快速学习 xmake 的使用。
 
 ## 新特性介绍
 
@@ -200,7 +200,7 @@ target("test")
 
 使用和集成方式完全一致，xmake 会自动下载、编译、集成和链接。
 
-关于远程包的依赖集成的更多详细说明，我们可以看下相关的文档说明：[远程依赖库集成和使用](https://xmake.io/#/zh-cn/package/remote_package)
+关于远程包的依赖集成的更多详细说明，我们可以看下相关的文档说明：[远程依赖库集成和使用](https://xmake.io/zh/guide/package-management/using-official-packages.html)
 
 同时，我们也欢迎更多的人参与进来，帮忙一起改善 C/C++ 的库生态的建设，提供简洁一致的库使用体验，我相信 C/C++ 包管理和库生态并不比 Rust/Go 差。
 

@@ -14,8 +14,8 @@ categories: xmake
 最后，还有一个比较有用的特性就是 Unity Build 支持，通过它我们可以对 C++ 代码的编译速度做到很大程度的提升。
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh-cn/)
-* [入门课程](https://xmake.io/#/zh-cn/about/course)
+* [官方文档](https://xmake.io/zh/)
+* [入门课程](https://xmake.io/zh/about/course)
 
 ## 新特性介绍
 

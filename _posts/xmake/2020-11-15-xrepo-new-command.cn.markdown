@@ -22,7 +22,7 @@ xrepo 是一个基于 [Xmake](https://github.com/xmake-io/xmake) 的跨平台 C/
 
 ## 安装
 
-我们只需要安装上 xmake 就可以使用 xrepo 命令，关于 xmake 的安装，我们可以看下：[xmake 安装文档](https://xmake.io/#/zh-cn/guide/installation)。
+我们只需要安装上 xmake 就可以使用 xrepo 命令，关于 xmake 的安装，我们可以看下：[xmake 安装文档](https://xmake.io/zh/guide/installation)。
 
 ## 支持平台
 
@@ -39,7 +39,7 @@ xrepo 是一个基于 [Xmake](https://github.com/xmake-io/xmake) 的跨平台 C/
 ## 支持的包管理仓库
 
 * 官方自建仓库 [xmake-repo](https://github.com/xmake-io/xmake-repo) (tbox >1.6.1)
-* [用户自建仓库](https://xmake.io/#/zh-cn/package/remote_package?id=%e4%bd%bf%e7%94%a8%e8%87%aa%e5%bb%ba%e7%a7%81%e6%9c%89%e5%8c%85%e4%bb%93%e5%ba%93)
+* [用户自建仓库](https://xmake.io/zh/package/remote_package?id=%e4%bd%bf%e7%94%a8%e8%87%aa%e5%bb%ba%e7%a7%81%e6%9c%89%e5%8c%85%e4%bb%93%e5%ba%93)
 * Conan (conan::openssl/1.1.1g)
 * Vcpkg (vcpkg:ffmpeg)
 * Homebrew/Linuxbrew (brew::pcre2/libpcre2-8)

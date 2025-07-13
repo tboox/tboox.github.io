@@ -316,7 +316,7 @@ Both `package.tools.autoconf` and `package.tools.cmake` modules can support cros
 
 #### Integrate with other build systems
 
-We also support the integration of code libraries maintained by other build systems such as Meson/Scons/Make. You only need to import the corresponding build auxiliary modules. I won’t go into details here. We can further check the documentation: [Integrate local third-party source code libraries ](https://xmake.io/#/zh-cn/package/local_3rd_source_library)
+We also support the integration of code libraries maintained by other build systems such as Meson/Scons/Make. You only need to import the corresponding build auxiliary modules. I won’t go into details here. We can further check the documentation: [Integrate local third-party source code libraries ](https://xmake.io/zh/package/local_3rd_source_library)
 
 ### Improve compiler feature detection
 

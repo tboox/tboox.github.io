@@ -26,8 +26,8 @@ Xmake ≈ Make/Ninja + CMake/Meson + Vcpkg/Conan + distcc + ccache/sccache
 ```
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh-cn/)
-* [入门课程](https://xmake.io/#/zh-cn/about/course)
+* [官方文档](https://xmake.io/zh/)
+* [入门课程](https://xmake.io/zh/about/course)
 
 ## 新特性介绍
 
@@ -408,7 +408,7 @@ $ xmake pack --autobuild=n
 
 ### 接口描述
 
-更多 XPack 打包接口描述见：[XPack 打包接口文档](https://xmake.io/#/zh-cn/manual/xpack)。
+更多 XPack 打包接口描述见：[XPack 打包接口文档](https://xmake.io/zh/manual/xpack)。
 
 ### 安装包到本地
 

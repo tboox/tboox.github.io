@@ -12,8 +12,8 @@ categories: xmake
 另外，我们新增了一个实用的 `utils.glsl2spv` 规则，用于实现对 glsl shader 的编译支持，并自动生成对应的 C 代码头文件，方便快速内嵌编译后的 .spv 文件数据到代码中。
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh-cn/)
-* [入门课程](https://xmake.io/#/zh-cn/about/course)
+* [官方文档](https://xmake.io/zh/)
+* [入门课程](https://xmake.io/zh/about/course)
 
 ## 新特性介绍
 

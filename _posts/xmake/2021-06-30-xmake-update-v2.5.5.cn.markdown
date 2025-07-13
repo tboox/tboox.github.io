@@ -12,8 +12,8 @@ categories: xmake
 另外，新版本中，我们还重新实现了新版的本地包生成方案，完全无缝支持 `add_requires` 和 `add_packages`，从此远程包和本地包可以使用统一的集成方式来维护。
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh-cn/)
-* [入门课程](https://xmake.io/#/zh-cn/about/course)
+* [官方文档](https://xmake.io/zh/)
+* [入门课程](https://xmake.io/zh/about/course)
 
 ## 新特性介绍
 

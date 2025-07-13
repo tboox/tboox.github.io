@@ -12,7 +12,7 @@ categories: xmake
 还有一些小改动和bug修复，可以看下文章最下面的更新内容。
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh-cn/)
+* [官方文档](https://xmake.io/zh/)
 
 
 ## 新特性介绍
@@ -62,7 +62,7 @@ target("luajit")
     add_files("src/*.c")
 ```
 
-通过使用[set_plat](https://xmake.io/#/zh-cn/manual/project_target?id=targetset_plat)和[set_arch](https://xmake.io/#/zh-cn/manual/project_target?id=targetset_arch)接口，直接设置特定target到主机平台，就可以内部自动选择host工具链了。
+通过使用[set_plat](https://xmake.io/zh/manual/project_target?id=targetset_plat)和[set_arch](https://xmake.io/zh/manual/project_target?id=targetset_arch)接口，直接设置特定target到主机平台，就可以内部自动选择host工具链了。
 
 关于这块的完整配置例子，可以参考：https://github.com/xmake-io/xmake-repo/blob/master/packages/l/luajit/port/xmake.lua
 

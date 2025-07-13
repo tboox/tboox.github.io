@@ -12,8 +12,8 @@ categories: xmake
 除此之外，xmake 现在也已经支持了可选的 Lua5.3 运行时，提供更好的跨平台支持能力，目前 xmake 已经能够在 LoongArch 架构上正常运行。
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh-cn/)
-* [入门课程](https://xmake.io/#/zh-cn/about/course)
+* [官方文档](https://xmake.io/zh/)
+* [入门课程](https://xmake.io/zh/about/course)
 
 ## 新特性介绍
 
@@ -258,7 +258,7 @@ target("demo")
 
 !> 如果仅仅本地源码集成，我们不需要额外设置 `add_urls` 和 `add_versions`。
 
-关于包的配置描述，详情见：[包描述说明](https://xmake.io/#/zh-cn/package/remote_package?id=%e5%8c%85%e6%8f%8f%e8%bf%b0%e8%af%b4%e6%98%8e)
+关于包的配置描述，详情见：[包描述说明](https://xmake.io/zh/package/remote_package?id=%e5%8c%85%e6%8f%8f%e8%bf%b0%e8%af%b4%e6%98%8e)
 
 定义完包后，我们就可以通过 `add_requires("foo")` 和 `add_packages("foo")` 来集成使用它了，就跟集成远程包一样的使用方式。
 
@@ -317,7 +317,7 @@ package("pcre2")
 
 #### 集成其他构建系统
 
-我们还支持集成 Meson/Scons/Make 等其他构建系统维护的代码库，仅仅只需要导入对应的构建辅助模块，这里就不一一细讲了，我们可以进一步查阅文档：[集成本地第三方源码库](https://xmake.io/#/zh-cn/package/local_3rd_source_library)
+我们还支持集成 Meson/Scons/Make 等其他构建系统维护的代码库，仅仅只需要导入对应的构建辅助模块，这里就不一一细讲了，我们可以进一步查阅文档：[集成本地第三方源码库](https://xmake.io/zh/package/local_3rd_source_library)
 
 ### 改进编译器特性检测
 

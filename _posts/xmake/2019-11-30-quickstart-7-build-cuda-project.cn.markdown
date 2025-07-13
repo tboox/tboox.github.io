@@ -10,7 +10,7 @@ xmake是一个基于Lua的轻量级现代化c/c++的项目构建工具，主要�
 本文我们会详细介绍下如何通过xmake来构建cuda程序以及与c/c++程序混合编译。
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh-cn/)
+* [官方文档](https://xmake.io/zh/)
 
 ### 准备环境
 

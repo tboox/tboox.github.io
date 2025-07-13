@@ -10,7 +10,7 @@ categories: xmake
 另外，这个版本新增了socket.io支持以及对应协程io的调度支持，为下个版本的远程编译，以及后续的分布式编译做准备。
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh-cn/)
+* [官方文档](https://xmake.io/zh/)
 
 ## 新特性介绍
 

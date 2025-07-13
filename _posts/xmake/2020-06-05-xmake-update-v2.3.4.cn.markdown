@@ -12,7 +12,7 @@ categories: xmake
 <img src="https://xmake.io/assets/img/theme/ninja.png" width="60%" />
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh-cn/)
+* [官方文档](https://xmake.io/zh/)
 
 
 

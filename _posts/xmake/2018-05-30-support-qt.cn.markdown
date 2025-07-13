@@ -61,7 +61,7 @@ $ xmake f --qt=~/Qt/Qt5.9.1
 
 ##### 静态库程序
 
-xmake通过内置的构建规则`qt.static`，将其应用到对应的target，即可让相关target支持Qt静态库的构建，非常的方便简洁，关于构建规则的说明，可参考相关文档：[内建规则](https://xmake.io/#/zh/manual?id=%E5%86%85%E5%BB%BA%E8%A7%84%E5%88%99)
+xmake通过内置的构建规则`qt.static`，将其应用到对应的target，即可让相关target支持Qt静态库的构建，非常的方便简洁，关于构建规则的说明，可参考相关文档：[内建规则](https://xmake.io/zh/api/description/builtin-rules.html)
 
 如果大家想要支持其他构建环境，也只需要方便的自定义一个自己的扩展规则，应用到对应的target即可实现，言归正传，我们看下Qt静态库的`xmake.lua`描述：
 

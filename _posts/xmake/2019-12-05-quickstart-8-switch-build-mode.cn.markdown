@@ -10,7 +10,7 @@ xmake是一个基于Lua的轻量级现代化c/c++的项目构建工具，主要�
 本文我们会详细介绍下如何在项目构建过程中切换debug/release等常用构建模式，以及自定义其他编译模式。
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh-cn/)
+* [官方文档](https://xmake.io/zh/)
 
 ### 调试和发布模式
 

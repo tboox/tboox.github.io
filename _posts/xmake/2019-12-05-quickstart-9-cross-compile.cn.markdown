@@ -10,7 +10,7 @@ xmake是一个基于Lua的轻量级现代化c/c++的项目构建工具，主要�
 除了win, linux, macOS平台，以及android, ios等移动端平台的内建构建支持，xmake也支持对各种其他工具链的交叉编译支持，本文我们将会详细介绍下如何使用xmake进行交叉编译。
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh-cn/)
+* [官方文档](https://xmake.io/zh/)
 
 ### 交叉编译工具链简介
 
@@ -81,7 +81,7 @@ $ xmake
 
 #### 设置工具链bin目录
 
-对于不规则工具链目录结构，靠单纯地[--sdk](https://xmake.io/#/zh-cn/guide/configuration?id=-sdk)选项设置，没法完全检测通过的情况下，可以通过这个选项继续附加设置工具链的bin目录位置。
+对于不规则工具链目录结构，靠单纯地[--sdk](https://xmake.io/zh/guide/configuration?id=-sdk)选项设置，没法完全检测通过的情况下，可以通过这个选项继续附加设置工具链的bin目录位置。
 
 例如：一些特殊的交叉工具链的，编译器bin目录，并不在  `/home/toolchains_sdkdir/bin`  这个位置，而是独立到了  `/usr/opt/bin`
 

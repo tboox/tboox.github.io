@@ -386,7 +386,7 @@ Therefore, XMake does not destroy the C/C++ ecology, but greatly reuses the exis
 
 * Official self-built repository [xmake-repo](https://github.com/xmake-io/xmake-repo) (tbox >1.6.1)
 * Official package manager [Xrepo](https://github.com/xmake-io/xrepo)
-* [User-built repository](https://xmake.io/#/zh-cn/package/remote_package?id=%e4%bd%bf%e7%94%a8%e8%87%aa%e5%bb %ba%e7%a7%81%e6%9c%89%e5%8c%85%e4%bb%93%e5%ba%93)
+* [User-built repository](https://xmake.io/zh/package/remote_package?id=%e4%bd%bf%e7%94%a8%e8%87%aa%e5%bb %ba%e7%a7%81%e6%9c%89%e5%8c%85%e4%bb%93%e5%ba%93)
 * Conan (conan::openssl/1.1.1g)
 * Conda (conda::libpng 1.3.67)
 * Vcpkg (vcpkg:ffmpeg)
@@ -451,7 +451,7 @@ checking for mingw directory ... C:\Users\ruki\AppData\Local\.xmake\packages\m\m
 
 In addition to mingw-w64, we can also configure remote pull to use other tool chains, and even cross-compile tool chains, such as: llvm-mingw, llvm, tinycc, muslcc, gnu-rm, zig, etc.
 
-If you want to learn more about the pull integration of the remote toolchain, you can read the document: [Automatically pull the remote toolchain](https://xmake.io/#/zh-cn/package/remote_package?id=%e8 %87%aa%e5%8a%a8%e6%8b%89%e5%8f%96%e8%bf%9c%e7%a8%8b%e5%b7%a5%e5%e5%85%b7%e9%93 %be).
+If you want to learn more about the pull integration of the remote toolchain, you can read the document: [Automatically pull the remote toolchain](https://xmake.io/zh/package/remote_package?id=%e8 %87%aa%e5%8a%a8%e6%8b%89%e5%8f%96%e8%bf%9c%e7%a8%8b%e5%b7%a5%e5%e5%85%b7%e9%93 %be).
 
 ### Extremely fast parallel compilation
 

@@ -18,8 +18,8 @@ categories: xmake
 关于 xmake 和 xrepo 的进一步了解和使用可以参考下面的链接。
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh-cn/)
-* [入门课程](https://xmake.io/#/zh-cn/about/course)
+* [官方文档](https://xmake.io/zh/)
+* [入门课程](https://xmake.io/zh/about/course)
 * [Xrepo 命令](https://github.com/xmake-io/xrepo)
 
 ### Discord 社区频道上线

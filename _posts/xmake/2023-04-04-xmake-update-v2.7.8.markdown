@@ -87,7 +87,7 @@ $
 
 A series of detection interfaces such as has_cfuncs/check_cxxsnippets have been provided in option, and there are corresponding auxiliary APIs to help detection.
 
-For related documents, please refer to: [helper detection interface](https://xmake.io/#/zh-cn/manual/helper_interfaces).
+For related documents, please refer to: [helper detection interface](https://xmake.io/api/description/helper-interfaces.html).
 
 However, the current detection interface provided by option is only for the global platform tool chain, and it is impossible to perform targeted detection according to each specific target configuration.
 

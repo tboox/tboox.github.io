@@ -12,7 +12,7 @@ icon: book
 
 #### Xmake
 
-- [在线文档](https://xmake.io/#/zh-cn/)
+- [在线文档](https://xmake.io/zh/)
 - [在线文章](/cn/category/#xmake)
 
 #### TBOX

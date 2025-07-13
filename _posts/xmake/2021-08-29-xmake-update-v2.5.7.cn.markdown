@@ -12,8 +12,8 @@ categories: xmake
 此外，我们还提供了一些比较实用的规则， 比如 `utils.bin2c` 可以让用户方便快速的内嵌一些二进制资源文件到代码中去，以头文件的方式获取相关数据。
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh-cn/)
-* [入门课程](https://xmake.io/#/zh-cn/about/course)
+* [官方文档](https://xmake.io/zh/)
+* [入门课程](https://xmake.io/zh/about/course)
 
 ## 新特性介绍
 

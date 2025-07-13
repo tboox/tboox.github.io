@@ -16,8 +16,8 @@ Xmake = Build backend + Project Generator + Package Manager
 经过几年的持续迭代，Xmake 对 C/C++ 包管理的支持不断完善，也新增了不少实用的包管理特性，因此，在本文中，我们对其做一些总结，希望对大家有所帮助。
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh-cn/)
-* [入门课程](https://xmake.io/#/zh-cn/about/course)
+* [官方文档](https://xmake.io/zh/)
+* [入门课程](https://xmake.io/zh/about/course)
 
 ### 构建系统与包管理
 
@@ -500,7 +500,7 @@ target("demo")
 
 !> 如果仅仅本地源码集成，我们不需要额外设置 `add_urls` 和 `add_versions`。
 
-关于包的配置描述，详情见：[包描述说明](https://xmake.io/#/zh-cn/package/remote_package?id=%e5%8c%85%e6%8f%8f%e8%bf%b0%e8%af%b4%e6%98%8e)
+关于包的配置描述，详情见：[包描述说明](https://xmake.io/zh/package/remote_package?id=%e5%8c%85%e6%8f%8f%e8%bf%b0%e8%af%b4%e6%98%8e)
 
 定义完包后，我们就可以通过 `add_requires("foo")` 和 `add_packages("foo")` 来集成使用它了，就跟集成远程包一样的使用方式。
 

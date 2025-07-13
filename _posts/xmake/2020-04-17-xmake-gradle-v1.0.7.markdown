@@ -27,7 +27,7 @@ In addition, the relevant gradle configuration is basically the same as cmake an
 Everyone is welcome to try it, the newly released plugin, if you want to know more, please refer to:
 
 * [项目源码](https://github.com/xmake-io/xmake-gradle)
-* [官方文档](https://xmake.io/#/zh-cn/plugin/more_plugins?id=gradle%e6%8f%92%e4%bb%b6%ef%bc%88jni%ef%bc%89)
+* [官方文档](https://xmake.io/zh/plugin/more_plugins?id=gradle%e6%8f%92%e4%bb%b6%ef%bc%88jni%ef%bc%89)
 
 ## Prerequisites
 

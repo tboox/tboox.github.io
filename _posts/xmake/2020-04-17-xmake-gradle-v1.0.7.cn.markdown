@@ -27,7 +27,7 @@ xmake
 欢迎大家来试试哦，新鲜出炉的插件，如果你想要了解更多，请参考：中
 
 * [项目源码](https://github.com/xmake-io/xmake-gradle)
-* [官方文档](https://xmake.io/#/zh-cn/plugin/more_plugins?id=gradle%e6%8f%92%e4%bb%b6%ef%bc%88jni%ef%bc%89)
+* [官方文档](https://xmake.io/zh/plugin/more_plugins?id=gradle%e6%8f%92%e4%bb%b6%ef%bc%88jni%ef%bc%89)
 
 ## 准备工作
 

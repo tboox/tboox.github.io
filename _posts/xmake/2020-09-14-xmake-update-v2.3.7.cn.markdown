@@ -20,7 +20,7 @@ categories: xmake
 最后，我们还改进了 trybuild 模式编译，通过 xmake 可以快速编译 autotools/cmake 维护的第三方项目，并且可以快速对接 android/ios/mingw等交叉编译环境，实现快速移植编译。
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh-cn/)
+* [官方文档](https://xmake.io/zh/)
 
 ## 新特性介绍
 
@@ -42,7 +42,7 @@ sudo apt update
 sudo apt install xmake
 ```
 
-当然，我们还支持很多其他的安装方式，对于其他平台的详细安装方式见：[安装文档](https://xmake.io/#/zh-cn/guide/installation)。
+当然，我们还支持很多其他的安装方式，对于其他平台的详细安装方式见：[安装文档](https://xmake.io/zh/guide/installation)。
 
 ### 更加丰富的工具链支持
 

@@ -177,7 +177,7 @@ add_versions("github:4.0.2", "4df1ef0bf73b7148caea1270539ef7bd06607e0ea8aa2fbf1b
 
 #### add_versions
 
-用于设置每个源码包的版本和对应的sha256值，具体描述见：[add_urls](https://xmake.io/#/zh-cn/package/remote_package?id=add_urls)
+用于设置每个源码包的版本和对应的sha256值，具体描述见：[add_urls](https://xmake.io/zh/package/remote_package?id=add_urls)
 
 #### add_patches
 
@@ -219,7 +219,7 @@ end
 
 添加依赖的系统frameworks链接。
 
-示例见：[add_syslinks](https://xmake.io/#/zh-cn/package/remote_package?id=add_syslink)
+示例见：[add_syslinks](https://xmake.io/zh/package/remote_package?id=add_syslink)
 
 #### add_linkdirs
 
@@ -479,11 +479,11 @@ end)
 
 ### 扩展配置参数
 
-详情见：[add_configs](https://xmake.io/#/zh-cn/package/remote_package?id=add_configs)
+详情见：[add_configs](https://xmake.io/zh/package/remote_package?id=add_configs)
 
 ### 内置配置参数
 
-除了可以通过[add_configs](https://xmake.io/#/zh-cn/package/remote_package?id=add_configs)设置一些扩展的配置参数以外，xmake还提供了一些内置的配置参数，可以使用
+除了可以通过[add_configs](https://xmake.io/zh/package/remote_package?id=add_configs)设置一些扩展的配置参数以外，xmake还提供了一些内置的配置参数，可以使用
 
 #### 启用调试包
 
@@ -598,5 +598,5 @@ xmake l scripts/test.lua -v -D --shallow -p android --ndk=/xxxx zlib
 
 详细的贡献说明，见：[CONTRIBUTING.md](https://github.com/xmake-io/xmake-repo/blob/master/CONTRIBUTING.md)
 
-关于如何制作自己的包，可以看下上文：[添加包到仓库](https://xmake.io/#/zh-cn/package/remote_package?id=%e6%b7%bb%e5%8a%a0%e5%8c%85%e5%88%b0%e4%bb%93%e5%ba%93)。
+关于如何制作自己的包，可以看下上文：[添加包到仓库](https://xmake.io/zh/package/remote_package?id=%e6%b7%bb%e5%8a%a0%e5%8c%85%e5%88%b0%e4%bb%93%e5%ba%93)。
 

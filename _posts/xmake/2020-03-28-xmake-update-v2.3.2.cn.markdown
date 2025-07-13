@@ -11,7 +11,7 @@ categories: xmake
 另外，xmake还增加了对sdcc编译工具链的支持，用于编译51/stm8等嵌入式程序。
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh-cn/)
+* [官方文档](https://xmake.io/zh/)
 
 ## 一些优化点
 

@@ -218,7 +218,7 @@ if (getqval("lang") !== "0") {
                 </div>
                 <ul class="content-ul" links>
                   <li><a href="http://github.com/tboox/tbox">tbox</a></li>
-                  <li><a href="http://xmake.io">xmake</a></li>
+                  <li><a href="https://xmake.io/">xmake</a></li>
                   <li><a href="https://github.com/tboox">github</a></li>
                 </ul>
             </div>

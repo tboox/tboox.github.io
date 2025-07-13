@@ -40,7 +40,7 @@ If you want to know more, please refer to: [online documentation](https://xrepo.
 
 #### Installation
 
-We only need to install xmake to use the xrepo command. For the installation of xmake, we can see: [xmake installation document](https://xmake.io/#/zh-cn/guide/installation).
+We only need to install xmake to use the xrepo command. For the installation of xmake, we can see: [xmake installation document](https://xmake.io/zh/guide/installation).
 
 #### Support platform
 
@@ -57,7 +57,7 @@ We only need to install xmake to use the xrepo command. For the installation of 
 #### Supported package management warehouse
 
 * Official self-built warehouse [xmake-repo](https://github.com/xmake-io/xmake-repo) (tbox >1.6.1)
-* [User-built warehouse](https://xmake.io/#/zh-cn/package/remote_package?id=%e4%bd%bf%e7%94%a8%e8%87%aa%e5%bb %ba%e7%a7%81%e6%9c%89%e5%8c%85%e4%bb%93%e5%ba%93)
+* [User-built warehouse](https://xmake.io/zh/package/remote_package?id=%e4%bd%bf%e7%94%a8%e8%87%aa%e5%bb %ba%e7%a7%81%e6%9c%89%e5%8c%85%e4%bb%93%e5%ba%93)
 * Conan (conan::openssl/1.1.1g)
 * Vcpkg (vcpkg:ffmpeg)
 * Homebrew/Linuxbrew (brew::pcre2/libpcre2-8)

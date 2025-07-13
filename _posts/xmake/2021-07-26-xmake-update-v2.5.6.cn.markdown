@@ -10,8 +10,8 @@ categories: xmake
 这是一个稳定性修复版本，主要修复和改进了一些跟预编译二进制包相关的兼容性问题。另外新增了一些实用的接口来设置默认的编译平台、架构和模式，以及允许的编译平台、架构列表等等。
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh-cn/)
-* [入门课程](https://xmake.io/#/zh-cn/about/course)
+* [官方文档](https://xmake.io/zh/)
+* [入门课程](https://xmake.io/zh/about/course)
 
 ## 新特性介绍
 

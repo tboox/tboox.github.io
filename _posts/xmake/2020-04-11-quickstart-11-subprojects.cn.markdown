@@ -10,7 +10,7 @@ xmake是一个基于Lua的轻量级现代化c/c++的项目构建工具，主要�
 本文主要详细讲解下，如何通过配置子工程模块，来组织构建一个大规模的工程项目。
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh-cn/)
+* [官方文档](https://xmake.io/zh/)
 
 ### 维护简单的项目结构
 

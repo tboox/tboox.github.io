@@ -10,7 +10,7 @@ xmake是一个基于Lua的轻量级现代化c/c++的项目构建工具，主要�
 xmake完全支持对Qt5项目的维护和构建，通过本文将会带你了解如何通过xmake来维护各种类型的Qt项目。
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh-cn/)
+* [官方文档](https://xmake.io/zh/)
 
 ### 前言
 
@@ -40,7 +40,7 @@ $ xmake g --qt=/home/xxx/qtsdk
 xmake内置了各种Qt项目的空工程模板，我们可以通过`xmake create`命令来快速创建它们。
 
 注：由于xmake的master最新版本，也就是还未发布的v2.2.9版本对Qt的模板和构建规则进行了升级，因此本文主要讲解的都是基于最新版本来讲解，
-而之前的老模版和规则也是向下兼容的，如果想要继续了解，可以查看相关文档：[Qt项目开发文档](https://xmake.io/#/zh-cn/guide/project_examples?id=qt%e7%a8%8b%e5%ba%8f)
+而之前的老模版和规则也是向下兼容的，如果想要继续了解，可以查看相关文档：[Qt项目开发文档](https://xmake.io/zh/guide/project_examples?id=qt%e7%a8%8b%e5%ba%8f)
 
 #### 创建QuickApp应用程序
 
@@ -163,7 +163,7 @@ Options:
                                                - qt.widgetapp_static: c++
 ```
 
-更多其他Qt项目的使用说明，可以查看xmake的官方文档：[Qt项目构建文档](https://xmake.io/#/zh-cn/guide/project_examples?id=qt%e7%a8%8b%e5%ba%8f)
+更多其他Qt项目的使用说明，可以查看xmake的官方文档：[Qt项目构建文档](https://xmake.io/zh/guide/project_examples?id=qt%e7%a8%8b%e5%ba%8f)
 
 ### 运行和断点调试
 
@@ -247,4 +247,4 @@ $ xmake project -k vsxmake
 
 ![](https://xmake.io/assets/img/manual/qt_vs.png)
 
-这块，具体详情，可以查看插件文档：[使用xmake生成vs工程](https://xmake.io/#/zh-cn/plugin/builtin_plugins?id=%e7%94%9f%e6%88%90visualstudio%e5%b7%a5%e7%a8%8b)
+这块，具体详情，可以查看插件文档：[使用xmake生成vs工程](https://xmake.io/zh/plugin/builtin_plugins?id=%e7%94%9f%e6%88%90visualstudio%e5%b7%a5%e7%a8%8b)

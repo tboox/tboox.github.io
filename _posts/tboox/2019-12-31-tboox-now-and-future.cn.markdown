@@ -46,7 +46,7 @@ $ xmake project -k [vsxmake2010|vsxmake2013|vsxmake2015|..] -m "debug;release"
 
 由于之前的docute文档站仅支持单页markdown，随着文档的不断增多，维护起来越来越臃肿，因此今年我整体切到了docsify来管理。
 
-文档站点：[https://xmake.io/#/zh-cn/](https://xmake.io/#/zh-cn/)
+文档站点：[https://xmake.io/zh/](https://xmake.io/zh/)
 
 
 

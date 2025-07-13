@@ -12,7 +12,7 @@ categories: xmake
 处理之外，xmake还提供了一个特殊的`xmake.cli`构建rule，通过集成libxmake engine库，来扩展开发基于xmake引擎的程序，比如：做个定制版的xmake，也可以基于此写点lua脚本程序。
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh-cn/)
+* [官方文档](https://xmake.io/zh/)
 
 
 ## 构建iOS/MacOS程序

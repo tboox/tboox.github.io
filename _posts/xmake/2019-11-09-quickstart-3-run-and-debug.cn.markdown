@@ -10,7 +10,7 @@ xmake是一个基于Lua的轻量级现代化c/c++的项目构建工具，主要�
 本文主要详细讲解如何加载运行编译好的目标程序，以及如何去调试。
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh-cn/)
+* [官方文档](https://xmake.io/zh/)
 
 ### 运行生成目标
 
@@ -35,7 +35,7 @@ target("test")
     add_runenvs("LD_LIBRARY_PATH", "/tmp/lib", "xxx/lib")
 ```
 
-更多关于此接口的描述，可以看下文档：[add_runenvs接口文档](https://xmake.io/#/zh-cn/manual/project_target?id=targetadd_runenvs)
+更多关于此接口的描述，可以看下文档：[add_runenvs接口文档](https://xmake.io/zh/manual/project_target?id=targetadd_runenvs)
 
 
 

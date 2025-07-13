@@ -390,7 +390,7 @@ XMake 除了支持 vcpkg/conan 还有自建仓库的包集成支持，还支持�
 
 * 官方自建仓库 [xmake-repo](https://github.com/xmake-io/xmake-repo) (tbox >1.6.1)
 * 官方包管理器 [Xrepo](https://github.com/xmake-io/xrepo)
-* [用户自建仓库](https://xmake.io/#/zh-cn/package/remote_package?id=%e4%bd%bf%e7%94%a8%e8%87%aa%e5%bb%ba%e7%a7%81%e6%9c%89%e5%8c%85%e4%bb%93%e5%ba%93)
+* [用户自建仓库](https://xmake.io/zh/package/remote_package?id=%e4%bd%bf%e7%94%a8%e8%87%aa%e5%bb%ba%e7%a7%81%e6%9c%89%e5%8c%85%e4%bb%93%e5%ba%93)
 * Conan (conan::openssl/1.1.1g)
 * Conda (conda::libpng 1.3.67)
 * Vcpkg (vcpkg:ffmpeg)
@@ -455,7 +455,7 @@ checking for mingw directory ... C:\Users\ruki\AppData\Local\.xmake\packages\m\m
 
 除了 mingw-w64，我们还可以配置远程拉取使用其他的工具链，甚至交叉编译工具链，例如：llvm-mingw, llvm, tinycc, muslcc, gnu-rm, zig 等等。
 
-如果大家还想进一步了解远程工具链的拉取集成，可以看下文档：[自动拉取远程工具链](https://xmake.io/#/zh-cn/package/remote_package?id=%e8%87%aa%e5%8a%a8%e6%8b%89%e5%8f%96%e8%bf%9c%e7%a8%8b%e5%b7%a5%e5%85%b7%e9%93%be)。
+如果大家还想进一步了解远程工具链的拉取集成，可以看下文档：[自动拉取远程工具链](https://xmake.io/zh/package/remote_package?id=%e8%87%aa%e5%8a%a8%e6%8b%89%e5%8f%96%e8%bf%9c%e7%a8%8b%e5%b7%a5%e5%85%b7%e9%93%be)。
 
 ### 极速并行编译
 
@@ -604,7 +604,7 @@ $ make
   - [Discord 聊天室](https://discord.gg/xmake)
   - QQ 群：343118190, 662147501
   - 微信公众号：tboox-os
- - 课程：[Xmake 带你轻松构建 C/C++ 项目](https://xmake.io/#/zh-cn/about/course)
+ - 课程：[Xmake 带你轻松构建 C/C++ 项目](https://xmake.io/zh/about/course)
  - 活动：[开源之夏 & Xmake](https://tboox.org/cn/2021/04/29/xmake-summer-ospp/)
 
 

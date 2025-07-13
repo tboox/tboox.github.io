@@ -8,7 +8,7 @@ categories: xmake
 最近对xmake内部做了不少的重构来改进，并且新增了不少实用的新特性，欢迎来体验。
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh-cn/)
+* [官方文档](https://xmake.io/zh/)
 
 一些新特性：
 
@@ -183,7 +183,7 @@ $ xmake f -p cross --trybuild=autotools --sdk=/xxxx
 $ xmake
 ```
 
-关于更多交叉编译的配置细节，请参考文档：[交叉编译](https://xmake.io/#/zh-cn/guide/configuration?id=%e4%ba%a4%e5%8f%89%e7%bc%96%e8%af%91)，除了多了一个`--trybuild=`参数，其他交叉编译配置参数都是完全通用的。
+关于更多交叉编译的配置细节，请参考文档：[交叉编译](https://xmake.io/zh/guide/configuration?id=%e4%ba%a4%e5%8f%89%e7%bc%96%e8%af%91)，除了多了一个`--trybuild=`参数，其他交叉编译配置参数都是完全通用的。
 
 #### 传递用户配置参数
 

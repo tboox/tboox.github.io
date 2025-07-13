@@ -244,9 +244,9 @@ target("test")
 
 ### Added Git related built-in configuration variables
 
-xmake has always provided the automatic generation feature of config.h, which can be configured through the [add_configfiles](https://xmake.io/#/manual/project_target?id=targetadd_configfiles) interface, and it also supports the replacement of template variables. You can define some variables yourself.
+xmake has always provided the automatic generation feature of config.h, which can be configured through the [add_configfiles](https://xmake.io/api/description/project-target.html#targetadd_configfiles) interface, and it also supports the replacement of template variables. You can define some variables yourself.
 
-However, xmake also provides some commonly used built-in variable substitutions, such as version information, platform architecture, etc. For details, see: [https://xmake.io/#/manual/project_target?id=targetadd_configfiles](https://xmake.io/#/manual/project_target?id=targetadd_configfiles)
+However, xmake also provides some commonly used built-in variable substitutions, such as version information, platform architecture, etc. For details, see: [https://xmake.io/api/description/project-target.html#targetadd_configfiles](https://xmake.io/api/description/project-target.html#targetadd_configfiles)
 
 The template configuration is very simple, just need:
 

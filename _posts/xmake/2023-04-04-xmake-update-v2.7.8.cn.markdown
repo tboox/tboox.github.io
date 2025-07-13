@@ -26,8 +26,8 @@ Xmake ≈ Make/Ninja + CMake/Meson + Vcpkg/Conan + distcc + ccache/sccache
 ```
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh-cn/)
-* [入门课程](https://xmake.io/#/zh-cn/about/course)
+* [官方文档](https://xmake.io/zh/)
+* [入门课程](https://xmake.io/zh/about/course)
 
 <img src="https://github.com/xmake-io/xmake-docs/raw/master/assets/img/index/package.gif" width="650px" />
 
@@ -90,7 +90,7 @@ $
 
 has_cfuncs/check_cxxsnippets 等系列检测接口，在 option 中已经有提供，并且有对应的辅助 API 来帮助检测。
 
-相关文档可以参考：[辅助检测接口](https://xmake.io/#/zh-cn/manual/helper_interfaces)。
+相关文档可以参考：[辅助检测接口](https://xmake.io/zh/manual/helper_interfaces)。
 
 但是目前 option 提供的检测接口仅仅针对全局平台工具链，无法根据每个特定的 target 配置在针对性做一些检测。
 

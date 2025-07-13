@@ -13,7 +13,7 @@ categories: xmake
 另外，关于c/c++方面，我们也对vs预览版中新的`/sourceDependencies xxx.json`输出的头文件依赖格式也做了支持（这对于多语言下，头文件依赖检测会更加的可靠稳定）。
 
 * [项目源码](https://github.com/xmake-io/xmake)
-* [官方文档](https://xmake.io/#/zh-cn/)
+* [官方文档](https://xmake.io/zh/)
 
 ![](https://xmake.io/assets/img/index/xmake-basic-render.gif)
 
