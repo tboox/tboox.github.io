@@ -9,11 +9,11 @@ permalink: /docs/xmake/quickstart/
 * content
 {:toc}
 
-Note: This documents is only a mirror, if you want to see newest documents please goto: [http://xmake.io/#/home/](http://xmake.io/#/home/)
+Note: This documents is only a mirror, if you want to see newest documents please goto: [https://xmake.io/#/home/](https://xmake.io/#/home/)
 
 <p>
 <div align="center">
-  <a href="http://xmake.io">
+  <a href="https://xmake.io">
     <img width="200" heigth="200" src="https://tboox.org/static/img/xmake/logo256c.png">
   </a>  
 
@@ -52,7 +52,7 @@ Note: This documents is only a mirror, if you want to see newest documents pleas
     <a href="https://jq.qq.com/?_wv=1027&k=5hpwWFv">
       <img src="https://img.shields.io/badge/chat-on%20QQ-ff69b4.svg?style=flat-square" alt="QQ" />
     </a>
-    <a href="http://xmake.io/pages/donation.html#donate">
+    <a href="https://xmake.io/pages/donation.html#donate">
       <img src="https://img.shields.io/badge/donate-us-orange.svg?style=flat-square" alt="Donate" />
     </a>
   </div>

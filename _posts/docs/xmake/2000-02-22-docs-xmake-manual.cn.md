@@ -9,7 +9,7 @@ permalink: /docs/xmake/manual/
 * content
 {:toc}
 
-注：此处为镜像文档，最新在线文档请看：[http://xmake.io/#/zh/manual](http://xmake.io/#/zh/manual)
+注：此处为镜像文档，最新在线文档请看：[https://xmake.io/#/zh/manual](https://xmake.io/#/zh/manual)
 
 ## 接口规范
 
@@ -7175,7 +7175,7 @@ local ok = check_cxsnippets({}, {types = {"wchar_t", "char*"}, includes = "stdio
 ```lua
 import("net.http")
 
-http.download("http://xmake.io", "/tmp/index.html")
+http.download("https://xmake.io", "/tmp/index.html")
 ```
 
 ##### privilege.sudo

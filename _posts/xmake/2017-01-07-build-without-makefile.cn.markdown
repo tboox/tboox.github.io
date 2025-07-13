@@ -5,7 +5,7 @@ tags: xmake lua makefile
 categories: xmake
 ---
 
-最近给[xmake](http://xmake.io/cn)增加了一个新特性，对于一份工程源码，可以不用编写makefile，也不用编写各种make相关的工程描述文件（例如：xmake.lua，makefile.am, cmakelist.txt等）
+最近给[xmake](https://xmake.io/cn)增加了一个新特性，对于一份工程源码，可以不用编写makefile，也不用编写各种make相关的工程描述文件（例如：xmake.lua，makefile.am, cmakelist.txt等）
 
 xmake就可以直接编译他们，这是如何做到的呢，简单来说下实现原理：
 

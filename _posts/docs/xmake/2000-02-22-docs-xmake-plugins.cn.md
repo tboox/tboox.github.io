@@ -9,7 +9,7 @@ permalink: /docs/xmake/plugins/
 * content
 {:toc}
 
-注：此处为镜像文档，最新在线文档请看：[http://xmake.io/#/zh/plugins](http://xmake.io/#/zh/plugins)
+注：此处为镜像文档，最新在线文档请看：[https://xmake.io/#/zh/plugins](https://xmake.io/#/zh/plugins)
 
 ## 插件开发
 

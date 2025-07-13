@@ -110,7 +110,7 @@ This way, we can modify the xmake script source locally, sync it to a remote win
 
 We can also pull the remote files back to the local machine for analysis with the `xmake service --pull=` command.
 
-Note: See [Remote Build Documentation](http://xmake.io/#/features/remote_build) for a detailed description of remote build features.
+Note: See [Remote Build Documentation](https://xmake.io/#/features/remote_build) for a detailed description of remote build features.
 
 ![](https://xmake.io/assets/img/manual/xmake-remote.png)
 

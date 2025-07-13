@@ -9,7 +9,7 @@ permalink: /docs/xmake/manual/
 * content
 {:toc}
 
-Note: This documents is only a mirror, if you want to see newest documents please goto: [http://xmake.io/#/manual](http://xmake.io/#/manual)
+Note: This documents is only a mirror, if you want to see newest documents please goto: [https://xmake.io/#/manual](https://xmake.io/#/manual)
 
 ## Specification
 
@@ -7150,7 +7150,7 @@ local ok = check_cxsnippets({}, {types = {"wchar_t", "char*"}, includes = "stdio
 ```lua
 import("net.http")
 
-http.download("http://xmake.io", "/tmp/index.html")
+http.download("https://xmake.io", "/tmp/index.html")
 ```
 
 ##### privilege.sudo

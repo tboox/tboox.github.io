@@ -7,11 +7,11 @@ categories: benchbox
 
 ## Introduction
 
-Benchbox is a benchmark testing utilities based on [xmake](http://xmake.io) and [tbox](https://github.com/waruqi/tbox).
+Benchbox is a benchmark testing utilities based on [xmake](https://xmake.io) and [tbox](https://github.com/waruqi/tbox).
 
 ## Build
 
-Please install xmake first: [xmake](http://xmake.io)
+Please install xmake first: [xmake](https://xmake.io)
 
 ```bash
     $ xmake

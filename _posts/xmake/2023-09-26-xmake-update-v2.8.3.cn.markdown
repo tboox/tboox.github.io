@@ -113,7 +113,7 @@ $ xmake run
 
 我们也能够通过 `xmake service --pull=` 命令，回拉远程的文件到本地，进行分析。
 
-注：详细的远程编译特性说明，见 [远程编译文档](http://xmake.io/#/zh-cn/features/remote_build)。
+注：详细的远程编译特性说明，见 [远程编译文档](https://xmake.io/#/zh-cn/features/remote_build)。
 
 ![](https://xmake.io/assets/img/manual/xmake-remote.png)
 

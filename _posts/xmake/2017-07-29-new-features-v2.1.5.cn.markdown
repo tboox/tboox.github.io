@@ -35,7 +35,7 @@ target("test")
     end)
 ```
 
-上述描述代码，通过[lib.detect.find_package](http://xmake.io/#/zh/manual?id=detect-find_package)来查找包，如果找到`zlib`包，则将`links`, `includedirs`和`linkdirs`等信息添加到target中去。
+上述描述代码，通过[lib.detect.find_package](https://xmake.io/#/zh/manual?id=detect-find_package)来查找包，如果找到`zlib`包，则将`links`, `includedirs`和`linkdirs`等信息添加到target中去。
 
 #### 实现包管理2.0
 
@@ -112,7 +112,7 @@ projectdir
 
 #### 快速判断编译器特性检测支持
 
-通过`core.tool.compiler`模块的[compiler.has_features](http://xmake.io/#/zh/manual?id=compiler-has_features)接口，在`xmake.lua`中预先判断当前编译期支持的语言特性，实现条件编译。
+通过`core.tool.compiler`模块的[compiler.has_features](https://xmake.io/#/zh/manual?id=compiler-has_features)接口，在`xmake.lua`中预先判断当前编译期支持的语言特性，实现条件编译。
 
 此处也是参考了cmake的设计，具体详情见：[issues#83](https://github.com/xmake-io/xmake/issues/83)。
 
@@ -144,12 +144,12 @@ if compiler.has_features("cxx_constexpr", {target = target, defines = "..", incl
 end
 ```
 
-所有的c/c++编译器特性列表，见：[compiler.features](http://xmake.io/#/zh/manual?id=compiler-features)
+所有的c/c++编译器特性列表，见：[compiler.features](https://xmake.io/#/zh/manual?id=compiler-features)
 
 
 #### 判断指定c/c++头文件是否存在
 
-通过[lib.detect.has_cincludes](http://xmake.io/#/zh/manual?id=detect-has_cincludes)来检测c头文件是否存在。
+通过[lib.detect.has_cincludes](https://xmake.io/#/zh/manual?id=detect-has_cincludes)来检测c头文件是否存在。
 
 ```lua
 import("lib.detect.has_cincludes")
@@ -159,11 +159,11 @@ local ok = has_cincludes({"stdio.h", "stdlib.h"}, {target = target})
 local ok = has_cincludes({"stdio.h", "stdlib.h"}, {defines = "_GNU_SOURCE=1", languages = "cxx11"})
 ```
 
-c++头文件的检测，见：[lib.detect.has_cxxincludes](http://xmake.io/#/zh/manual?id=detect-has_cxxincludes)
+c++头文件的检测，见：[lib.detect.has_cxxincludes](https://xmake.io/#/zh/manual?id=detect-has_cxxincludes)
 
 #### 判断指定c/c++函数是否存在
 
-通过[lib.detect.has_cfuncs](http://xmake.io/#/zh/manual?id=detect-has_cfuncs)来检测c函数是否存在。
+通过[lib.detect.has_cfuncs](https://xmake.io/#/zh/manual?id=detect-has_cfuncs)来检测c函数是否存在。
 
 ```lua
 import("lib.detect.has_cfuncs")
@@ -172,11 +172,11 @@ local ok = has_cfuncs("setjmp")
 local ok = has_cfuncs({"sigsetjmp((void*)0, 0)", "setjmp"}, {includes = "setjmp.h"})
 ```
 
-c++函数的检测，见：[lib.detect.has_cxxfuncs](http://xmake.io/#/zh/manual?id=detect-has_cxxfuncs)。
+c++函数的检测，见：[lib.detect.has_cxxfuncs](https://xmake.io/#/zh/manual?id=detect-has_cxxfuncs)。
 
 #### 判断指定c/c++类型是否存在
 
-通过[lib.detect.has_ctypes](http://xmake.io/#/zh/manual?id=detect-has_ctypes)来检测c函数是否存在。
+通过[lib.detect.has_ctypes](https://xmake.io/#/zh/manual?id=detect-has_ctypes)来检测c函数是否存在。
 
 ```lua
 import("lib.detect.has_ctypes")
@@ -186,13 +186,13 @@ local ok = has_ctypes({"char", "wchar_t"}, {includes = "stdio.h"})
 local ok = has_ctypes("wchar_t", {includes = {"stdio.h", "stdlib.h"}, "defines = "_GNU_SOURCE=1", languages = "cxx11"})
 ```
 
-c++类型的检测，见：[lib.detect.has_cxxtypes](http://xmake.io/#/zh/manual?id=detect-has_cxxtypes)。
+c++类型的检测，见：[lib.detect.has_cxxtypes](https://xmake.io/#/zh/manual?id=detect-has_cxxtypes)。
 
 #### 检测c/c++代码片段是否能够编译通过
 
 通用的c/c++代码片段检测接口，通过传入多个代码片段列表，它会自动生成一个编译文件，然后常识对它进行编译，如果编译通过返回true。
 
-对于一些复杂的编译器特性，连[compiler.has_features](http://xmake.io/#/zh/manual?id=compiler-has_features)都无法检测到的时候，可以通过此接口通过尝试编译来检测它。
+对于一些复杂的编译器特性，连[compiler.has_features](https://xmake.io/#/zh/manual?id=compiler-has_features)都无法检测到的时候，可以通过此接口通过尝试编译来检测它。
 
 ```lua
 import("lib.detect.check_cxsnippets")
@@ -201,7 +201,7 @@ local ok = check_cxsnippets("void test() {}")
 local ok = check_cxsnippets({"void test(){}", "#define TEST 1"}, {types = "wchar_t", includes = "stdio.h"})
 ```
 
-此接口是[detect.has_cfuncs](http://xmake.io/#/zh/manual?id=detect-has_cfuncs), [detect.has_cincludes](http://xmake.io/#/zh/manual?id=detect-has_cincludes)和[detect.has_ctypes](http://xmake.io/#/zh/manual?id=detect-has_ctypes)等接口的通用版本，也更加底层。
+此接口是[detect.has_cfuncs](https://xmake.io/#/zh/manual?id=detect-has_cfuncs), [detect.has_cincludes](https://xmake.io/#/zh/manual?id=detect-has_cincludes)和[detect.has_ctypes](https://xmake.io/#/zh/manual?id=detect-has_ctypes)等接口的通用版本，也更加底层。
 
 因此我们可以用它来检测：types, functions, includes 还有 links，或者是组合起来一起检测。
 
@@ -351,7 +351,7 @@ option("test")
 
 #### 自定义目标加载脚本
 
-在target初始化加载的时候，将会执行[on_load](http://xmake.io/#/zh/manual?id=targeton_load)，在里面可以做一些动态的目标配置，实现更灵活的目标描述定义，例如：
+在target初始化加载的时候，将会执行[on_load](https://xmake.io/#/zh/manual?id=targeton_load)，在里面可以做一些动态的目标配置，实现更灵活的目标描述定义，例如：
 
 ```lua
 target("test")
@@ -397,7 +397,7 @@ target("test")
 
 #### 获取内置变量的值
 
-[内置变量](http://xmake.io/#/zh/manual?id=%E5%86%85%E7%BD%AE%E5%8F%98%E9%87%8F)可以通过此接口直接获取，而不需要再加`$()`的包裹，使用更加简单，例如：
+[内置变量](https://xmake.io/#/zh/manual?id=%E5%86%85%E7%BD%AE%E5%8F%98%E9%87%8F)可以通过此接口直接获取，而不需要再加`$()`的包裹，使用更加简单，例如：
 
 ```lua
 print(val("host"))
@@ -405,7 +405,7 @@ print(val("env PATH"))
 local s = val("shell echo hello")
 ```
 
-而用[vformat](http://xmake.io/#/zh/manual?id=vformat)就比较繁琐了：
+而用[vformat](https://xmake.io/#/zh/manual?id=vformat)就比较繁琐了：
 
 ```lua
 local s = vformat("$(shell echo hello)")
@@ -415,7 +415,7 @@ local s = vformat("$(shell echo hello)")
 
 #### 目标依赖实现属性继承
 
-2.1.4之前的版本，[target.add_deps](http://xmake.io/#/zh/manual?id=targetadd_deps)仅用于添加依赖，修改编译顺序：
+2.1.4之前的版本，[target.add_deps](https://xmake.io/#/zh/manual?id=targetadd_deps)仅用于添加依赖，修改编译顺序：
 
 ```lua
 target("test1")
@@ -468,7 +468,7 @@ target("test")
 
 #### 新增查找工具接口
 
-[lib.detect.find_tool](http://xmake.io/#/zh/manual?id=detect-find_tool)接口用于查找可执行程序，比[lib.detect.find_program](http://xmake.io/#/zh/manual?id=detect-find_program)更加的高级，功能也更加强大，它对可执行程序进行了封装，提供了工具这个概念：
+[lib.detect.find_tool](https://xmake.io/#/zh/manual?id=detect-find_tool)接口用于查找可执行程序，比[lib.detect.find_program](https://xmake.io/#/zh/manual?id=detect-find_program)更加的高级，功能也更加强大，它对可执行程序进行了封装，提供了工具这个概念：
 
 * toolname: 工具名，可执行程序的简称，用于标示某个工具，例如：`gcc`, `clang`等
 * program: 可执行程序命令，例如：`xcrun -sdk macosx clang`
@@ -516,8 +516,8 @@ projectdir
 
 #### API接口改进
 
-使用[includes](http://xmake.io/#/zh/manual?id=includes)替代老的[add_subdirs](http://xmake.io/#/zh/manual?id=add_subdirs)和[add_subfiles](http://xmake.io/#/zh/manual?id=add_subfiles)接口。
-使用[set_config_header](http://xmake.io/#/zh/manual?id=targetset_config_header)替代老的[set_config_h](http://xmake.io/#/zh/manual?id=targetset_config_h)和[set_config_h_prefix](http://xmake.io/#/zh/manual?id=targetset_config_h_prefix)接口。
+使用[includes](https://xmake.io/#/zh/manual?id=includes)替代老的[add_subdirs](https://xmake.io/#/zh/manual?id=add_subdirs)和[add_subfiles](https://xmake.io/#/zh/manual?id=add_subfiles)接口。
+使用[set_config_header](https://xmake.io/#/zh/manual?id=targetset_config_header)替代老的[set_config_h](https://xmake.io/#/zh/manual?id=targetset_config_h)和[set_config_h_prefix](https://xmake.io/#/zh/manual?id=targetset_config_h_prefix)接口。
 
 #### 新增大量扩展模块
 
@@ -525,5 +525,5 @@ projectdir
 * 解压缩
 * git操作等接口
 
-具体详情见文档：[扩展模块](http://xmake.io/#/zh/manual?id=%E6%89%A9%E5%B1%95%E6%A8%A1%E5%9D%97)
+具体详情见文档：[扩展模块](https://xmake.io/#/zh/manual?id=%E6%89%A9%E5%B1%95%E6%A8%A1%E5%9D%97)
 

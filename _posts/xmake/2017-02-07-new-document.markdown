@@ -11,5 +11,5 @@ So I recently rewritten the document of xmake using [docute](https://docute.js.o
 
 The Documents:
 
-* [English Document](http://xmake.io/#/home)  
-* [Chinese Document](http://xmake.io/#/zh/)  
+* [English Document](https://xmake.io/#/home)  
+* [Chinese Document](https://xmake.io/#/zh/)  

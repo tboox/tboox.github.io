@@ -5,7 +5,7 @@ tags: xmake lua 预编译头文件 c++编译加速 优化编译 跨平台
 categories: xmake
 ---
 
-最近为了给[xmake](http://xmake.io)实现预编译头文件的支持，研究了下各大主流编译器处理预编译头的机制以及之间的一些差异。
+最近为了给[xmake](https://xmake.io)实现预编译头文件的支持，研究了下各大主流编译器处理预编译头的机制以及之间的一些差异。
 
 现在的大部分c/c++编译器都是支持预编译头的，例如：gcc，clang，msvc等，用于优化c++代码的编译速度，毕竟c++的头文件如果包含了模板定义的话，编译速度是很慢的，
 如果能够吧大部分通用的头文件放置在一个`header.h`中，在其他源码编译之前预先对其进行编译，之后的代码都能重用这部分预编译头，就可以极大程度上减少频繁的头文件冗余编译。
@@ -129,7 +129,7 @@ target("test")
     set_pcxxheader("header.h")
 ```
 
-更多使用说明见：[target.set_pcheader](http://xmake.io/#/zh/manual?id=targetset_pcheader)
+更多使用说明见：[target.set_pcheader](https://xmake.io/#/zh/manual?id=targetset_pcheader)
 
 #### 参考资料
 

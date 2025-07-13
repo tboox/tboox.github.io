@@ -160,7 +160,7 @@ target("test")
     add_defines("-DTEST=$(var)")
 ```
 
-既然支持直接从配置选项中获取，那么当然也就能很方便的扩展自定义的选项，来获取自定义的变量了，具体如何自定义选项见：[option](http://xmake.io/#/zh/manual?id=option)
+既然支持直接从配置选项中获取，那么当然也就能很方便的扩展自定义的选项，来获取自定义的变量了，具体如何自定义选项见：[option](https://xmake.io/#/zh/manual?id=option)
 
 ### 修改目标文件名
 
@@ -222,7 +222,7 @@ target("tbox")
 
 其中`../(tbox/**.h)`带括号的部分，为实际要安装的根路径，`|**/impl/**.h`部分用于排除不需要安装的文件。
 
-其通配符匹配规则、排除规则可参考[add_files](http://xmake.io/#/zh/manual?id=targetadd_files)。                                                                 
+其通配符匹配规则、排除规则可参考[add_files](https://xmake.io/#/zh/manual?id=targetadd_files)。                                                                 
 
 ### 多目标依赖构建
 
@@ -246,7 +246,7 @@ target("demo")
 
 ### 合并静态库
 
-xmake的[add_files](http://xmake.io/#/zh/manual?id=targetadd_files)接口功能是非常强大的，不仅可以支持多种语言文件的混合添加构建，还可以直接添加静态库，进行自动合并库到当前的工程目标中去。
+xmake的[add_files](https://xmake.io/#/zh/manual?id=targetadd_files)接口功能是非常强大的，不仅可以支持多种语言文件的混合添加构建，还可以直接添加静态库，进行自动合并库到当前的工程目标中去。
 
 我们可以这么写：
 
@@ -256,7 +256,7 @@ target("demo")
     add_files("src/*.c", "libxxx.a", "lib*.a", "xxx.lib")
 ```
 
-直接在编译静态库的时候，合并多个已有的静态库，注意不是链接哦，这跟[add_links](http://xmake.io/#/zh/manual?id=targetadd_links)是有区别的。
+直接在编译静态库的时候，合并多个已有的静态库，注意不是链接哦，这跟[add_links](https://xmake.io/#/zh/manual?id=targetadd_links)是有区别的。
 
 并且你也可以直接追加对象文件：
 
@@ -293,7 +293,7 @@ $ xmake f --test=y
 $ xmake
 ```
 
-xmake的选项支持是非常强大的，除了上述基础用法外，还可以配置各种检测条件，实现自动检测，具体详情可参考：[option](http://xmake.io/#/zh/manual?id=optionadd_cincludes)和[依赖包的添加和自动检测机制](/cn/2016/08/06/add-package-and-autocheck/)。
+xmake的选项支持是非常强大的，除了上述基础用法外，还可以配置各种检测条件，实现自动检测，具体详情可参考：[option](https://xmake.io/#/zh/manual?id=optionadd_cincludes)和[依赖包的添加和自动检测机制](/cn/2016/08/06/add-package-and-autocheck/)。
 
 ### 添加第三方依赖包
 
@@ -309,7 +309,7 @@ target("test")
 
 用户不再需要自己单独调用`add_links`，`add_includedirs`, `add_ldflags`等接口，来配置依赖库链接了。
 
-对于如何设置包搜索目录，可参考[add_packagedirs](http://xmake.io/#/zh/manual?id=targetadd_packagedirs)接口，依赖包详情请参考：[依赖包的添加和自动检测机制](/cn/2016/08/06/add-package-and-autocheck/)。
+对于如何设置包搜索目录，可参考[add_packagedirs](https://xmake.io/#/zh/manual?id=targetadd_packagedirs)接口，依赖包详情请参考：[依赖包的添加和自动检测机制](/cn/2016/08/06/add-package-and-autocheck/)。
 
 ### 生成配置头文件
 
@@ -325,10 +325,10 @@ target("test")
 
 当这个target中通过下面的这些接口，对这个target添加了相关的选项依赖、包依赖、接口依赖后，如果某依赖被启用，那么对应的一些宏定义配置，会自动写入被设置的`config.h`文件中去。
 
-* [add_options](http://xmake.io/#/zh/manual?id=targetadd_options)
-* [add_packages](http://xmake.io/#/zh/manual?id=targetadd_packages)
-* [add_cfuncs](http://xmake.io/#/zh/manual?id=targetadd_cfuncs)
-* [add_cxxfuncs](http://xmake.io/#/zh/manual?id=targetadd_cxxfuncs)
+* [add_options](https://xmake.io/#/zh/manual?id=targetadd_options)
+* [add_packages](https://xmake.io/#/zh/manual?id=targetadd_packages)
+* [add_cfuncs](https://xmake.io/#/zh/manual?id=targetadd_cfuncs)
+* [add_cxxfuncs](https://xmake.io/#/zh/manual?id=targetadd_cxxfuncs)
 
 这些接口，其实底层都用到了option选项中的一些检测设置，例如：
 
@@ -390,7 +390,7 @@ target("demo")
 
 ### 自定义插件任务
 
-task域用于描述一个自定义的任务实现，与[target](http://xmake.io/#/zh/manual?id=target)和[option](http://xmake.io/#/zh/manual?id=option)同级。
+task域用于描述一个自定义的任务实现，与[target](https://xmake.io/#/zh/manual?id=target)和[option](https://xmake.io/#/zh/manual?id=option)同级。
 
 例如，这里定义一个最简单的任务：
 
@@ -405,7 +405,7 @@ task("hello")
 
 这个任务只需要打印`hello xmake!`，那如何来运行呢？
 
-由于这里没有使用[set_menu](http://xmake.io/#/zh/manual?id=taskset_menu)设置菜单，因此这个任务只能在`xmake.lua`的自定义脚本或者其他任务内部调用，例如：
+由于这里没有使用[set_menu](https://xmake.io/#/zh/manual?id=taskset_menu)设置菜单，因此这个任务只能在`xmake.lua`的自定义脚本或者其他任务内部调用，例如：
 
 ```lua
 target("test")
@@ -435,9 +435,9 @@ target("test")
     end)
 ```
 
-上述`task.run`的`{}`这个是用于传递插件菜单中的参数，这里没有通过[set_menu](http://xmake.io/#/zh/manual?id=taskset_menu)设置菜单，此处传空。
+上述`task.run`的`{}`这个是用于传递插件菜单中的参数，这里没有通过[set_menu](https://xmake.io/#/zh/manual?id=taskset_menu)设置菜单，此处传空。
 
-xmake的插件支持也是功能很强大的，并且提供了很多内置的使用插件，具体请参考：[xmake插件手册](http://xmake.io/#/zh/plugins?id=%E7%AE%80%E4%BB%8B)和[task手册](http://xmake.io/#/zh/manual?id=%E6%8F%92%E4%BB%B6%E4%BB%BB%E5%8A%A1)
+xmake的插件支持也是功能很强大的，并且提供了很多内置的使用插件，具体请参考：[xmake插件手册](https://xmake.io/#/zh/plugins?id=%E7%AE%80%E4%BB%8B)和[task手册](https://xmake.io/#/zh/manual?id=%E6%8F%92%E4%BB%B6%E4%BB%BB%E5%8A%A1)
 
 或者可以参考xmake自带的一些[插件demo](https://github.com/xmake-io/xmake/blob/master/xmake/plugins/echo/xmake.lua)。
 
@@ -528,4 +528,4 @@ task
 
 ### 结语
 
-更多描述说明，可直接阅读[xmake的官方手册](http://xmake.io/#/zh/manual)，上面提供了完整的api文档和使用描述。
+更多描述说明，可直接阅读[xmake的官方手册](https://xmake.io/#/zh/manual)，上面提供了完整的api文档和使用描述。

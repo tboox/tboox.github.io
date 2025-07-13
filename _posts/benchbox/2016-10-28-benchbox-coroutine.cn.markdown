@@ -7,7 +7,7 @@ categories: benchbox
 
 ## 简介
 
-[Benchbox](https://github.com/waruqi/benchbox)是一个基准测试包，基于[tbox](https://github.com/waruqi/tbox)和[xmake](http://xmake.io)，里面包含许多针对第三方库功能的性能基准测试和对比，可以很方便的扩展测试用例和模块。
+[Benchbox](https://github.com/waruqi/benchbox)是一个基准测试包，基于[tbox](https://github.com/waruqi/tbox)和[xmake](https://xmake.io)，里面包含许多针对第三方库功能的性能基准测试和对比，可以很方便的扩展测试用例和模块。
 
 目前内置：各大开源协程库性能基准测试，后续还会陆续增加各种开源库模块的分析测试
 
@@ -15,7 +15,7 @@ categories: benchbox
 
 ## 编译
 
-请先安装: [xmake](http://xmake.io)
+请先安装: [xmake](https://xmake.io)
 
 然后运行：
 

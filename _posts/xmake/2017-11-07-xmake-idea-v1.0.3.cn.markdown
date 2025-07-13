@@ -9,7 +9,7 @@ categories: xmake
 
 并且它也支持其他基于Intellij的IDE环境, 例如：Clion, Android Studio等等。
 
-注：使用此插件，需要先安装xmake，更多关于xmake的使用说明，请阅读：[文档手册](http://xmake.io/#/zh/)，项目源码：[Github](https://github.com/xmake-io/xmake)。
+注：使用此插件，需要先安装xmake，更多关于xmake的使用说明，请阅读：[文档手册](https://xmake.io/#/zh/)，项目源码：[Github](https://github.com/xmake-io/xmake)。
  
 ## 特性
 

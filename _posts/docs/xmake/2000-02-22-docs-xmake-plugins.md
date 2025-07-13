@@ -9,7 +9,7 @@ permalink: /docs/xmake/plugins/
 * content
 {:toc}
 
-Note: This documents is only a mirror, if you want to see newest documents please goto: [http://xmake.io/#/plugins](http://xmake.io/#/plugins)
+Note: This documents is only a mirror, if you want to see newest documents please goto: [https://xmake.io/#/plugins](https://xmake.io/#/plugins)
 
 ## Plugin Development
 
