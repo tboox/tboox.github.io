@@ -142,7 +142,7 @@ target("test")
 
 - 检测目标编译配置能否获取给定的 C++ 函数
 
-用法跟 [target:has_cfuncs](#targethas_cfuncs) 类似，只是这里主要用于检测 C++ 的函数。
+用法跟 [target:has_cfuncs](#has-cfuncs) 类似，只是这里主要用于检测 C++ 的函数。
 
 不过，在检测函数的同时，我们还可以额外配置 std languages，来辅助检测。
 

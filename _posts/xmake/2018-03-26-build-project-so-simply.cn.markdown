@@ -103,7 +103,7 @@ add_files("src/**.cpp|test.cpp|arm/*.cpp")
 
 上述描述，在递归添加源文件的同时，排除掉了test.cpp以及arm目录下的源文件。
 
-更多`add_files`用法，请参考文档:[add_files接口使用文档](https://xmake.io/zh/api/description/project-target.html#targetadd_files) 
+更多`add_files`用法，请参考文档:[add_files接口使用文档](https://xmake.io/zh/api/description/project-target.html#add-files) 
 
 ## 使用演示
 

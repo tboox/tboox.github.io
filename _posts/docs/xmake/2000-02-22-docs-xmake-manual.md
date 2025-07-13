@@ -321,7 +321,7 @@ Set the whole project version, we can set it at the beginning of `xmake.lua`.
 set_version("1.5.1")
 ```
 
-It will add project version info to this file automatically if we call [set_config_header](#targetset_config_header) to set `config.h`.`
+It will add project version info to this file automatically if we call [set_config_header](#set-config-header) to set `config.h`.`
 
 For example:
 
@@ -487,81 +487,81 @@ target("test2")
 | Interfaces                                    | Description                                            | Support version             |
 | --------------------------------------------- | ------------------------------------------------------ | --------------------------- |
 | [target](#target)                             | Define a project target                                | >= 1.0.1                    |
-| [target_end](#target_end)                     | End target definition                                  | >= 2.1.1                    |
-| [set_kind](#targetset_kind)                   | Set target kind                                        | >= 1.0.1                    |
-| [set_strip](#targetset_strip)                 | Strip target symbols                                   | >= 1.0.1                    |
-| [set_default](#targetset_default)             | Mark as default target                                 | >= 2.1.3                    |
-| [set_options](#targetset_options)             | Set configuartion options                              | >= 1.0.1                    |
-| [set_symbols](#targetset_symbols)             | Set symbol info                                        | >= 1.0.1                    |
-| [set_basename](#targetset_basename)           | Set the base name for target file                      | >= 2.1.2                    |
-| [set_warnings](#targetset_warnings)           | Set compilation warning level                          | >= 1.0.1                    |
-| [set_optimize](#targetset_optimize)           | Set compilation optimization level                     | >= 1.0.1                    |
-| [set_languages](#targetset_languages)         | Set source code language standards                     | >= 1.0.1                    |
-| [set_headerdir](#targetset_headerdir)         | Set output directories for header files                | >= 1.0.1                    |
-| [set_targetdir](#targetset_targetdir)         | Set output directories for target file                 | >= 1.0.1                    |
-| [set_objectdir](#targetset_objectdir)         | Set output directories for object files                | >= 1.0.1                    |
-| [add_imports](#targetadd_imports)             | Add imported modules for the custom script             | >= 2.1.7                    |
-| [add_rules](#targetadd_rules)                 | Add custom compilation rule to target                  | >= 2.1.9                    |
-| [on_load](#targeton_load)                     | Run custom load target configuartion script            | >= 2.1.5                    |
-| [on_build](#targeton_build)                   | Run custom build target script                         | >= 2.0.1                    |
-| [on_clean](#targeton_clean)                   | Run custom clean files script                          | >= 2.0.1                    |
-| [on_package](#targeton_package)               | Run custom package target script                       | >= 2.0.1                    |
-| [on_install](#targeton_install)               | Run custom install target file script                  | >= 2.0.1                    |
-| [on_uninstall](#targeton_uninstall)           | Run custom uninstall target file script                | >= 2.0.1                    |
-| [on_run](#targeton_run)                       | Run custom run target script                           | >= 2.0.1                    |
-| [before_build](#targetbefore_build)           | Run custom script before building target               | >= 2.0.1                    |
-| [before_clean](#targetbefore_clean)           | Run custom script before cleaning target               | >= 2.0.1                    |
-| [before_package](#targetbefore_package)       | Run custom script before packaging target              | >= 2.0.1                    |
-| [before_install](#targetbefore_install)       | Run custom script before installing target             | >= 2.0.1                    |
-| [before_uninstall](#targetbefore_uninstall)   | Run custom script before uninstalling target           | >= 2.0.1                    |
-| [before_run](#targetbefore_run)               | Run custom script before running target                | >= 2.0.1                    |
-| [after_build](#targetafter_build)             | Run custom script after building target                | >= 2.0.1                    |
-| [after_clean](#targetafter_clean)             | Run custom script after cleaning target                | >= 2.0.1                    |
-| [after_package](#targetafter_package)         | Run custom script after packaging target               | >= 2.0.1                    |
-| [after_install](#targetafter_install)         | Run custom script after installing target              | >= 2.0.1                    |
-| [after_uninstall](#targetafter_uninstall)     | Run custom script after uninstalling target            | >= 2.0.1                    |
-| [after_run](#targetafter_run)                 | Run custom script after running target                 | >= 2.0.1                    |
-| [set_config_h](#targetset_config_h)           | Set auto-generated config header file                  | >= 1.0.1 < 2.1.5 deprecated |
-| [set_config_h_prefix](#targetset_config_h)    | Set macro prefix in auto-generated config header       | >= 1.0.1 < 2.1.5 deprecated |
-| [set_config_header](#targetset_config_header) | Set auto-generated config header file (new)            | >= 2.1.5                    |
-| [set_pcheader](#targetset_pcheader)           | Set pre-compiled c header file                         | >= 2.1.5                    |
-| [set_pcxxheader](#targetset_pcxxheader)       | Set pre-compiled c++ header file                       | >= 2.1.5                    |
-| [add_deps](#targetadd_deps)                   | Add target dependencies                                | >= 1.0.1                    |
-| [add_links](#targetadd_links)                 | Add link libraries                                     | >= 1.0.1                    |
-| [add_files](#targetadd_files)                 | Add source files                                       | >= 1.0.1                    |
-| [del_files](#targetdel_files)                 | Remove source files                                    | >= 2.1.9                    |
-| [add_headers](#targetadd_headers)             | Add installed header files                             | >= 1.0.1                    |
-| [add_linkdirs](#targetadd_linkdirs)           | Add link search directories                            | >= 1.0.1                    |
-| [add_rpathdirs](#targetadd_rpathdirs)         | Add load search directories for dynamic library        | >= 2.1.3                    |
-| [add_includedirs](#targetadd_includedirs)     | Add include search directories                         | >= 1.0.1                    |
-| [add_defines](#targetadd_defines)             | Add macro definition                                   | >= 1.0.1                    |
-| [add_undefines](#targetadd_undefines)         | Add macro undefinition                                 | >= 1.0.1                    |
-| [add_defines_h](#targetadd_defines_h)         | Add macro definition to auto-generated config header   | >= 1.0.1                    |
-| [add_undefines_h](#targetadd_undefines_h)     | Add macro undefinition to auto-generated config header | >= 1.0.1                    |
-| [add_cflags](#targetadd_cflags)               | Add c compilation flags                                | >= 1.0.1                    |
-| [add_cxflags](#targetadd_cxflags)             | Add c/c++ compilation flags                            | >= 1.0.1                    |
-| [add_cxxflags](#targetadd_cxxflags)           | Add c++ compilation flags                              | >= 1.0.1                    |
-| [add_mflags](#targetadd_mflags)               | Add objc compilation flags                             | >= 1.0.1                    |
-| [add_mxflags](#targetadd_mxflags)             | Add objc/objc++ compilation flags                      | >= 1.0.1                    |
-| [add_mxxflags](#targetadd_mxxflags)           | Add objc++ compilation flags                           | >= 1.0.1                    |
-| [add_scflags](#targetadd_scflags)             | Add swift compilation flags                            | >= 2.0.1                    |
-| [add_asflags](#targetadd_asflags)             | Add asm compilation flags                              | >= 2.0.1                    |
-| [add_gcflags](#targetadd_gcflags)             | Add go compilation flags                               | >= 2.1.1                    |
-| [add_dcflags](#targetadd_dcflags)             | Add dlang compilation flags                            | >= 2.1.1                    |
-| [add_rcflags](#targetadd_rcflags)             | Add rust compilation flags                             | >= 2.1.1                    |
-| [add_ldflags](#targetadd_ldflags)             | Add static library link flags                          | >= 1.0.1                    |
-| [add_arflags](#targetadd_arflags)             | Add archive library flags                              | >= 1.0.1                    |
-| [add_shflags](#targetadd_shflags)             | Add dynamic library link flags                         | >= 1.0.1                    |
-| [add_cfunc](#targetadd_cfunc)                 | Add single c function for checking                     | >= 2.0.1                    |
-| [add_cxxfunc](#targetadd_cxxfunc)             | Add single c++ function for checking                   | >= 2.0.1                    |
-| [add_cfuncs](#targetadd_cfuncs)               | Add c functions for checking                           | >= 2.0.1                    |
-| [add_cxxfuncs](#targetadd_cxxfuncs)           | Add c++ functions for checking                         | >= 2.0.1                    |
-| [add_packages](#targetadd_packages)           | Add package dependencies                               | >= 2.0.1                    |
-| [add_options](#targetadd_options)             | Add options dependencies                               | >= 2.0.1                    |
-| [add_languages](#targetadd_languages)         | Add language standards                                 | >= 1.0.1                    |
-| [add_vectorexts](#targetadd_vectorexts)       | Add vector extensions                                  | >= 1.0.1                    |
-| [add_frameworks](#targetadd_frameworks)       | Add frameworks                                         | >= 2.1.1                    |
-| [add_frameworkdirs](#targetadd_frameworkdirs) | Add framework search directories                       | >= 2.1.5                    |
+| [target_end](#-end)                     | End target definition                                  | >= 2.1.1                    |
+| [set_kind](#set-kind)                   | Set target kind                                        | >= 1.0.1                    |
+| [set_strip](#set-strip)                 | Strip target symbols                                   | >= 1.0.1                    |
+| [set_default](#set-default)             | Mark as default target                                 | >= 2.1.3                    |
+| [set_options](#set-options)             | Set configuartion options                              | >= 1.0.1                    |
+| [set_symbols](#set-symbols)             | Set symbol info                                        | >= 1.0.1                    |
+| [set_basename](#set-basename)           | Set the base name for target file                      | >= 2.1.2                    |
+| [set_warnings](#set-warnings)           | Set compilation warning level                          | >= 1.0.1                    |
+| [set_optimize](#set-optimize)           | Set compilation optimization level                     | >= 1.0.1                    |
+| [set_languages](#set-languages)         | Set source code language standards                     | >= 1.0.1                    |
+| [set_headerdir](#set-headerdir)         | Set output directories for header files                | >= 1.0.1                    |
+| [set_targetdir](#set-targetdir)         | Set output directories for target file                 | >= 1.0.1                    |
+| [set_objectdir](#set-objectdir)         | Set output directories for object files                | >= 1.0.1                    |
+| [add_imports](#add-imports)             | Add imported modules for the custom script             | >= 2.1.7                    |
+| [add_rules](#add-rules)                 | Add custom compilation rule to target                  | >= 2.1.9                    |
+| [on_load](#on-load)                     | Run custom load target configuartion script            | >= 2.1.5                    |
+| [on_build](#on-build)                   | Run custom build target script                         | >= 2.0.1                    |
+| [on_clean](#on-clean)                   | Run custom clean files script                          | >= 2.0.1                    |
+| [on_package](#on-package)               | Run custom package target script                       | >= 2.0.1                    |
+| [on_install](#on-install)               | Run custom install target file script                  | >= 2.0.1                    |
+| [on_uninstall](#on-uninstall)           | Run custom uninstall target file script                | >= 2.0.1                    |
+| [on_run](#on-run)                       | Run custom run target script                           | >= 2.0.1                    |
+| [before_build](#before-build)           | Run custom script before building target               | >= 2.0.1                    |
+| [before_clean](#before-clean)           | Run custom script before cleaning target               | >= 2.0.1                    |
+| [before_package](#before-package)       | Run custom script before packaging target              | >= 2.0.1                    |
+| [before_install](#before-install)       | Run custom script before installing target             | >= 2.0.1                    |
+| [before_uninstall](#before-uninstall)   | Run custom script before uninstalling target           | >= 2.0.1                    |
+| [before_run](#before-run)               | Run custom script before running target                | >= 2.0.1                    |
+| [after_build](#after-build)             | Run custom script after building target                | >= 2.0.1                    |
+| [after_clean](#after-clean)             | Run custom script after cleaning target                | >= 2.0.1                    |
+| [after_package](#after-package)         | Run custom script after packaging target               | >= 2.0.1                    |
+| [after_install](#after-install)         | Run custom script after installing target              | >= 2.0.1                    |
+| [after_uninstall](#after-uninstall)     | Run custom script after uninstalling target            | >= 2.0.1                    |
+| [after_run](#after-run)                 | Run custom script after running target                 | >= 2.0.1                    |
+| [set_config_h](#set-config-h)           | Set auto-generated config header file                  | >= 1.0.1 < 2.1.5 deprecated |
+| [set_config_h_prefix](#set-config-h)    | Set macro prefix in auto-generated config header       | >= 1.0.1 < 2.1.5 deprecated |
+| [set_config_header](#set-config-header) | Set auto-generated config header file (new)            | >= 2.1.5                    |
+| [set_pcheader](#set-pcheader)           | Set pre-compiled c header file                         | >= 2.1.5                    |
+| [set_pcxxheader](#set-pcxxheader)       | Set pre-compiled c++ header file                       | >= 2.1.5                    |
+| [add_deps](#add-deps)                   | Add target dependencies                                | >= 1.0.1                    |
+| [add_links](#add-links)                 | Add link libraries                                     | >= 1.0.1                    |
+| [add_files](#add-files)                 | Add source files                                       | >= 1.0.1                    |
+| [del_files](#del-files)                 | Remove source files                                    | >= 2.1.9                    |
+| [add_headers](#add-headers)             | Add installed header files                             | >= 1.0.1                    |
+| [add_linkdirs](#add-linkdirs)           | Add link search directories                            | >= 1.0.1                    |
+| [add_rpathdirs](#add-rpathdirs)         | Add load search directories for dynamic library        | >= 2.1.3                    |
+| [add_includedirs](#add-includedirs)     | Add include search directories                         | >= 1.0.1                    |
+| [add_defines](#add-defines)             | Add macro definition                                   | >= 1.0.1                    |
+| [add_undefines](#add-undefines)         | Add macro undefinition                                 | >= 1.0.1                    |
+| [add_defines_h](#add-defines-h)         | Add macro definition to auto-generated config header   | >= 1.0.1                    |
+| [add_undefines_h](#add-undefines-h)     | Add macro undefinition to auto-generated config header | >= 1.0.1                    |
+| [add_cflags](#add-cflags)               | Add c compilation flags                                | >= 1.0.1                    |
+| [add_cxflags](#add-cxflags)             | Add c/c++ compilation flags                            | >= 1.0.1                    |
+| [add_cxxflags](#add-cxxflags)           | Add c++ compilation flags                              | >= 1.0.1                    |
+| [add_mflags](#add-mflags)               | Add objc compilation flags                             | >= 1.0.1                    |
+| [add_mxflags](#add-mxflags)             | Add objc/objc++ compilation flags                      | >= 1.0.1                    |
+| [add_mxxflags](#add-mxxflags)           | Add objc++ compilation flags                           | >= 1.0.1                    |
+| [add_scflags](#add-scflags)             | Add swift compilation flags                            | >= 2.0.1                    |
+| [add_asflags](#add-asflags)             | Add asm compilation flags                              | >= 2.0.1                    |
+| [add_gcflags](#add-gcflags)             | Add go compilation flags                               | >= 2.1.1                    |
+| [add_dcflags](#add-dcflags)             | Add dlang compilation flags                            | >= 2.1.1                    |
+| [add_rcflags](#add-rcflags)             | Add rust compilation flags                             | >= 2.1.1                    |
+| [add_ldflags](#add-ldflags)             | Add static library link flags                          | >= 1.0.1                    |
+| [add_arflags](#add-arflags)             | Add archive library flags                              | >= 1.0.1                    |
+| [add_shflags](#add-shflags)             | Add dynamic library link flags                         | >= 1.0.1                    |
+| [add_cfunc](#add-cfunc)                 | Add single c function for checking                     | >= 2.0.1                    |
+| [add_cxxfunc](#add-cxxfunc)             | Add single c++ function for checking                   | >= 2.0.1                    |
+| [add_cfuncs](#add-cfuncs)               | Add c functions for checking                           | >= 2.0.1                    |
+| [add_cxxfuncs](#add-cxxfuncs)           | Add c++ functions for checking                         | >= 2.0.1                    |
+| [add_packages](#add-packages)           | Add package dependencies                               | >= 2.0.1                    |
+| [add_options](#add-options)             | Add options dependencies                               | >= 2.0.1                    |
+| [add_languages](#add-languages)         | Add language standards                                 | >= 1.0.1                    |
+| [add_vectorexts](#add-vectorexts)       | Add vector extensions                                  | >= 1.0.1                    |
+| [add_frameworks](#add-frameworks)       | Add frameworks                                         | >= 2.1.1                    |
+| [add_frameworkdirs](#add-frameworkdirs) | Add framework search directories                       | >= 2.1.5                    |
 
 ##### target
 
@@ -803,9 +803,9 @@ target("xxx")
 
 如果这个时候，编译配置为：`xmake f -m debug -a armv7`，那么生成的文件名为：`libxxx_debug_armv7.a`
 
-如果还想进一步定制目标文件的目录名，可参考：[set_targetdir](#targetset_targetdir)。
+如果还想进一步定制目标文件的目录名，可参考：[set_targetdir](#set-targetdir)。
 
-或者通过编写自定义脚本，实现更高级的逻辑，具体见：[after_build](#targetafter_build)和[os.mv](#os-mv)。
+或者通过编写自定义脚本，实现更高级的逻辑，具体见：[after_build](#after-build)和[os.mv](#os-mv)。
 
 ##### target:set_warnings
 
@@ -907,7 +907,7 @@ target("test")
     set_headerdir("$(buildir)/include")
 ```
 
-对于需要安装哪些头文件，可参考[add_headers](#targetadd_headers)接口。
+对于需要安装哪些头文件，可参考[add_headers](#add-headers)接口。
 
 ##### target:set_targetdir
 
@@ -949,7 +949,7 @@ target("test")
 
 ###### Add imported modules for the custom script
 
-通常，我们在[on_build](#targeton_build)等自定义脚本内部，可以通过`import("core.base.task")`的方式导入扩展模块，
+通常，我们在[on_build](#on-build)等自定义脚本内部，可以通过`import("core.base.task")`的方式导入扩展模块，
 但是对于自定义脚本比较多的情况下，每个自定义脚本都重复导入一遍，非常的繁琐，那么可以通过这个接口，实现预先导入，例如：
 
 ```lua
@@ -1015,7 +1015,7 @@ target("test")
     add_files("src/*.markdown")
 ```
 
-我们也可以指定应用局部文件到规则，具体使用见：[add_files](#targetadd_files)。
+我们也可以指定应用局部文件到规则，具体使用见：[add_files](#add-files)。
 
 ##### target:on_load
 
@@ -1357,7 +1357,7 @@ target("test")
 ###### Set auto-generated config header file
 
 <p class="warning">
-2.1.5版本之后，此接口已废弃，请使用[set_config_header](#targetset_config_header)。
+2.1.5版本之后，此接口已废弃，请使用[set_config_header](#set-config-header)。
 </p>
 
 如果你想在xmake配置项目成功后，或者自动检测某个选项通过后，把检测的结果写入配置头文件，那么需要调用这个接口来启用自动生成`config.h`文件。
@@ -1376,10 +1376,10 @@ target("test")
 
 当这个target中通过下面的这些接口，对这个target添加了相关的选项依赖、包依赖、接口依赖后，如果某依赖被启用，那么对应的一些宏定义配置，会自动写入被设置的`config.h`文件中去。
 
-* [add_options](#targetadd_options)
-* [add_packages](#targetadd_packages)
-* [add_cfuncs](#targetadd_cfuncs)
-* [add_cxxfuncs](#targetadd_cxxfuncs) 
+* [add_options](#add-options)
+* [add_packages](#add-packages)
+* [add_cfuncs](#add-cfuncs)
+* [add_cxxfuncs](#add-cxxfuncs) 
 
 这些接口，其实底层都用到了[option](#option)选项中的一些检测设置，例如：
 
@@ -1407,10 +1407,10 @@ target("test")
 ###### Set macro prefix in auto-generated config header
 
 <p class="warning">
-2.1.5版本之后，此接口已废弃，请使用[set_config_header](#targetset_config_header)。
+2.1.5版本之后，此接口已废弃，请使用[set_config_header](#set-config-header)。
 </p>
 
-具体使用见：[set_config_h](#targetset_config_h)
+具体使用见：[set_config_h](#set-config-h)
 
 如果设置了：
 
@@ -1425,7 +1425,7 @@ target("test")
 
 ###### Set auto-generated config header file (new)
 
-此接口是[set_config_h](#targetset_config_h)和[set_config_h_prefix](#targetset_config_h_prefix)的升级版本，2.1.5之后支持。
+此接口是[set_config_h](#set-config-h)和[set_config_h_prefix](#set-config-h-prefix)的升级版本，2.1.5之后支持。
 
 如果你想在xmake配置项目成功后，或者自动检测某个选项通过后，把检测的结果写入配置头文件，那么需要调用这个接口来启用自动生成`config.h`文件。
 
@@ -1447,10 +1447,10 @@ target("test")
 
 当这个target中通过下面的这些接口，对这个target添加了相关的选项依赖、包依赖、接口依赖后，如果某依赖被启用，那么对应的一些宏定义配置，会自动写入被设置的`config.h`文件中去。
 
-* [add_options](#targetadd_options)
-* [add_packages](#targetadd_packages)
-* [add_cfuncs](#targetadd_cfuncs)
-* [add_cxxfuncs](#targetadd_cxxfuncs) 
+* [add_options](#add-options)
+* [add_packages](#add-packages)
+* [add_cfuncs](#add-cfuncs)
+* [add_cxxfuncs](#add-cxxfuncs) 
 
 这些接口，其实底层都用到了[option](#option)选项中的一些检测设置，例如：
 
@@ -1580,7 +1580,7 @@ add_deps("dep1", "dep2", {inherit = false})
 
 ###### Add link libraries
 
-为当前目标添加链接库，一般这个要与[add_linkdirs](#targetadd_linkdirs)配对使用。
+为当前目标添加链接库，一般这个要与[add_linkdirs](#add-linkdirs)配对使用。
 
 ```lua
 target("demo")
@@ -1702,9 +1702,9 @@ target("test")
 
 ###### Add installed header files
 
-安装指定的头文件到build目录，如果设置了[set_headerdir](#targetset_headerdir)， 则输出到指定目录。
+安装指定的头文件到build目录，如果设置了[set_headerdir](#set-headerdir)， 则输出到指定目录。
 
-安装规则的语法跟[add_files](#targetadd_files)类似，例如：
+安装规则的语法跟[add_files](#add-files)类似，例如：
 
 ```lua
     -- 安装tbox目录下所有的头文件（忽略impl目录下的文件），并且按()指定部分作为相对路径，进行安装
@@ -1724,7 +1724,7 @@ target("test")
 
 此接口相当于gcc的`-Lxxx`链接选项。
 
-一般他是与[add_links](#targetadd_links)配合使用的，当然也可以直接通过[add_ldflags](#targetadd_ldflags)或者[add_shflags](#targetadd_shflags)接口来添加，也是可以的。
+一般他是与[add_links](#add-links)配合使用的，当然也可以直接通过[add_ldflags](#add-ldflags)或者[add_shflags](#add-shflags)接口来添加，也是可以的。
 
 <p class="tip">
 如果不想在工程中写死，可以通过：`xmake f --linkdirs=xxx`或者`xmake f --ldflags="-L/xxx"`的方式来设置，当然这种手动设置的目录搜索优先级更高。
@@ -1734,7 +1734,7 @@ target("test")
 
 ###### Add load search directories for dynamic libraries
 
-通过[add_linkdirs](#targetadd_linkdirs)设置动态库的链接搜索目录后，程序被正常链接，但是在linux平台想要正常运行编译后的程序，会报加载动态库失败。
+通过[add_linkdirs](#add-linkdirs)设置动态库的链接搜索目录后，程序被正常链接，但是在linux平台想要正常运行编译后的程序，会报加载动态库失败。
 
 因为没找到动态库的加载目录，想要正常运行依赖动态库的程序，需要设置`LD_LIBRARY_PATH`环境变量，指定需要加载的动态库目录。
 
@@ -1779,7 +1779,7 @@ target("test")
     add_includedirs("$(buildir)/include")
 ```
 
-当然也可以直接通过[add_cxflags](#targetadd_cxflags)或者[add_mxflags](#targetadd_mxflags)等接口来设置，也是可以的。
+当然也可以直接通过[add_cxflags](#add-cxflags)或者[add_mxflags](#add-mxflags)等接口来设置，也是可以的。
 
 <p class="tip">
 如果不想在工程中写死，可以通过：`xmake f --includedirs=xxx`或者`xmake f --cxflags="-I/xxx"`的方式来设置，当然这种手动设置的目录搜索优先级更高。
@@ -1815,13 +1815,13 @@ add_undefines("DEBUG")
 
 ###### Add macro definition to auto-generated config header
 
-添加宏定义到`config.h`配置文件，`config.h`的设置，可参考[set_config_h](#targetset_config_h)接口。
+添加宏定义到`config.h`配置文件，`config.h`的设置，可参考[set_config_h](#set-config-h)接口。
 
 ##### target:add_undefines_h
 
 ###### Add macro undefinition to auto-generated config header
 
-在`config.h`配置文件中通过`undef`禁用宏定义，`config.h`的设置，可参考[set_config_h](#targetset_config_h)接口。
+在`config.h`配置文件中通过`undef`禁用宏定义，`config.h`的设置，可参考[set_config_h](#set-config-h)接口。
 
 ##### target:add_cflags
 
@@ -1975,7 +1975,7 @@ add_shflags("xxx")
 
 ###### Add single c function for checking
 
-与[add_cfuncs](#targetadd_cfuncs)类似，只是仅对单个函数接口进行设置，并且仅对`target`域生效，`option`中不存在此接口。
+与[add_cfuncs](#add-cfuncs)类似，只是仅对单个函数接口进行设置，并且仅对`target`域生效，`option`中不存在此接口。
 
 此接口的目的主要是为了在`config.h`中更加高度定制化的生成宏开关，例如：
 
@@ -2016,7 +2016,7 @@ target("demo")
 
 ###### Add single c++ function for checking
 
-与[add_cfunc](#targetadd_cfunc)类似，只是检测的函数接口是c++函数。
+与[add_cfunc](#add-cfunc)类似，只是检测的函数接口是c++函数。
 
 ##### target:add_cfuncs
 
@@ -2029,9 +2029,9 @@ target("demo")
 | 接口域 | 描述                                                                      | 例子                                                                                                                             |
 | ------ | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | target | 头文件、链接库和函数接口同时指定                                          | `add_cfuncs("libc", nil, {"signal.h", "setjmp.h"}, "signal", "setjmp", "sigsetjmp{sigjmp_buf buf; sigsetjmp(buf, 0);}", "kill")` |
-| option | 仅指定函数接口，头文件依赖[add_cincludes](#targetadd_cincludes)等独立接口 | `add_cincludes("setjmp.h")` `add_cfuncs("sigsetjmp")`                                                                            |
+| option | 仅指定函数接口，头文件依赖[add_cincludes](#add-cincludes)等独立接口 | `add_cincludes("setjmp.h")` `add_cfuncs("sigsetjmp")`                                                                            |
 
-对于`option`，这个接口的使用很简单，跟[add_cincludes](#targetadd_cincludes)类似，例如：
+对于`option`，这个接口的使用很简单，跟[add_cincludes](#add-cincludes)类似，例如：
 
 ```lua
 option("setjmp")
@@ -2047,9 +2047,9 @@ target("test")
 此选项检测是否存在`setjmp`的一些接口，如果检测通过那么`test`目标程序将会加上`HAVE_SETJMP`的宏定义。
 
 <p class="warning">
-需要注意的是，在`option`中使用此接口检测依赖函数，需要同时使用独立的[add_cincludes](#targetadd_cincludes)增加头文件搜索路径，指定[add_links](#targetadd_links)链接库（可选），否则检测不到指定函数。
+需要注意的是，在`option`中使用此接口检测依赖函数，需要同时使用独立的[add_cincludes](#add-cincludes)增加头文件搜索路径，指定[add_links](#add-links)链接库（可选），否则检测不到指定函数。
 <br><br>
-并且某些头文件接口是通过宏开关分别定义的，那么检测的时候最好通过[add_defines](#targetadd_defines)带上依赖的宏开关。
+并且某些头文件接口是通过宏开关分别定义的，那么检测的时候最好通过[add_defines](#add-defines)带上依赖的宏开关。
 </p>
 
 对于`target`，此接口可以同时设置：依赖的头文件、依赖的链接模块、依赖的函数接口，保证检测环境的完整性，例如：
@@ -2073,7 +2073,7 @@ target("test")
                                                                         "pthread_key_delete")
 ```
 
-设置`test`目标，依赖这些接口，构建时会预先检测他们，并且如果通过[set_config_h](#targetset_config_h)接口设置的自动生成头文件：`config.h`
+设置`test`目标，依赖这些接口，构建时会预先检测他们，并且如果通过[set_config_h](#set-config-h)接口设置的自动生成头文件：`config.h`
 
 那么，检测结果会自动加到对应的`config.h`上去，这也是`option`没有的功能，例如：
 
@@ -2106,13 +2106,13 @@ target("test")
 
 ###### Add c++ functions for checking
 
-与[add_cfuncs](#targetadd_cfuncs)类似，只是检测的函数接口是c++函数。
+与[add_cfuncs](#add-cfuncs)类似，只是检测的函数接口是c++函数。
 
 ##### target:add_options
 
 ###### Add option dependencies
 
-这个接口跟[set_options](#targetset_options)类似，唯一的区别就是，此处是追加选项，而[set_options](#targetset_options)每次设置会覆盖先前的设置。
+这个接口跟[set_options](#set-options)类似，唯一的区别就是，此处是追加选项，而[set_options](#set-options)每次设置会覆盖先前的设置。
 
 ##### target:add_packages
 
@@ -2127,15 +2127,15 @@ target("test")
 
 这样，在编译test目标时，如果这个包存在的，将会自动追加包里面的宏定义、头文件搜索路径、链接库目录，也会自动链接包中所有库。
 
-用户不再需要自己单独调用[add_links](#targetadd_links)，[add_includedirs](#targetadd_includedirs), [add_ldflags](#targetadd_ldflags)等接口，来配置依赖库链接了。
+用户不再需要自己单独调用[add_links](#add-links)，[add_includedirs](#add-includedirs), [add_ldflags](#add-ldflags)等接口，来配置依赖库链接了。
 
-对于如何设置包搜索目录，可参考：[add_packagedirs](#targetadd_packagedirs) 接口
+对于如何设置包搜索目录，可参考：[add_packagedirs](#add-packagedirs) 接口
 
 ##### target:add_languages
 
 ###### Add language standards
 
-与[set_languages](#targetset_languages)类似，唯一区别是这个接口不会覆盖掉之前的设置，而是追加设置。
+与[set_languages](#set-languages)类似，唯一区别是这个接口不会覆盖掉之前的设置，而是追加设置。
 
 ##### target:add_vectorexts
 
@@ -2165,7 +2165,7 @@ target("test")
     add_frameworks("Foundation", "CoreFoundation")
 ```
 
-当然也可以使用[add_mxflags](#targetadd_mxflags)和[add_ldflags](#targetadd_ldflags)来设置，不过比较繁琐，不建议这样设置。
+当然也可以使用[add_mxflags](#add-mxflags)和[add_ldflags](#add-ldflags)来设置，不过比较繁琐，不建议这样设置。
 
 ```lua
 target("test")
@@ -2179,7 +2179,7 @@ target("test")
 
 ###### Add framework search directories 
 
-对于一些第三方framework，那么仅仅通过[add_frameworks](#targetadd_frameworks)是没法找到的，还需要通过这个接口来添加搜索目录。
+对于一些第三方framework，那么仅仅通过[add_frameworks](#add-frameworks)是没法找到的，还需要通过这个接口来添加搜索目录。
 
 ```lua
 target("test")
@@ -2212,69 +2212,69 @@ option("test2")
 ```
 
 <p class="tip">
-`option`域是可以重复进入来实现分离设置的，如果要显示离开当前选项的作用域设置，可以手动调用[option_end](#option_end)接口。
+`option`域是可以重复进入来实现分离设置的，如果要显示离开当前选项的作用域设置，可以手动调用[option_end](#-end)接口。
 </p>
 
 
 | 接口                                                  | 描述                                         | 支持版本 |
 | ----------------------------------------------------- | -------------------------------------------- | -------- |
 | [option](#option)                                     | 定义选项                                     | >= 2.0.1 |
-| [option_end](#option_end)                             | 结束定义选项                                 | >= 2.1.1 |
-| [add_deps](#optionadd_deps)                           | 添加选项依赖                                 | >= 2.1.5 |
-| [before_check](#optionbefore_check)                   | 选项检测之前执行此脚本                       | >= 2.1.5 |
-| [on_check](#optionon_check)                           | 自定义选项检测脚本                           | >= 2.1.5 |
-| [after_check](#optionafter_check)                     | 选项检测之后执行此脚本                       | >= 2.1.5 |
-| [set_values](#optionset_values)                       | 设置选项值列表                               | >= 2.1.9 |
-| [set_default](#optionset_default)                     | 设置默认值                                   | >= 2.0.1 |
-| [set_showmenu](#optionset_showmenu)                   | 设置是否启用菜单显示                         | >= 1.0.1 |
-| [set_category](#optionset_category)                   | 设置选项分类，仅用于菜单显示                 | >= 1.0.1 |
-| [set_description](#optionset_description)             | 设置菜单显示描述                             | >= 1.0.1 |
-| [add_links](#optionadd_links)                         | 添加链接库检测                               | >= 1.0.1 |
-| [add_linkdirs](#optionadd_linkdirs)                   | 添加链接库检测需要的搜索目录                 | >= 1.0.1 |
-| [add_rpathdirs](#optionadd_rpathdirs)                 | 添加运行时候动态链接库搜索目录               | >= 2.1.3 |
-| [add_cincludes](#optionadd_cincludes)                 | 添加c头文件检测                              | >= 1.0.1 |
-| [add_cxxincludes](#optionadd_cxxincludes)             | 添加c++头文件检测                            | >= 1.0.1 |
-| [add_ctypes](#optionadd_ctypes)                       | 添加c类型检测                                | >= 1.0.1 |
-| [add_cxxtypes](#optionadd_cxxtypes)                   | 添加c++类型检测                              | >= 1.0.1 |
-| [add_csnippet](#optionadd_csnippet)                   | 添加c代码片段检测                            | >= 2.1.5 |
-| [add_cxxsnippet](#optionadd_cxxsnippet)               | 添加c++代码片段检测                          | >= 2.1.5 |
-| [set_warnings](#targetset_warnings)                   | 设置警告级别                                 | >= 1.0.1 |
-| [set_optimize](#targetset_optimize)                   | 设置优化级别                                 | >= 1.0.1 |
-| [set_languages](#targetset_languages)                 | 设置代码语言标准                             | >= 1.0.1 |
-| [add_includedirs](#targetadd_includedirs)             | 添加头文件搜索目录                           | >= 1.0.1 |
-| [add_defines](#targetadd_defines)                     | 添加宏定义                                   | >= 1.0.1 |
-| [add_undefines](#targetadd_undefines)                 | 取消宏定义                                   | >= 1.0.1 |
-| [add_defines_h](#targetadd_defines_h)                 | 添加宏定义到头文件                           | >= 1.0.1 |
-| [add_undefines_h](#targetadd_undefines_h)             | 取消宏定义到头文件                           | >= 1.0.1 |
-| [add_cflags](#targetadd_cflags)                       | 添加c编译选项                                | >= 1.0.1 |
-| [add_cxflags](#targetadd_cxflags)                     | 添加c/c++编译选项                            | >= 1.0.1 |
-| [add_cxxflags](#targetadd_cxxflags)                   | 添加c++编译选项                              | >= 1.0.1 |
-| [add_mflags](#targetadd_mflags)                       | 添加objc编译选项                             | >= 2.0.1 |
-| [add_mxflags](#targetadd_mxflags)                     | 添加objc/objc++编译选项                      | >= 2.0.1 |
-| [add_mxxflags](#targetadd_mxxflags)                   | 添加objc++编译选项                           | >= 2.0.1 |
-| [add_scflags](#targetadd_scflags)                     | 添加swift编译选项                            | >= 2.1.1 |
-| [add_asflags](#targetadd_asflags)                     | 添加汇编编译选项                             | >= 2.1.1 |
-| [add_gcflags](#targetadd_gcflags)                     | 添加go编译选项                               | >= 2.1.1 |
-| [add_dcflags](#targetadd_dcflags)                     | 添加dlang编译选项                            | >= 2.1.1 |
-| [add_rcflags](#targetadd_rcflags)                     | 添加rust编译选项                             | >= 2.1.1 |
-| [add_ldflags](#targetadd_ldflags)                     | 添加链接选项                                 | >= 2.1.1 |
-| [add_arflags](#targetadd_arflags)                     | 添加静态库归档选项                           | >= 2.1.1 |
-| [add_shflags](#targetadd_shflags)                     | 添加动态库链接选项                           | >= 2.0.1 |
-| [add_cfuncs](#targetadd_cfuncs)                       | 添加c库函数检测                              | >= 1.0.1 |
-| [add_cxxfuncs](#targetadd_cxxfuncs)                   | 添加c++库函数接口                            | >= 1.0.1 |
-| [add_languages](#targetadd_languages)                 | 添加语言标准                                 | >= 2.0.1 |
-| [add_vectorexts](#targetadd_vectorexts)               | 添加向量扩展指令                             | >= 2.0.1 |
-| [add_frameworks](#targetadd_frameworks)               | 添加链接框架                                 | >= 2.1.1 |
-| [add_frameworkdirs](#targetadd_frameworkdirs)         | 添加链接框架                                 | >= 2.1.5 |
+| [option_end](#-end)                             | 结束定义选项                                 | >= 2.1.1 |
+| [add_deps](#add-deps)                           | 添加选项依赖                                 | >= 2.1.5 |
+| [before_check](#before-check)                   | 选项检测之前执行此脚本                       | >= 2.1.5 |
+| [on_check](#on-check)                           | 自定义选项检测脚本                           | >= 2.1.5 |
+| [after_check](#after-check)                     | 选项检测之后执行此脚本                       | >= 2.1.5 |
+| [set_values](#set-values)                       | 设置选项值列表                               | >= 2.1.9 |
+| [set_default](#set-default)                     | 设置默认值                                   | >= 2.0.1 |
+| [set_showmenu](#set-showmenu)                   | 设置是否启用菜单显示                         | >= 1.0.1 |
+| [set_category](#set-category)                   | 设置选项分类，仅用于菜单显示                 | >= 1.0.1 |
+| [set_description](#set-description)             | 设置菜单显示描述                             | >= 1.0.1 |
+| [add_links](#add-links)                         | 添加链接库检测                               | >= 1.0.1 |
+| [add_linkdirs](#add-linkdirs)                   | 添加链接库检测需要的搜索目录                 | >= 1.0.1 |
+| [add_rpathdirs](#add-rpathdirs)                 | 添加运行时候动态链接库搜索目录               | >= 2.1.3 |
+| [add_cincludes](#add-cincludes)                 | 添加c头文件检测                              | >= 1.0.1 |
+| [add_cxxincludes](#add-cxxincludes)             | 添加c++头文件检测                            | >= 1.0.1 |
+| [add_ctypes](#add-ctypes)                       | 添加c类型检测                                | >= 1.0.1 |
+| [add_cxxtypes](#add-cxxtypes)                   | 添加c++类型检测                              | >= 1.0.1 |
+| [add_csnippet](#add-csnippet)                   | 添加c代码片段检测                            | >= 2.1.5 |
+| [add_cxxsnippet](#add-cxxsnippet)               | 添加c++代码片段检测                          | >= 2.1.5 |
+| [set_warnings](#set-warnings)                   | 设置警告级别                                 | >= 1.0.1 |
+| [set_optimize](#set-optimize)                   | 设置优化级别                                 | >= 1.0.1 |
+| [set_languages](#set-languages)                 | 设置代码语言标准                             | >= 1.0.1 |
+| [add_includedirs](#add-includedirs)             | 添加头文件搜索目录                           | >= 1.0.1 |
+| [add_defines](#add-defines)                     | 添加宏定义                                   | >= 1.0.1 |
+| [add_undefines](#add-undefines)                 | 取消宏定义                                   | >= 1.0.1 |
+| [add_defines_h](#add-defines-h)                 | 添加宏定义到头文件                           | >= 1.0.1 |
+| [add_undefines_h](#add-undefines-h)             | 取消宏定义到头文件                           | >= 1.0.1 |
+| [add_cflags](#add-cflags)                       | 添加c编译选项                                | >= 1.0.1 |
+| [add_cxflags](#add-cxflags)                     | 添加c/c++编译选项                            | >= 1.0.1 |
+| [add_cxxflags](#add-cxxflags)                   | 添加c++编译选项                              | >= 1.0.1 |
+| [add_mflags](#add-mflags)                       | 添加objc编译选项                             | >= 2.0.1 |
+| [add_mxflags](#add-mxflags)                     | 添加objc/objc++编译选项                      | >= 2.0.1 |
+| [add_mxxflags](#add-mxxflags)                   | 添加objc++编译选项                           | >= 2.0.1 |
+| [add_scflags](#add-scflags)                     | 添加swift编译选项                            | >= 2.1.1 |
+| [add_asflags](#add-asflags)                     | 添加汇编编译选项                             | >= 2.1.1 |
+| [add_gcflags](#add-gcflags)                     | 添加go编译选项                               | >= 2.1.1 |
+| [add_dcflags](#add-dcflags)                     | 添加dlang编译选项                            | >= 2.1.1 |
+| [add_rcflags](#add-rcflags)                     | 添加rust编译选项                             | >= 2.1.1 |
+| [add_ldflags](#add-ldflags)                     | 添加链接选项                                 | >= 2.1.1 |
+| [add_arflags](#add-arflags)                     | 添加静态库归档选项                           | >= 2.1.1 |
+| [add_shflags](#add-shflags)                     | 添加动态库链接选项                           | >= 2.0.1 |
+| [add_cfuncs](#add-cfuncs)                       | 添加c库函数检测                              | >= 1.0.1 |
+| [add_cxxfuncs](#add-cxxfuncs)                   | 添加c++库函数接口                            | >= 1.0.1 |
+| [add_languages](#add-languages)                 | 添加语言标准                                 | >= 2.0.1 |
+| [add_vectorexts](#add-vectorexts)               | 添加向量扩展指令                             | >= 2.0.1 |
+| [add_frameworks](#add-frameworks)               | 添加链接框架                                 | >= 2.1.1 |
+| [add_frameworkdirs](#add-frameworkdirs)         | 添加链接框架                                 | >= 2.1.5 |
 
 | 废弃接口                                              | 描述                                         | 支持版本         |
 | ----------------------------------------------------- | -------------------------------------------- | ---------------- |
-| [add_bindings](#optionadd_bindings)                   | 添加正向关联选项，同步启用和禁用             | >= 2.0.1 < 2.1.5 |
-| [add_rbindings](#optionadd_rbindings)                 | 添加逆向关联选项，同步启用和禁用             | >= 2.0.1 < 2.1.5 |
-| [add_defines_if_ok](#optionadd_defines_if_ok)         | 如果检测选项通过，则添加宏定义               | >= 1.0.1 < 2.1.5 |
-| [add_defines_h_if_ok](#optionadd_defines_h_if_ok)     | 如果检测选项通过，则添加宏定义到配置头文件   | >= 1.0.1 < 2.1.5 |
-| [add_undefines_if_ok](#optionadd_undefines_if_ok)     | 如果检测选项通过，则取消宏定义               | >= 1.0.1 < 2.1.5 |
-| [add_undefines_h_if_ok](#optionadd_undefines_h_if_ok) | 如果检测选项通过，则在配置头文件中取消宏定义 | >= 1.0.1 < 2.1.5 |
+| [add_bindings](#add-bindings)                   | 添加正向关联选项，同步启用和禁用             | >= 2.0.1 < 2.1.5 |
+| [add_rbindings](#add-rbindings)                 | 添加逆向关联选项，同步启用和禁用             | >= 2.0.1 < 2.1.5 |
+| [add_defines_if_ok](#add-defines-if-ok)         | 如果检测选项通过，则添加宏定义               | >= 1.0.1 < 2.1.5 |
+| [add_defines_h_if_ok](#add-defines-h-if-ok)     | 如果检测选项通过，则添加宏定义到配置头文件   | >= 1.0.1 < 2.1.5 |
+| [add_undefines_if_ok](#add-undefines-if-ok)     | 如果检测选项通过，则取消宏定义               | >= 1.0.1 < 2.1.5 |
+| [add_undefines_h_if_ok](#add-undefines-h-if-ok) | 如果检测选项通过，则在配置头文件中取消宏定义 | >= 1.0.1 < 2.1.5 |
 
 ##### option
 
@@ -2310,13 +2310,13 @@ $ xmake
 
 ###### 结束定义选项
 
-这是一个可选api，显示离开选项作用域，用法和[target_end](#target_end)类似。
+这是一个可选api，显示离开选项作用域，用法和[target_end](#-end)类似。
 
 ##### option:add_deps
 
 ###### 添加选项依赖
 
-通过设置依赖，可以调整选项的检测顺序，一般用于[on_check](#optionon_check)等检测脚本的调用时机。
+通过设置依赖，可以调整选项的检测顺序，一般用于[on_check](#on-check)等检测脚本的调用时机。
 
 ```lua
 option("small")
@@ -2620,7 +2620,7 @@ $ xmake f --mode=release
 ###### 添加正向关联选项，同步启用和禁用
 
 <p class="tip">
-2.1.5版本之后已废弃，请用[add_deps](#optionadd_deps), [on_check](#optionon_check), [after_check](#optionafter_check)等接口代替。
+2.1.5版本之后已废弃，请用[add_deps](#add-deps), [on_check](#on-check), [after_check](#after-check)等接口代替。
 </p>
 
 绑定关联选项，例如我想在命令行中配置一个`smallest`的参数：`xmake f --smallest=y`
@@ -2642,7 +2642,7 @@ option("smallest")
 ###### 添加逆向关联选项，同步启用和禁用
 
 <p class="tip">
-2.1.5版本之后已废弃，请用[add_deps](#optionadd_deps), [on_check](#optionon_check), [after_check](#optionafter_check)等接口代替。
+2.1.5版本之后已废弃，请用[add_deps](#add-deps), [on_check](#on-check), [after_check](#after-check)等接口代替。
 </p>
 
 逆向绑定关联选项，被关联选项的开关状态是相反的。
@@ -2690,13 +2690,13 @@ target("test")
 
 ###### 添加链接库检测时候需要的搜索目录
 
-这个是可选的，一般系统库不需要加这个，也能检测通过，如果确实没找到，可以自己追加搜索目录，提高检测通过率。具体使用见：[add_links](#optionadd_links)
+这个是可选的，一般系统库不需要加这个，也能检测通过，如果确实没找到，可以自己追加搜索目录，提高检测通过率。具体使用见：[add_links](#add-links)
 
 ##### option:add_rpathdirs
 
 ###### 添加程序运行时动态库的加载搜索目录
 
-在选项通过检测后，会自动添加到对应的target上去，具体使用见：[target.add_rpathdirs](#targetadd_rpathdirs)。
+在选项通过检测后，会自动添加到对应的target上去，具体使用见：[target.add_rpathdirs](#add-rpathdirs)。
 
 ##### option:add_cincludes
 
@@ -2716,13 +2716,13 @@ target("test")
 
 此选项检测是否存在`pthread.h`的头文件，如果检测通过那么`test`目标程序将会加上`ENABLE_PTHREAD`的宏定义。
 
-如果想要更加灵活的检测，可以通过[lib.detect.has_cincludes](#detect-has_cincludes)在[option.on_check](#optionon_check)中去实现。
+如果想要更加灵活的检测，可以通过[lib.detect.has_cincludes](#detect-has_cincludes)在[option.on_check](#on-check)中去实现。
 
 ##### option:add_cxxincludes
 
 ###### 添加c++头文件检测
 
-与[add_cincludes](#optionadd_cincludes)类似，只是检测的头文件类型是c++头文件。
+与[add_cincludes](#add-cincludes)类似，只是检测的头文件类型是c++头文件。
 
 ##### option:add_ctypes
 
@@ -2742,20 +2742,20 @@ target("test")
 
 此选项检测是否存在`wchar_t`的类型，如果检测通过那么`test`目标程序将会加上`HAVE_WCHAR`的宏定义。
 
-如果想要更加灵活的检测，可以通过[lib.detect.has_ctypes](#detect-has_ctypes)在[option.on_check](#optionon_check)中去实现。
+如果想要更加灵活的检测，可以通过[lib.detect.has_ctypes](#detect-has_ctypes)在[option.on_check](#on-check)中去实现。
 
 ##### option:add_cxxtypes
 
 ###### 添加c++类型检测
 
-与[add_ctypes](#optionadd_ctypes)类似，只是检测的类型是c++类型。
+与[add_ctypes](#add-ctypes)类似，只是检测的类型是c++类型。
 
 ##### option:add_csnippet
 
 ###### 添加c代码片段检测
 
-如果现有的[add_ctypes](#optionadd_ctypes), [add_cfuncs](#optionadd_cfuncs)等不能满足当前的检测需求，
-可以用这个接口实现更加定制化检测一些编译器特性检测，具体见: [add_cxxsnippet](#optionadd_cxxsnippet)。
+如果现有的[add_ctypes](#add-ctypes), [add_cfuncs](#add-cfuncs)等不能满足当前的检测需求，
+可以用这个接口实现更加定制化检测一些编译器特性检测，具体见: [add_cxxsnippet](#add-cxxsnippet)。
 
 ##### option:add_cxxsnippet
 
@@ -2772,27 +2772,27 @@ option("constexpr")
 
 对于编译器特性的检测，有更加方便高效的检测模块，提供更强大的检测支持，具体见：[compiler.has_features](#compiler-has_features)和[detect.check_cxsnippets](#detect-check_cxsnippets)
 
-如果想要更加灵活的检测，可以通过[lib.detect.check_cxsnippets](#detect-check_cxsnippets)在[option.on_check](#optionon_check)中去实现。
+如果想要更加灵活的检测，可以通过[lib.detect.check_cxsnippets](#detect-check_cxsnippets)在[option.on_check](#on-check)中去实现。
 
 ##### option:add_defines_if_ok
 
 ###### 如果检测选项通过，则添加宏定义
 
 <p class="tip">
-2.1.5版本之后已废弃，请用[add_defines](#targetadd_defines)接口代替。
+2.1.5版本之后已废弃，请用[add_defines](#add-defines)接口代替。
 </p>
 
-检测选项通过后才会被设置，具体使用见[add_cincludes](#optionadd_cincludes)中的例子。
+检测选项通过后才会被设置，具体使用见[add_cincludes](#add-cincludes)中的例子。
 
 ##### option:add_defines_h_if_ok
 
 ###### 如果检测选项通过，则添加宏定义到配置头文件
 
 <p class="tip">
-2.1.5版本之后已废弃，请用[add_defines_h](#targetadd_defines_h)接口代替。
+2.1.5版本之后已废弃，请用[add_defines_h](#add-defines-h)接口代替。
 </p>
 
-跟[add_defines_if_ok](#optionadd_defines_if_ok)类似，只是检测通过后，会在`config.h`头文件中自动加上被设置的宏定义。
+跟[add_defines_if_ok](#add-defines-if-ok)类似，只是检测通过后，会在`config.h`头文件中自动加上被设置的宏定义。
 
 例如：
 
@@ -2812,33 +2812,33 @@ target("test")
 #define ENABLE_PTHREAD 1
 ```
 
-具体`config.h`如何设置，见：[set_config_h](#targetset_config_h)
+具体`config.h`如何设置，见：[set_config_h](#set-config-h)
 
 ##### option:add_undefines_if_ok
 
 ###### 如果检测选项通过，则取消宏定义
 
 <p class="tip">
-2.1.5版本之后已废弃，请用[add_undefines](#targetadd_undefines)接口代替。
+2.1.5版本之后已废弃，请用[add_undefines](#add-undefines)接口代替。
 </p>
 
-跟[add_defines_if_ok](#optionadd_defines_if_ok)类似，只是检测通过后，取消被设置的宏定义。
+跟[add_defines_if_ok](#add-defines-if-ok)类似，只是检测通过后，取消被设置的宏定义。
 
 ##### option:add_undefines_h_if_ok
 
 ###### 如果检测选项通过，则在配置头文件中取消宏定义
 
 <p class="tip">
-2.1.5版本之后已废弃，请用[add_undefines_h](#targetadd_undefines_h)接口代替。
+2.1.5版本之后已废弃，请用[add_undefines_h](#add-undefines-h)接口代替。
 </p>
 
-跟[add_defines_h_if_ok](#optionadd_defines_h_if_ok)类似，只是检测通过后，会在`config.h`中取消被设置的宏定义。
+跟[add_defines_h_if_ok](#add-defines-h-if-ok)类似，只是检测通过后，会在`config.h`中取消被设置的宏定义。
 
 ```c
 #undef DEFINED_MACRO
 ```
 
-具体`config.h`如何设置，见：[set_config_h](#targetset_config_h)
+具体`config.h`如何设置，见：[set_config_h](#set-config-h)
 
 #### Plugin and Task
 
@@ -2894,7 +2894,7 @@ target("test")
 
 ###### 结束定义插件或任务
 
-这是一个可选api，显示离开选项作用域，用法和[target_end](#target_end)类似。
+这是一个可选api，显示离开选项作用域，用法和[target_end](#-end)类似。
 
 ##### task:set_menu
 
@@ -3264,7 +3264,7 @@ rule("markdown")
 
 ###### 为所有自定义脚本预先导入扩展模块
 
-使用方式和说明请见：[target:add_imports](#targetadd_imports)，用法相同。
+使用方式和说明请见：[target:add_imports](#add-imports)，用法相同。
 
 ##### rule:set_extensions
 
@@ -3526,7 +3526,7 @@ platform("iphoneos")
 
 ###### 结束定义平台
 
-这是一个可选api，显示离开选项作用域，用法和[target_end](#target_end)类似。
+这是一个可选api，显示离开选项作用域，用法和[target_end](#-end)类似。
 
 ##### set_os
 
@@ -4001,7 +4001,7 @@ local s = vformat("$(shell echo hello)")
 
 import的主要用于导入xmake的扩展类库以及一些自定义的类库模块，一般用于：
 
-* 自定义脚本([on_build](#targeton_build), [on_run](#targeton_run) ..)
+* 自定义脚本([on_build](#on-build), [on_run](#on-run) ..)
 * 插件开发
 * 模板开发
 * 平台扩展
@@ -4584,7 +4584,7 @@ os.cp("$(scriptdir)/*.h", "$(projectdir)/src/test/**.h", "$(buildir)/inc")
 
 其中`$(scriptdir)`, `$(projectdir)` 这些变量是xmake的内置变量，具体详情见：[内置变量](#内置变量)的相关文档。
 
-而`*.h`和`**.h`中的匹配模式，跟[add_files](#targetadd_files)中的类似，前者是单级目录匹配，后者是递归多级目录匹配。
+而`*.h`和`**.h`中的匹配模式，跟[add_files](#add-files)中的类似，前者是单级目录匹配，后者是递归多级目录匹配。
 
 此接口同时支持目录的`递归复制`，例如：
 
@@ -4742,7 +4742,7 @@ end
 
 - 遍历获取指定目录下的所有目录
 
-支持[add_files](#targetadd_files)中的模式匹配，支持递归和非递归模式遍历，返回的结果是一个table数组，如果获取不到，返回空数组，例如：
+支持[add_files](#add-files)中的模式匹配，支持递归和非递归模式遍历，返回的结果是一个table数组，如果获取不到，返回空数组，例如：
 
 ```lua
 -- 递归遍历获取所有子目录
@@ -4755,7 +4755,7 @@ end
 
 - 遍历获取指定目录下的所有文件
 
-支持[add_files](#targetadd_files)中的模式匹配，支持递归和非递归模式遍历，返回的结果是一个table数组，如果获取不到，返回空数组，例如：
+支持[add_files](#add-files)中的模式匹配，支持递归和非递归模式遍历，返回的结果是一个table数组，如果获取不到，返回空数组，例如：
 
 ```lua
 -- 非递归遍历获取所有子文件
@@ -4768,7 +4768,7 @@ end
 
 - 遍历获取指定目录下的所有文件和目录
 
-支持[add_files](#targetadd_files)中的模式匹配，支持递归和非递归模式遍历，返回的结果是一个table数组，如果获取不到，返回空数组，例如：
+支持[add_files](#add-files)中的模式匹配，支持递归和非递归模式遍历，返回的结果是一个table数组，如果获取不到，返回空数组，例如：
 
 ```lua
 -- 递归遍历获取所有子文件和目录

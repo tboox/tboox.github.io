@@ -318,7 +318,7 @@ target("test")
     del_files("src/test.c")
 ```
 
-灵活合理运用[add_files](https://xmake.io/zh/api/description/project-target.html#targetadd_files)和[del_files](https://xmake.io/zh/api/description/project-target.html#targetdel_files)，我们可以极大程度的简化工程源码的配置管理。
+灵活合理运用[add_files](https://xmake.io/zh/api/description/project-target.html#add-files)和[del_files](https://xmake.io/zh/api/description/project-target.html#del-files)，我们可以极大程度的简化工程源码的配置管理。
 
 ## 利用内置配置简化flags设置
 
@@ -331,4 +331,4 @@ set_languages("cxx11")
 set_warnings("all", "error")
 ```
 
-具体配置说明，以及目前提供的配置值，都可以去看下相关文档，里面有详细说明：[内置配置说明](https://xmake.io/zh/api/description/project-target.html#targetset_symbols)
+具体配置说明，以及目前提供的配置值，都可以去看下相关文档，里面有详细说明：[内置配置说明](https://xmake.io/zh/api/description/project-target.html#set-symbols)
