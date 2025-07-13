@@ -345,7 +345,7 @@ $ xmake f -p android --ndk=~/files/android-ndk-r10e/ [-a armv5te|armv6|armv7-a|a
 $ xmake
 ```
 
-If you want to set the other android toolchains, you can use [--toolchains](#-toolchains) option.
+If you want to set the other android toolchains, you can use [--toolchains](https://xmake.io/zh/api/description/project-target.html#-toolchains) option.
 
 For example:
 
@@ -353,7 +353,7 @@ For example:
 $ xmake f -p android --ndk=~/files/android-ndk-r10e/ -a arm64-v8a --toolchains=~/files/android-ndk-r10e/toolchains/aarch64-linux-android-4.9/prebuilt/darwin-x86_64/bin
 ```
 
-The [--toolchains](#-toolchains) option is used to set `bin` directory of toolchains.
+The [--toolchains](https://xmake.io/zh/api/description/project-target.html#-toolchains) option is used to set `bin` directory of toolchains.
     
 <p class="tip">
 Please attempt to set `--arch=` option if it had failed to check compiler.
@@ -412,45 +412,45 @@ $ xmake
 
 | Configuration Option         | Description                                  |
 | ---------------------------- | -------------------------------------------- |
-| [--sdk](#-sdk)               | Set the sdk root directory of toolchains     |
-| [--toolchains](#-toolchains) | Set the `bin` directory of toolchains        |
-| [--cross](#-cross)           | Set the prefix of compilation tools          |
-| [--as](#-as)                 | Set `asm` assembler                          |
-| [--cc](#-cc)                 | Set `c` compiler                             |
-| [--cxx](#-cxx)               | Set `c++` compiler                           |
-| [--mm](#-mm)                 | Set `objc` compiler                          |
-| [--mxx](#-mxx)               | Set `objc++` compiler                        |
-| [--sc](#-sc)                 | Set `swift` compiler                         |
-| [--gc](#-gc)                 | Set `golang` compiler                        |
-| [--dc](#-dc)                 | Set `dlang` compiler                         |
-| [--rc](#-rc)                 | Set `rust` compiler                          |
-| [--ld](#-ld)                 | Set `c/c++/objc/asm` linker                  |
-| [--sh](#-sh)                 | Set `c/c++/objc/asm` shared library linker   |
-| [--ar](#-ar)                 | Set `c/c++/objc/asm` static library archiver |
-| [--sc-ld](#-sc-ld)           | Set `swift` linker                           |
-| [--sc-sh](#-sc-sh)           | Set `swift` shared library linker            |
-| [--gc-ld](#-gc-ld)           | Set `golang` linker                          |
-| [--gc-ar](#-gc-ar)           | Set `golang` static library archiver         |
-| [--dc-ld](#-dc-ld)           | Set `dlang` linker                           |
-| [--dc-sh](#-dc-sh)           | Set `dlang` shared library linker            |
-| [--dc-ar](#-dc-ar)           | Set `dlang` static library archiver          |
-| [--rc-ld](#-rc-ld)           | Set `rust` linker                            |
-| [--rc-sh](#-rc-sh)           | Set `rust` shared library linker             |
-| [--rc-ar](#-rc-ar)           | Set `rust` static library archiver           |
-| [--asflags](#-asflags)       | Set `asm` assembler option                   |
-| [--cflags](#-cflags)         | Set `c` compiler option                      |
-| [--cxflags](#-cxflags)       | Set `c/c++` compiler option                  |
-| [--cxxflags](#-cxxflags)     | Set `c++` compiler option                    |
-| [--mflags](#-mflags)         | Set `objc` compiler option                   |
-| [--mxflags](#-mxflags)       | Set `objc/c++` compiler option               |
-| [--mxxflags](#-mxxflags)     | Set `objc++` compiler option                 |
-| [--scflags](#-scflags)       | Set `swift` compiler option                  |
-| [--gcflags](#-gcflags)       | Set `golang` compiler option                 |
-| [--dcflags](#-dcflags)       | Set `dlang` compiler option                  |
-| [--rcflags](#-rcflags)       | Set `rust` compiler option                   |
-| [--ldflags](#-ldflags)       | Set  linker option                           |
-| [--shflags](#-shflags)       | Set  shared library linker option            |
-| [--arflags](#-arflags)       | Set  static library archiver option          |
+| [--sdk](https://xmake.io/zh/api/description/project-target.html#-sdk)               | Set the sdk root directory of toolchains     |
+| [--toolchains](https://xmake.io/zh/api/description/project-target.html#-toolchains) | Set the `bin` directory of toolchains        |
+| [--cross](https://xmake.io/zh/api/description/project-target.html#-cross)           | Set the prefix of compilation tools          |
+| [--as](https://xmake.io/zh/api/description/project-target.html#-as)                 | Set `asm` assembler                          |
+| [--cc](https://xmake.io/zh/api/description/project-target.html#-cc)                 | Set `c` compiler                             |
+| [--cxx](https://xmake.io/zh/api/description/project-target.html#-cxx)               | Set `c++` compiler                           |
+| [--mm](https://xmake.io/zh/api/description/project-target.html#-mm)                 | Set `objc` compiler                          |
+| [--mxx](https://xmake.io/zh/api/description/project-target.html#-mxx)               | Set `objc++` compiler                        |
+| [--sc](https://xmake.io/zh/api/description/project-target.html#-sc)                 | Set `swift` compiler                         |
+| [--gc](https://xmake.io/zh/api/description/project-target.html#-gc)                 | Set `golang` compiler                        |
+| [--dc](https://xmake.io/zh/api/description/project-target.html#-dc)                 | Set `dlang` compiler                         |
+| [--rc](https://xmake.io/zh/api/description/project-target.html#-rc)                 | Set `rust` compiler                          |
+| [--ld](https://xmake.io/zh/api/description/project-target.html#-ld)                 | Set `c/c++/objc/asm` linker                  |
+| [--sh](https://xmake.io/zh/api/description/project-target.html#-sh)                 | Set `c/c++/objc/asm` shared library linker   |
+| [--ar](https://xmake.io/zh/api/description/project-target.html#-ar)                 | Set `c/c++/objc/asm` static library archiver |
+| [--sc-ld](https://xmake.io/zh/api/description/project-target.html#-sc-ld)           | Set `swift` linker                           |
+| [--sc-sh](https://xmake.io/zh/api/description/project-target.html#-sc-sh)           | Set `swift` shared library linker            |
+| [--gc-ld](https://xmake.io/zh/api/description/project-target.html#-gc-ld)           | Set `golang` linker                          |
+| [--gc-ar](https://xmake.io/zh/api/description/project-target.html#-gc-ar)           | Set `golang` static library archiver         |
+| [--dc-ld](https://xmake.io/zh/api/description/project-target.html#-dc-ld)           | Set `dlang` linker                           |
+| [--dc-sh](https://xmake.io/zh/api/description/project-target.html#-dc-sh)           | Set `dlang` shared library linker            |
+| [--dc-ar](https://xmake.io/zh/api/description/project-target.html#-dc-ar)           | Set `dlang` static library archiver          |
+| [--rc-ld](https://xmake.io/zh/api/description/project-target.html#-rc-ld)           | Set `rust` linker                            |
+| [--rc-sh](https://xmake.io/zh/api/description/project-target.html#-rc-sh)           | Set `rust` shared library linker             |
+| [--rc-ar](https://xmake.io/zh/api/description/project-target.html#-rc-ar)           | Set `rust` static library archiver           |
+| [--asflags](https://xmake.io/zh/api/description/project-target.html#-asflags)       | Set `asm` assembler option                   |
+| [--cflags](https://xmake.io/zh/api/description/project-target.html#-cflags)         | Set `c` compiler option                      |
+| [--cxflags](https://xmake.io/zh/api/description/project-target.html#-cxflags)       | Set `c/c++` compiler option                  |
+| [--cxxflags](https://xmake.io/zh/api/description/project-target.html#-cxxflags)     | Set `c++` compiler option                    |
+| [--mflags](https://xmake.io/zh/api/description/project-target.html#-mflags)         | Set `objc` compiler option                   |
+| [--mxflags](https://xmake.io/zh/api/description/project-target.html#-mxflags)       | Set `objc/c++` compiler option               |
+| [--mxxflags](https://xmake.io/zh/api/description/project-target.html#-mxxflags)     | Set `objc++` compiler option                 |
+| [--scflags](https://xmake.io/zh/api/description/project-target.html#-scflags)       | Set `swift` compiler option                  |
+| [--gcflags](https://xmake.io/zh/api/description/project-target.html#-gcflags)       | Set `golang` compiler option                 |
+| [--dcflags](https://xmake.io/zh/api/description/project-target.html#-dcflags)       | Set `dlang` compiler option                  |
+| [--rcflags](https://xmake.io/zh/api/description/project-target.html#-rcflags)       | Set `rust` compiler option                   |
+| [--ldflags](https://xmake.io/zh/api/description/project-target.html#-ldflags)       | Set  linker option                           |
+| [--shflags](https://xmake.io/zh/api/description/project-target.html#-shflags)       | Set  shared library linker option            |
+| [--arflags](https://xmake.io/zh/api/description/project-target.html#-arflags)       | Set  static library archiver option          |
 
 <p class="tip">
 if you want to known more options, please run: `xmake f --help`。

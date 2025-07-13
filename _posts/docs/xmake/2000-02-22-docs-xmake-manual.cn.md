@@ -88,7 +88,7 @@ if is_arch("armv7", "arm64", "armv7s", "armv7-a") then
 end
 ```
 
-如果像上面那样一个个去判断所有arm架构，也许会很繁琐，毕竟每个平台的架构类型很多，xmake提供了类似[add_files](#add-files)中的通配符匹配模式，来更加简洁的进行判断：
+如果像上面那样一个个去判断所有arm架构，也许会很繁琐，毕竟每个平台的架构类型很多，xmake提供了类似[add_files](https://xmake.io/zh/api/description/project-target.html#add-files)中的通配符匹配模式，来更加简洁的进行判断：
 
 ```lua
 --如果当前平台是arm平台
@@ -159,7 +159,7 @@ end
 * linux
 * macosx
 
-你也可以通过[$(host)](#var-host)内置变量或者[os.host](#os-host)接口，来进行获取
+你也可以通过[$(host)](https://xmake.io/zh/api/description/project-target.html#var-host)内置变量或者[os.host](https://xmake.io/zh/api/description/project-target.html#os-host)接口，来进行获取
 
 ##### is_mode
 
@@ -271,7 +271,7 @@ end
 
 | 接口                                  | 描述                          | 支持版本 |
 | ------------------------------------- | ----------------------------- | -------- |
-| [includes](#includes)                 | 添加子工程文件和目录          | >= 2.1.5 |
+| [includes](https://xmake.io/zh/api/description/helper-interfaces.html#includes)                 | 添加子工程文件和目录          | >= 2.1.5 |
 | [set_modes](#set_modes)               | 设置支持的编译模式            | >= 2.1.2 |
 | [set_project](#set_project)           | 设置工程名                    | >= 2.0.1 |
 | [set_version](#set_version)           | 设置工程版本                  | >= 2.0.1 |
@@ -336,7 +336,7 @@ set_version("1.5.1")
 set_version("1.5.1")
 ```
 
-以tbox为例，如果调用[set_config_header](#set-config-header)设置了`config.h`，那么会自动生成如下宏：
+以tbox为例，如果调用[set_config_header](https://xmake.io/zh/api/description/project-target.html#set-config-header)设置了`config.h`，那么会自动生成如下宏：
 
 ```c
 // version
@@ -423,7 +423,7 @@ add_subfiles("src/tbox/xmake.lua")
 
 ###### 添加模块目录
 
-xmake内置的扩展模块都在`xmake/modules`目录下，可通过[import](#import)来导入他们，如果自己在工程里面实现了一些扩展模块，
+xmake内置的扩展模块都在`xmake/modules`目录下，可通过[import](https://xmake.io/zh/api/description/project-target.html#import)来导入他们，如果自己在工程里面实现了一些扩展模块，
 可以放置在这个接口指定的目录下，import也就会能找到，并且优先进行导入。
 
 例如定义一个`find_openssl.lua`的扩展模块，用于扩展内置的[lib.detect.find_package](#detect-find_package)接口，则只需要将它放置在：
@@ -509,82 +509,82 @@ target("test2")
 
 | 接口                                          | 描述                                 | 支持版本 |
 | --------------------------------------------- | ------------------------------------ | -------- |
-| [target](#target)                             | 定义工程目标                         | >= 1.0.1 |
-| [target_end](#-end)                     | 结束定义工程目标                     | >= 2.1.1 |
-| [set_kind](#set-kind)                   | 设置目标编译类型                     | >= 1.0.1 |
-| [set_strip](#set-strip)                 | 设置是否strip信息                    | >= 1.0.1 |
-| [set_default](#set-default)             | 设置是否为默认构建安装目标           | >= 2.1.3 |
-| [set_options](#set-options)             | 设置关联选项                         | >= 1.0.1 |
-| [set_symbols](#set-symbols)             | 设置符号信息                         | >= 1.0.1 |
-| [set_basename](#set-basename)           | 设置目标文件名                       | >= 2.1.2 |
-| [set_warnings](#set-warnings)           | 设置警告级别                         | >= 1.0.1 |
-| [set_optimize](#set-optimize)           | 设置优化级别                         | >= 1.0.1 |
-| [set_languages](#set-languages)         | 设置代码语言标准                     | >= 1.0.1 |
-| [set_headerdir](#set-headerdir)         | 设置头文件安装目录                   | >= 1.0.1 |
-| [set_targetdir](#set-targetdir)         | 设置生成目标文件目录                 | >= 1.0.1 |
-| [set_objectdir](#set-objectdir)         | 设置对象文件生成目录                 | >= 1.0.1 |
-| [add_imports](#add-imports)             | 为所有自定义脚本预先导入扩展模块     | >= 2.1.7 |
-| [add_rules](#add-rules)                 | 添加规则到目标                       | >= 2.1.9 |
-| [on_load](#on-load)                     | 自定义目标加载脚本                   | >= 2.1.5 |
-| [on_build](#on-build)                   | 自定义编译脚本                       | >= 2.0.1 |
-| [on_clean](#on-clean)                   | 自定义清理脚本                       | >= 2.0.1 |
-| [on_package](#on-package)               | 自定义打包脚本                       | >= 2.0.1 |
-| [on_install](#on-install)               | 自定义安装脚本                       | >= 2.0.1 |
-| [on_uninstall](#on-uninstall)           | 自定义卸载脚本                       | >= 2.0.1 |
-| [on_run](#on-run)                       | 自定义运行脚本                       | >= 2.0.1 |
-| [before_build](#before-build)           | 在构建之前执行一些自定义脚本         | >= 2.0.1 |
-| [before_clean](#before-clean)           | 在清除之前执行一些自定义脚本         | >= 2.0.1 |
-| [before_package](#before-package)       | 在打包之前执行一些自定义脚本         | >= 2.0.1 |
-| [before_install](#before-install)       | 在安装之前执行一些自定义脚本         | >= 2.0.1 |
-| [before_uninstall](#before-uninstall)   | 在卸载之前执行一些自定义脚本         | >= 2.0.1 |
-| [before_run](#before-run)               | 在运行之前执行一些自定义脚本         | >= 2.0.1 |
-| [after_build](#after-build)             | 在构建之后执行一些自定义脚本         | >= 2.0.1 |
-| [after_clean](#after-clean)             | 在清除之后执行一些自定义脚本         | >= 2.0.1 |
-| [after_package](#after-package)         | 在打包之后执行一些自定义脚本         | >= 2.0.1 |
-| [after_install](#after-install)         | 在安装之后执行一些自定义脚本         | >= 2.0.1 |
-| [after_uninstall](#after-uninstall)     | 在卸载之后执行一些自定义脚本         | >= 2.0.1 |
-| [after_run](#after-run)                 | 在运行之后执行一些自定义脚本         | >= 2.0.1 |
-| [set_config_h](#set-config-h)           | 设置自动生成的配置头文件路径         | >= 1.0.1 < 2.1.5 已废弃 |
-| [set_config_h_prefix](#set-config-h)    | 设置自动生成的头文件中宏定义命名前缀 | >= 1.0.1 < 2.1.5 已废弃 |
-| [set_config_header](#set-config-header) | 设置自动生成的配置头文件路径和前缀   | >= 2.1.5 |
-| [set_pcheader](#set-pcheader)           | 设置c预编译头文件                    | >= 2.1.5 |
-| [set_pcxxheader](#set-pcxxheader)       | 设置c++预编译头文件                  | >= 2.1.5 |
-| [add_deps](#add-deps)                   | 添加子工程目标依赖                   | >= 1.0.1 |
-| [add_links](#add-links)                 | 添加链接库名                         | >= 1.0.1 |
-| [add_files](#add-files)                 | 添加源代码文件                       | >= 1.0.1 |
-| [del_files](#del-files)                 | 从前面的源文件列表中删除指定文件     | >= 2.1.9 |
-| [add_headers](#add-headers)             | 添加安装的头文件                     | >= 1.0.1 |
-| [add_linkdirs](#add-linkdirs)           | 添加链接库搜索目录                   | >= 1.0.1 |
-| [add_rpathdirs](#add-rpathdirs)         | 添加运行时候动态链接库搜索目录       | >= 2.1.3 |
-| [add_includedirs](#add-includedirs)     | 添加头文件搜索目录                   | >= 1.0.1 |
-| [add_defines](#add-defines)             | 添加宏定义                           | >= 1.0.1 |
-| [add_undefines](#add-undefines)         | 取消宏定义                           | >= 1.0.1 |
-| [add_defines_h](#add-defines-h)         | 添加宏定义到头文件                   | >= 1.0.1 |
-| [add_undefines_h](#add-undefines-h)     | 取消宏定义到头文件                   | >= 1.0.1 |
-| [add_cflags](#add-cflags)               | 添加c编译选项                        | >= 1.0.1 |
-| [add_cxflags](#add-cxflags)             | 添加c/c++编译选项                    | >= 1.0.1 |
-| [add_cxxflags](#add-cxxflags)           | 添加c++编译选项                      | >= 1.0.1 |
-| [add_mflags](#add-mflags)               | 添加objc编译选项                     | >= 1.0.1 |
-| [add_mxflags](#add-mxflags)             | 添加objc/objc++编译选项              | >= 1.0.1 |
-| [add_mxxflags](#add-mxxflags)           | 添加objc++编译选项                   | >= 1.0.1 |
-| [add_scflags](#add-scflags)             | 添加swift编译选项                    | >= 2.0.1 |
-| [add_asflags](#add-asflags)             | 添加汇编编译选项                     | >= 2.0.1 |
-| [add_gcflags](#add-gcflags)             | 添加go编译选项                       | >= 2.1.1 |
-| [add_dcflags](#add-dcflags)             | 添加dlang编译选项                    | >= 2.1.1 |
-| [add_rcflags](#add-rcflags)             | 添加rust编译选项                     | >= 2.1.1 |
-| [add_ldflags](#add-ldflags)             | 添加链接选项                         | >= 1.0.1 |
-| [add_arflags](#add-arflags)             | 添加静态库归档选项                   | >= 1.0.1 |
-| [add_shflags](#add-shflags)             | 添加动态库链接选项                   | >= 1.0.1 |
-| [add_cfunc](#add-cfunc)                 | 添加单个c库函数检测                  | >= 2.0.1 |
-| [add_cxxfunc](#add-cxxfunc)             | 添加单个c++库函数检测                | >= 2.0.1 |
-| [add_cfuncs](#add-cfuncs)               | 添加c库函数检测                      | >= 2.0.1 |
-| [add_cxxfuncs](#add-cxxfuncs)           | 添加c++库函数接口                    | >= 2.0.1 |
-| [add_packages](#add-packages)           | 添加包依赖                           | >= 2.0.1 |
-| [add_options](#add-options)             | 添加关联选项                         | >= 2.0.1 |
-| [add_languages](#add-languages)         | 添加语言标准                         | >= 1.0.1 |
-| [add_vectorexts](#add-vectorexts)       | 添加向量扩展指令                     | >= 1.0.1 |
-| [add_frameworks](#add-frameworks)       | 添加链接框架                         | >= 2.1.1 |
-| [add_frameworkdirs](#add-frameworkdirs) | 添加链接框架的搜索目录               | >= 2.1.5 |
+| [target](https://xmake.io/zh/api/description/project-target.html#target)                             | 定义工程目标                         | >= 1.0.1 |
+| [target_end](https://xmake.io/zh/api/description/project-target.html#-end)                     | 结束定义工程目标                     | >= 2.1.1 |
+| [set_kind](https://xmake.io/zh/api/description/project-target.html#set-kind)                   | 设置目标编译类型                     | >= 1.0.1 |
+| [set_strip](https://xmake.io/zh/api/description/project-target.html#set-strip)                 | 设置是否strip信息                    | >= 1.0.1 |
+| [set_default](https://xmake.io/zh/api/description/option-instance.html#set-default)             | 设置是否为默认构建安装目标           | >= 2.1.3 |
+| [set_options](https://xmake.io/zh/api/description/project-target.html#set-options)             | 设置关联选项                         | >= 1.0.1 |
+| [set_symbols](https://xmake.io/zh/api/description/project-target.html#set-symbols)             | 设置符号信息                         | >= 1.0.1 |
+| [set_basename](https://xmake.io/zh/api/description/project-target.html#set-basename)           | 设置目标文件名                       | >= 2.1.2 |
+| [set_warnings](https://xmake.io/zh/api/description/project-target.html#set-warnings)           | 设置警告级别                         | >= 1.0.1 |
+| [set_optimize](https://xmake.io/zh/api/description/project-target.html#set-optimize)           | 设置优化级别                         | >= 1.0.1 |
+| [set_languages](https://xmake.io/zh/api/description/project-target.html#set-languages)         | 设置代码语言标准                     | >= 1.0.1 |
+| [set_headerdir](https://xmake.io/zh/api/description/project-target.html#set-headerdir)         | 设置头文件安装目录                   | >= 1.0.1 |
+| [set_targetdir](https://xmake.io/zh/api/description/project-target.html#set-targetdir)         | 设置生成目标文件目录                 | >= 1.0.1 |
+| [set_objectdir](https://xmake.io/zh/api/description/project-target.html#set-objectdir)         | 设置对象文件生成目录                 | >= 1.0.1 |
+| [add_imports](https://xmake.io/zh/api/description/project-target.html#add-imports)             | 为所有自定义脚本预先导入扩展模块     | >= 2.1.7 |
+| [add_rules](https://xmake.io/zh/api/description/project-target.html#add-rules)                 | 添加规则到目标                       | >= 2.1.9 |
+| [on_load](https://xmake.io/zh/api/description/project-target.html#on-load)                     | 自定义目标加载脚本                   | >= 2.1.5 |
+| [on_build](https://xmake.io/zh/api/description/project-target.html#on-build)                   | 自定义编译脚本                       | >= 2.0.1 |
+| [on_clean](https://xmake.io/zh/api/description/project-target.html#on-clean)                   | 自定义清理脚本                       | >= 2.0.1 |
+| [on_package](https://xmake.io/zh/api/description/project-target.html#on-package)               | 自定义打包脚本                       | >= 2.0.1 |
+| [on_install](https://xmake.io/zh/api/description/project-target.html#on-install)               | 自定义安装脚本                       | >= 2.0.1 |
+| [on_uninstall](https://xmake.io/zh/api/description/project-target.html#on-uninstall)           | 自定义卸载脚本                       | >= 2.0.1 |
+| [on_run](https://xmake.io/zh/api/description/project-target.html#on-run)                       | 自定义运行脚本                       | >= 2.0.1 |
+| [before_build](https://xmake.io/zh/api/description/project-target.html#before-build)           | 在构建之前执行一些自定义脚本         | >= 2.0.1 |
+| [before_clean](https://xmake.io/zh/api/description/project-target.html#before-clean)           | 在清除之前执行一些自定义脚本         | >= 2.0.1 |
+| [before_package](https://xmake.io/zh/api/description/project-target.html#before-package)       | 在打包之前执行一些自定义脚本         | >= 2.0.1 |
+| [before_install](https://xmake.io/zh/api/description/project-target.html#before-install)       | 在安装之前执行一些自定义脚本         | >= 2.0.1 |
+| [before_uninstall](https://xmake.io/zh/api/description/project-target.html#before-uninstall)   | 在卸载之前执行一些自定义脚本         | >= 2.0.1 |
+| [before_run](https://xmake.io/zh/api/description/project-target.html#before-run)               | 在运行之前执行一些自定义脚本         | >= 2.0.1 |
+| [after_build](https://xmake.io/zh/api/description/project-target.html#after-build)             | 在构建之后执行一些自定义脚本         | >= 2.0.1 |
+| [after_clean](https://xmake.io/zh/api/description/project-target.html#after-clean)             | 在清除之后执行一些自定义脚本         | >= 2.0.1 |
+| [after_package](https://xmake.io/zh/api/description/project-target.html#after-package)         | 在打包之后执行一些自定义脚本         | >= 2.0.1 |
+| [after_install](https://xmake.io/zh/api/description/project-target.html#after-install)         | 在安装之后执行一些自定义脚本         | >= 2.0.1 |
+| [after_uninstall](https://xmake.io/zh/api/description/project-target.html#after-uninstall)     | 在卸载之后执行一些自定义脚本         | >= 2.0.1 |
+| [after_run](https://xmake.io/zh/api/description/project-target.html#after-run)                 | 在运行之后执行一些自定义脚本         | >= 2.0.1 |
+| [set_config_h](https://xmake.io/zh/api/description/project-target.html#set-config-h)           | 设置自动生成的配置头文件路径         | >= 1.0.1 < 2.1.5 已废弃 |
+| [set_config_h_prefix](https://xmake.io/zh/api/description/project-target.html#set-config-h)    | 设置自动生成的头文件中宏定义命名前缀 | >= 1.0.1 < 2.1.5 已废弃 |
+| [set_config_header](https://xmake.io/zh/api/description/project-target.html#set-config-header) | 设置自动生成的配置头文件路径和前缀   | >= 2.1.5 |
+| [set_pcheader](https://xmake.io/zh/api/description/project-target.html#set-pcheader)           | 设置c预编译头文件                    | >= 2.1.5 |
+| [set_pcxxheader](https://xmake.io/zh/api/description/project-target.html#set-pcxxheader)       | 设置c++预编译头文件                  | >= 2.1.5 |
+| [add_deps](https://xmake.io/zh/api/description/project-target.html#add-deps)                   | 添加子工程目标依赖                   | >= 1.0.1 |
+| [add_links](https://xmake.io/zh/api/description/project-target.html#add-links)                 | 添加链接库名                         | >= 1.0.1 |
+| [add_files](https://xmake.io/zh/api/description/project-target.html#add-files)                 | 添加源代码文件                       | >= 1.0.1 |
+| [del_files](https://xmake.io/zh/api/description/project-target.html#del-files)                 | 从前面的源文件列表中删除指定文件     | >= 2.1.9 |
+| [add_headers](https://xmake.io/zh/api/description/project-target.html#add-headers)             | 添加安装的头文件                     | >= 1.0.1 |
+| [add_linkdirs](https://xmake.io/zh/api/description/project-target.html#add-linkdirs)           | 添加链接库搜索目录                   | >= 1.0.1 |
+| [add_rpathdirs](https://xmake.io/zh/api/description/project-target.html#add-rpathdirs)         | 添加运行时候动态链接库搜索目录       | >= 2.1.3 |
+| [add_includedirs](https://xmake.io/zh/api/description/project-target.html#add-includedirs)     | 添加头文件搜索目录                   | >= 1.0.1 |
+| [add_defines](https://xmake.io/zh/api/description/option-instance.html#add-defines)             | 添加宏定义                           | >= 1.0.1 |
+| [add_undefines](https://xmake.io/zh/api/description/project-target.html#add-undefines)         | 取消宏定义                           | >= 1.0.1 |
+| [add_defines_h](https://xmake.io/zh/api/description/project-target.html#add-defines-h)         | 添加宏定义到头文件                   | >= 1.0.1 |
+| [add_undefines_h](https://xmake.io/zh/api/description/project-target.html#add-undefines-h)     | 取消宏定义到头文件                   | >= 1.0.1 |
+| [add_cflags](https://xmake.io/zh/api/description/project-target.html#add-cflags)               | 添加c编译选项                        | >= 1.0.1 |
+| [add_cxflags](https://xmake.io/zh/api/description/project-target.html#add-cxflags)             | 添加c/c++编译选项                    | >= 1.0.1 |
+| [add_cxxflags](https://xmake.io/zh/api/description/project-target.html#add-cxxflags)           | 添加c++编译选项                      | >= 1.0.1 |
+| [add_mflags](https://xmake.io/zh/api/description/project-target.html#add-mflags)               | 添加objc编译选项                     | >= 1.0.1 |
+| [add_mxflags](https://xmake.io/zh/api/description/project-target.html#add-mxflags)             | 添加objc/objc++编译选项              | >= 1.0.1 |
+| [add_mxxflags](https://xmake.io/zh/api/description/project-target.html#add-mxxflags)           | 添加objc++编译选项                   | >= 1.0.1 |
+| [add_scflags](https://xmake.io/zh/api/description/project-target.html#add-scflags)             | 添加swift编译选项                    | >= 2.0.1 |
+| [add_asflags](https://xmake.io/zh/api/description/project-target.html#add-asflags)             | 添加汇编编译选项                     | >= 2.0.1 |
+| [add_gcflags](https://xmake.io/zh/api/description/project-target.html#add-gcflags)             | 添加go编译选项                       | >= 2.1.1 |
+| [add_dcflags](https://xmake.io/zh/api/description/project-target.html#add-dcflags)             | 添加dlang编译选项                    | >= 2.1.1 |
+| [add_rcflags](https://xmake.io/zh/api/description/project-target.html#add-rcflags)             | 添加rust编译选项                     | >= 2.1.1 |
+| [add_ldflags](https://xmake.io/zh/api/description/project-target.html#add-ldflags)             | 添加链接选项                         | >= 1.0.1 |
+| [add_arflags](https://xmake.io/zh/api/description/project-target.html#add-arflags)             | 添加静态库归档选项                   | >= 1.0.1 |
+| [add_shflags](https://xmake.io/zh/api/description/project-target.html#add-shflags)             | 添加动态库链接选项                   | >= 1.0.1 |
+| [add_cfunc](https://xmake.io/zh/api/description/project-target.html#add-cfunc)                 | 添加单个c库函数检测                  | >= 2.0.1 |
+| [add_cxxfunc](https://xmake.io/zh/api/description/project-target.html#add-cxxfunc)             | 添加单个c++库函数检测                | >= 2.0.1 |
+| [add_cfuncs](https://xmake.io/zh/api/description/project-target.html#add-cfuncs)               | 添加c库函数检测                      | >= 2.0.1 |
+| [add_cxxfuncs](https://xmake.io/zh/api/description/project-target.html#add-cxxfuncs)           | 添加c++库函数接口                    | >= 2.0.1 |
+| [add_packages](https://xmake.io/zh/api/description/project-target.html#add-packages)           | 添加包依赖                           | >= 2.0.1 |
+| [add_options](https://xmake.io/zh/api/description/project-target.html#add-options)             | 添加关联选项                         | >= 2.0.1 |
+| [add_languages](https://xmake.io/zh/api/description/project-target.html#add-languages)         | 添加语言标准                         | >= 1.0.1 |
+| [add_vectorexts](https://xmake.io/zh/api/description/project-target.html#add-vectorexts)       | 添加向量扩展指令                     | >= 1.0.1 |
+| [add_frameworks](https://xmake.io/zh/api/description/project-target.html#add-frameworks)       | 添加链接框架                         | >= 2.1.1 |
+| [add_frameworkdirs](https://xmake.io/zh/api/description/project-target.html#add-frameworkdirs) | 添加链接框架的搜索目录               | >= 2.1.5 |
 
 ##### target
 
@@ -753,7 +753,7 @@ $ xmake install [-a|--all]
 
 ###### 设置关联选项
 
-添加选项依赖，如果通过[option](#option)接口自定义了一些选项，那么只有在指定`target`目标域下，添加此选项，才能进行关联生效。
+添加选项依赖，如果通过[option](https://xmake.io/zh/api/description/project-target.html#option)接口自定义了一些选项，那么只有在指定`target`目标域下，添加此选项，才能进行关联生效。
 
 ```lua
 -- 定义一个hello选项
@@ -768,7 +768,7 @@ target("test")
 ```
 
 <p class="warning">
-只有调用`set_options`进行关联生效后，[option](#option) 中定义的一些设置才会影响到此`target`目标，例如：宏定义、链接库、编译选项等等
+只有调用`set_options`进行关联生效后，[option](https://xmake.io/zh/api/description/project-target.html#option) 中定义的一些设置才会影响到此`target`目标，例如：宏定义、链接库、编译选项等等
 </p>
 
 ##### target:set_symbols
@@ -821,9 +821,9 @@ target("xxx")
 
 如果这个时候，编译配置为：`xmake f -m debug -a armv7`，那么生成的文件名为：`libxxx_debug_armv7.a`
 
-如果还想进一步定制目标文件的目录名，可参考：[set_targetdir](#set-targetdir)。
+如果还想进一步定制目标文件的目录名，可参考：[set_targetdir](https://xmake.io/zh/api/description/project-target.html#set-targetdir)。
 
-或者通过编写自定义脚本，实现更高级的逻辑，具体见：[after_build](#after-build)和[os.mv](#os-mv)。
+或者通过编写自定义脚本，实现更高级的逻辑，具体见：[after_build](https://xmake.io/zh/api/description/project-target.html#after-build)和[os.mv](https://xmake.io/zh/api/description/project-target.html#os-mv)。
 
 ##### target:set_warnings
 
@@ -926,7 +926,7 @@ target("test")
     set_headerdir("$(buildir)/include")
 ```
 
-对于需要安装哪些头文件，可参考[add_headers](#add-headers)接口。
+对于需要安装哪些头文件，可参考[add_headers](https://xmake.io/zh/api/description/project-target.html#add-headers)接口。
 
 ##### target:set_targetdir
 
@@ -968,7 +968,7 @@ target("test")
 
 ###### 为自定义脚本预先导入扩展模块
 
-通常，我们在[on_build](#on-build)等自定义脚本内部，可以通过`import("core.base.task")`的方式导入扩展模块，
+通常，我们在[on_build](https://xmake.io/zh/api/description/project-target.html#on-build)等自定义脚本内部，可以通过`import("core.base.task")`的方式导入扩展模块，
 但是对于自定义脚本比较多的情况下，每个自定义脚本都重复导入一遍，非常的繁琐，那么可以通过这个接口，实现预先导入，例如：
 
 ```lua
@@ -1034,7 +1034,7 @@ target("test")
     add_files("src/*.markdown")
 ```
 
-我们也可以指定应用局部文件到规则，具体使用见：[add_files](#add-files)。
+我们也可以指定应用局部文件到规则，具体使用见：[add_files](https://xmake.io/zh/api/description/project-target.html#add-files)。
 
 ##### target:on_load
 
@@ -1375,7 +1375,7 @@ target("test")
 ###### 设置自动生成的配置头文件路径
 
 <p class="warning">
-2.1.5版本之后，此接口已废弃，请使用[set_config_header](#set-config-header)。
+2.1.5版本之后，此接口已废弃，请使用[set_config_header](https://xmake.io/zh/api/description/project-target.html#set-config-header)。
 </p>
 
 如果你想在xmake配置项目成功后，或者自动检测某个选项通过后，把检测的结果写入配置头文件，那么需要调用这个接口来启用自动生成`config.h`文件。
@@ -1394,12 +1394,12 @@ target("test")
 
 当这个target中通过下面的这些接口，对这个target添加了相关的选项依赖、包依赖、接口依赖后，如果某依赖被启用，那么对应的一些宏定义配置，会自动写入被设置的`config.h`文件中去。
 
-* [add_options](#add-options)
-* [add_packages](#add-packages)
-* [add_cfuncs](#add-cfuncs)
-* [add_cxxfuncs](#add-cxxfuncs) 
+* [add_options](https://xmake.io/zh/api/description/project-target.html#add-options)
+* [add_packages](https://xmake.io/zh/api/description/project-target.html#add-packages)
+* [add_cfuncs](https://xmake.io/zh/api/description/project-target.html#add-cfuncs)
+* [add_cxxfuncs](https://xmake.io/zh/api/description/project-target.html#add-cxxfuncs) 
 
-这些接口，其实底层都用到了[option](#option)选项中的一些检测设置，例如：
+这些接口，其实底层都用到了[option](https://xmake.io/zh/api/description/project-target.html#option)选项中的一些检测设置，例如：
 
 ```lua
 option("wchar")
@@ -1425,10 +1425,10 @@ target("test")
 ###### 设置自动生成的头文件中宏定义命名前缀
 
 <p class="warning">
-2.1.5版本之后，此接口已废弃，请使用[set_config_header](#set-config-header)。
+2.1.5版本之后，此接口已废弃，请使用[set_config_header](https://xmake.io/zh/api/description/project-target.html#set-config-header)。
 </p>
 
-具体使用见：[set_config_h](#set-config-h)
+具体使用见：[set_config_h](https://xmake.io/zh/api/description/project-target.html#set-config-h)
 
 如果设置了：
 
@@ -1443,7 +1443,7 @@ target("test")
 
 ###### 设置自动生成的配置头文件路径和前缀
 
-此接口是[set_config_h](#set-config-h)和[set_config_h_prefix](#set-config-h-prefix)的升级版本，2.1.5之后支持。
+此接口是[set_config_h](https://xmake.io/zh/api/description/project-target.html#set-config-h)和[set_config_h_prefix](https://xmake.io/zh/api/description/project-target.html#set-config-h-prefix)的升级版本，2.1.5之后支持。
 
 如果你想在xmake配置项目成功后，或者自动检测某个选项通过后，把检测的结果写入配置头文件，那么需要调用这个接口来启用自动生成`config.h`文件。
 
@@ -1465,12 +1465,12 @@ target("test")
 
 当这个target中通过下面的这些接口，对这个target添加了相关的选项依赖、包依赖、接口依赖后，如果某依赖被启用，那么对应的一些宏定义配置，会自动写入被设置的`config.h`文件中去。
 
-* [add_options](#add-options)
-* [add_packages](#add-packages)
-* [add_cfuncs](#add-cfuncs)
-* [add_cxxfuncs](#add-cxxfuncs) 
+* [add_options](https://xmake.io/zh/api/description/project-target.html#add-options)
+* [add_packages](https://xmake.io/zh/api/description/project-target.html#add-packages)
+* [add_cfuncs](https://xmake.io/zh/api/description/project-target.html#add-cfuncs)
+* [add_cxxfuncs](https://xmake.io/zh/api/description/project-target.html#add-cxxfuncs) 
 
-这些接口，其实底层都用到了[option](#option)选项中的一些检测设置，例如：
+这些接口，其实底层都用到了[option](https://xmake.io/zh/api/description/project-target.html#option)选项中的一些检测设置，例如：
 
 ```lua
 option("wchar")
@@ -1598,7 +1598,7 @@ add_deps("dep1", "dep2", {inherit = false})
 
 ###### 添加链接库名
 
-为当前目标添加链接库，一般这个要与[add_linkdirs](#add-linkdirs)配对使用。
+为当前目标添加链接库，一般这个要与[add_linkdirs](https://xmake.io/zh/api/description/project-target.html#add-linkdirs)配对使用。
 
 ```lua
 target("demo")
@@ -1720,9 +1720,9 @@ target("test")
 
 ###### 添加安装的头文件
 
-安装指定的头文件到build目录，如果设置了[set_headerdir](#set-headerdir)， 则输出到指定目录。
+安装指定的头文件到build目录，如果设置了[set_headerdir](https://xmake.io/zh/api/description/project-target.html#set-headerdir)， 则输出到指定目录。
 
-安装规则的语法跟[add_files](#add-files)类似，例如：
+安装规则的语法跟[add_files](https://xmake.io/zh/api/description/project-target.html#add-files)类似，例如：
 
 ```lua
     -- 安装tbox目录下所有的头文件（忽略impl目录下的文件），并且按()指定部分作为相对路径，进行安装
@@ -1742,7 +1742,7 @@ target("test")
 
 此接口相当于gcc的`-Lxxx`链接选项。
 
-一般他是与[add_links](#add-links)配合使用的，当然也可以直接通过[add_ldflags](#add-ldflags)或者[add_shflags](#add-shflags)接口来添加，也是可以的。
+一般他是与[add_links](https://xmake.io/zh/api/description/project-target.html#add-links)配合使用的，当然也可以直接通过[add_ldflags](https://xmake.io/zh/api/description/project-target.html#add-ldflags)或者[add_shflags](https://xmake.io/zh/api/description/project-target.html#add-shflags)接口来添加，也是可以的。
 
 <p class="tip">
 如果不想在工程中写死，可以通过：`xmake f --linkdirs=xxx`或者`xmake f --ldflags="-L/xxx"`的方式来设置，当然这种手动设置的目录搜索优先级更高。
@@ -1752,7 +1752,7 @@ target("test")
 
 ###### 添加程序运行时动态库的加载搜索目录
 
-通过[add_linkdirs](#add-linkdirs)设置动态库的链接搜索目录后，程序被正常链接，但是在linux平台想要正常运行编译后的程序，会报加载动态库失败。
+通过[add_linkdirs](https://xmake.io/zh/api/description/project-target.html#add-linkdirs)设置动态库的链接搜索目录后，程序被正常链接，但是在linux平台想要正常运行编译后的程序，会报加载动态库失败。
 
 因为没找到动态库的加载目录，想要正常运行依赖动态库的程序，需要设置`LD_LIBRARY_PATH`环境变量，指定需要加载的动态库目录。
 
@@ -1797,7 +1797,7 @@ target("test")
     add_includedirs("$(buildir)/include")
 ```
 
-当然也可以直接通过[add_cxflags](#add-cxflags)或者[add_mxflags](#add-mxflags)等接口来设置，也是可以的。
+当然也可以直接通过[add_cxflags](https://xmake.io/zh/api/description/project-target.html#add-cxflags)或者[add_mxflags](https://xmake.io/zh/api/description/project-target.html#add-mxflags)等接口来设置，也是可以的。
 
 <p class="tip">
 如果不想在工程中写死，可以通过：`xmake f --includedirs=xxx`或者`xmake f --cxflags="-I/xxx"`的方式来设置，当然这种手动设置的目录搜索优先级更高。
@@ -1833,13 +1833,13 @@ add_undefines("DEBUG")
 
 ###### 添加宏定义到头文件
 
-添加宏定义到`config.h`配置文件，`config.h`的设置，可参考[set_config_h](#set-config-h)接口。
+添加宏定义到`config.h`配置文件，`config.h`的设置，可参考[set_config_h](https://xmake.io/zh/api/description/project-target.html#set-config-h)接口。
 
 ##### target:add_undefines_h
 
 ###### 取消宏定义到头文件
 
-在`config.h`配置文件中通过`undef`禁用宏定义，`config.h`的设置，可参考[set_config_h](#set-config-h)接口。
+在`config.h`配置文件中通过`undef`禁用宏定义，`config.h`的设置，可参考[set_config_h](https://xmake.io/zh/api/description/project-target.html#set-config-h)接口。
 
 ##### target:add_cflags
 
@@ -1994,7 +1994,7 @@ add_shflags("xxx")
 
 ###### 添加单个c库函数检测
 
-与[add_cfuncs](#add-cfuncs)类似，只是仅对单个函数接口进行设置，并且仅对`target`域生效，`option`中不存在此接口。
+与[add_cfuncs](https://xmake.io/zh/api/description/project-target.html#add-cfuncs)类似，只是仅对单个函数接口进行设置，并且仅对`target`域生效，`option`中不存在此接口。
 
 此接口的目的主要是为了在`config.h`中更加高度定制化的生成宏开关，例如：
 
@@ -2035,7 +2035,7 @@ target("demo")
 
 ###### 添加单个c++库函数检测
 
-与[add_cfunc](#add-cfunc)类似，只是检测的函数接口是c++函数。
+与[add_cfunc](https://xmake.io/zh/api/description/project-target.html#add-cfunc)类似，只是检测的函数接口是c++函数。
 
 ##### target:add_cfuncs
 
@@ -2048,9 +2048,9 @@ target("demo")
 | 接口域 | 描述                                                                      | 例子                                                                                                                             |
 | ------ | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | target | 头文件、链接库和函数接口同时指定                                          | `add_cfuncs("libc", nil, {"signal.h", "setjmp.h"}, "signal", "setjmp", "sigsetjmp{sigjmp_buf buf; sigsetjmp(buf, 0);}", "kill")` |
-| option | 仅指定函数接口，头文件依赖[add_cincludes](#add-cincludes)等独立接口 | `add_cincludes("setjmp.h")` `add_cfuncs("sigsetjmp")`                                                                            |
+| option | 仅指定函数接口，头文件依赖[add_cincludes](https://xmake.io/zh/api/description/project-target.html#add-cincludes)等独立接口 | `add_cincludes("setjmp.h")` `add_cfuncs("sigsetjmp")`                                                                            |
 
-对于`option`，这个接口的使用很简单，跟[add_cincludes](#add-cincludes)类似，例如：
+对于`option`，这个接口的使用很简单，跟[add_cincludes](https://xmake.io/zh/api/description/project-target.html#add-cincludes)类似，例如：
 
 ```lua
 option("setjmp")
@@ -2066,9 +2066,9 @@ target("test")
 此选项检测是否存在`setjmp`的一些接口，如果检测通过那么`test`目标程序将会加上`HAVE_SETJMP`的宏定义。
 
 <p class="warning">
-需要注意的是，在`option`中使用此接口检测依赖函数，需要同时使用独立的[add_cincludes](#add-cincludes)增加头文件搜索路径，指定[add_links](#add-links)链接库（可选），否则检测不到指定函数。
+需要注意的是，在`option`中使用此接口检测依赖函数，需要同时使用独立的[add_cincludes](https://xmake.io/zh/api/description/project-target.html#add-cincludes)增加头文件搜索路径，指定[add_links](https://xmake.io/zh/api/description/project-target.html#add-links)链接库（可选），否则检测不到指定函数。
 <br><br>
-并且某些头文件接口是通过宏开关分别定义的，那么检测的时候最好通过[add_defines](#add-defines)带上依赖的宏开关。
+并且某些头文件接口是通过宏开关分别定义的，那么检测的时候最好通过[add_defines](https://xmake.io/zh/api/description/option-instance.html#add-defines)带上依赖的宏开关。
 </p>
 
 对于`target`，此接口可以同时设置：依赖的头文件、依赖的链接模块、依赖的函数接口，保证检测环境的完整性，例如：
@@ -2092,7 +2092,7 @@ target("test")
                                                                         "pthread_key_delete")
 ```
 
-设置`test`目标，依赖这些接口，构建时会预先检测他们，并且如果通过[set_config_h](#set-config-h)接口设置的自动生成头文件：`config.h`
+设置`test`目标，依赖这些接口，构建时会预先检测他们，并且如果通过[set_config_h](https://xmake.io/zh/api/description/project-target.html#set-config-h)接口设置的自动生成头文件：`config.h`
 
 那么，检测结果会自动加到对应的`config.h`上去，这也是`option`没有的功能，例如：
 
@@ -2125,13 +2125,13 @@ target("test")
 
 ###### 添加c++库函数检测
 
-与[add_cfuncs](#add-cfuncs)类似，只是检测的函数接口是c++函数。
+与[add_cfuncs](https://xmake.io/zh/api/description/project-target.html#add-cfuncs)类似，只是检测的函数接口是c++函数。
 
 ##### target:add_options
 
 ###### 添加关联选项
 
-这个接口跟[set_options](#set-options)类似，唯一的区别就是，此处是追加选项，而[set_options](#set-options)每次设置会覆盖先前的设置。
+这个接口跟[set_options](https://xmake.io/zh/api/description/project-target.html#set-options)类似，唯一的区别就是，此处是追加选项，而[set_options](https://xmake.io/zh/api/description/project-target.html#set-options)每次设置会覆盖先前的设置。
 
 ##### target:add_packages
 
@@ -2146,15 +2146,15 @@ target("test")
 
 这样，在编译test目标时，如果这个包存在的，将会自动追加包里面的宏定义、头文件搜索路径、链接库目录，也会自动链接包中所有库。
 
-用户不再需要自己单独调用[add_links](#add-links)，[add_includedirs](#add-includedirs), [add_ldflags](#add-ldflags)等接口，来配置依赖库链接了。
+用户不再需要自己单独调用[add_links](https://xmake.io/zh/api/description/project-target.html#add-links)，[add_includedirs](https://xmake.io/zh/api/description/project-target.html#add-includedirs), [add_ldflags](https://xmake.io/zh/api/description/project-target.html#add-ldflags)等接口，来配置依赖库链接了。
 
-对于如何设置包搜索目录，可参考：[add_packagedirs](#add-packagedirs) 接口
+对于如何设置包搜索目录，可参考：[add_packagedirs](https://xmake.io/zh/api/description/project-target.html#add-packagedirs) 接口
 
 ##### target:add_languages
 
 ###### 添加语言标准
 
-与[set_languages](#set-languages)类似，唯一区别是这个接口不会覆盖掉之前的设置，而是追加设置。
+与[set_languages](https://xmake.io/zh/api/description/project-target.html#set-languages)类似，唯一区别是这个接口不会覆盖掉之前的设置，而是追加设置。
 
 ##### target:add_vectorexts
 
@@ -2184,7 +2184,7 @@ target("test")
     add_frameworks("Foundation", "CoreFoundation")
 ```
 
-当然也可以使用[add_mxflags](#add-mxflags)和[add_ldflags](#add-ldflags)来设置，不过比较繁琐，不建议这样设置。
+当然也可以使用[add_mxflags](https://xmake.io/zh/api/description/project-target.html#add-mxflags)和[add_ldflags](https://xmake.io/zh/api/description/project-target.html#add-ldflags)来设置，不过比较繁琐，不建议这样设置。
 
 ```lua
 target("test")
@@ -2198,7 +2198,7 @@ target("test")
 
 ###### 添加链接框架搜索目录
 
-对于一些第三方framework，那么仅仅通过[add_frameworks](#add-frameworks)是没法找到的，还需要通过这个接口来添加搜索目录。
+对于一些第三方framework，那么仅仅通过[add_frameworks](https://xmake.io/zh/api/description/project-target.html#add-frameworks)是没法找到的，还需要通过这个接口来添加搜索目录。
 
 ```lua
 target("test")
@@ -2231,69 +2231,69 @@ option("test2")
 ```
 
 <p class="tip">
-`option`域是可以重复进入来实现分离设置的，如果要显示离开当前选项的作用域设置，可以手动调用[option_end](#-end)接口。
+`option`域是可以重复进入来实现分离设置的，如果要显示离开当前选项的作用域设置，可以手动调用[option_end](https://xmake.io/zh/api/description/project-target.html#-end)接口。
 </p>
 
 
 | 接口                                                  | 描述                                         | 支持版本 |
 | ----------------------------------------------------- | -------------------------------------------- | -------- |
-| [option](#option)                                     | 定义选项                                     | >= 2.0.1 |
-| [option_end](#-end)                             | 结束定义选项                                 | >= 2.1.1 |
-| [add_deps](#add-deps)                           | 添加选项依赖                                 | >= 2.1.5 |
-| [before_check](#before-check)                   | 选项检测之前执行此脚本                       | >= 2.1.5 |
-| [on_check](#on-check)                           | 自定义选项检测脚本                           | >= 2.1.5 |
-| [after_check](#after-check)                     | 选项检测之后执行此脚本                       | >= 2.1.5 |
-| [set_values](#set-values)                       | 设置选项值列表                               | >= 2.1.9 |
-| [set_default](#set-default)                     | 设置默认值                                   | >= 2.0.1 |
-| [set_showmenu](#set-showmenu)                   | 设置是否启用菜单显示                         | >= 1.0.1 |
-| [set_category](#set-category)                   | 设置选项分类，仅用于菜单显示                 | >= 1.0.1 |
-| [set_description](#set-description)             | 设置菜单显示描述                             | >= 1.0.1 |
-| [add_links](#add-links)                         | 添加链接库检测                               | >= 1.0.1 |
-| [add_linkdirs](#add-linkdirs)                   | 添加链接库检测需要的搜索目录                 | >= 1.0.1 |
-| [add_rpathdirs](#add-rpathdirs)                 | 添加运行时候动态链接库搜索目录               | >= 2.1.3 |
-| [add_cincludes](#add-cincludes)                 | 添加c头文件检测                              | >= 1.0.1 |
-| [add_cxxincludes](#add-cxxincludes)             | 添加c++头文件检测                            | >= 1.0.1 |
-| [add_ctypes](#add-ctypes)                       | 添加c类型检测                                | >= 1.0.1 |
-| [add_cxxtypes](#add-cxxtypes)                   | 添加c++类型检测                              | >= 1.0.1 |
-| [add_csnippet](#add-csnippet)                   | 添加c代码片段检测                            | >= 2.1.5 |
-| [add_cxxsnippet](#add-cxxsnippet)               | 添加c++代码片段检测                          | >= 2.1.5 |
-| [set_warnings](#set-warnings)                   | 设置警告级别                                 | >= 1.0.1 |
-| [set_optimize](#set-optimize)                   | 设置优化级别                                 | >= 1.0.1 |
-| [set_languages](#set-languages)                 | 设置代码语言标准                             | >= 1.0.1 |
-| [add_includedirs](#add-includedirs)             | 添加头文件搜索目录                           | >= 1.0.1 |
-| [add_defines](#add-defines)                     | 添加宏定义                                   | >= 1.0.1 |
-| [add_undefines](#add-undefines)                 | 取消宏定义                                   | >= 1.0.1 |
-| [add_defines_h](#add-defines-h)                 | 添加宏定义到头文件                           | >= 1.0.1 |
-| [add_undefines_h](#add-undefines-h)             | 取消宏定义到头文件                           | >= 1.0.1 |
-| [add_cflags](#add-cflags)                       | 添加c编译选项                                | >= 1.0.1 |
-| [add_cxflags](#add-cxflags)                     | 添加c/c++编译选项                            | >= 1.0.1 |
-| [add_cxxflags](#add-cxxflags)                   | 添加c++编译选项                              | >= 1.0.1 |
-| [add_mflags](#add-mflags)                       | 添加objc编译选项                             | >= 2.0.1 |
-| [add_mxflags](#add-mxflags)                     | 添加objc/objc++编译选项                      | >= 2.0.1 |
-| [add_mxxflags](#add-mxxflags)                   | 添加objc++编译选项                           | >= 2.0.1 |
-| [add_scflags](#add-scflags)                     | 添加swift编译选项                            | >= 2.1.1 |
-| [add_asflags](#add-asflags)                     | 添加汇编编译选项                             | >= 2.1.1 |
-| [add_gcflags](#add-gcflags)                     | 添加go编译选项                               | >= 2.1.1 |
-| [add_dcflags](#add-dcflags)                     | 添加dlang编译选项                            | >= 2.1.1 |
-| [add_rcflags](#add-rcflags)                     | 添加rust编译选项                             | >= 2.1.1 |
-| [add_ldflags](#add-ldflags)                     | 添加链接选项                                 | >= 2.1.1 |
-| [add_arflags](#add-arflags)                     | 添加静态库归档选项                           | >= 2.1.1 |
-| [add_shflags](#add-shflags)                     | 添加动态库链接选项                           | >= 2.0.1 |
-| [add_cfuncs](#add-cfuncs)                       | 添加c库函数检测                              | >= 1.0.1 |
-| [add_cxxfuncs](#add-cxxfuncs)                   | 添加c++库函数接口                            | >= 1.0.1 |
-| [add_languages](#add-languages)                 | 添加语言标准                                 | >= 2.0.1 |
-| [add_vectorexts](#add-vectorexts)               | 添加向量扩展指令                             | >= 2.0.1 |
-| [add_frameworks](#add-frameworks)               | 添加链接框架                                 | >= 2.1.1 |
-| [add_frameworkdirs](#add-frameworkdirs)         | 添加链接框架                                 | >= 2.1.5 |
+| [option](https://xmake.io/zh/api/description/project-target.html#option)                                     | 定义选项                                     | >= 2.0.1 |
+| [option_end](https://xmake.io/zh/api/description/project-target.html#-end)                             | 结束定义选项                                 | >= 2.1.1 |
+| [add_deps](https://xmake.io/zh/api/description/project-target.html#add-deps)                           | 添加选项依赖                                 | >= 2.1.5 |
+| [before_check](https://xmake.io/zh/api/description/project-target.html#before-check)                   | 选项检测之前执行此脚本                       | >= 2.1.5 |
+| [on_check](https://xmake.io/zh/api/description/project-target.html#on-check)                           | 自定义选项检测脚本                           | >= 2.1.5 |
+| [after_check](https://xmake.io/zh/api/description/project-target.html#after-check)                     | 选项检测之后执行此脚本                       | >= 2.1.5 |
+| [set_values](https://xmake.io/zh/api/description/project-target.html#set-values)                       | 设置选项值列表                               | >= 2.1.9 |
+| [set_default](https://xmake.io/zh/api/description/option-instance.html#set-default)                     | 设置默认值                                   | >= 2.0.1 |
+| [set_showmenu](https://xmake.io/zh/api/description/option-instance.html#set-showmenu)                   | 设置是否启用菜单显示                         | >= 1.0.1 |
+| [set_category](https://xmake.io/zh/api/description/option-instance.html#set-category)                   | 设置选项分类，仅用于菜单显示                 | >= 1.0.1 |
+| [set_description](https://xmake.io/zh/api/description/option-instance.html#set-description)             | 设置菜单显示描述                             | >= 1.0.1 |
+| [add_links](https://xmake.io/zh/api/description/project-target.html#add-links)                         | 添加链接库检测                               | >= 1.0.1 |
+| [add_linkdirs](https://xmake.io/zh/api/description/project-target.html#add-linkdirs)                   | 添加链接库检测需要的搜索目录                 | >= 1.0.1 |
+| [add_rpathdirs](https://xmake.io/zh/api/description/project-target.html#add-rpathdirs)                 | 添加运行时候动态链接库搜索目录               | >= 2.1.3 |
+| [add_cincludes](https://xmake.io/zh/api/description/project-target.html#add-cincludes)                 | 添加c头文件检测                              | >= 1.0.1 |
+| [add_cxxincludes](https://xmake.io/zh/api/description/project-target.html#add-cxxincludes)             | 添加c++头文件检测                            | >= 1.0.1 |
+| [add_ctypes](https://xmake.io/zh/api/description/project-target.html#add-ctypes)                       | 添加c类型检测                                | >= 1.0.1 |
+| [add_cxxtypes](https://xmake.io/zh/api/description/project-target.html#add-cxxtypes)                   | 添加c++类型检测                              | >= 1.0.1 |
+| [add_csnippet](https://xmake.io/zh/api/description/project-target.html#add-csnippet)                   | 添加c代码片段检测                            | >= 2.1.5 |
+| [add_cxxsnippet](https://xmake.io/zh/api/description/project-target.html#add-cxxsnippet)               | 添加c++代码片段检测                          | >= 2.1.5 |
+| [set_warnings](https://xmake.io/zh/api/description/project-target.html#set-warnings)                   | 设置警告级别                                 | >= 1.0.1 |
+| [set_optimize](https://xmake.io/zh/api/description/project-target.html#set-optimize)                   | 设置优化级别                                 | >= 1.0.1 |
+| [set_languages](https://xmake.io/zh/api/description/project-target.html#set-languages)                 | 设置代码语言标准                             | >= 1.0.1 |
+| [add_includedirs](https://xmake.io/zh/api/description/project-target.html#add-includedirs)             | 添加头文件搜索目录                           | >= 1.0.1 |
+| [add_defines](https://xmake.io/zh/api/description/option-instance.html#add-defines)                     | 添加宏定义                                   | >= 1.0.1 |
+| [add_undefines](https://xmake.io/zh/api/description/project-target.html#add-undefines)                 | 取消宏定义                                   | >= 1.0.1 |
+| [add_defines_h](https://xmake.io/zh/api/description/project-target.html#add-defines-h)                 | 添加宏定义到头文件                           | >= 1.0.1 |
+| [add_undefines_h](https://xmake.io/zh/api/description/project-target.html#add-undefines-h)             | 取消宏定义到头文件                           | >= 1.0.1 |
+| [add_cflags](https://xmake.io/zh/api/description/project-target.html#add-cflags)                       | 添加c编译选项                                | >= 1.0.1 |
+| [add_cxflags](https://xmake.io/zh/api/description/project-target.html#add-cxflags)                     | 添加c/c++编译选项                            | >= 1.0.1 |
+| [add_cxxflags](https://xmake.io/zh/api/description/project-target.html#add-cxxflags)                   | 添加c++编译选项                              | >= 1.0.1 |
+| [add_mflags](https://xmake.io/zh/api/description/project-target.html#add-mflags)                       | 添加objc编译选项                             | >= 2.0.1 |
+| [add_mxflags](https://xmake.io/zh/api/description/project-target.html#add-mxflags)                     | 添加objc/objc++编译选项                      | >= 2.0.1 |
+| [add_mxxflags](https://xmake.io/zh/api/description/project-target.html#add-mxxflags)                   | 添加objc++编译选项                           | >= 2.0.1 |
+| [add_scflags](https://xmake.io/zh/api/description/project-target.html#add-scflags)                     | 添加swift编译选项                            | >= 2.1.1 |
+| [add_asflags](https://xmake.io/zh/api/description/project-target.html#add-asflags)                     | 添加汇编编译选项                             | >= 2.1.1 |
+| [add_gcflags](https://xmake.io/zh/api/description/project-target.html#add-gcflags)                     | 添加go编译选项                               | >= 2.1.1 |
+| [add_dcflags](https://xmake.io/zh/api/description/project-target.html#add-dcflags)                     | 添加dlang编译选项                            | >= 2.1.1 |
+| [add_rcflags](https://xmake.io/zh/api/description/project-target.html#add-rcflags)                     | 添加rust编译选项                             | >= 2.1.1 |
+| [add_ldflags](https://xmake.io/zh/api/description/project-target.html#add-ldflags)                     | 添加链接选项                                 | >= 2.1.1 |
+| [add_arflags](https://xmake.io/zh/api/description/project-target.html#add-arflags)                     | 添加静态库归档选项                           | >= 2.1.1 |
+| [add_shflags](https://xmake.io/zh/api/description/project-target.html#add-shflags)                     | 添加动态库链接选项                           | >= 2.0.1 |
+| [add_cfuncs](https://xmake.io/zh/api/description/project-target.html#add-cfuncs)                       | 添加c库函数检测                              | >= 1.0.1 |
+| [add_cxxfuncs](https://xmake.io/zh/api/description/project-target.html#add-cxxfuncs)                   | 添加c++库函数接口                            | >= 1.0.1 |
+| [add_languages](https://xmake.io/zh/api/description/project-target.html#add-languages)                 | 添加语言标准                                 | >= 2.0.1 |
+| [add_vectorexts](https://xmake.io/zh/api/description/project-target.html#add-vectorexts)               | 添加向量扩展指令                             | >= 2.0.1 |
+| [add_frameworks](https://xmake.io/zh/api/description/project-target.html#add-frameworks)               | 添加链接框架                                 | >= 2.1.1 |
+| [add_frameworkdirs](https://xmake.io/zh/api/description/project-target.html#add-frameworkdirs)         | 添加链接框架                                 | >= 2.1.5 |
 
 | 废弃接口                                              | 描述                                         | 支持版本         |
 | ----------------------------------------------------- | -------------------------------------------- | ---------------- |
-| [add_bindings](#add-bindings)                   | 添加正向关联选项，同步启用和禁用             | >= 2.0.1 < 2.1.5 |
-| [add_rbindings](#add-rbindings)                 | 添加逆向关联选项，同步启用和禁用             | >= 2.0.1 < 2.1.5 |
-| [add_defines_if_ok](#add-defines-if-ok)         | 如果检测选项通过，则添加宏定义               | >= 1.0.1 < 2.1.5 |
-| [add_defines_h_if_ok](#add-defines-h-if-ok)     | 如果检测选项通过，则添加宏定义到配置头文件   | >= 1.0.1 < 2.1.5 |
-| [add_undefines_if_ok](#add-undefines-if-ok)     | 如果检测选项通过，则取消宏定义               | >= 1.0.1 < 2.1.5 |
-| [add_undefines_h_if_ok](#add-undefines-h-if-ok) | 如果检测选项通过，则在配置头文件中取消宏定义 | >= 1.0.1 < 2.1.5 |
+| [add_bindings](https://xmake.io/zh/api/description/project-target.html#add-bindings)                   | 添加正向关联选项，同步启用和禁用             | >= 2.0.1 < 2.1.5 |
+| [add_rbindings](https://xmake.io/zh/api/description/project-target.html#add-rbindings)                 | 添加逆向关联选项，同步启用和禁用             | >= 2.0.1 < 2.1.5 |
+| [add_defines_if_ok](https://xmake.io/zh/api/description/project-target.html#add-defines-if-ok)         | 如果检测选项通过，则添加宏定义               | >= 1.0.1 < 2.1.5 |
+| [add_defines_h_if_ok](https://xmake.io/zh/api/description/project-target.html#add-defines-h-if-ok)     | 如果检测选项通过，则添加宏定义到配置头文件   | >= 1.0.1 < 2.1.5 |
+| [add_undefines_if_ok](https://xmake.io/zh/api/description/project-target.html#add-undefines-if-ok)     | 如果检测选项通过，则取消宏定义               | >= 1.0.1 < 2.1.5 |
+| [add_undefines_h_if_ok](https://xmake.io/zh/api/description/project-target.html#add-undefines-h-if-ok) | 如果检测选项通过，则在配置头文件中取消宏定义 | >= 1.0.1 < 2.1.5 |
 
 ##### option
 
@@ -2329,13 +2329,13 @@ $ xmake
 
 ###### 结束定义选项
 
-这是一个可选api，显示离开选项作用域，用法和[target_end](#-end)类似。
+这是一个可选api，显示离开选项作用域，用法和[target_end](https://xmake.io/zh/api/description/project-target.html#-end)类似。
 
 ##### option:add_deps
 
 ###### 添加选项依赖
 
-通过设置依赖，可以调整选项的检测顺序，一般用于[on_check](#on-check)等检测脚本的调用时机。
+通过设置依赖，可以调整选项的检测顺序，一般用于[on_check](https://xmake.io/zh/api/description/project-target.html#on-check)等检测脚本的调用时机。
 
 ```lua
 option("small")
@@ -2639,7 +2639,7 @@ $ xmake f --mode=release
 ###### 添加正向关联选项，同步启用和禁用
 
 <p class="tip">
-2.1.5版本之后已废弃，请用[add_deps](#add-deps), [on_check](#on-check), [after_check](#after-check)等接口代替。
+2.1.5版本之后已废弃，请用[add_deps](https://xmake.io/zh/api/description/project-target.html#add-deps), [on_check](https://xmake.io/zh/api/description/project-target.html#on-check), [after_check](https://xmake.io/zh/api/description/project-target.html#after-check)等接口代替。
 </p>
 
 绑定关联选项，例如我想在命令行中配置一个`smallest`的参数：`xmake f --smallest=y`
@@ -2661,7 +2661,7 @@ option("smallest")
 ###### 添加逆向关联选项，同步启用和禁用
 
 <p class="tip">
-2.1.5版本之后已废弃，请用[add_deps](#add-deps), [on_check](#on-check), [after_check](#after-check)等接口代替。
+2.1.5版本之后已废弃，请用[add_deps](https://xmake.io/zh/api/description/project-target.html#add-deps), [on_check](https://xmake.io/zh/api/description/project-target.html#on-check), [after_check](https://xmake.io/zh/api/description/project-target.html#after-check)等接口代替。
 </p>
 
 逆向绑定关联选项，被关联选项的开关状态是相反的。
@@ -2709,13 +2709,13 @@ target("test")
 
 ###### 添加链接库检测时候需要的搜索目录
 
-这个是可选的，一般系统库不需要加这个，也能检测通过，如果确实没找到，可以自己追加搜索目录，提高检测通过率。具体使用见：[add_links](#add-links)
+这个是可选的，一般系统库不需要加这个，也能检测通过，如果确实没找到，可以自己追加搜索目录，提高检测通过率。具体使用见：[add_links](https://xmake.io/zh/api/description/project-target.html#add-links)
 
 ##### option:add_rpathdirs
 
 ###### 添加程序运行时动态库的加载搜索目录
 
-在选项通过检测后，会自动添加到对应的target上去，具体使用见：[target.add_rpathdirs](#add-rpathdirs)。
+在选项通过检测后，会自动添加到对应的target上去，具体使用见：[target.add_rpathdirs](https://xmake.io/zh/api/description/project-target.html#add-rpathdirs)。
 
 ##### option:add_cincludes
 
@@ -2735,13 +2735,13 @@ target("test")
 
 此选项检测是否存在`pthread.h`的头文件，如果检测通过那么`test`目标程序将会加上`ENABLE_PTHREAD`的宏定义。
 
-如果想要更加灵活的检测，可以通过[lib.detect.has_cincludes](#detect-has_cincludes)在[option.on_check](#on-check)中去实现。
+如果想要更加灵活的检测，可以通过[lib.detect.has_cincludes](#detect-has_cincludes)在[option.on_check](https://xmake.io/zh/api/description/project-target.html#on-check)中去实现。
 
 ##### option:add_cxxincludes
 
 ###### 添加c++头文件检测
 
-与[add_cincludes](#add-cincludes)类似，只是检测的头文件类型是c++头文件。
+与[add_cincludes](https://xmake.io/zh/api/description/project-target.html#add-cincludes)类似，只是检测的头文件类型是c++头文件。
 
 ##### option:add_ctypes
 
@@ -2761,20 +2761,20 @@ target("test")
 
 此选项检测是否存在`wchar_t`的类型，如果检测通过那么`test`目标程序将会加上`HAVE_WCHAR`的宏定义。
 
-如果想要更加灵活的检测，可以通过[lib.detect.has_ctypes](#detect-has_ctypes)在[option.on_check](#on-check)中去实现。
+如果想要更加灵活的检测，可以通过[lib.detect.has_ctypes](#detect-has_ctypes)在[option.on_check](https://xmake.io/zh/api/description/project-target.html#on-check)中去实现。
 
 ##### option:add_cxxtypes
 
 ###### 添加c++类型检测
 
-与[add_ctypes](#add-ctypes)类似，只是检测的类型是c++类型。
+与[add_ctypes](https://xmake.io/zh/api/description/project-target.html#add-ctypes)类似，只是检测的类型是c++类型。
 
 ##### option:add_csnippet
 
 ###### 添加c代码片段检测
 
-如果现有的[add_ctypes](#add-ctypes), [add_cfuncs](#add-cfuncs)等不能满足当前的检测需求，
-可以用这个接口实现更加定制化检测一些编译器特性检测，具体见: [add_cxxsnippet](#add-cxxsnippet)。
+如果现有的[add_ctypes](https://xmake.io/zh/api/description/project-target.html#add-ctypes), [add_cfuncs](https://xmake.io/zh/api/description/project-target.html#add-cfuncs)等不能满足当前的检测需求，
+可以用这个接口实现更加定制化检测一些编译器特性检测，具体见: [add_cxxsnippet](https://xmake.io/zh/api/description/project-target.html#add-cxxsnippet)。
 
 ##### option:add_cxxsnippet
 
@@ -2791,27 +2791,27 @@ option("constexpr")
 
 对于编译器特性的检测，有更加方便高效的检测模块，提供更强大的检测支持，具体见：[compiler.has_features](#compiler-has_features)和[detect.check_cxsnippets](#detect-check_cxsnippets)
 
-如果想要更加灵活的检测，可以通过[lib.detect.check_cxsnippets](#detect-check_cxsnippets)在[option.on_check](#on-check)中去实现。
+如果想要更加灵活的检测，可以通过[lib.detect.check_cxsnippets](#detect-check_cxsnippets)在[option.on_check](https://xmake.io/zh/api/description/project-target.html#on-check)中去实现。
 
 ##### option:add_defines_if_ok
 
 ###### 如果检测选项通过，则添加宏定义
 
 <p class="tip">
-2.1.5版本之后已废弃，请用[add_defines](#add-defines)接口代替。
+2.1.5版本之后已废弃，请用[add_defines](https://xmake.io/zh/api/description/option-instance.html#add-defines)接口代替。
 </p>
 
-检测选项通过后才会被设置，具体使用见[add_cincludes](#add-cincludes)中的例子。
+检测选项通过后才会被设置，具体使用见[add_cincludes](https://xmake.io/zh/api/description/project-target.html#add-cincludes)中的例子。
 
 ##### option:add_defines_h_if_ok
 
 ###### 如果检测选项通过，则添加宏定义到配置头文件
 
 <p class="tip">
-2.1.5版本之后已废弃，请用[add_defines_h](#add-defines-h)接口代替。
+2.1.5版本之后已废弃，请用[add_defines_h](https://xmake.io/zh/api/description/project-target.html#add-defines-h)接口代替。
 </p>
 
-跟[add_defines_if_ok](#add-defines-if-ok)类似，只是检测通过后，会在`config.h`头文件中自动加上被设置的宏定义。
+跟[add_defines_if_ok](https://xmake.io/zh/api/description/project-target.html#add-defines-if-ok)类似，只是检测通过后，会在`config.h`头文件中自动加上被设置的宏定义。
 
 例如：
 
@@ -2831,33 +2831,33 @@ target("test")
 #define ENABLE_PTHREAD 1
 ```
 
-具体`config.h`如何设置，见：[set_config_h](#set-config-h)
+具体`config.h`如何设置，见：[set_config_h](https://xmake.io/zh/api/description/project-target.html#set-config-h)
 
 ##### option:add_undefines_if_ok
 
 ###### 如果检测选项通过，则取消宏定义
 
 <p class="tip">
-2.1.5版本之后已废弃，请用[add_undefines](#add-undefines)接口代替。
+2.1.5版本之后已废弃，请用[add_undefines](https://xmake.io/zh/api/description/project-target.html#add-undefines)接口代替。
 </p>
 
-跟[add_defines_if_ok](#add-defines-if-ok)类似，只是检测通过后，取消被设置的宏定义。
+跟[add_defines_if_ok](https://xmake.io/zh/api/description/project-target.html#add-defines-if-ok)类似，只是检测通过后，取消被设置的宏定义。
 
 ##### option:add_undefines_h_if_ok
 
 ###### 如果检测选项通过，则在配置头文件中取消宏定义
 
 <p class="tip">
-2.1.5版本之后已废弃，请用[add_undefines_h](#add-undefines-h)接口代替。
+2.1.5版本之后已废弃，请用[add_undefines_h](https://xmake.io/zh/api/description/project-target.html#add-undefines-h)接口代替。
 </p>
 
-跟[add_defines_h_if_ok](#add-defines-h-if-ok)类似，只是检测通过后，会在`config.h`中取消被设置的宏定义。
+跟[add_defines_h_if_ok](https://xmake.io/zh/api/description/project-target.html#add-defines-h-if-ok)类似，只是检测通过后，会在`config.h`中取消被设置的宏定义。
 
 ```c
 #undef DEFINED_MACRO
 ```
 
-具体`config.h`如何设置，见：[set_config_h](#set-config-h)
+具体`config.h`如何设置，见：[set_config_h](https://xmake.io/zh/api/description/project-target.html#set-config-h)
 
 #### 插件任务
 
@@ -2867,7 +2867,7 @@ xmake可以实现自定义任务或者插件，其两者的核心就是`task`任
 
 | 接口                                            | 描述                                         | 支持版本 |
 | ----------------------------------------------- | -------------------------------------------- | -------- |
-| [task](#task)                                   | 定义插件或者任务                             | >= 2.0.1 |
+| [task](https://xmake.io/zh/api/description/project-target.html#task)                                   | 定义插件或者任务                             | >= 2.0.1 |
 | [task_end](#task_end)                           | 结束定义插件或任务                           | >= 2.1.1 |
 | [set_menu](#taskset_menu)                       | 设置任务菜单                                 | >= 2.0.1 |
 | [set_category](#taskset_category)               | 设置任务类别                                 | >= 2.0.1 |
@@ -2877,7 +2877,7 @@ xmake可以实现自定义任务或者插件，其两者的核心就是`task`任
 
 ###### 定义插件或者任务
 
-`task`域用于描述一个自定义的任务实现，与[target](#target)和[option](#option)同级。
+`task`域用于描述一个自定义的任务实现，与[target](https://xmake.io/zh/api/description/project-target.html#target)和[option](https://xmake.io/zh/api/description/project-target.html#option)同级。
 
 例如，这里定义一个最简单的任务：
 
@@ -2913,7 +2913,7 @@ target("test")
 
 ###### 结束定义插件或任务
 
-这是一个可选api，显示离开选项作用域，用法和[target_end](#-end)类似。
+这是一个可选api，显示离开选项作用域，用法和[target_end](https://xmake.io/zh/api/description/project-target.html#-end)类似。
 
 ##### task:set_menu
 
@@ -3128,7 +3128,7 @@ function main(...)
 end
 ```
 
-就是一个简单的带`main`主函数的脚本文件，你可以通过[import](#import)导入各种扩展模块，实现复杂功能，例如：
+就是一个简单的带`main`主函数的脚本文件，你可以通过[import](https://xmake.io/zh/api/description/project-target.html#import)导入各种扩展模块，实现复杂功能，例如：
 
 ```lua
 -- 导入参数选项模块
@@ -3142,7 +3142,7 @@ function main(...)
 end
 ```
 
-你也可以在当前目录下，创建多个自定义的模块文件，通过[import](#import)导入后使用，例如：
+你也可以在当前目录下，创建多个自定义的模块文件，通过[import](https://xmake.io/zh/api/description/project-target.html#import)导入后使用，例如：
 
 ```
 projectdir
@@ -3185,7 +3185,7 @@ task.run("hello", {color="red"}, arg1, arg2, arg3)
 
 里面的`arg1, arg2`这些就是传入`hello`任务`main(...)`入口的参数列表，而`{color="red"}`用来指定任务菜单中的参数选项。
 
-更加详细的`task.run`描述，见：[task.run](#task-run)
+更加详细的`task.run`描述，见：[task.run](https://xmake.io/zh/api/description/project-target.html#task-run)
 
 #### 构建规则
 
@@ -3252,7 +3252,7 @@ target("test")
 
 | 接口                                            | 描述                                         | 支持版本 |
 | ----------------------------------------------- | -------------------------------------------- | -------- |
-| [rule](#rule)                                   | 定义规则                                     | >= 2.1.9 |
+| [rule](https://xmake.io/zh/api/description/project-target.html#rule)                                   | 定义规则                                     | >= 2.1.9 |
 | [add_imports](#ruleadd_imports)                 | 为所有自定义脚本预先导入扩展模块             | >= 2.1.9 |
 | [set_extensions](#ruleset_extensions)           | 设置规则支持的文件扩展类型                   | >= 2.1.9 |
 | [on_build](#ruleon_build)                       | 自定义编译脚本                               | >= 2.1.9 |
@@ -3283,7 +3283,7 @@ rule("markdown")
 
 ###### 为所有自定义脚本预先导入扩展模块
 
-使用方式和说明请见：[target:add_imports](#add-imports)，用法相同。
+使用方式和说明请见：[target:add_imports](https://xmake.io/zh/api/description/project-target.html#add-imports)，用法相同。
 
 ##### rule:set_extensions
 
@@ -3471,7 +3471,7 @@ platforms
 
 | 接口                                            | 描述                                         | 支持版本 |
 | ----------------------------------------------- | -------------------------------------------- | -------- |
-| [platform](#platform)                           | 定义平台                                     | >= 2.0.1 |
+| [platform](https://xmake.io/zh/api/description/project-target.html#platform)                           | 定义平台                                     | >= 2.0.1 |
 | [platform_end](#platform_end)                   | 结束定义平台                                 | >= 2.1.1 |
 | [set_os](#platformset_os)                       | 设置平台系统                                 | >= 2.0.1 |
 | [set_menu](#platformset_menu)                   | 设置平台菜单                                 | >= 2.0.1 |
@@ -3545,7 +3545,7 @@ platform("iphoneos")
 
 ###### 结束定义平台
 
-这是一个可选api，显示离开选项作用域，用法和[target_end](#-end)类似。
+这是一个可选api，显示离开选项作用域，用法和[target_end](https://xmake.io/zh/api/description/project-target.html#-end)类似。
 
 ##### set_os
 
@@ -3558,7 +3558,7 @@ platform("iphoneos")
     set_os("ios")
 ```
 
-这个一般用于在自定义脚本和插件开发中，[core.platform.platform](#core-platform-platform)模块中进行访问，获取当前平台的操作系统。
+这个一般用于在自定义脚本和插件开发中，[core.platform.platform](https://xmake.io/zh/api/description/project-target.html#core-platform-platform)模块中进行访问，获取当前平台的操作系统。
 
 ##### set_menu
 
@@ -3790,25 +3790,25 @@ target("test")
     end)
 ```
 
-所有的内置变量，也可以通过[val](#val)接口，来获取他们的值。
+所有的内置变量，也可以通过[val](https://xmake.io/zh/api/description/project-target.html#val)接口，来获取他们的值。
 
 这种使用内置变量的方式，使得描述编写更加的简洁易读，下面是一些xmake内置的变量，可以直接获取：
 
 | 接口                                            | 描述                                         | 支持版本 |
 | ----------------------------------------------- | -------------------------------------------- | -------- |
-| [$(os)](#var-os)                                | 获取当前编译平台的操作系统                   | >= 2.0.1 |
-| [$(host)](#var-host)                            | 获取本机操作系统                             | >= 2.0.1 |
-| [$(tmpdir)](#var-tmpdir)                        | 获取临时目录                                 | >= 2.0.1 |
-| [$(curdir)](#var-curdir)                        | 获取当前目录                                 | >= 2.0.1 |
-| [$(buildir)](#var-buildir)                      | 获取构建输出目录                             | >= 2.0.1 |
-| [$(scriptdir)](#var-scriptdir)                  | 获取工程描述脚本目录                         | >= 2.1.1 |
-| [$(globaldir)](#var-globaldir)                  | 获取全局配置目录                             | >= 2.0.1 |
-| [$(configdir)](#var-configdir)                  | 获取本地工程配置目录                         | >= 2.0.1 |
-| [$(programdir)](#var-programdir)                | xmake安装脚本目录                            | >= 2.1.5 |
-| [$(projectdir)](#var-projectdir)                | 获取工程根目录                               | >= 2.0.1 |
-| [$(shell)](#var-shell)                          | 执行外部shell命令                            | >= 2.0.1 |
-| [$(env)](#var-env)                              | 获取外部环境变量                             | >= 2.1.5 |
-| [$(reg)](#var-reg)                              | 获取windows注册表配置项的值                  | >= 2.1.5 |
+| [$(os)](https://xmake.io/zh/api/description/project-target.html#var-os)                                | 获取当前编译平台的操作系统                   | >= 2.0.1 |
+| [$(host)](https://xmake.io/zh/api/description/project-target.html#var-host)                            | 获取本机操作系统                             | >= 2.0.1 |
+| [$(tmpdir)](https://xmake.io/zh/api/description/project-target.html#var-tmpdir)                        | 获取临时目录                                 | >= 2.0.1 |
+| [$(curdir)](https://xmake.io/zh/api/description/project-target.html#var-curdir)                        | 获取当前目录                                 | >= 2.0.1 |
+| [$(buildir)](https://xmake.io/zh/api/description/project-target.html#var-buildir)                      | 获取构建输出目录                             | >= 2.0.1 |
+| [$(scriptdir)](https://xmake.io/zh/api/description/project-target.html#var-scriptdir)                  | 获取工程描述脚本目录                         | >= 2.1.1 |
+| [$(globaldir)](https://xmake.io/zh/api/description/project-target.html#var-globaldir)                  | 获取全局配置目录                             | >= 2.0.1 |
+| [$(configdir)](https://xmake.io/zh/api/description/project-target.html#var-configdir)                  | 获取本地工程配置目录                         | >= 2.0.1 |
+| [$(programdir)](https://xmake.io/zh/api/description/project-target.html#var-programdir)                | xmake安装脚本目录                            | >= 2.1.5 |
+| [$(projectdir)](https://xmake.io/zh/api/description/project-target.html#var-projectdir)                | 获取工程根目录                               | >= 2.0.1 |
+| [$(shell)](https://xmake.io/zh/api/description/project-target.html#var-shell)                          | 执行外部shell命令                            | >= 2.0.1 |
+| [$(env)](https://xmake.io/zh/api/description/project-target.html#var-env)                              | 获取外部环境变量                             | >= 2.1.5 |
+| [$(reg)](https://xmake.io/zh/api/description/project-target.html#var-reg)                              | 获取windows注册表配置项的值                  | >= 2.1.5 |
 
 当然这种变量模式，也是可以扩展的，默认通过`xmake f --var=val`命令，配置的参数都是可以直接获取，例如：
 
@@ -3822,7 +3822,7 @@ target("test")
 具体有哪些参数，可以通过：`xmake f -h`才查看。
 </p>
 
-既然支持直接从配置选项中获取，那么当然也就能很方便的扩展自定义的选项，来获取自定义的变量了，具体如何自定义选项见：[option](#option)
+既然支持直接从配置选项中获取，那么当然也就能很方便的扩展自定义的选项，来获取自定义的变量了，具体如何自定义选项见：[option](https://xmake.io/zh/api/description/project-target.html#option)
 
 ##### var.$(os)
 
@@ -3846,7 +3846,7 @@ target("test")
 
 ###### 获取当前目录
 
-一般默认是执行`xmake`命令时的工程根目录，当然如果通过[os.cd](#os-cd)改变了目录的话，这个值也会一起改变。
+一般默认是执行`xmake`命令时的工程根目录，当然如果通过[os.cd](https://xmake.io/zh/api/description/project-target.html#os-cd)改变了目录的话，这个值也会一起改变。
 
 ##### var.$(buildir)
 
@@ -3944,27 +3944,27 @@ end)
 
 | 接口                                            | 描述                                         | 可使用域                   | 支持版本 |
 | ----------------------------------------------- | -------------------------------------------- | -------------------------- | -------- |
-| [val](#val)                                     | 获取内置变量的值                             | 脚本域                     | >= 2.1.5 |
-| [import](#import)                               | 导入扩展摸块                                 | 脚本域                     | >= 2.0.1 |
-| [inherit](#inherit)                             | 导入并继承基类模块                           | 脚本域                     | >= 2.0.1 |
-| [ifelse](#ifelse)                               | 类似三元条件判断                             | 描述域、脚本域             | >= 2.0.1 |
-| [try-catch-finally](#try-catch-finally)         | 异常捕获                                     | 脚本域                     | >= 2.0.1 |
-| [pairs](#pairs)                                 | 用于遍历字典                                 | 描述域、脚本域             | >= 2.0.1 |
-| [ipairs](#ipairs)                               | 用于遍历数组                                 | 描述域、脚本域             | >= 2.0.1 |
-| [print](#print)                                 | 换行打印终端日志                             | 描述域、脚本域             | >= 2.0.1 |
-| [printf](#printf)                               | 无换行打印终端日志                           | 脚本域                     | >= 2.0.1 |
-| [cprint](#cprint)                               | 换行彩色打印终端日志                         | 脚本域                     | >= 2.0.1 |
-| [cprintf](#cprintf)                             | 无换行彩色打印终端日志                       | 脚本域                     | >= 2.0.1 |
-| [format](#format)                               | 格式化字符串                                 | 描述域、脚本域             | >= 2.0.1 |
-| [vformat](#vformat)                             | 格式化字符串，支持内置变量转义               | 脚本域                     | >= 2.0.1 |
-| [raise](#raise)                                 | 抛出异常中断程序                             | 脚本域                     | >= 2.0.1 |
-| [os](#os)                                       | 系统操作模块                                 | 部分只读操作描述域、脚本域 | >= 2.0.1 |
-| [io](#io)                                       | 文件操作模块                                 | 脚本域                     | >= 2.0.1 |
-| [path](#path)                                   | 路径操作模块                                 | 描述域、脚本域             | >= 2.0.1 |
-| [table](#table)                                 | 数组和字典操作模块                           | 描述域、脚本域             | >= 2.0.1 |
-| [string](#string)                               | 字符串操作模块                               | 描述域、脚本域             | >= 2.0.1 |
-| [process](#process)                             | 进程操作模块                                 | 脚本域                     | >= 2.0.1 |
-| [coroutine](#coroutine)                         | 协程操作模块                                 | 脚本域                     | >= 2.0.1 |
+| [val](https://xmake.io/zh/api/description/project-target.html#val)                                     | 获取内置变量的值                             | 脚本域                     | >= 2.1.5 |
+| [import](https://xmake.io/zh/api/description/project-target.html#import)                               | 导入扩展摸块                                 | 脚本域                     | >= 2.0.1 |
+| [inherit](https://xmake.io/zh/api/description/project-target.html#inherit)                             | 导入并继承基类模块                           | 脚本域                     | >= 2.0.1 |
+| [ifelse](https://xmake.io/zh/api/description/project-target.html#ifelse)                               | 类似三元条件判断                             | 描述域、脚本域             | >= 2.0.1 |
+| [try-catch-finally](https://xmake.io/zh/api/description/project-target.html#try-catch-finally)         | 异常捕获                                     | 脚本域                     | >= 2.0.1 |
+| [pairs](https://xmake.io/zh/api/description/project-target.html#pairs)                                 | 用于遍历字典                                 | 描述域、脚本域             | >= 2.0.1 |
+| [ipairs](https://xmake.io/zh/api/description/project-target.html#ipairs)                               | 用于遍历数组                                 | 描述域、脚本域             | >= 2.0.1 |
+| [print](https://xmake.io/zh/api/description/project-target.html#print)                                 | 换行打印终端日志                             | 描述域、脚本域             | >= 2.0.1 |
+| [printf](https://xmake.io/zh/api/description/project-target.html#printf)                               | 无换行打印终端日志                           | 脚本域                     | >= 2.0.1 |
+| [cprint](https://xmake.io/zh/api/description/project-target.html#cprint)                               | 换行彩色打印终端日志                         | 脚本域                     | >= 2.0.1 |
+| [cprintf](https://xmake.io/zh/api/description/project-target.html#cprintf)                             | 无换行彩色打印终端日志                       | 脚本域                     | >= 2.0.1 |
+| [format](https://xmake.io/zh/api/description/project-target.html#format)                               | 格式化字符串                                 | 描述域、脚本域             | >= 2.0.1 |
+| [vformat](https://xmake.io/zh/api/description/project-target.html#vformat)                             | 格式化字符串，支持内置变量转义               | 脚本域                     | >= 2.0.1 |
+| [raise](https://xmake.io/zh/api/description/project-target.html#raise)                                 | 抛出异常中断程序                             | 脚本域                     | >= 2.0.1 |
+| [os](https://xmake.io/zh/api/description/project-target.html#os)                                       | 系统操作模块                                 | 部分只读操作描述域、脚本域 | >= 2.0.1 |
+| [io](https://xmake.io/zh/api/description/project-target.html#io)                                       | 文件操作模块                                 | 脚本域                     | >= 2.0.1 |
+| [path](https://xmake.io/zh/api/description/project-target.html#path)                                   | 路径操作模块                                 | 描述域、脚本域             | >= 2.0.1 |
+| [table](https://xmake.io/zh/api/description/project-target.html#table)                                 | 数组和字典操作模块                           | 描述域、脚本域             | >= 2.0.1 |
+| [string](https://xmake.io/zh/api/description/project-target.html#string)                               | 字符串操作模块                               | 描述域、脚本域             | >= 2.0.1 |
+| [process](https://xmake.io/zh/api/description/project-target.html#process)                             | 进程操作模块                                 | 脚本域                     | >= 2.0.1 |
+| [coroutine](https://xmake.io/zh/api/description/project-target.html#coroutine)                         | 协程操作模块                                 | 脚本域                     | >= 2.0.1 |
 
 在描述域使用接口调用的实例如下，一般仅用于条件控制：
 
@@ -4006,7 +4006,7 @@ print(val("env PATH"))
 local s = val("shell echo hello")
 ```
 
-而用[vformat](#vformat)就比较繁琐了：
+而用[vformat](https://xmake.io/zh/api/description/project-target.html#vformat)就比较繁琐了：
 
 ```lua
 local s = vformat("$(shell echo hello)")
@@ -4020,7 +4020,7 @@ local s = vformat("$(shell echo hello)")
 
 import的主要用于导入xmake的扩展类库以及一些自定义的类库模块，一般用于：
 
-* 自定义脚本([on_build](#on-build), [on_run](#on-run) ..)
+* 自定义脚本([on_build](https://xmake.io/zh/api/description/project-target.html#on-build), [on_run](https://xmake.io/zh/api/description/project-target.html#on-run) ..)
 * 插件开发
 * 模板开发
 * 平台扩展
@@ -4112,7 +4112,7 @@ anonymous为true，则导入的模块不会引入当前作用域，仅仅在impo
 
 ###### 导入并继承基类模块
 
-这个等价于[import](#import)接口的`inherit`模式，也就是：
+这个等价于[import](https://xmake.io/zh/api/description/project-target.html#import)接口的`inherit`模式，也就是：
 
 ```lua
 import("xxx.xxx", {inherit = true})
@@ -4343,7 +4343,7 @@ for idx, val in ipairs({"a", "b", "c", "d", "e", "f"}) do
 end
 ```
 
-扩展写法类似[pairs](#pairs)接口，例如：
+扩展写法类似[pairs](https://xmake.io/zh/api/description/project-target.html#pairs)接口，例如：
 
 ```lua
 for idx, val in ipairs({"a", "b", "c", "d", "e", "f"}, function (v) return v:upper() end) do
@@ -4389,13 +4389,13 @@ xmake会同时支持这两种写法，内部会去自动智能检测，选择输
 
 ###### 无换行打印终端日志
 
-类似[print](#print)接口，唯一的区别就是不换行。
+类似[print](https://xmake.io/zh/api/description/project-target.html#print)接口，唯一的区别就是不换行。
 
 ##### cprint
 
 ###### 换行彩色打印终端日志
 
-行为类似[print](#print)，区别就是此接口还支持彩色终端输出，并且支持`emoji`字符输出。
+行为类似[print](https://xmake.io/zh/api/description/project-target.html#print)，区别就是此接口还支持彩色终端输出，并且支持`emoji`字符输出。
 
 例如：
 
@@ -4508,13 +4508,13 @@ $ xmake --version
 
 ###### 无换行彩色打印终端日志
 
-此接口类似[cprint](#cprint)，区别就是不换行输出。
+此接口类似[cprint](https://xmake.io/zh/api/description/project-target.html#cprint)，区别就是不换行输出。
 
 ##### format
 
 ###### 格式化字符串
 
-如果只是想格式化字符串，不进行输出，可以使用这个接口，此接口跟[string.format](#string-format)接口等价，只是个接口名简化版。
+如果只是想格式化字符串，不进行输出，可以使用这个接口，此接口跟[string.format](https://xmake.io/zh/api/description/project-target.html#string-format)接口等价，只是个接口名简化版。
 
 ```lua
 local s = format("hello %s", xmake)
@@ -4524,7 +4524,7 @@ local s = format("hello %s", xmake)
 
 ###### 格式化字符串，支持内置变量转义
 
-此接口跟[format](#format)接口类似，只是增加对内置变量的获取和转义支持。
+此接口跟[format](https://xmake.io/zh/api/description/project-target.html#format)接口类似，只是增加对内置变量的获取和转义支持。
 
 ```lua
 local s = vformat("hello %s $(mode) $(arch) $(env PATH)", xmake)
@@ -4534,17 +4534,17 @@ local s = vformat("hello %s $(mode) $(arch) $(env PATH)", xmake)
 
 ###### 抛出异常中断程序
 
-如果想在自定义脚本、插件任务中中断xmake运行，可以使用这个接口抛出异常，如果上层没有显示调用[try-catch](#try-catch-finally)捕获的话，xmake就会中断执行，并且显示出错信息。
+如果想在自定义脚本、插件任务中中断xmake运行，可以使用这个接口抛出异常，如果上层没有显示调用[try-catch](https://xmake.io/zh/api/description/project-target.html#try-catch-finally)捕获的话，xmake就会中断执行，并且显示出错信息。
 
 ```lua
 if (errors) raise(errors)
 ```
 
-如果在try块中抛出异常，就会在catch和finally中进行errors信息捕获，具体见：[try-catch](#try-catch-finally)
+如果在try块中抛出异常，就会在catch和finally中进行errors信息捕获，具体见：[try-catch](https://xmake.io/zh/api/description/project-target.html#try-catch-finally)
 
 ##### os
 
-系统操作模块，属于内置模块，无需使用[import](#import)导入，可直接脚本域调用其接口。
+系统操作模块，属于内置模块，无需使用[import](https://xmake.io/zh/api/description/project-target.html#import)导入，可直接脚本域调用其接口。
 
 此模块也是lua的原生模块，xmake在其基础上进行了扩展，提供更多实用的接口。
 
@@ -4554,38 +4554,38 @@ os模块里面只有部分readonly接口（例如：`os.getenv`, `os.arch`）是
 
 | 接口                                            | 描述                                         | 支持版本 |
 | ----------------------------------------------- | -------------------------------------------- | -------- |
-| [os.cp](#os-cp)                                 | 复制文件或目录                               | >= 2.0.1 |
-| [os.mv](#os-mv)                                 | 移动重命名文件或目录                         | >= 2.0.1 |
-| [os.rm](#os-rm)                                 | 删除文件或目录树                             | >= 2.0.1 |
-| [os.trycp](#os-trycp)                           | 尝试复制文件或目录                           | >= 2.1.6 |
-| [os.trymv](#os-trymv)                           | 尝试移动重命名文件或目录                     | >= 2.1.6 |
-| [os.tryrm](#os-tryrm)                           | 尝试删除文件或目录树                         | >= 2.1.6 |
-| [os.cd](#os-cd)                                 | 进入指定目录                                 | >= 2.0.1 |
-| [os.rmdir](#os-rmdir)                           | 删除目录树                                   | >= 2.0.1 |
-| [os.mkdir](#os-mkdir)                           | 创建指定目录                                 | >= 2.0.1 |
-| [os.isdir](#os-isdir)                           | 判断目录是否存在                             | >= 2.0.1 |
-| [os.isfile](#os-isfile)                         | 判断文件是否存在                             | >= 2.0.1 |
-| [os.exists](#os-exists)                         | 判断文件或目录是否存在                       | >= 2.0.1 |
-| [os.dirs](#os-dirs)                             | 遍历获取指定目录下的所有目录                 | >= 2.0.1 |
-| [os.files](#os-files)                           | 遍历获取指定目录下的所有文件                 | >= 2.0.1 |
-| [os.filedirs](#os-filedirs)                     | 遍历获取指定目录下的所有文件或目录           | >= 2.0.1 |
-| [os.run](#os-run)                               | 安静运行程序                                 | >= 2.0.1 |
-| [os.runv](#os-runv)                             | 安静运行程序，带参数列表                     | >= 2.1.5 |
-| [os.exec](#os-exec)                             | 回显运行程序                                 | >= 2.0.1 |
-| [os.execv](#os-execv)                           | 回显运行程序，带参数列表                     | >= 2.1.5 |
-| [os.iorun](#os-iorun)                           | 运行并获取程序输出内容                       | >= 2.0.1 |
-| [os.iorunv](#os-iorunv)                         | 运行并获取程序输出内容，带参数列表           | >= 2.1.5 |
-| [os.getenv](#os-getenv)                         | 获取环境变量                                 | >= 2.0.1 |
-| [os.setenv](#os-setenv)                         | 设置环境变量                                 | >= 2.0.1 |
-| [os.tmpdir](#os-tmpdir)                         | 获取临时目录路径                             | >= 2.0.1 |
-| [os.tmpfile](#os-tmpfile)                       | 获取临时文件路径                             | >= 2.0.1 |
-| [os.curdir](#os-curdir)                         | 获取当前目录路径                             | >= 2.0.1 |
-| [os.filesize](#os-filesize)                     | 获取文件大小                                 | >= 2.1.9 |
-| [os.scriptdir](#os-scriptdir)                   | 获取脚本目录路径                             | >= 2.0.1 |
-| [os.programdir](#os-programdir)                 | 获取xmake安装主程序脚本目录                  | >= 2.1.5 |
-| [os.projectdir](#os-projectdir)                 | 获取工程主目录                               | >= 2.1.5 |
-| [os.arch](#os-arch)                             | 获取当前系统架构                             | >= 2.0.1 |
-| [os.host](#os-host)                             | 获取当前主机系统                             | >= 2.0.1 |
+| [os.cp](https://xmake.io/zh/api/description/project-target.html#os-cp)                                 | 复制文件或目录                               | >= 2.0.1 |
+| [os.mv](https://xmake.io/zh/api/description/project-target.html#os-mv)                                 | 移动重命名文件或目录                         | >= 2.0.1 |
+| [os.rm](https://xmake.io/zh/api/description/project-target.html#os-rm)                                 | 删除文件或目录树                             | >= 2.0.1 |
+| [os.trycp](https://xmake.io/zh/api/description/project-target.html#os-trycp)                           | 尝试复制文件或目录                           | >= 2.1.6 |
+| [os.trymv](https://xmake.io/zh/api/description/project-target.html#os-trymv)                           | 尝试移动重命名文件或目录                     | >= 2.1.6 |
+| [os.tryrm](https://xmake.io/zh/api/description/project-target.html#os-tryrm)                           | 尝试删除文件或目录树                         | >= 2.1.6 |
+| [os.cd](https://xmake.io/zh/api/description/project-target.html#os-cd)                                 | 进入指定目录                                 | >= 2.0.1 |
+| [os.rmdir](https://xmake.io/zh/api/description/project-target.html#os-rmdir)                           | 删除目录树                                   | >= 2.0.1 |
+| [os.mkdir](https://xmake.io/zh/api/description/project-target.html#os-mkdir)                           | 创建指定目录                                 | >= 2.0.1 |
+| [os.isdir](https://xmake.io/zh/api/description/project-target.html#os-isdir)                           | 判断目录是否存在                             | >= 2.0.1 |
+| [os.isfile](https://xmake.io/zh/api/description/project-target.html#os-isfile)                         | 判断文件是否存在                             | >= 2.0.1 |
+| [os.exists](https://xmake.io/zh/api/description/project-target.html#os-exists)                         | 判断文件或目录是否存在                       | >= 2.0.1 |
+| [os.dirs](https://xmake.io/zh/api/description/project-target.html#os-dirs)                             | 遍历获取指定目录下的所有目录                 | >= 2.0.1 |
+| [os.files](https://xmake.io/zh/api/description/project-target.html#os-files)                           | 遍历获取指定目录下的所有文件                 | >= 2.0.1 |
+| [os.filedirs](https://xmake.io/zh/api/description/project-target.html#os-filedirs)                     | 遍历获取指定目录下的所有文件或目录           | >= 2.0.1 |
+| [os.run](https://xmake.io/zh/api/description/project-target.html#os-run)                               | 安静运行程序                                 | >= 2.0.1 |
+| [os.runv](https://xmake.io/zh/api/description/project-target.html#os-runv)                             | 安静运行程序，带参数列表                     | >= 2.1.5 |
+| [os.exec](https://xmake.io/zh/api/description/project-target.html#os-exec)                             | 回显运行程序                                 | >= 2.0.1 |
+| [os.execv](https://xmake.io/zh/api/description/project-target.html#os-execv)                           | 回显运行程序，带参数列表                     | >= 2.1.5 |
+| [os.iorun](https://xmake.io/zh/api/description/project-target.html#os-iorun)                           | 运行并获取程序输出内容                       | >= 2.0.1 |
+| [os.iorunv](https://xmake.io/zh/api/description/project-target.html#os-iorunv)                         | 运行并获取程序输出内容，带参数列表           | >= 2.1.5 |
+| [os.getenv](https://xmake.io/zh/api/description/project-target.html#os-getenv)                         | 获取环境变量                                 | >= 2.0.1 |
+| [os.setenv](https://xmake.io/zh/api/description/project-target.html#os-setenv)                         | 设置环境变量                                 | >= 2.0.1 |
+| [os.tmpdir](https://xmake.io/zh/api/description/project-target.html#os-tmpdir)                         | 获取临时目录路径                             | >= 2.0.1 |
+| [os.tmpfile](https://xmake.io/zh/api/description/project-target.html#os-tmpfile)                       | 获取临时文件路径                             | >= 2.0.1 |
+| [os.curdir](https://xmake.io/zh/api/description/project-target.html#os-curdir)                         | 获取当前目录路径                             | >= 2.0.1 |
+| [os.filesize](https://xmake.io/zh/api/description/project-target.html#os-filesize)                     | 获取文件大小                                 | >= 2.1.9 |
+| [os.scriptdir](https://xmake.io/zh/api/description/project-target.html#os-scriptdir)                   | 获取脚本目录路径                             | >= 2.0.1 |
+| [os.programdir](https://xmake.io/zh/api/description/project-target.html#os-programdir)                 | 获取xmake安装主程序脚本目录                  | >= 2.1.5 |
+| [os.projectdir](https://xmake.io/zh/api/description/project-target.html#os-projectdir)                 | 获取工程主目录                               | >= 2.1.5 |
+| [os.arch](https://xmake.io/zh/api/description/project-target.html#os-arch)                             | 获取当前系统架构                             | >= 2.0.1 |
+| [os.host](https://xmake.io/zh/api/description/project-target.html#os-host)                             | 获取当前主机系统                             | >= 2.0.1 |
 
 ###### os.cp
 
@@ -4603,7 +4603,7 @@ os.cp("$(scriptdir)/*.h", "$(projectdir)/src/test/**.h", "$(buildir)/inc")
 
 其中`$(scriptdir)`, `$(projectdir)` 这些变量是xmake的内置变量，具体详情见：[内置变量](#内置变量)的相关文档。
 
-而`*.h`和`**.h`中的匹配模式，跟[add_files](#add-files)中的类似，前者是单级目录匹配，后者是递归多级目录匹配。
+而`*.h`和`**.h`中的匹配模式，跟[add_files](https://xmake.io/zh/api/description/project-target.html#add-files)中的类似，前者是单级目录匹配，后者是递归多级目录匹配。
 
 此接口同时支持目录的`递归复制`，例如：
 
@@ -4620,7 +4620,7 @@ os.cp("$(curdir)/test/", "$(tmpdir)/test")
 
 - 移动重命名文件或目录
 
-跟[os.cp](#os-cp)的使用类似，同样支持多文件移动操作和模式匹配，例如：
+跟[os.cp](https://xmake.io/zh/api/description/project-target.html#os-cp)的使用类似，同样支持多文件移动操作和模式匹配，例如：
 
 ```lua
 -- 移动多个文件到临时目录
@@ -4644,7 +4644,7 @@ os.rm("$(buildir)/inc/**.h", "$(buildir)/lib/")
 
 - 尝试复制文件或目录
 
-跟[os.cp](#os-cp)类似，唯一的区别就是，此接口操作失败不会抛出异常中断xmake，而是通过返回值标示是否执行成功。
+跟[os.cp](https://xmake.io/zh/api/description/project-target.html#os-cp)类似，唯一的区别就是，此接口操作失败不会抛出异常中断xmake，而是通过返回值标示是否执行成功。
 
 ```lua
 if os.trycp("file", "dest/file") then
@@ -4655,7 +4655,7 @@ end
 
 - 尝试移动文件或目录
 
-跟[os.mv](#os-mv)类似，唯一的区别就是，此接口操作失败不会抛出异常中断xmake，而是通过返回值标示是否执行成功。
+跟[os.mv](https://xmake.io/zh/api/description/project-target.html#os-mv)类似，唯一的区别就是，此接口操作失败不会抛出异常中断xmake，而是通过返回值标示是否执行成功。
 
 ```lua
 if os.trymv("file", "dest/file") then
@@ -4666,7 +4666,7 @@ end
 
 - 尝试删除文件或目录
 
-跟[os.rm](#os-rm)类似，唯一的区别就是，此接口操作失败不会抛出异常中断xmake，而是通过返回值标示是否执行成功。
+跟[os.rm](https://xmake.io/zh/api/description/project-target.html#os-rm)类似，唯一的区别就是，此接口操作失败不会抛出异常中断xmake，而是通过返回值标示是否执行成功。
 
 ```lua
 if os.tryrm("file") then
@@ -4761,7 +4761,7 @@ end
 
 - 遍历获取指定目录下的所有目录
 
-支持[add_files](#add-files)中的模式匹配，支持递归和非递归模式遍历，返回的结果是一个table数组，如果获取不到，返回空数组，例如：
+支持[add_files](https://xmake.io/zh/api/description/project-target.html#add-files)中的模式匹配，支持递归和非递归模式遍历，返回的结果是一个table数组，如果获取不到，返回空数组，例如：
 
 ```lua
 -- 递归遍历获取所有子目录
@@ -4774,7 +4774,7 @@ end
 
 - 遍历获取指定目录下的所有文件
 
-支持[add_files](#add-files)中的模式匹配，支持递归和非递归模式遍历，返回的结果是一个table数组，如果获取不到，返回空数组，例如：
+支持[add_files](https://xmake.io/zh/api/description/project-target.html#add-files)中的模式匹配，支持递归和非递归模式遍历，返回的结果是一个table数组，如果获取不到，返回空数组，例如：
 
 ```lua
 -- 非递归遍历获取所有子文件
@@ -4787,7 +4787,7 @@ end
 
 - 遍历获取指定目录下的所有文件和目录
 
-支持[add_files](#add-files)中的模式匹配，支持递归和非递归模式遍历，返回的结果是一个table数组，如果获取不到，返回空数组，例如：
+支持[add_files](https://xmake.io/zh/api/description/project-target.html#add-files)中的模式匹配，支持递归和非递归模式遍历，返回的结果是一个table数组，如果获取不到，返回空数组，例如：
 
 ```lua
 -- 递归遍历获取所有子文件和目录
@@ -4814,16 +4814,16 @@ os.run("ls -l $(buildir)")
 
 <p class="warning">
 使用此接口执行shell命令，容易使构建跨平台性降低，对于`os.run("cp ..")`这种尽量使用`os.cp`代替。<br>
-如果必须使用此接口运行shell程序，请自行使用[config.plat](#config-plat)接口判断平台支持。
+如果必须使用此接口运行shell程序，请自行使用[config.plat](https://xmake.io/zh/api/description/project-target.html#config-plat)接口判断平台支持。
 </p>
 
-更加高级的进程运行和控制，见[process](#process)模块接口。
+更加高级的进程运行和控制，见[process](https://xmake.io/zh/api/description/project-target.html#process)模块接口。
 
 ###### os.runv
 
 - 安静运行原生shell命令，带参数列表
 
-跟[os.run](#os-run)类似，只是传递参数的方式是通过参数列表传递，而不是字符串命令，例如：
+跟[os.run](https://xmake.io/zh/api/description/project-target.html#os-run)类似，只是传递参数的方式是通过参数列表传递，而不是字符串命令，例如：
 
 ```lua
 os.runv("echo", {"hello", "xmake!"})
@@ -4833,13 +4833,13 @@ os.runv("echo", {"hello", "xmake!"})
 
 - 回显运行原生shell命令
 
-与[os.run](#os-run)接口类似，唯一的不同是，此接口执行shell程序时，是带回显输出的，一般调试的时候用的比较多
+与[os.run](https://xmake.io/zh/api/description/project-target.html#os-run)接口类似，唯一的不同是，此接口执行shell程序时，是带回显输出的，一般调试的时候用的比较多
 
 ###### os.execv
 
 - 回显运行原生shell命令，带参数列表
 
-跟[os.execv](#os-execv)类似，只是传递参数的方式是通过参数列表传递，而不是字符串命令，例如：
+跟[os.execv](https://xmake.io/zh/api/description/project-target.html#os-execv)类似，只是传递参数的方式是通过参数列表传递，而不是字符串命令，例如：
 
 ```lua
 os.execv("echo", {"hello", "xmake!"})
@@ -4849,7 +4849,7 @@ os.execv("echo", {"hello", "xmake!"})
 
 - 安静运行原生shell命令并获取输出内容
 
-与[os.run](#os-run)接口类似，唯一的不同是，此接口执行shell程序后，会获取shell程序的执行结果，相当于重定向输出。
+与[os.run](https://xmake.io/zh/api/description/project-target.html#os-run)接口类似，唯一的不同是，此接口执行shell程序后，会获取shell程序的执行结果，相当于重定向输出。
 
 可同时获取`stdout`, `stderr`中的内容，例如：
 
@@ -4861,7 +4861,7 @@ local outdata, errdata = os.iorun("echo hello xmake!")
 
 - 安静运行原生shell命令并获取输出内容，带参数列表
 
-跟[os.iorunv](#os-iorunv)类似，只是传递参数的方式是通过参数列表传递，而不是字符串命令，例如：
+跟[os.iorunv](https://xmake.io/zh/api/description/project-target.html#os-iorunv)类似，只是传递参数的方式是通过参数列表传递，而不是字符串命令，例如：
 
 ```lua
 local result, errors = os.iorunv("echo", {"hello", "xmake!"})
@@ -4887,7 +4887,7 @@ os.setenv("HOME", "/tmp/")
 
 - 获取临时目录
 
-跟[$(tmpdir)](#var-tmpdir)结果一致，只不过是直接获取返回一个变量，可以用后续字符串维护。
+跟[$(tmpdir)](https://xmake.io/zh/api/description/project-target.html#var-tmpdir)结果一致，只不过是直接获取返回一个变量，可以用后续字符串维护。
 
 ```lua
 print(path.join(os.tmpdir(), "file.txt"))
@@ -4909,9 +4909,9 @@ print("$(tmpdir)/file.txt"))
 
 - 获取当前目录路径
 
-跟[$(curdir)](#var-curdir)结果一致，只不过是直接获取返回一个变量，可以用后续字符串维护。
+跟[$(curdir)](https://xmake.io/zh/api/description/project-target.html#var-curdir)结果一致，只不过是直接获取返回一个变量，可以用后续字符串维护。
 
-用法参考：[os.tmpdir](#os-tmpdir)。
+用法参考：[os.tmpdir](https://xmake.io/zh/api/description/project-target.html#os-tmpdir)。
 
 ###### os.filesize
 
@@ -4925,21 +4925,21 @@ print(os.filesize("/tmp/a"))
 
 - 获取当前描述脚本的路径
 
-跟[$(scriptdir)](#var-scriptdir)结果一致，只不过是直接获取返回一个变量，可以用后续字符串维护。
+跟[$(scriptdir)](https://xmake.io/zh/api/description/project-target.html#var-scriptdir)结果一致，只不过是直接获取返回一个变量，可以用后续字符串维护。
 
-用法参考：[os.tmpdir](#os-tmpdir)。
+用法参考：[os.tmpdir](https://xmake.io/zh/api/description/project-target.html#os-tmpdir)。
 
 ###### os.programdir
 
 - 获取xmake安装主程序脚本目录
 
-跟[$(programdir)](#var-programdir)结果一致，只不过是直接获取返回一个变量，可以用后续字符串维护。
+跟[$(programdir)](https://xmake.io/zh/api/description/project-target.html#var-programdir)结果一致，只不过是直接获取返回一个变量，可以用后续字符串维护。
 
 ###### os.projectdir
 
 - 获取工程主目录
 
-跟[$(projectdir)](#var-projectdir)结果一致，只不过是直接获取返回一个变量，可以用后续字符串维护。
+跟[$(projectdir)](https://xmake.io/zh/api/description/project-target.html#var-projectdir)结果一致，只不过是直接获取返回一个变量，可以用后续字符串维护。
 
 ###### os.arch
 
@@ -4951,7 +4951,7 @@ print(os.filesize("/tmp/a"))
 
 - 获取当前主机的操作系统
 
-跟[$(host)](#var-host)结果一致，例如我在`linux x86_64`上执行xmake进行构建，那么返回值是：`linux`
+跟[$(host)](https://xmake.io/zh/api/description/project-target.html#var-host)结果一致，例如我在`linux x86_64`上执行xmake进行构建，那么返回值是：`linux`
 
 ##### io
 
@@ -4959,16 +4959,16 @@ io操作模块，扩展了lua内置的io模块，提供更多易用的接口。
 
 | 接口                                            | 描述                                         | 支持版本 |
 | ----------------------------------------------- | -------------------------------------------- | -------- |
-| [io.open](#io-open)                             | 打开文件用于读写                             | >= 2.0.1 |
-| [io.load](#io-load)                             | 从指定路径文件反序列化加载所有table内容      | >= 2.0.1 |
-| [io.save](#io-save)                             | 序列化保存所有table内容到指定路径文件        | >= 2.0.1 |
+| [io.open](https://xmake.io/zh/api/description/project-target.html#io-open)                             | 打开文件用于读写                             | >= 2.0.1 |
+| [io.load](https://xmake.io/zh/api/description/project-target.html#io-load)                             | 从指定路径文件反序列化加载所有table内容      | >= 2.0.1 |
+| [io.save](https://xmake.io/zh/api/description/project-target.html#io-save)                             | 序列化保存所有table内容到指定路径文件        | >= 2.0.1 |
 | [io.readfile](#io.readfile)                     | 从指定路径文件读取所有内容                   | >= 2.1.3 |
 | [io.writefile](#io.writefile)                   | 写入所有内容到指定路径文件                   | >= 2.1.3 |
-| [io.gsub](#io-gsub)                             | 全文替换指定路径文件的内容                   | >= 2.0.1 |
-| [io.tail](#io-tail)                             | 读取和显示文件的尾部内容                     | >= 2.0.1 |
-| [io.cat](#io-cat)                               | 读取和显示文件的所有内容                     | >= 2.0.1 |
-| [io.print](#io-print)                           | 带换行格式化输出内容到文件                   | >= 2.0.1 |
-| [io.printf](#io-printf)                         | 无换行格式化输出内容到文件                   | >= 2.0.1 |
+| [io.gsub](https://xmake.io/zh/api/description/project-target.html#io-gsub)                             | 全文替换指定路径文件的内容                   | >= 2.0.1 |
+| [io.tail](https://xmake.io/zh/api/description/project-target.html#io-tail)                             | 读取和显示文件的尾部内容                     | >= 2.0.1 |
+| [io.cat](https://xmake.io/zh/api/description/project-target.html#io-cat)                               | 读取和显示文件的所有内容                     | >= 2.0.1 |
+| [io.print](https://xmake.io/zh/api/description/project-target.html#io-print)                           | 带换行格式化输出内容到文件                   | >= 2.0.1 |
+| [io.printf](https://xmake.io/zh/api/description/project-target.html#io-printf)                         | 无换行格式化输出内容到文件                   | >= 2.0.1 |
 
 ###### io.open
 
@@ -5016,7 +5016,7 @@ end
 
 -  从指定路径文件反序列化加载所有table内容
 
-可以从文件中加载序列化好的table内容，一般与[io.save](#io-save)配合使用，例如：
+可以从文件中加载序列化好的table内容，一般与[io.save](https://xmake.io/zh/api/description/project-target.html#io-save)配合使用，例如：
 
 ```lua
 -- 加载序列化文件的内容到table
@@ -5032,7 +5032,7 @@ end
 
 - 序列化保存所有table内容到指定路径文件 
 
-可以序列化存储table内容到指定文件，一般与[io.load](#io-load)配合使用，例如：
+可以序列化存储table内容到指定文件，一般与[io.load](https://xmake.io/zh/api/description/project-target.html#io-load)配合使用，例如：
 
 ```lua
 io.save("xxx.txt", {a = "a", b = "b", c = "c"})
@@ -5072,7 +5072,7 @@ io.writefile("xxx.txt", "all data")
 
 - 全文替换指定路径文件的内容
 
-类似[string.gsub](#string-gsub)接口，全文模式匹配替换内容，不过这里是直接操作文件，例如：
+类似[string.gsub](https://xmake.io/zh/api/description/project-target.html#string-gsub)接口，全文模式匹配替换内容，不过这里是直接操作文件，例如：
 
 ```lua
 -- 移除文件所有的空白字符
@@ -5126,14 +5126,14 @@ io.printf("xxx.txt", "hello %s!\n", "xmake")
 
 | 接口                                            | 描述                                         | 支持版本 |
 | ----------------------------------------------- | -------------------------------------------- | -------- |
-| [path.join](#path-join)                         | 拼接路径                                     | >= 2.0.1 |
-| [path.translate](#path-translate)               | 转换路径到当前平台的路径风格                 | >= 2.0.1 |
-| [path.basename](#path-basename)                 | 获取路径最后不带后缀的文件名                 | >= 2.0.1 |
-| [path.filename](#path-filename)                 | 获取路径最后带后缀的文件名                   | >= 2.0.1 |
-| [path.extension](#path-extension)               | 获取路径的后缀名                             | >= 2.0.1 |
-| [path.directory](#path-directory)               | 获取路径最后的目录名                         | >= 2.0.1 |
-| [path.relative](#path-relative)                 | 转换成相对路径                               | >= 2.0.1 |
-| [path.absolute](#path-absolute)                 | 转换成绝对路径                               | >= 2.0.1 |
+| [path.join](https://xmake.io/zh/api/description/project-target.html#path-join)                         | 拼接路径                                     | >= 2.0.1 |
+| [path.translate](https://xmake.io/zh/api/description/project-target.html#path-translate)               | 转换路径到当前平台的路径风格                 | >= 2.0.1 |
+| [path.basename](https://xmake.io/zh/api/description/project-target.html#path-basename)                 | 获取路径最后不带后缀的文件名                 | >= 2.0.1 |
+| [path.filename](https://xmake.io/zh/api/description/project-target.html#path-filename)                 | 获取路径最后带后缀的文件名                   | >= 2.0.1 |
+| [path.extension](https://xmake.io/zh/api/description/project-target.html#path-extension)               | 获取路径的后缀名                             | >= 2.0.1 |
+| [path.directory](https://xmake.io/zh/api/description/project-target.html#path-directory)               | 获取路径最后的目录名                         | >= 2.0.1 |
+| [path.relative](https://xmake.io/zh/api/description/project-target.html#path-relative)                 | 转换成相对路径                               | >= 2.0.1 |
+| [path.absolute](https://xmake.io/zh/api/description/project-target.html#path-absolute)                 | 转换成绝对路径                               | >= 2.0.1 |
 | [path.is_absolute](#path-is_absolute)           | 判断是否为绝对路径                           | >= 2.0.1 |
 
 ###### path.join
@@ -5260,11 +5260,11 @@ xmake中对其进行了扩展，增加了一些扩展接口：
 
 | 接口                                            | 描述                                         | 支持版本 |
 | ----------------------------------------------- | -------------------------------------------- | -------- |
-| [table.join](#table-join)                       | 合并多个table并返回                          | >= 2.0.1 |
-| [table.join2](#table-join2)                     | 合并多个table到第一个table                   | >= 2.0.1 |
-| [table.dump](#table-dump)                       | 输出table的所有内容                          | >= 2.0.1 |
-| [table.unique](#table-unique)                   | 对table中的内容进行去重                      | >= 2.0.1 |
-| [table.slice](#table-slice)                     | 获取table的切片                              | >= 2.0.1 |
+| [table.join](https://xmake.io/zh/api/description/project-target.html#table-join)                       | 合并多个table并返回                          | >= 2.0.1 |
+| [table.join2](https://xmake.io/zh/api/description/project-target.html#table-join2)                     | 合并多个table到第一个table                   | >= 2.0.1 |
+| [table.dump](https://xmake.io/zh/api/description/project-target.html#table-dump)                       | 输出table的所有内容                          | >= 2.0.1 |
+| [table.unique](https://xmake.io/zh/api/description/project-target.html#table-unique)                   | 对table中的内容进行去重                      | >= 2.0.1 |
+| [table.slice](https://xmake.io/zh/api/description/project-target.html#table-slice)                     | 获取table的切片                              | >= 2.0.1 |
 
 ###### table.join
 
@@ -5348,12 +5348,12 @@ xmake中对其进行了扩展，增加了一些扩展接口：
 
 | 接口                                            | 描述                                         | 支持版本 |
 | ----------------------------------------------- | -------------------------------------------- | -------- |
-| [string.startswith](#string-startswith)         | 判断字符串开头是否匹配                       | >= 1.0.1 |
-| [string.endswith](#string-endswith)             | 判断字符串结尾是否匹配                       | >= 1.0.1 |
-| [string.split](#string-split)                   | 分割字符串                                   | >= 1.0.1 |
-| [string.trim](#string-trim)                     | 去掉字符串左右空白字符                       | >= 1.0.1 |
-| [string.ltrim](#string-ltrim)                   | 去掉字符串左边空白字符                       | >= 1.0.1 |
-| [string.rtrim](#string-rtrim)                   | 去掉字符串右边空白字符                       | >= 1.0.1 |
+| [string.startswith](https://xmake.io/zh/api/description/project-target.html#string-startswith)         | 判断字符串开头是否匹配                       | >= 1.0.1 |
+| [string.endswith](https://xmake.io/zh/api/description/project-target.html#string-endswith)             | 判断字符串结尾是否匹配                       | >= 1.0.1 |
+| [string.split](https://xmake.io/zh/api/description/project-target.html#string-split)                   | 分割字符串                                   | >= 1.0.1 |
+| [string.trim](https://xmake.io/zh/api/description/project-target.html#string-trim)                     | 去掉字符串左右空白字符                       | >= 1.0.1 |
+| [string.ltrim](https://xmake.io/zh/api/description/project-target.html#string-ltrim)                   | 去掉字符串左边空白字符                       | >= 1.0.1 |
+| [string.rtrim](https://xmake.io/zh/api/description/project-target.html#string-rtrim)                   | 去掉字符串右边空白字符                       | >= 1.0.1 |
 
 ###### string.startswith
 
@@ -5429,14 +5429,14 @@ string.rtrim("    hello xmake!    ")
 
 ##### process
 
-这个是xmake扩展的进程控制模块，用于更加灵活的控制进程，比起：[os.run](#os-run)系列灵活性更高，也更底层。
+这个是xmake扩展的进程控制模块，用于更加灵活的控制进程，比起：[os.run](https://xmake.io/zh/api/description/project-target.html#os-run)系列灵活性更高，也更底层。
 
 | 接口                                            | 描述                                         | 支持版本 |
 | ----------------------------------------------- | -------------------------------------------- | -------- |
-| [process.open](#process-open)                   | 打开进程                                     | >= 2.0.1 |
-| [process.wait](#process-wait)                   | 等待进程结束                                 | >= 2.0.1 |
-| [process.close](#process-close)                 | 关闭进程对象                                 | >= 2.0.1 |
-| [process.waitlist](#process-waitlist)           | 同时等待多个进程                             | >= 2.0.1 |
+| [process.open](https://xmake.io/zh/api/description/project-target.html#process-open)                   | 打开进程                                     | >= 2.0.1 |
+| [process.wait](https://xmake.io/zh/api/description/project-target.html#process-wait)                   | 等待进程结束                                 | >= 2.0.1 |
+| [process.close](https://xmake.io/zh/api/description/project-target.html#process-close)                 | 关闭进程对象                                 | >= 2.0.1 |
+| [process.waitlist](https://xmake.io/zh/api/description/project-target.html#process-waitlist)           | 同时等待多个进程                             | >= 2.0.1 |
 
 ###### process.open
 
@@ -5465,13 +5465,13 @@ end
 
 - 等待进程结束
 
-具体使用见：[process.open](#process-open)
+具体使用见：[process.open](https://xmake.io/zh/api/description/project-target.html#process-open)
 
 ###### process.close
 
 - 关闭进程对象
 
-具体使用见：[process.open](#process-open)
+具体使用见：[process.open](https://xmake.io/zh/api/description/project-target.html#process-open)
 
 ###### process.waitlist
 
@@ -5495,7 +5495,7 @@ end
 
 #### 扩展模块
 
-所有扩展模块的使用，都需要通过[import](#import)接口，进行导入后才能使用。
+所有扩展模块的使用，都需要通过[import](https://xmake.io/zh/api/description/project-target.html#import)接口，进行导入后才能使用。
 
 ##### core.base.option
 
@@ -5503,7 +5503,7 @@ end
 
 | 接口                                            | 描述                                         | 支持版本 |
 | ----------------------------------------------- | -------------------------------------------- | -------- |
-| [option.get](#option-get)                       | 获取参数选项值                               | >= 2.0.1 |
+| [option.get](https://xmake.io/zh/api/description/project-target.html#option-get)                       | 获取参数选项值                               | >= 2.0.1 |
 
 ###### option.get
 
@@ -5539,10 +5539,10 @@ task("hello")
 
 | 接口                                            | 描述                                         | 支持版本 |
 | ----------------------------------------------- | -------------------------------------------- | -------- |
-| [global.get](#global-get)                       | 获取指定配置值                               | >= 2.0.1 |
-| [global.load](#global-load)                     | 加载配置                                     | >= 2.0.1 |
-| [global.directory](#global-directory)           | 获取全局配置信息目录                         | >= 2.0.1 |
-| [global.dump](#global-dump)                     | 打印输出所有全局配置信息                     | >= 2.0.1 |
+| [global.get](https://xmake.io/zh/api/description/project-target.html#global-get)                       | 获取指定配置值                               | >= 2.0.1 |
+| [global.load](https://xmake.io/zh/api/description/project-target.html#global-load)                     | 加载配置                                     | >= 2.0.1 |
+| [global.directory](https://xmake.io/zh/api/description/project-target.html#global-directory)           | 获取全局配置信息目录                         | >= 2.0.1 |
+| [global.dump](https://xmake.io/zh/api/description/project-target.html#global-dump)                     | 打印输出所有全局配置信息                     | >= 2.0.1 |
 
 <p class="tip">
 2.1.5版本之前为`core.project.global`。
@@ -5552,13 +5552,13 @@ task("hello")
 
 - 获取指定配置值
 
-类似[config.get](#config-get)，唯一的区别就是这个是从全局配置中获取。
+类似[config.get](https://xmake.io/zh/api/description/project-target.html#config-get)，唯一的区别就是这个是从全局配置中获取。
 
 ###### global.load
 
 - 加载配置
 
-类似[global.get](#global-get)，唯一的区别就是这个是从全局配置中加载。
+类似[global.get](https://xmake.io/zh/api/description/project-target.html#global-get)，唯一的区别就是这个是从全局配置中加载。
 
 ###### global.directory
 
@@ -5586,7 +5586,7 @@ task("hello")
 
 | 接口                                            | 描述                                         | 支持版本 |
 | ----------------------------------------------- | -------------------------------------------- | -------- |
-| [task.run](#task-run)                           | 运行指定任务                                 | >= 2.0.1 |
+| [task.run](https://xmake.io/zh/api/description/project-target.html#task-run)                           | 运行指定任务                                 | >= 2.0.1 |
 
 <p class="tip">
 2.1.5版本之前为`core.project.task`。
@@ -5596,7 +5596,7 @@ task("hello")
 
 - 运行指定任务
 
-用于在自定义脚本、插件任务中运行[task](#task)定义的任务或插件，例如：
+用于在自定义脚本、插件任务中运行[task](https://xmake.io/zh/api/description/project-target.html#task)定义的任务或插件，例如：
 
 ```lua
 task("hello")
@@ -5654,10 +5654,10 @@ emd
 
 | 接口                                            | 描述                                         | 支持版本 |
 | ----------------------------------------------- | -------------------------------------------- | -------- |
-| [linker.link](#linker-link)                     | 执行链接                                     | >= 2.0.1 |
-| [linker.linkcmd](#linker-linkcmd)               | 获取链接命令行                               | >= 2.0.1 |
-| [linker.linkargv](#linker-linkargv)             | 获取链接命令行列表                           | >= 2.1.5 |
-| [linker.linkflags](#linker-linkflags)           | 获取链接选项                                 | >= 2.0.1 |
+| [linker.link](https://xmake.io/zh/api/description/project-target.html#linker-link)                     | 执行链接                                     | >= 2.0.1 |
+| [linker.linkcmd](https://xmake.io/zh/api/description/project-target.html#linker-linkcmd)               | 获取链接命令行                               | >= 2.0.1 |
+| [linker.linkargv](https://xmake.io/zh/api/description/project-target.html#linker-linkargv)             | 获取链接命令行列表                           | >= 2.1.5 |
+| [linker.linkflags](https://xmake.io/zh/api/description/project-target.html#linker-linkflags)           | 获取链接选项                                 | >= 2.0.1 |
 | [linker.has_flags](#linker-has_flags)           | 判断指定链接选项是否支持                     | >= 2.1.5 |
 
 ###### linker.link
@@ -5670,7 +5670,7 @@ emd
 linker.link("binary", "cc", {"a.o", "b.o", "c.o"}, target:targetfile(), {target = target})
 ```
 
-其中[target](#target)，为工程目标，这里传入，主要用于获取target特定的链接选项，具体如果获取工程目标对象，见：[core.project.project](#core-project-project)
+其中[target](https://xmake.io/zh/api/description/project-target.html#target)，为工程目标，这里传入，主要用于获取target特定的链接选项，具体如果获取工程目标对象，见：[core.project.project](https://xmake.io/zh/api/description/project-target.html#core-project-project)
 
 当然也可以不指定target，例如：
 
@@ -5705,7 +5705,7 @@ linker.link("binary", {"cc", "mxx", "sc"}, {"a.o", "b.o", "c.o"}, "/tmp/targetfi
 
 - 获取链接命令行字符串
 
-直接获取[linker.link](#linker-link)中执行的命令行字符串，相当于：
+直接获取[linker.link](https://xmake.io/zh/api/description/project-target.html#linker-link)中执行的命令行字符串，相当于：
 
 ```lua
 local cmdstr = linker.linkcmd("static", "cxx", {"a.o", "b.o", "c.o"}, target:targetfile(), {target = target})
@@ -5723,7 +5723,7 @@ local cmdstr = linker.linkcmd("static", "cxx", {"a.o", "b.o", "c.o"}, target:tar
 
 - 获取链接命令行参数列表
 
-跟[linker.linkcmd](#linker-linkcmd)稍微有点区别的是，此接口返回的是参数列表，table表示，更加方便操作：
+跟[linker.linkcmd](https://xmake.io/zh/api/description/project-target.html#linker-linkcmd)稍微有点区别的是，此接口返回的是参数列表，table表示，更加方便操作：
 
 ```lua
 local program, argv = linker.linkargv("static", "cxx", {"a.o", "b.o", "c.o"}, target:targetfile(), {target = target})
@@ -5731,13 +5731,13 @@ local program, argv = linker.linkargv("static", "cxx", {"a.o", "b.o", "c.o"}, ta
 
 其中返回的第一个值是主程序名，后面是参数列表，而`os.args(table.join(program, argv))`等价于`linker.linkcmd`。
 
-我们也可以通过传入返回值给[os.runv](#os-runv)来直接运行它：`os.runv(linker.linkargv(..))`
+我们也可以通过传入返回值给[os.runv](https://xmake.io/zh/api/description/project-target.html#os-runv)来直接运行它：`os.runv(linker.linkargv(..))`
 
 ###### linker.linkflags
 
 - 获取链接选项
 
-获取[linker.linkcmd](#linker-linkcmd)中的链接选项字符串部分，不带shellname和对象文件列表，并且是按数组返回，例如：
+获取[linker.linkcmd](https://xmake.io/zh/api/description/project-target.html#linker-linkcmd)中的链接选项字符串部分，不带shellname和对象文件列表，并且是按数组返回，例如：
 
 ```lua
 local flags = linker.linkflags("shared", "cc", {target = target})
@@ -5767,12 +5767,12 @@ end
 
 | 接口                                            | 描述                                         | 支持版本 |
 | ----------------------------------------------- | -------------------------------------------- | -------- |
-| [compiler.compile](#compiler-compile)           | 执行编译                                     | >= 2.0.1 |
-| [compiler.compcmd](#compiler-compcmd)           | 获取编译命令行                               | >= 2.0.1 |
-| [compiler.compargv](#compiler-compargv)         | 获取编译命令行列表                           | >= 2.1.5 |
-| [compiler.compflags](#compiler-compflags)       | 获取编译选项                                 | >= 2.0.1 |
+| [compiler.compile](https://xmake.io/zh/api/description/project-target.html#compiler-compile)           | 执行编译                                     | >= 2.0.1 |
+| [compiler.compcmd](https://xmake.io/zh/api/description/project-target.html#compiler-compcmd)           | 获取编译命令行                               | >= 2.0.1 |
+| [compiler.compargv](https://xmake.io/zh/api/description/project-target.html#compiler-compargv)         | 获取编译命令行列表                           | >= 2.1.5 |
+| [compiler.compflags](https://xmake.io/zh/api/description/project-target.html#compiler-compflags)       | 获取编译选项                                 | >= 2.0.1 |
 | [compiler.has_flags](#compiler-has_flags)       | 判断指定编译选项是否支持                     | >= 2.1.5 |
-| [compiler.features](#compiler-features)         | 获取所有编译器特性                           | >= 2.1.5 |
+| [compiler.features](https://xmake.io/zh/api/description/project-target.html#compiler-features)         | 获取所有编译器特性                           | >= 2.1.5 |
 | [compiler.has_features](#compiler-has_features) | 判断指定编译特性是否支持                     | >= 2.1.5 |
 
 ###### compiler.compile
@@ -5785,7 +5785,7 @@ end
 compiler.compile("xxx.c", "xxx.o", "xxx.h.d", {target = target})
 ```
 
-其中[target](#target)，为工程目标，这里传入主要用于获取taeget的特定编译选项，具体如果获取工程目标对象，见：[core.project.project](#core-project-project)
+其中[target](https://xmake.io/zh/api/description/project-target.html#target)，为工程目标，这里传入主要用于获取taeget的特定编译选项，具体如果获取工程目标对象，见：[core.project.project](https://xmake.io/zh/api/description/project-target.html#core-project-project)
 
 而`xxx.h.d`文件用于存储为此源文件的头文件依赖文件列表，最后这两个参数都是可选的，编译的时候可以不传他们：
 
@@ -5799,7 +5799,7 @@ compiler.compile("xxx.c", "xxx.o")
 
 - 获取编译命令行
 
-直接获取[compiler.compile](#compiler-compile)中执行的命令行字符串，相当于：
+直接获取[compiler.compile](https://xmake.io/zh/api/description/project-target.html#compiler-compile)中执行的命令行字符串，相当于：
 
 ```lua
 local cmdstr = compiler.compcmd("xxx.c", "xxx.o", {target = target})
@@ -5831,7 +5831,7 @@ end
 
 - 获取编译命令行列表
 
-跟[compiler.compargv](#compiler-compargv)稍微有点区别的是，此接口返回的是参数列表，table表示，更加方便操作：
+跟[compiler.compargv](https://xmake.io/zh/api/description/project-target.html#compiler-compargv)稍微有点区别的是，此接口返回的是参数列表，table表示，更加方便操作：
 
 ```lua
 local program, argv = compiler.compargv("xxx.c", "xxx.o")
@@ -5841,7 +5841,7 @@ local program, argv = compiler.compargv("xxx.c", "xxx.o")
 
 - 获取编译选项
 
-获取[compiler.compcmd](#compiler-compcmd)中的编译选项字符串部分，不带shellname和文件列表，例如：
+获取[compiler.compcmd](https://xmake.io/zh/api/description/project-target.html#compiler-compcmd)中的编译选项字符串部分，不带shellname和文件列表，例如：
 
 ```lua
 local flags = compiler.compflags(sourcefile, {target = target})
@@ -5980,7 +5980,7 @@ if compiler.has_features("cxx_constexpr", {target = target, defines = "..", incl
 end
 ```
 
-具体特性名有哪些，可以参考：[compiler.features](#compiler-features)。
+具体特性名有哪些，可以参考：[compiler.features](https://xmake.io/zh/api/description/project-target.html#compiler-features)。
 
 ##### core.project.config
 
@@ -5988,14 +5988,14 @@ end
 
 | 接口                                            | 描述                                         | 支持版本 |
 | ----------------------------------------------- | -------------------------------------------- | -------- |
-| [config.get](#config-get)                       | 获取指定配置值                               | >= 2.0.1 |
-| [config.load](#config-load)                     | 加载配置                                     | >= 2.0.1 |
-| [config.arch](#config-arch)                     | 获取当前工程的架构配置                       | >= 2.0.1 |
-| [config.plat](#config-plat)                     | 获取当前工程的平台配置                       | >= 2.0.1 |
-| [config.mode](#config-mode)                     | 获取当前工程的编译模式配置                   | >= 2.0.1 |
-| [config.buildir](#config-buildir)               | 获取当前工程的输出目录配置                   | >= 2.0.1 |
-| [config.directory](#config-directory)           | 获取当前工程的配置信息目录                   | >= 2.0.1 |
-| [config.dump](#config-dump)                     | 打印输出当前工程的所有配置信息               | >= 2.0.1 |
+| [config.get](https://xmake.io/zh/api/description/project-target.html#config-get)                       | 获取指定配置值                               | >= 2.0.1 |
+| [config.load](https://xmake.io/zh/api/description/project-target.html#config-load)                     | 加载配置                                     | >= 2.0.1 |
+| [config.arch](https://xmake.io/zh/api/description/project-target.html#config-arch)                     | 获取当前工程的架构配置                       | >= 2.0.1 |
+| [config.plat](https://xmake.io/zh/api/description/project-target.html#config-plat)                     | 获取当前工程的平台配置                       | >= 2.0.1 |
+| [config.mode](https://xmake.io/zh/api/description/project-target.html#config-mode)                     | 获取当前工程的编译模式配置                   | >= 2.0.1 |
+| [config.buildir](https://xmake.io/zh/api/description/project-target.html#config-buildir)               | 获取当前工程的输出目录配置                   | >= 2.0.1 |
+| [config.directory](https://xmake.io/zh/api/description/project-target.html#config-directory)           | 获取当前工程的配置信息目录                   | >= 2.0.1 |
+| [config.dump](https://xmake.io/zh/api/description/project-target.html#config-dump)                     | 打印输出当前工程的所有配置信息               | >= 2.0.1 |
 
 ###### config.get
 
@@ -6019,7 +6019,7 @@ target("test")
 
 - 加载配置
 
-一般用于插件开发中，插件任务中不像工程的自定义脚本，环境需要自己初始化加载，默认工程配置是没有被加载的，如果要用[config.get](#config-get)接口获取工程配置，那么需要先：
+一般用于插件开发中，插件任务中不像工程的自定义脚本，环境需要自己初始化加载，默认工程配置是没有被加载的，如果要用[config.get](https://xmake.io/zh/api/description/project-target.html#config-get)接口获取工程配置，那么需要先：
 
 ```lua
 
@@ -6106,29 +6106,29 @@ end
 ##### core.project.global
 
 <p class="tip">
-此模块自2.1.5版本后迁移至[core.base.global](#core-base-global)。
+此模块自2.1.5版本后迁移至[core.base.global](https://xmake.io/zh/api/description/project-target.html#core-base-global)。
 </p>
 
 ##### core.project.task
 
 <p class="tip">
-此模块自2.1.5版本后迁移至[core.base.task](#core-base-task)。
+此模块自2.1.5版本后迁移至[core.base.task](https://xmake.io/zh/api/description/project-target.html#core-base-task)。
 </p>
 
 ##### core.project.project
 
-用于获取当前工程的一些描述信息，也就是在`xmake.lua`工程描述文件中定义的配置信息，例如：[target](#target)、[option](#option)等。
+用于获取当前工程的一些描述信息，也就是在`xmake.lua`工程描述文件中定义的配置信息，例如：[target](https://xmake.io/zh/api/description/project-target.html#target)、[option](https://xmake.io/zh/api/description/project-target.html#option)等。
 
 | 接口                                            | 描述                                         | 支持版本             |
 | ----------------------------------------------- | -------------------------------------------- | -------------------- |
-| [project.load](#project-load)                   | 加载工程配置                                 | >= 2.0.1 (2.1.5废弃) |
-| [project.directory](#project-directory)         | 获取工程目录                                 | >= 2.0.1             |
-| [project.target](#project-target)               | 获取指定工程目标对象                         | >= 2.0.1             |
-| [project.targets](#project-targets)             | 获取工程目标对象列表                         | >= 2.0.1             |
-| [project.option](#project-option)               | 获取指定的选项对象                           | >= 2.1.5             |
-| [project.options](#project-options)             | 获取工程所有的选项对象                       | >= 2.1.5             |
-| [project.name](#project-name)                   | 获取当前工程名                               | >= 2.0.1             |
-| [project.version](#project-version)             | 获取当前工程版本号                           | >= 2.0.1             |
+| [project.load](https://xmake.io/zh/api/description/project-target.html#project-load)                   | 加载工程配置                                 | >= 2.0.1 (2.1.5废弃) |
+| [project.directory](https://xmake.io/zh/api/description/project-target.html#project-directory)         | 获取工程目录                                 | >= 2.0.1             |
+| [project.target](https://xmake.io/zh/api/description/project-target.html#project-target)               | 获取指定工程目标对象                         | >= 2.0.1             |
+| [project.targets](https://xmake.io/zh/api/description/project-target.html#project-targets)             | 获取工程目标对象列表                         | >= 2.0.1             |
+| [project.option](https://xmake.io/zh/api/description/project-target.html#project-option)               | 获取指定的选项对象                           | >= 2.1.5             |
+| [project.options](https://xmake.io/zh/api/description/project-target.html#project-options)             | 获取工程所有的选项对象                       | >= 2.1.5             |
+| [project.name](https://xmake.io/zh/api/description/project-target.html#project-name)                   | 获取当前工程名                               | >= 2.0.1             |
+| [project.version](https://xmake.io/zh/api/description/project-target.html#project-version)             | 获取当前工程版本号                           | >= 2.0.1             |
 
 ###### project.load
 
@@ -6162,7 +6162,7 @@ end
 获取当前工程目录，也就是`xmake -P xxx`中指定的目录，否则为默认当前`xmake`命令执行目录。
 
 <p class="tip">
-2.1.5版本后，建议使用[os.projectdir](#os-projectdir)来获取。
+2.1.5版本后，建议使用[os.projectdir](https://xmake.io/zh/api/description/project-target.html#os-projectdir)来获取。
 </p>
 
 ###### project.target
@@ -6264,11 +6264,11 @@ print(project.version())
 
 | 接口                                              | 描述                                         | 支持版本 |
 | -----------------------------------------------   | -------------------------------------------- | -------- |
-| [language.extensions](#language-extensions)       | 获取所有语言的代码后缀名列表                 | >= 2.1.1 |
-| [language.targetkinds](#language-targetkinds)     | 获取所有语言的目标类型列表                   | >= 2.1.1 |
-| [language.sourcekinds](#language-sourcekinds)     | 获取所有语言的源文件类型列表                 | >= 2.1.1 |
-| [language.sourceflags](#language-sourceflags)     | 加载所有语言的源文件编译选项名列表           | >= 2.1.1 |
-| [language.load](#language-load)                   | 加载指定语言                                 | >= 2.1.1 |
+| [language.extensions](https://xmake.io/zh/api/description/project-target.html#language-extensions)       | 获取所有语言的代码后缀名列表                 | >= 2.1.1 |
+| [language.targetkinds](https://xmake.io/zh/api/description/project-target.html#language-targetkinds)     | 获取所有语言的目标类型列表                   | >= 2.1.1 |
+| [language.sourcekinds](https://xmake.io/zh/api/description/project-target.html#language-sourcekinds)     | 获取所有语言的源文件类型列表                 | >= 2.1.1 |
+| [language.sourceflags](https://xmake.io/zh/api/description/project-target.html#language-sourceflags)     | 加载所有语言的源文件编译选项名列表           | >= 2.1.1 |
+| [language.load](https://xmake.io/zh/api/description/project-target.html#language-load)                   | 加载指定语言                                 | >= 2.1.1 |
 | [language.load_sk](#language-load_sk)             | 从源文件类型加载指定语言                     | >= 2.1.1 |
 | [language.load_ex](#language-load_ex)             | 从源文件后缀名加载指定语言                   | >= 2.1.1 |
 | [language.sourcekind_of](#language-sourcekind_of) | 获取指定源文件的源文件类型                   | >= 2.1.1 |
@@ -6388,7 +6388,7 @@ end
 print(language.sourcekind_of("/xxxx/test.cpp"))
 ```
 
-显示结果为：`cxx`，也就是`c++`类型，具体对应列表见：[language.sourcekinds](#language-sourcekinds)
+显示结果为：`cxx`，也就是`c++`类型，具体对应列表见：[language.sourcekinds](https://xmake.io/zh/api/description/project-target.html#language-sourcekinds)
 
 ##### core.platform.platform
 
@@ -6396,7 +6396,7 @@ print(language.sourcekind_of("/xxxx/test.cpp"))
 
 | 接口                                            | 描述                                         | 支持版本 |
 | ----------------------------------------------- | -------------------------------------------- | -------- |
-| [platform.get](#platform-get)                   | 获取指定平台相关配置信息                     | >= 2.0.1 |
+| [platform.get](https://xmake.io/zh/api/description/project-target.html#platform-get)                   | 获取指定平台相关配置信息                     | >= 2.0.1 |
 
 ###### platform.get
 
@@ -6413,7 +6413,7 @@ local formats = platform.get("formats", "iphoneos")
 table.dump(formats)
 ```
 
-具体有哪些可读的平台配置信息，可参考：[platform](#platform)
+具体有哪些可读的平台配置信息，可参考：[platform](https://xmake.io/zh/api/description/project-target.html#platform)
 
 ##### core.platform.environment
 
@@ -6421,8 +6421,8 @@ table.dump(formats)
 
 | 接口                                            | 描述                                         | 支持版本 |
 | ----------------------------------------------- | -------------------------------------------- | -------- |
-| [environment.enter](#environment-enter)         | 进入指定环境                                 | >= 2.0.1 |
-| [environment.leave](#environment-leave)         | 离开指定环境                                 | >= 2.0.1 |
+| [environment.enter](https://xmake.io/zh/api/description/project-target.html#environment-enter)         | 进入指定环境                                 | >= 2.0.1 |
+| [environment.leave](https://xmake.io/zh/api/description/project-target.html#environment-leave)         | 离开指定环境                                 | >= 2.0.1 |
 
 目前支持的环境有：
 
@@ -6453,7 +6453,7 @@ environment.leave("toolchains")
 
 - 离开指定环境
 
-具体使用见：[environment.enter](#environment-enter)
+具体使用见：[environment.enter](https://xmake.io/zh/api/description/project-target.html#environment-enter)
 
 ##### lib.detect
 
@@ -6473,7 +6473,7 @@ environment.leave("toolchains")
 | [detect.find_package](#detect-find_package)         | 查找包文件，包含库文件和搜索路径             | >= 2.1.5             |
 | [detect.find_tool](#detect-find_tool)               | 查找工具                                     | >= 2.1.5             |
 | [detect.find_toolname](#detect-find_toolname)       | 查找工具名                                   | >= 2.1.5             |
-| [detect.features](#detect-features)                 | 获取指定工具的所有特性                       | >= 2.1.5             |
+| [detect.features](https://xmake.io/zh/api/description/project-target.html#detect-features)                 | 获取指定工具的所有特性                       | >= 2.1.5             |
 | [detect.has_features](#detect-has_features)         | 判断指定特性是否支持                         | >= 2.1.5             |
 | [detect.has_flags](#detect-has_flags)               | 判断指定参数选项是否支持                     | >= 2.1.5             |
 | [detect.has_cfuncs](#detect-has_cfuncs)             | 判断指定c函数是否存在                        | >= 2.1.5             |
@@ -6488,7 +6488,7 @@ environment.leave("toolchains")
 
 - 查找文件
 
-这个接口提供了比[os.files](#os-files)更加强大的工程， 可以同时指定多个搜索目录，并且还能对每个目录指定附加的子目录，来模式匹配查找，相当于是[os.files](#os-files)的增强版。
+这个接口提供了比[os.files](https://xmake.io/zh/api/description/project-target.html#os-files)更加强大的工程， 可以同时指定多个搜索目录，并且还能对每个目录指定附加的子目录，来模式匹配查找，相当于是[os.files](https://xmake.io/zh/api/description/project-target.html#os-files)的增强版。
 
 例如：
 
@@ -6994,7 +6994,7 @@ toolname相比program，更能唯一标示某个工具，也方便查找和加�
 
 - 获取指定工具的所有特性
 
-此接口跟[compiler.features](#compiler-features)类似，区别就是此接口更加的原始，传入的参数是实际的工具名toolname。
+此接口跟[compiler.features](https://xmake.io/zh/api/description/project-target.html#compiler-features)类似，区别就是此接口更加的原始，传入的参数是实际的工具名toolname。
 
 并且此接口不仅能够获取编译器的特性，任何工具的特性都可以获取，因此更加通用。
 
@@ -7008,7 +7008,7 @@ local features = features("clang", {flags = {"-g", "-O0", "-std=c++11"}})
 
 通过传入flags，可以改变特性的获取结果，例如一些c++11的特性，默认情况下获取不到，通过启用`-std=c++11`后，就可以获取到了。
 
-所有编译器的特性列表，可以见：[compiler.features](#compiler-features)。
+所有编译器的特性列表，可以见：[compiler.features](https://xmake.io/zh/api/description/project-target.html#compiler-features)。
 
 ###### detect.has_features
 
@@ -7028,7 +7028,7 @@ local features = has_features("clang", {"cxx_constexpr", "c_static_assert"}, {fl
 
 如果指定的特性列表存在，则返回实际支持的特性子列表，如果都不支持，则返回nil，我们也可以通过指定flags去改变特性的获取规则。
 
-所有编译器的特性列表，可以见：[compiler.features](#compiler-features)。
+所有编译器的特性列表，可以见：[compiler.features](https://xmake.io/zh/api/description/project-target.html#compiler-features)。
 
 ###### detect.has_flags
 
@@ -7164,7 +7164,7 @@ local ok = check_cxsnippets({}, {types = {"wchar_t", "char*"}, includes = "stdio
 
 | 接口                                                | 描述                                         | 支持版本             |
 | --------------------------------------------------- | -------------------------------------------- | -------------------- |
-| [http.download](#http-download)                     | 下载http文件                                 | >= 2.1.5             |
+| [http.download](https://xmake.io/zh/api/description/project-target.html#http-download)                     | 下载http文件                                 | >= 2.1.5             |
 
 ###### http.download
 
@@ -7188,13 +7188,13 @@ http.download("http://xmake.io", "/tmp/index.html")
 
 | 接口                                                | 描述                                         | 支持版本             |
 | --------------------------------------------------- | -------------------------------------------- | -------------------- |
-| [sudo.has](#sudo-has)                               | 判断sudo是否支持                             | >= 2.1.5             |
-| [sudo.run](#sudo-run)                               | 安静运行程序                                 | >= 2.1.5             |
-| [sudo.runv](#sudo-runv)                             | 安静运行程序，带参数列表                     | >= 2.1.5             |
-| [sudo.exec](#sudo-exec)                             | 回显运行程序                                 | >= 2.1.5             |
-| [sudo.execv](#sudo-execv)                           | 回显运行程序，带参数列表                     | >= 2.1.5             |
-| [sudo.iorun](#sudo-iorun)                           | 运行并获取程序输出内容                       | >= 2.1.5             |
-| [sudo.iorunv](#sudo-iorunv)                         | 运行并获取程序输出内容，带参数列表           | >= 2.1.5             |
+| [sudo.has](https://xmake.io/zh/api/description/project-target.html#sudo-has)                               | 判断sudo是否支持                             | >= 2.1.5             |
+| [sudo.run](https://xmake.io/zh/api/description/project-target.html#sudo-run)                               | 安静运行程序                                 | >= 2.1.5             |
+| [sudo.runv](https://xmake.io/zh/api/description/project-target.html#sudo-runv)                             | 安静运行程序，带参数列表                     | >= 2.1.5             |
+| [sudo.exec](https://xmake.io/zh/api/description/project-target.html#sudo-exec)                             | 回显运行程序                                 | >= 2.1.5             |
+| [sudo.execv](https://xmake.io/zh/api/description/project-target.html#sudo-execv)                           | 回显运行程序，带参数列表                     | >= 2.1.5             |
+| [sudo.iorun](https://xmake.io/zh/api/description/project-target.html#sudo-iorun)                           | 运行并获取程序输出内容                       | >= 2.1.5             |
+| [sudo.iorunv](https://xmake.io/zh/api/description/project-target.html#sudo-iorunv)                         | 运行并获取程序输出内容，带参数列表           | >= 2.1.5             |
 
 ###### sudo.has
 
@@ -7214,7 +7214,7 @@ end
 
 - 安静运行原生shell命令
 
-具体用法可参考：[os.run](#os-run)。
+具体用法可参考：[os.run](https://xmake.io/zh/api/description/project-target.html#os-run)。
 
 ```lua
 import("privilege.sudo")
@@ -7226,31 +7226,31 @@ sudo.run("rm /system/file")
 
 - 安静运行原生shell命令，带参数列表
 
-具体用法可参考：[os.runv](#os-runv)。
+具体用法可参考：[os.runv](https://xmake.io/zh/api/description/project-target.html#os-runv)。
 
 ###### sudo.exec
 
 - 回显运行原生shell命令
 
-具体用法可参考：[os.exec](#os-exec)。
+具体用法可参考：[os.exec](https://xmake.io/zh/api/description/project-target.html#os-exec)。
 
 ###### sudo.execv
 
 - 回显运行原生shell命令，带参数列表
 
-具体用法可参考：[os.execv](#os-execv)。
+具体用法可参考：[os.execv](https://xmake.io/zh/api/description/project-target.html#os-execv)。
 
 ###### sudo.iorun
 
 - 安静运行原生shell命令并获取输出内容
 
-具体用法可参考：[os.iorun](#os-iorun)。
+具体用法可参考：[os.iorun](https://xmake.io/zh/api/description/project-target.html#os-iorun)。
 
 ###### sudo.iorunv
 
 - 安静运行原生shell命令并获取输出内容，带参数列表
 
-具体用法可参考：[os.iorunv](#os-iorunv)。
+具体用法可参考：[os.iorunv](https://xmake.io/zh/api/description/project-target.html#os-iorunv)。
 
 ##### devel.git
 
@@ -7262,13 +7262,13 @@ sudo.run("rm /system/file")
 
 | 接口                                                | 描述                                         | 支持版本             |
 | --------------------------------------------------- | -------------------------------------------- | -------------------- |
-| [git.clone](#git-clone)                             | clone代码库                                  | >= 2.1.5             |
-| [git.pull](#git-pull)                               | 拉取代码库最新提交                           | >= 2.1.5             |
-| [git.clean](#git-clean)                             | 清理代码库文件                               | >= 2.1.5             |
-| [git.checkout](#git-checkout)                       | 签出指定分支版本                             | >= 2.1.5             |
-| [git.refs](#git-refs)                               | 获取所有引用列表                             | >= 2.1.5             |
-| [git.tags](#git-tags)                               | 获取所有标记列表                             | >= 2.1.5             |
-| [git.branches](#git-branches)                       | 获取所有分支列表                             | >= 2.1.5             |
+| [git.clone](https://xmake.io/zh/api/description/project-target.html#git-clone)                             | clone代码库                                  | >= 2.1.5             |
+| [git.pull](https://xmake.io/zh/api/description/project-target.html#git-pull)                               | 拉取代码库最新提交                           | >= 2.1.5             |
+| [git.clean](https://xmake.io/zh/api/description/project-target.html#git-clean)                             | 清理代码库文件                               | >= 2.1.5             |
+| [git.checkout](https://xmake.io/zh/api/description/project-target.html#git-checkout)                       | 签出指定分支版本                             | >= 2.1.5             |
+| [git.refs](https://xmake.io/zh/api/description/project-target.html#git-refs)                               | 获取所有引用列表                             | >= 2.1.5             |
+| [git.tags](https://xmake.io/zh/api/description/project-target.html#git-tags)                               | 获取所有标记列表                             | >= 2.1.5             |
+| [git.branches](https://xmake.io/zh/api/description/project-target.html#git-branches)                       | 获取所有分支列表                             | >= 2.1.5             |
 
 ###### git.clone
 
@@ -7364,7 +7364,7 @@ local branches = git.branches(url)
 
 | 接口                                                | 描述                                         | 支持版本             |
 | --------------------------------------------------- | -------------------------------------------- | -------------------- |
-| [archive.extract](#archive-extract)                 | 解压文件                                     | >= 2.1.5             |
+| [archive.extract](https://xmake.io/zh/api/description/project-target.html#archive-extract)                 | 解压文件                                     | >= 2.1.5             |
 
 ###### archive.extract
 

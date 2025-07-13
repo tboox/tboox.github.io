@@ -368,13 +368,13 @@ $ xmake f -p android --ndk=~/files/android-ndk-r10e/ [-a armv5te|armv6|armv7-a|a
 $ xmake
 ```
 
-如果要手动指定ndk中具体某个工具链，而不是使用默认检测的配置，可以通过[--toolchains](#-toolchains)来设置，例如：
+如果要手动指定ndk中具体某个工具链，而不是使用默认检测的配置，可以通过[--toolchains](https://xmake.io/zh/api/description/project-target.html#-toolchains)来设置，例如：
 
 ```bash
 $ xmake f -p android --ndk=~/files/android-ndk-r10e/ -a arm64-v8a --toolchains=~/files/android-ndk-r10e/toolchains/aarch64-linux-android-4.9/prebuilt/darwin-x86_64/bin
 ```
 
-[--toolchains](#-toolchains)主要用于设置选择编译工具的具体bin目录，这个的使用跟[交叉编译](#交叉编译)中的[--toolchains](#-toolchains)的行为是一致的。
+[--toolchains](https://xmake.io/zh/api/description/project-target.html#-toolchains)主要用于设置选择编译工具的具体bin目录，这个的使用跟[交叉编译](#交叉编译)中的[--toolchains](https://xmake.io/zh/api/description/project-target.html#-toolchains)的行为是一致的。
 
 <p class="tip">
 如果手动设置了`toolchains`的bin目录，没有通过检测，可以看下是否`--arch=`参数没有匹配对。
@@ -435,45 +435,45 @@ $ xmake
 
 | 参数名                       | 描述                             |
 | ---------------------------- | -------------------------------- |
-| [--sdk](#-sdk)               | 设置交叉工具链的sdk根目录        |
-| [--toolchains](#-toolchains) | 设置工具链bin目录                |
-| [--cross](#-cross)           | 设置交叉工具链工具前缀           |
-| [--as](#-as)                 | 设置`asm`汇编器                  |
-| [--cc](#-cc)                 | 设置`c`编译器                    |
-| [--cxx](#-cxx)               | 设置`c++`编译器                  |
-| [--mm](#-mm)                 | 设置`objc`编译器                 |
-| [--mxx](#-mxx)               | 设置`objc++`编译器               |
-| [--sc](#-sc)                 | 设置`swift`编译器                |
-| [--gc](#-gc)                 | 设置`golang`编译器               |
-| [--dc](#-dc)                 | 设置`dlang`编译器                |
-| [--rc](#-rc)                 | 设置`rust`编译器                 |
-| [--ld](#-ld)                 | 设置`c/c++/objc/asm`链接器       |
-| [--sh](#-sh)                 | 设置`c/c++/objc/asm`共享库链接器 |
-| [--ar](#-ar)                 | 设置`c/c++/objc/asm`静态库归档器 |
-| [--sc-ld](#-sc-ld)           | 设置`swift`链接器                |
-| [--sc-sh](#-sc-sh)           | 设置`swift`共享库链接器          |
-| [--gc-ld](#-gc-ld)           | 设置`golang`链接器               |
-| [--gc-ar](#-gc-ar)           | 设置`golang`静态库归档器         |
-| [--dc-ld](#-dc-ld)           | 设置`dlang`链接器                |
-| [--dc-sh](#-dc-sh)           | 设置`dlang`共享库链接器          |
-| [--dc-ar](#-dc-ar)           | 设置`dlang`静态库归档器          |
-| [--rc-ld](#-rc-ld)           | 设置`rust`链接器                 |
-| [--rc-sh](#-rc-sh)           | 设置`rust`共享库链接器           |
-| [--rc-ar](#-rc-ar)           | 设置`rust`静态库归档器           |
-| [--asflags](#-asflags)       | 设置`asm`汇编编译选项            |
-| [--cflags](#-cflags)         | 设置`c`编译选项                  |
-| [--cxflags](#-cxflags)       | 设置`c/c++`编译选项              |
-| [--cxxflags](#-cxxflags)     | 设置`c++`编译选项                |
-| [--mflags](#-mflags)         | 设置`objc`编译选项               |
-| [--mxflags](#-mxflags)       | 设置`objc/c++`编译选项           |
-| [--mxxflags](#-mxxflags)     | 设置`objc++`编译选项             |
-| [--scflags](#-scflags)       | 设置`swift`编译选项              |
-| [--gcflags](#-gcflags)       | 设置`golang`编译选项             |
-| [--dcflags](#-dcflags)       | 设置`dlang`编译选项              |
-| [--rcflags](#-rcflags)       | 设置`rust`编译选项               |
-| [--ldflags](#-ldflags)       | 设置链接选项                     |
-| [--shflags](#-shflags)       | 设置共享库链接选项               |
-| [--arflags](#-arflags)       | 设置静态库归档选项               |
+| [--sdk](https://xmake.io/zh/api/description/project-target.html#-sdk)               | 设置交叉工具链的sdk根目录        |
+| [--toolchains](https://xmake.io/zh/api/description/project-target.html#-toolchains) | 设置工具链bin目录                |
+| [--cross](https://xmake.io/zh/api/description/project-target.html#-cross)           | 设置交叉工具链工具前缀           |
+| [--as](https://xmake.io/zh/api/description/project-target.html#-as)                 | 设置`asm`汇编器                  |
+| [--cc](https://xmake.io/zh/api/description/project-target.html#-cc)                 | 设置`c`编译器                    |
+| [--cxx](https://xmake.io/zh/api/description/project-target.html#-cxx)               | 设置`c++`编译器                  |
+| [--mm](https://xmake.io/zh/api/description/project-target.html#-mm)                 | 设置`objc`编译器                 |
+| [--mxx](https://xmake.io/zh/api/description/project-target.html#-mxx)               | 设置`objc++`编译器               |
+| [--sc](https://xmake.io/zh/api/description/project-target.html#-sc)                 | 设置`swift`编译器                |
+| [--gc](https://xmake.io/zh/api/description/project-target.html#-gc)                 | 设置`golang`编译器               |
+| [--dc](https://xmake.io/zh/api/description/project-target.html#-dc)                 | 设置`dlang`编译器                |
+| [--rc](https://xmake.io/zh/api/description/project-target.html#-rc)                 | 设置`rust`编译器                 |
+| [--ld](https://xmake.io/zh/api/description/project-target.html#-ld)                 | 设置`c/c++/objc/asm`链接器       |
+| [--sh](https://xmake.io/zh/api/description/project-target.html#-sh)                 | 设置`c/c++/objc/asm`共享库链接器 |
+| [--ar](https://xmake.io/zh/api/description/project-target.html#-ar)                 | 设置`c/c++/objc/asm`静态库归档器 |
+| [--sc-ld](https://xmake.io/zh/api/description/project-target.html#-sc-ld)           | 设置`swift`链接器                |
+| [--sc-sh](https://xmake.io/zh/api/description/project-target.html#-sc-sh)           | 设置`swift`共享库链接器          |
+| [--gc-ld](https://xmake.io/zh/api/description/project-target.html#-gc-ld)           | 设置`golang`链接器               |
+| [--gc-ar](https://xmake.io/zh/api/description/project-target.html#-gc-ar)           | 设置`golang`静态库归档器         |
+| [--dc-ld](https://xmake.io/zh/api/description/project-target.html#-dc-ld)           | 设置`dlang`链接器                |
+| [--dc-sh](https://xmake.io/zh/api/description/project-target.html#-dc-sh)           | 设置`dlang`共享库链接器          |
+| [--dc-ar](https://xmake.io/zh/api/description/project-target.html#-dc-ar)           | 设置`dlang`静态库归档器          |
+| [--rc-ld](https://xmake.io/zh/api/description/project-target.html#-rc-ld)           | 设置`rust`链接器                 |
+| [--rc-sh](https://xmake.io/zh/api/description/project-target.html#-rc-sh)           | 设置`rust`共享库链接器           |
+| [--rc-ar](https://xmake.io/zh/api/description/project-target.html#-rc-ar)           | 设置`rust`静态库归档器           |
+| [--asflags](https://xmake.io/zh/api/description/project-target.html#-asflags)       | 设置`asm`汇编编译选项            |
+| [--cflags](https://xmake.io/zh/api/description/project-target.html#-cflags)         | 设置`c`编译选项                  |
+| [--cxflags](https://xmake.io/zh/api/description/project-target.html#-cxflags)       | 设置`c/c++`编译选项              |
+| [--cxxflags](https://xmake.io/zh/api/description/project-target.html#-cxxflags)     | 设置`c++`编译选项                |
+| [--mflags](https://xmake.io/zh/api/description/project-target.html#-mflags)         | 设置`objc`编译选项               |
+| [--mxflags](https://xmake.io/zh/api/description/project-target.html#-mxflags)       | 设置`objc/c++`编译选项           |
+| [--mxxflags](https://xmake.io/zh/api/description/project-target.html#-mxxflags)     | 设置`objc++`编译选项             |
+| [--scflags](https://xmake.io/zh/api/description/project-target.html#-scflags)       | 设置`swift`编译选项              |
+| [--gcflags](https://xmake.io/zh/api/description/project-target.html#-gcflags)       | 设置`golang`编译选项             |
+| [--dcflags](https://xmake.io/zh/api/description/project-target.html#-dcflags)       | 设置`dlang`编译选项              |
+| [--rcflags](https://xmake.io/zh/api/description/project-target.html#-rcflags)       | 设置`rust`编译选项               |
+| [--ldflags](https://xmake.io/zh/api/description/project-target.html#-ldflags)       | 设置链接选项                     |
+| [--shflags](https://xmake.io/zh/api/description/project-target.html#-shflags)       | 设置共享库链接选项               |
+| [--arflags](https://xmake.io/zh/api/description/project-target.html#-arflags)       | 设置静态库归档选项               |
 
 <p class="tip">
 如果你想要了解更多参数选项，请运行: `xmake f --help`。
@@ -518,7 +518,7 @@ $ xmake
 
 - 设置工具链bin目录
 
-对于不规则工具链目录结构，靠单纯地[--sdk](#-sdk)选项设置，没法完全检测通过的情况下，可以通过这个选项继续附加设置工具链的bin目录位置。
+对于不规则工具链目录结构，靠单纯地[--sdk](https://xmake.io/zh/api/description/project-target.html#-sdk)选项设置，没法完全检测通过的情况下，可以通过这个选项继续附加设置工具链的bin目录位置。
 
 例如：一些特殊的交叉工具链的，编译器bin目录，并不在 `/home/toolchains_sdkdir/bin` 这个位置，而是独立到了 `/usr/opt/bin` 
 

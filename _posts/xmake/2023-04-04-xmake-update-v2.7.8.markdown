@@ -139,7 +139,7 @@ If you want more fine-grained control over detection, you can use the detection 
 
 - Check whether the target compilation configuration can obtain the given C++ function
 
-The usage is similar to [target:has_cfuncs](#has-cfuncs), except that it is mainly used to detect C++ functions.
+The usage is similar to [target:has_cfuncs](https://xmake.io/zh/api/description/project-target.html#has-cfuncs), except that it is mainly used to detect C++ functions.
 
 However, while detecting functions, we can also additionally configure std languages to assist detection.
 
